@@ -6,16 +6,7 @@
 
 title = "QuantLab Gitleaks Config"
 
-[extend]
-# Use default rules from gitleaks
-
-[[rules]]
-id = "env-file"
-description = "Detect .env files"
-regex = '''\.env'''
-path = '''\.env'''
-
-[[allowlist]]
+[allowlist]
 description = "Allowed patterns"
 paths = [
     '''\.gitleaks\.toml''',

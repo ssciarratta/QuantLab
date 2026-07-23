@@ -1,0 +1,16 @@
+[2m2026-07-23T21:00:46.588213Z[0m [[32m[1minfo     [0m] [1mvertical_slice_start          [0m [[0m[1m[34mquantlab.cli[0m][0m [36menvironment[0m=[35mdev[0m
+[2m2026-07-23T21:00:46.589957Z[0m [[32m[1minfo     [0m] [1mreproducibility_info          [0m [[0m[1m[34mquantlab.cli[0m][0m [36mcommit[0m=[35mae9bec949f78e64d1b899d6d0f39a9e68f9605f4[0m [36mlockfile_hash[0m=[35m787d63805c827e3579ae3723d90eb596fe9bba3205548e08bde6f98b965f425f[0m
+[2m2026-07-23T21:00:46.590104Z[0m [[32m[1minfo     [0m] [1morder_intent                  [0m [[0m[1m[34mquantlab.cli[0m][0m [36mindex[0m=[35m0[0m [36mquantity[0m=[35m0.001[0m [36mside[0m=[35mBUY[0m [36mtype[0m=[35mPLACE_ORDER[0m
+============================================================
+QuantLab Vertical Slice
+============================================================
+
+Commit: ae9bec949f78e64d1b899d6d0f39a9e68f9605f4
+Lockfile hash: 787d63805c827e3579ae3723d90eb596fe9bba3205548e08bde6f98b965f425f
+Environment: dev
+Events processed: 1
+Intents generated: 1
+
+Vertical slice: PASSED
+============================================================
+exit: 0

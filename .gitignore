@@ -16,6 +16,11 @@ data/*
 # Reportes generados
 reports/*
 !reports/.gitkeep
+!reports/*.txt
+!reports/*.xml
+
+# Review packages (large ZIPs)
+QuantLab_Review_*.zip
 
 # IDE / SO
 .vscode/
@@ -27,3 +32,4 @@ Thumbs.db
 .ipynb_checkpoints/
 sync_token.txt
 sync_approved.txt
+.coverage
