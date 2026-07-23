@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Entornos y credenciales
+.env
+*.secret
+
+# Datos (nunca versionar datos crudos ni pesados)
+data/*
+!data/.gitkeep
+
+# Reportes generados
+reports/*
+!reports/.gitkeep
+
+# IDE / SO
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
