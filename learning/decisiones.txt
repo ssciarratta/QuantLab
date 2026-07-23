@@ -78,4 +78,34 @@ Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
   registrado para Fase 14.
   Pregunta respondida: ¿Más mantenible en 5 años? Sí.
 
+[2026-07-23] DEC-013 — Contrato Strategy: on_event() reemplaza on_bar()
+  Decisión: Strategy Protocol usa on_event(MarketEvent, StrategyContext) → tuple[OrderIntent, ...]
+  Justificación: on_bar() era falsamente opcional y acoplaba el contrato a barras.
+  on_event() es genérico: acepta bars, trades, book updates via MarketEventType.
+  Elimina ambigüedad del protocolo. Coherente con diseño event-driven.
+  Alternativas descartadas: Mantener on_bar() como método separado.
+
+[2026-07-23] DEC-014 — Inmutabilidad profunda con MappingProxyType + tuples
+  Decisión: Todos los campos mutables en dataclasses frozen usan MappingProxyType,
+  tuples y freeze_json() recursivo.
+  Justificación: frozen=True no es profundamente inmutable con dict/list.
+
+[2026-07-23] DEC-015 — Tipos JSON explícitos (JsonScalar, JsonValue, JsonArray, JsonObject)
+  Decisión: Reemplazar Any en payloads, metadata, configs con tipos JSON tipados.
+
+[2026-07-23] DEC-016 — Validación OrderIntent por tipo de intención
+  Decisión: PLACE_ORDER, CANCEL_ORDER, REPLACE_ORDER, NO_ACTION tienen
+  reglas de validación específicas que impiden estados inválidos.
+
+[2026-07-23] DEC-017 — Gitleaks como herramienta de secret scanning
+  Decisión: Gitleaks sobre detect-secrets y TruffleHog.
+  Justificación: Lightweight, rápido, CI-friendly, GitHub Action oficial.
+
+[2026-07-23] DEC-018 — uv como gestor de dependencias
+  Decisión: uv para lockfile reproducible (uv.lock).
+  Justificación: Reemplaza requirements.txt de entorno global.
+
+[2026-07-23] DEC-019 — Pydantic para validación de configuración
+  Decisión: QuantLabConfig con extra="forbid" y ValidationError específico.
+
 ================================================================================

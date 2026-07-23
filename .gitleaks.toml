@@ -1,0 +1,28 @@
+# Gitleaks configuration for QuantLab
+# Adopted per audit requirement: automatic secret scanning
+# Tool choice rationale: Gitleaks is lightweight, fast, CI-friendly,
+# and has excellent pattern coverage for tokens, passwords, API keys,
+# private keys, and cloud credentials.
+
+title = "QuantLab Gitleaks Config"
+
+[extend]
+# Use default rules from gitleaks
+
+[[rules]]
+id = "env-file"
+description = "Detect .env files"
+regex = '''\.env'''
+path = '''\.env'''
+
+[[allowlist]]
+description = "Allowed patterns"
+paths = [
+    '''\.gitleaks\.toml''',
+    '''\.gitignore''',
+    '''REVIEW_REQUEST\.md''',
+    '''CHANGELOG\.md''',
+    '''LESSONS_LEARNED\.md''',
+    '''docs/.*\.md''',
+    '''learning/.*\.txt''',
+]
