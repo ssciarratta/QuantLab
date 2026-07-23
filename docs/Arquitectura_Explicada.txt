@@ -1,0 +1,177 @@
+================================================================================
+QUANTLAB — ARQUITECTURA EXPLICADA EN LENGUAJE CLARO
+================================================================================
+Versión: 1.0
+Fase: 1 — Diseño
+Fecha: 2026-07-23
+================================================================================
+
+¿QUÉ ES QUANTLAB?
+-----------------
+
+QuantLab NO es un bot de trading. Es un laboratorio donde un investigador
+cuantitativo puede:
+
+  1. Descargar datos de mercado.
+  2. Analizar qué activos tienen oportunidad (Alpha Scanner).
+  3. Probar estrategias contra datos históricos (backtesting).
+  4. Simular miles o millones de escenarios posibles (Monte Carlo).
+  5. Encontrar los mejores parámetros (optimización).
+  6. Generar reportes comparativos.
+  7. Enviar la estrategia ganadora a Hummingbot para que la ejecute.
+
+QuantLab investiga. Hummingbot ejecuta. Nunca se mezclan.
+
+
+¿POR QUÉ TANTAS CARPETAS?
+--------------------------
+
+Imaginá un laboratorio científico real:
+
+  - docs/        → Los manuales y papers del laboratorio
+  - learning/    → El cuaderno del investigador (decisiones, dudas, diario)
+  - config/      → Los ajustes de los instrumentos (no mezclados con el código)
+  - src/         → Los instrumentos de medición (el código)
+  - tests/       → Los controles de calidad (¿funciona bien cada instrumento?)
+  - experiments/ → El registro de cada experimento realizado
+  - reports/     → Los informes finales de cada experimento
+  - scripts/     → Herramientas operativas (encender, apagar, limpiar)
+  - data/        → Los datos crudos y procesados (demasiado pesados para git)
+
+Cada carpeta tiene UN propósito. Si algo no encaja en ninguna, probablemente
+sobra o falta una carpeta.
+
+
+¿CÓMO FLUYEN LOS DATOS?
+------------------------
+
+Paso 1: LLEGAN DATOS
+  Un exchange (Binance, etc.) o un archivo CSV entrega datos de mercado.
+  Un "conector" los descarga y los guarda tal cual en data/raw/.
+
+Paso 2: SE LIMPIAN
+  Se normalizan zonas horarias, se eliminan duplicados, se corrigen gaps.
+  Resultado en data/processed/.
+
+Paso 3: SE TRANSFORMAN EN FEATURES
+  Se calculan indicadores útiles: volatilidad, spread, volumen relativo, etc.
+  Resultado en data/features/.
+
+Paso 4: EL ALPHA SCANNER EVALÚA OPORTUNIDADES
+  Mira todos los activos y dice: "Este par tiene buen spread y volumen,
+  este otro no." Rankea oportunidades.
+
+Paso 5: SE SIMULA LA ESTRATEGIA
+  El backtester toma una estrategia (ej: market making) y la corre contra
+  datos históricos. Opcionalmente, el simulador Monte Carlo prueba miles de
+  variaciones. El optimizador busca los mejores parámetros.
+
+Paso 6: SE CALCULAN MÉTRICAS
+  Sharpe ratio, drawdown, PnL, fill rate, etc. Siempre con las mismas
+  fórmulas, sin importar qué estrategia se probó.
+
+Paso 7: SE GENERA UN REPORTE
+  HTML o Markdown con todos los resultados, la config usada, y las
+  versiones de datos. Reproducible.
+
+Paso 8 (FUTURO): SE ENVÍA A HUMMINGBOT
+  Si el investigador aprueba, QuantLab exporta la config y Hummingbot
+  la ejecuta en el exchange real.
+
+
+¿QUÉ ES UNA "INTERFAZ"?
+------------------------
+
+Una interfaz es un CONTRATO. Dice: "cualquier cosa que se llame DataProvider
+DEBE poder hacer estas operaciones: get_bars, get_trades, list_symbols."
+
+Así, el backtester no le importa si los datos vienen de Binance, de un CSV
+o de datos inventados para tests. Solo le importa que cumplan el contrato.
+
+Las 10 interfaces principales son:
+
+  DataProvider    → De dónde vienen los datos
+  Storage         → Dónde se guardan los datos
+  Strategy        → Cómo decide operar una estrategia
+  Backtester      → Cómo se simula contra historia
+  Simulator       → Cómo se simulan escenarios aleatorios
+  Optimizer       → Cómo se buscan mejores parámetros
+  MetricsEngine   → Cómo se calculan KPIs
+  AlphaScanner    → Cómo se detectan oportunidades
+  ExecutionEngine → Cómo se envía a ejecución live
+  ReportGenerator → Cómo se generan informes
+
+
+¿POR QUÉ PYTHON, PARQUET, DUCKDB, POLARS?
+------------------------------------------
+
+PYTHON: El lenguaje estándar en finanzas cuantitativas. Ecosistema enorme.
+        No es el más rápido, pero es el más productivo para investigación.
+
+PARQUET: Formato de archivo columnar. Comprime bien, lee rápido, es el
+         estándar en data engineering. Ideal para series temporales.
+
+DUCKDB: Base de datos analítica embebida. Puede consultar Parquet directamente
+        sin importar. Perfecta como catálogo de datasets.
+
+POLARS: Librería de datos ultra-rápida (5-30x vs Pandas). Usamos Polars
+        para transformaciones pesadas. Pandas solo si una librería externa
+        lo exige.
+
+PYTEST: Framework de tests estándar en Python. Cada módulo tendrá tests.
+
+
+¿QUÉ PASA SI MAÑANA QUIERO AGREGAR UNA ESTRATEGIA NUEVA?
+-----------------------------------------------------------
+
+  1. Creás una clase que implemente la interfaz Strategy.
+  2. La ponés en src/quantlab/research/strategies/nueva_estrategia/.
+  3. La corrés en el backtester existente.
+  4. Las métricas y reportes funcionan automáticamente.
+
+NO tocás: data, features, backtester, metrics, reporting, execution.
+Eso es modularidad.
+
+
+¿QUÉ PASA SI MAÑANA QUIERO AGREGAR UN EXCHANGE NUEVO?
+--------------------------------------------------------
+
+  1. Creás un DataProvider que implemente el contrato.
+  2. Lo ponés en src/quantlab/data/providers/nuevo_exchange/.
+  3. El pipeline de ingesta lo usa.
+
+NO tocás: estrategias, simulación, métricas, reportes.
+
+
+¿CUÁLES SON LOS RIESGOS PRINCIPALES?
+-------------------------------------
+
+  1. Simulaciones que consumen toda la RAM → mitigado con streaming y chunks.
+  2. Datos que cambian retroactivamente → mitigado con snapshots inmutables.
+  3. Estrategias acopladas a un exchange → mitigado con interfaces.
+  4. Backtester con bugs silenciosos → mitigado con "golden runs" en Fase 5.
+  5. Over-engineering temprano → mitigado con fases pequeñas e incrementales.
+
+
+¿CUÁNDO SE ESCRIBE CÓDIGO?
+---------------------------
+
+  NO en esta fase. Esta fase es SOLO diseño.
+
+  El código empieza en Fase 2 (core + infraestructura) después de que vos
+  y el revisor técnico aprueben esta arquitectura.
+
+
+¿QUÉ SIGUE DESPUÉS DE ESTA FASE?
+---------------------------------
+
+  Vos y GPT revisan estos documentos.
+  Si aprueban → Fase 2: implementar interfaces y config.
+  Si no → iteramos el diseño hasta que esté sólido.
+
+  El roadmap completo tiene 14 fases pequeñas, cada una con entregables
+  y criterios de cierre claros. Ver docs/Arquitectura.md sección 9.
+
+================================================================================
+FIN DEL DOCUMENTO
+================================================================================

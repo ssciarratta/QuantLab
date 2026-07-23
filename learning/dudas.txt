@@ -1,0 +1,56 @@
+================================================================================
+QUANTLAB — DUDAS ABIERTAS
+================================================================================
+Formato: [FECHA] DUD-XXX — Pregunta — Contexto — Recomendación — Estado
+================================================================================
+
+[2026-07-23] DUD-001 — DuckDB vs SQLite como catálogo definitivo
+  Pregunta: ¿Confirmamos DuckDB como catálogo o preferimos SQLite por simplicidad?
+  Contexto: DuckDB es superior para analytics pero menos conocido.
+  Recomendación: DuckDB primario, SQLite como fallback documentado.
+  Estado: ABIERTA — requiere aprobación del revisor técnico.
+
+[2026-07-23] DUD-002 — Modelo de slippage por defecto
+  Pregunta: ¿Qué modelo de slippage usamos como default en el backtester?
+  Contexto: Critical para estrategias de market making. Opciones: fixed bps,
+  proportional to volume, order book based.
+  Recomendación: Fixed bps como default (simple); order book based en Fase 11+.
+  Estado: ABIERTA — definir en Fase 5 antes de implementar backtester.
+
+[2026-07-23] DUD-003 — Hummingbot v1 vs v2
+  Pregunta: ¿Cuál versión de Hummingbot es target de integración?
+  Contexto: API y config difieren entre versiones. Afecta diseño del adaptador.
+  Recomendación: Decidir en Fase 13; diseño del adaptador es agnóstico por ahora.
+  Estado: ABIERTA — no bloquea Fases 2-12.
+
+[2026-07-23] DUD-004 — OHLCV vs order book replay
+  Pregunta: ¿El backtester inicial usa solo OHLCV o necesitamos replay de order book?
+  Contexto: MM strategies se benefician de order book data. Más complejo de ingerir.
+  Recomendación: OHLCV primero (Fase 5); order book en Fase 11+ si estrategias lo requieren.
+  Estado: ABIERTA — requiere input del revisor cuantitativo.
+
+[2026-07-23] DUD-005 — Granularidad temporal mínima
+  Pregunta: ¿Trabajamos con barras de 1 minuto, 1 segundo, o tick data?
+  Contexto: Afecta volumen de datos, storage, y fidelidad del backtest.
+  Recomendación: 1 minuto como default; tick data como extensión futura.
+  Estado: ABIERTA — requiere input del director del proyecto.
+
+[2026-07-23] DUD-006 — Estrategia de backup de datos
+  Pregunta: ¿Cómo protegemos data/ contra pérdida de disco?
+  Contexto: Todo local inicialmente. Un disco roto = todo perdido.
+  Recomendación: Documentar en Fase 3; cloud backup como FI-08.
+  Estado: ABIERTA — no bloquea Fase 1-2.
+
+[2026-07-23] DUD-007 — Nomenclatura de experimentos
+  Pregunta: ¿IDs automáticos (UUID) o nomenclatura semántica (exp_2026_001_mm_btc)?
+  Contexto: Afecta usabilidad vs unicidad.
+  Recomendación: UUID interno + slug semántico opcional para humanos.
+  Estado: ABIERTA — definir en Fase 7.
+
+[2026-07-23] DUD-008 — Multi-activo en backtester
+  Pregunta: ¿El backtester de Fase 5 soporta portfolio multi-activo o solo single-asset?
+  Contexto: Alpha Scanner rankea múltiples activos; backtester debe poder probarlos.
+  Recomendación: Single-asset en Fase 5; multi-asset en Fase 8+.
+  Estado: ABIERTA — requiere input del revisor cuantitativo.
+
+================================================================================

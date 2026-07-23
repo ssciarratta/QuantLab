@@ -1,0 +1,81 @@
+================================================================================
+QUANTLAB — REGISTRO DE DECISIONES TÉCNICAS
+================================================================================
+Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
+================================================================================
+
+[2026-07-23] DEC-001 — Lenguaje principal
+  Decisión: Python 3.11+
+  Justificación: Ecosistema cuantitativo maduro, productividad, tipado gradual.
+  Alternativas descartadas: Rust (prematura), Julia (ecosistema menor).
+  Pregunta respondida: ¿Más fácil de mantener en 5 años? Sí.
+
+[2026-07-23] DEC-002 — Formato de almacenamiento
+  Decisión: Apache Parquet
+  Justificación: Columnar, comprimido, estándar, compatible con Polars/DuckDB.
+  Alternativas descartadas: CSV (lento, sin schema), HDF5 (menos ecosistema).
+  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
+
+[2026-07-23] DEC-003 — Motor analítico / catálogo
+  Decisión: DuckDB (primario), SQLite (fallback)
+  Justificación: Consulta Parquet nativa, analytics columnar, zero deps.
+  Alternativas descartadas: PostgreSQL (overkill local), solo SQLite (lento
+  en agregaciones grandes).
+  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
+
+[2026-07-23] DEC-004 — Librería de transformación de datos
+  Decisión: Polars (primario), Pandas (compatibilidad en fronteras)
+  Justificación: 5-30x más rápido, lazy evaluation, menor consumo de RAM.
+  Alternativas descartadas: Solo Pandas (insuficiente para escala).
+  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
+
+[2026-07-23] DEC-005 — Framework de tests
+  Decisión: pytest
+  Justificación: Estándar de facto, fixtures, parametrización, plugins.
+  Pregunta respondida: ¿Más científico? Sí (reproducibilidad verificable).
+
+[2026-07-23] DEC-006 — Logging
+  Decisión: structlog sobre stdlib logging
+  Justificación: Logs estructurados JSON, context binding, preparado para
+  agregadores futuros.
+  Pregunta respondida: ¿Más reproducible? Sí. ¿Más mantenible? Sí.
+
+[2026-07-23] DEC-007 — Configuración
+  Decisión: YAML para runtime, TOML para proyecto (pyproject.toml)
+  Justificación: Legible, versionable, diff-friendly. Schemas de validación
+  en config/schemas/.
+  Pregunta respondida: ¿Más reproducible? Sí.
+
+[2026-07-23] DEC-008 — Separación investigación / ejecución
+  Decisión: QuantLab investiga; Hummingbot ejecuta. ExecutionEngine como
+  frontera con adaptador aislado.
+  Justificación: Evita riesgo de órdenes accidentales; permite investigar
+  sin infraestructura live.
+  Pregunta respondida: ¿Más modular? Sí. ¿Más mantenible? Sí.
+
+[2026-07-23] DEC-009 — Arquitectura por capas
+  Decisión: 9 módulos (core, infra, data, features, research, simulation,
+  metrics, reporting, execution) con interfaces en core/.
+  Justificación: Cada capa evoluciona independientemente; nueva estrategia
+  o exchange no requiere cambios en otras capas.
+  Pregunta respondida: ¿Más modular? Sí. ¿Más escalable? Sí.
+
+[2026-07-23] DEC-010 — Licencia
+  Decisión: MIT
+  Justificación: Ya estaba en repo desde Fase 0. Permisiva, estándar.
+  Pregunta respondida: ¿Más mantenible? Sí.
+
+[2026-07-23] DEC-011 — Datos fuera de git
+  Decisión: data/ y reports/ en .gitignore con .gitkeep
+  Justificación: Datos de mercado pesados no pertenecen al repositorio.
+  Catálogo regenerable desde Parquet.
+  Pregunta respondida: ¿Más escalable? Sí.
+
+[2026-07-23] DEC-012 — Progressive complexity
+  Decisión: Empezar local/secuencial; interfaces preparadas para distribución
+  futura sin implementarla ahora.
+  Justificación: Evita over-engineering. FI-04 (orquestador distribuido)
+  registrado para Fase 14.
+  Pregunta respondida: ¿Más mantenible en 5 años? Sí.
+
+================================================================================

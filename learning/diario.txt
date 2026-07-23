@@ -1,0 +1,29 @@
+================================================================================
+QUANTLAB — DIARIO DE PROYECTO
+================================================================================
+
+[2026-07-23] FASE 0 — FUNDACIÓN
+-------------------------------
+- Creado repositorio QuantLab en GitHub (ssciarratta/QuantLab).
+- Estructura inicial de carpetas con .gitkeep.
+- Git inicializado, rama main, commit "Initial project structure".
+- Autenticación GitHub CLI completada.
+- Repositorio remoto sincronizado.
+
+[2026-07-23] FASE 1 — DISEÑO DE ARQUITECTURA
+---------------------------------------------
+- Asumido rol de CTO, Quant Researcher, Software Architect, Data Engineer.
+- Reglas permanentes adoptadas: filtro de 6 preguntas, Future Improvements,
+  LESSONS_LEARNED al cierre de cada fase.
+- Diseñada arquitectura completa en 9 módulos + 10 interfaces.
+- Definido árbol de proyecto expandido (src/quantlab/ con submódulos).
+- Decisiones tecnológicas: Python 3.11+, Parquet, DuckDB, Polars, pytest,
+  structlog, YAML config.
+- Roadmap de 14 fases definido.
+- 15 Future Improvements registradas (sin implementar).
+- Autoevaluación crítica: 5 fortalezas, 7 debilidades identificadas.
+- Entregables generados: README, Arquitectura.md, Arquitectura_Explicada.txt,
+  Diagrama.md, LESSONS_LEARNED.md, REVIEW_REQUEST.md, CHANGELOG.md.
+- Estado: PENDIENTE DE REVISIÓN TÉCNICA.
+
+================================================================================
