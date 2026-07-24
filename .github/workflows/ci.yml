@@ -1,0 +1,79 @@
+name: QuantLab CI
+
+on:
+  push:
+    branches: [main, "cursor/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Install dependencies (clean install from lockfile)
+        run: |
+          uv venv .venv
+          source .venv/bin/activate
+          uv pip install -e ".[dev]"
+
+      - name: Ruff check
+        run: |
+          source .venv/bin/activate
+          ruff check .
+
+      - name: Ruff format check
+        run: |
+          source .venv/bin/activate
+          ruff format --check .
+
+      - name: Mypy strict
+        run: |
+          source .venv/bin/activate
+          mypy src tests
+
+      - name: Pytest
+        run: |
+          source .venv/bin/activate
+          pytest tests/ -v --tb=short
+
+      - name: Coverage
+        run: |
+          source .venv/bin/activate
+          pytest --cov=quantlab --cov-report=term-missing --cov-report=xml --cov-fail-under=80
+
+      - name: Vertical slice
+        run: |
+          source .venv/bin/activate
+          quantlab-vertical-slice
+
+      - name: Configuration validation
+        run: |
+          source .venv/bin/activate
+          python -c "from quantlab.infra.config import load_config; c = load_config(); print(f'Config OK: {c.environment}')"
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        continue-on-error: false
+
+      - name: Verify no credentials in repo
+        run: |
+          ! find . -name "*.env" -not -path "./.git/*" | grep -q .
+          ! grep -rI "PRIVATE KEY" --include="*.py" --include="*.yaml" --include="*.toml" --include="*.txt" --include="*.md" . || true
+          echo "No credentials detected"

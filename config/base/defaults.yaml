@@ -1,0 +1,5 @@
+environment: dev
+
+logging:
+  level: INFO
+  format: console

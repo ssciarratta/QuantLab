@@ -24,6 +24,25 @@ QUANTLAB — DIARIO DE PROYECTO
 - Autoevaluación crítica: 5 fortalezas, 7 debilidades identificadas.
 - Entregables generados: README, Arquitectura.md, Arquitectura_Explicada.txt,
   Diagrama.md, LESSONS_LEARNED.md, REVIEW_REQUEST.md, CHANGELOG.md.
-- Estado: PENDIENTE DE REVISIÓN TÉCNICA.
+- Estado: COMPLETADA — Revisión GPT recibida.
+
+[2026-07-23] FASE 2 — CORE + INFRAESTRUCTURA (POST-AUDITORÍA v1.1)
+-------------------------------------------------------------------
+- Recibida auditoría técnica de GPT con hallazgos obligatorios.
+- Implementado core completo: tipos de dominio, interfaces, excepciones.
+- Strategy Protocol refactorizado: on_event() reemplaza on_bar() (DEC-013).
+- Inmutabilidad profunda: MappingProxyType + freeze_json() en todos los tipos.
+- Validación OrderIntent por tipo de intención (DEC-016).
+- Invariantes de dominio en todos los tipos (Bar, Instrument, Order, etc.).
+- Configuración con Pydantic, deep merge, validación estricta.
+- Logging estructurado con structlog (consola + JSON).
+- Tipos JSON explícitos para eliminar Any (DEC-015).
+- 157 tests de comportamiento implementados.
+- CI completa: ruff, mypy, pytest, coverage, vertical slice, gitleaks.
+- pyproject.toml + uv.lock para reproducibilidad (DEC-018).
+- Gitleaks integrado como secret scanner (DEC-017).
+- 7 nuevas decisiones técnicas registradas (DEC-013 a DEC-019).
+- Matriz de corrección con 35 hallazgos documentados.
+- Estado: EN CORRECCIÓN — esperando segunda revisión GPT.
 
 ================================================================================

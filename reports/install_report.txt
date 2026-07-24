@@ -1,0 +1,2 @@
+CLEAN INSTALL: SUCCESS
+Install, tests, mypy, ruff all passed on clean install.

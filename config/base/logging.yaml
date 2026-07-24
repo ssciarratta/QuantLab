@@ -1,0 +1,3 @@
+# Logging config is integrated into defaults.yaml as single source of truth.
+# This file exists for backwards compatibility but defers to defaults.yaml.
+# Any logging overrides should go in environment-specific files.

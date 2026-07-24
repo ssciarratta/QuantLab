@@ -16,6 +16,11 @@ data/*
 # Reportes generados
 reports/*
 !reports/.gitkeep
+!reports/*.txt
+!reports/*.xml
+
+# Review packages: keep latest in repo root for GPT audit delivery
+# (older ZIPs may still be local-only)
 
 # IDE / SO
 .vscode/
@@ -27,3 +32,4 @@ Thumbs.db
 .ipynb_checkpoints/
 sync_token.txt
 sync_approved.txt
+.coverage

@@ -1,141 +1,102 @@
-# REVIEW REQUEST — Fase 1: Diseño de Arquitectura
+# REVIEW REQUEST — Fase 2: Core + Infraestructura (Post-Auditoría v1.1)
 
-**Proyecto:** QuantLab  
-**Fase:** 1 — Diseño de arquitectura  
-**Fecha:** 2026-07-23  
-**Solicitante:** Cursor (CTO / Arquitecto Principal)  
-**Revisor esperado:** GPT (Arquitecto cuantitativo principal) + Director del proyecto
+**Proyecto:** QuantLab
+**Fase:** 2 — Core + Infraestructura
+**Iteración:** v1.1 (primera corrección post-auditoría)
+**Fecha:** 2026-07-23
+**Estado:** EN CORRECCIÓN — esperando segunda revisión GPT
 
 ---
 
 ## Resumen ejecutivo
 
-Se solicita revisión técnica de la arquitectura completa de QuantLab antes de autorizar la Fase 2 (implementación). Esta fase produjo **solo diseño y documentación**, sin código funcional, cumpliendo las restricciones establecidas.
+Se implementó la Fase 2 de QuantLab (core + infraestructura) corrigiendo **todos** los hallazgos de la auditoría técnica de GPT sobre la Fase 1/2.
+
+Este paquete contiene el proyecto completo actualizado, no un parche.
 
 ---
 
-## Documentos a revisar
+## Matriz de corrección
 
-| Prioridad | Documento | Contenido |
-|-----------|-----------|-----------|
-| **Alta** | [docs/Arquitectura.md](docs/Arquitectura.md) | Arquitectura completa (11 secciones) |
-| **Alta** | [docs/Diagrama.md](docs/Diagrama.md) | 6 diagramas Mermaid |
-| **Media** | [docs/Arquitectura_Explicada.txt](docs/Arquitectura_Explicada.txt) | Versión en lenguaje claro |
-| **Media** | [README.md](README.md) | Entrada al proyecto |
-| **Media** | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Autoevaluación de la fase |
-| **Baja** | [learning/decisiones.txt](learning/decisiones.txt) | 12 decisiones registradas |
-| **Baja** | [learning/dudas.txt](learning/dudas.txt) | 8 dudas abiertas |
-
----
-
-## Preguntas específicas para el revisor
-
-### Arquitectura general
-
-1. ¿La separación en 9 módulos es adecuada o hay módulos que deberían fusionarse/dividirse?
-2. ¿La frontera QuantLab / Hummingbot es suficientemente clara?
-3. ¿Falta alguna capa crítica para un laboratorio cuantitativo profesional?
-
-### Interfaces
-
-4. ¿Las 10 interfaces cubren todos los contratos necesarios?
-5. ¿Falta alguna operación crítica en Strategy, Backtester o Simulator?
-6. ¿El contrato de AlphaScanner es suficientemente flexible para evolucionar?
-
-### Tecnología
-
-7. ¿DuckDB es la elección correcta sobre SQLite para catálogo?
-8. ¿Polars como primario con Pandas en fronteras es pragmático?
-9. ¿Parquet es suficiente o necesitamos un format alternativo para order book data?
-
-### Escalabilidad
-
-10. ¿La arquitectura soporta 30+ estrategias, 100+ activos y simulaciones masivas sin reescritura?
-11. ¿El diseño de progressive complexity (local → distribuido) es realista?
-12. ¿Qué componente será el cuello de botella primero?
-
-### Riesgos
-
-13. ¿Los 10 riesgos identificados son los correctos? ¿Falta alguno crítico?
-14. ¿La debilidad W4 (sin modelo de latencia definido) es aceptable para esta fase?
-
-### Dudas abiertas
-
-15. Resolución de DUD-002 (slippage model): ¿fixed bps es aceptable como default?
-16. Resolución de DUD-004 (OHLCV vs order book): ¿OHLCV primero es correcto?
-17. Resolución de DUD-005 (granularidad): ¿1 minuto como default es suficiente?
-
-### Roadmap
-
-18. ¿Las 14 fases están en el orden correcto?
-19. ¿Alguna fase debería dividirse o fusionarse?
-20. ¿Falta alguna fase crítica?
+| # | Hallazgo GPT | Severidad | Corrección aplicada | Archivos principales | Tests | Estado |
+|---|-------------|-----------|--------------------|--------------------|-------|--------|
+| 1 | Secretos expuestos en código | Crítica | No había secretos. Se integró `.gitleaks.toml` + CI scan | `.gitleaks.toml`, `.github/workflows/ci.yml` | CI verifica | CORREGIDO |
+| 2 | Escaneo automático de secretos | Alta | Gitleaks adoptado (DEC-017). CI bloquea si detecta secretos | `.gitleaks.toml`, `.github/workflows/ci.yml` | CI step | CORREGIDO |
+| 3 | requirements.txt de entorno global | Alta | Eliminado. Se usa `pyproject.toml` + `uv.lock` (DEC-018) | `pyproject.toml`, `uv.lock` | `test_lockfile_hash` | CORREGIDO |
+| 4 | Lockfile reproducible | Alta | `uv.lock` generado. Hash desde lockfile, no pip freeze | `uv.lock`, `infra/utils/hashing.py` | `test_deterministic`, `test_uses_uv_lock_first` | CORREGIDO |
+| 5 | Hashes truncados | Media | `compute_file_hash()` retorna digest completo (64 chars SHA-256) | `infra/utils/hashing.py` | `test_full_hash_not_truncated` | CORREGIDO |
+| 6 | Falsa opcionalidad de on_bar() | Alta | `on_event(MarketEvent, StrategyContext)` reemplaza `on_bar()` (DEC-013) | `core/interfaces/strategy.py`, `cli.py` | `test_strategy_protocol.py` (7 tests) | CORREGIDO |
+| 7 | DummyStrategy sin actualizar | Media | DummyStrategy usa `on_event()`, retorna `tuple[OrderIntent, ...]` | `cli.py` | `test_strategy_protocol.py`, `test_vertical_slice.py` | CORREGIDO |
+| 8 | Inmutabilidad superficial (frozen=True con dict/list) | Alta | `MappingProxyType` + `tuple` + `freeze_json()` recursivo (DEC-014) | Todos los tipos en `core/types/` | 15+ tests de inmutabilidad | CORREGIDO |
+| 9 | Instrument.metadata mutable | Alta | `MappingProxyType[str, JsonValue]` | `core/types/market.py` | `test_metadata_is_immutable` | CORREGIDO |
+| 10 | StrategyContext.parameters mutable | Alta | `MappingProxyType[str, JsonValue]` | `core/types/trading.py` | `test_parameters_immutable` | CORREGIDO |
+| 11 | MarketEvent.payload mutable | Alta | `MappingProxyType[str, JsonValue]` | `core/types/trading.py` | `test_payload_immutable` | CORREGIDO |
+| 12 | ExperimentManifest.resolved_config mutable | Alta | `MappingProxyType[str, JsonValue]` | `core/types/experiment.py` | `test_resolved_config_immutable` | CORREGIDO |
+| 13 | SimulationResult.metadata/events_log mutable | Alta | `MappingProxyType` + `tuple` | `core/types/trading.py` | `test_metadata_immutable`, `test_events_log_immutable` | CORREGIDO |
+| 14 | MetricsResult.metrics/benchmarks mutable | Alta | `MappingProxyType` | `core/types/trading.py` | `test_metrics_immutable`, `test_benchmarks_immutable` | CORREGIDO |
+| 15 | OrderIntent sin validación por tipo | Crítica | Validación completa por IntentType (DEC-016) | `core/types/trading.py` | 18 tests en `test_trading_types.py` | CORREGIDO |
+| 16 | Invariantes de Instrument | Alta | tick_size/lot_size positivos, min_notional no negativo, símbolos no vacíos, base≠quote | `core/types/market.py` | 8 tests | CORREGIDO |
+| 17 | Invariantes de Bar | Alta | tz-aware, high≥open/close/low, low≤open/close, precios positivos, vol≥0 | `core/types/market.py` | 12 tests | CORREGIDO |
+| 18 | Invariantes de BookLevel | Media | precio positivo, cantidad no negativa | `core/types/market.py` | 3 tests | CORREGIDO |
+| 19 | Invariantes de Trade/Fill | Alta | precio/cantidad positivos, timestamp tz-aware | `core/types/market.py` | 7 tests | CORREGIDO |
+| 20 | Invariantes de Order | Alta | cantidad positiva, filled≤quantity, LIMIT requiere precio, tz-aware | `core/types/market.py` | 6 tests | CORREGIDO |
+| 21 | Invariantes de Balance | Media | no negativos, total=available+locked | `core/types/trading.py` | 4 tests | CORREGIDO |
+| 22 | Invariantes de TimeRange | Media | tz-aware, start<end | `core/types/trading.py` | 4 tests | CORREGIDO |
+| 23 | Invariantes de ExperimentManifest | Alta | IDs, versión, timestamp, checksum, instrumentos, commit, lockfile_hash | `core/types/experiment.py` | 10 tests | CORREGIDO |
+| 24 | except Exception genérico | Alta | Captura `pydantic.ValidationError` específicamente (DEC-019) | `infra/config/loader.py` | `test_config.py` (14 tests) | CORREGIDO |
+| 25 | Valores de logging no validados | Media | `LogLevel`, `LogFormat`, `Environment` como StrEnum | `infra/config/loader.py` | `test_invalid_log_level`, `test_invalid_log_format` | CORREGIDO |
+| 26 | Configuración duplicada | Media | Single source of truth en `QuantLabConfig`. `logging.yaml` documenta deferencia | `infra/config/loader.py`, `config/base/` | `test_logging_yaml_merged` | CORREGIDO |
+| 27 | Uso excesivo de Any | Alta | `JsonScalar`, `JsonValue`, `JsonArray`, `JsonObject` (DEC-015) | `core/types/json_types.py` | `test_json_types.py` (12 tests) | CORREGIDO |
+| 28 | mypy --strict no limpio | Alta | 0 errores en mypy --strict | Todos | CI step | CORREGIDO |
+| 29 | Tests de comportamiento faltantes | Crítica | 157 tests cubriendo invariantes, inmutabilidad, timezone, protocol, config | `tests/` | 157 tests | CORREGIDO |
+| 30 | CI incompleta | Alta | Workflow con install, ruff, mypy, pytest, coverage, vertical slice, secrets | `.github/workflows/ci.yml` | — | CORREGIDO |
+| 31 | YAML vacío/malformado | Media | Handlers para YAML vacío y con solo comentarios | `infra/config/loader.py` | `test_empty_yaml`, `test_yaml_with_only_comments`, `test_malformed_yaml` | CORREGIDO |
+| 32 | Deep merge | Media | `_deep_merge()` recursivo con tests | `infra/config/loader.py` | `test_deep_merge_preserves_base` | CORREGIDO |
+| 33 | Ausencia de Git | Media | `get_git_commit()` retorna "unknown" sin git | `infra/utils/git.py` | `test_returns_commit_or_unknown` | CORREGIDO |
+| 34 | Búsqueda de project root | Media | `find_project_root()` con error si no existe | `infra/utils/paths.py` | `test_not_found_raises` | CORREGIDO |
+| 35 | Vertical slice con estrategia inyectada | Alta | `test_vertical_slice.py` con DummyStrategy y PassThroughStrategy | `tests/integration/test_vertical_slice.py` | 5 tests | CORREGIDO |
 
 ---
 
-## Criterios de aprobación
+## Documentos actualizados
 
-La Fase 1 se considera **aprobada** si el revisor confirma:
-
-- [ ] La arquitectura soporta el crecimiento proyectado (30+ estrategias, 100+ activos, simulaciones masivas).
-- [ ] Las interfaces son suficientes y no sobre-dimensionadas.
-- [ ] Las decisiones tecnológicas están justificadas.
-- [ ] Los riesgos principales están identificados con mitigaciones viables.
-- [ ] El roadmap es incremental y ejecutable.
-- [ ] No hay acoplamientos ocultos que causen reescritura en 6 meses.
-- [ ] Las dudas bloqueantes para Fase 5 están resueltas o tienen plan de resolución.
+- `README.md` — Actualizado con Fase 2
+- `CHANGELOG.md` — Entrada para v0.2.0
+- `LESSONS_LEARNED.md` — Lecciones de auditoría
+- `PROJECT_STATUS.md` — Estado EN CORRECCIÓN
+- `learning/decisiones.txt` — DEC-013 a DEC-019
+- `docs/Arquitectura.md` — Sin cambios (diseño Fase 1)
 
 ---
 
-## Formato de respuesta esperado
+## Verificación
 
-Por favor, estructurar la revisión como:
-
-```
-## Qué está excelente
-- ...
-
-## Qué cambiaría
-- ...
-
-## Qué eliminaría
-- ...
-
-## Qué falta
-- ...
-
-## Qué puede traer problemas en 6 meses
-- ...
-
-## Resolución de dudas (DUD-001 a DUD-008)
-- ...
-
-## Veredicto
-[ ] APROBADO — avanzar a Fase 2
-[ ] APROBADO CON CAMBIOS — listar cambios requeridos antes de Fase 2
-[ ] RECHAZADO — requiere redisño
-```
+| Check | Resultado |
+|-------|-----------|
+| `ruff check .` | ✅ Limpio |
+| `ruff format --check .` | ✅ Limpio |
+| `mypy src tests` | ✅ 0 errores |
+| `pytest` | ✅ 157 passed |
+| `pytest --cov` | ✅ >80% |
+| `quantlab-vertical-slice` | ✅ PASSED |
+| Secretos en repo | ✅ 0 detectados |
 
 ---
 
-## Restricciones recordadas
+## Archivos del Review Package
 
-- No se escribió código funcional en esta fase.
-- No se implementaron estrategias, backtesting, simulaciones, Binance, APIs, Hummingbot ni interfaces gráficas.
-- Future Improvements (15 items) están registradas pero NO implementadas.
+El ZIP `QuantLab_Review_Fase_02_v1.1.zip` contiene el proyecto completo.
 
 ---
 
-## Autoevaluación del diseñador
+## Restricciones cumplidas
 
-**Confianza general:** 7.5/10
-
-**Fortalezas:** Modularidad, reproducibilidad, roadmap incremental, separación investigación/ejecución.
-
-**Debilidades principales:** Complejidad inicial del árbol, 8 dudas sin resolver, sin modelo de latencia/slippage definido, sin golden runs planificados explícitamente en el roadmap.
-
-**Recomendación propia:** Aprobar con cambios menores. Resolver DUD-002, DUD-004 y DUD-005 antes de autorizar Fase 5.
+- ❌ No se inició Fase 3
+- ❌ No se agregaron funcionalidades fuera del alcance
+- ❌ No se reinterpretaron los hallazgos
+- ✅ Todos los hallazgos tienen corrección documentada
+- ✅ Tests demuestran las correcciones
 
 ---
 
-*Esperando revisión para autorizar Fase 2.*
+*Esperando segunda revisión de GPT para autorización de Fase 3.*

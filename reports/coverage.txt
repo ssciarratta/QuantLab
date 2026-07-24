@@ -1,0 +1,199 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-8.4.2, pluggy-1.6.0 -- /workspace/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /workspace
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-5.0.0
+collecting ... collected 157 items
+
+tests/integration/test_vertical_slice.py::TestVerticalSlice::test_with_dummy_strategy PASSED [  0%]
+tests/integration/test_vertical_slice.py::TestVerticalSlice::test_with_passthrough_strategy PASSED [  1%]
+tests/integration/test_vertical_slice.py::TestVerticalSlice::test_config_loads PASSED [  1%]
+tests/integration/test_vertical_slice.py::TestVerticalSlice::test_git_commit_available PASSED [  2%]
+tests/integration/test_vertical_slice.py::TestVerticalSlice::test_lockfile_hash_computed PASSED [  3%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_valid_manifest PASSED [  3%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_experiment_id_rejected PASSED [  4%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_version_rejected PASSED [  5%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_naive_timestamp_rejected PASSED [  5%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_checksum_rejected PASSED [  6%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_instruments_rejected PASSED [  7%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_instrument_name_rejected PASSED [  7%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_commit_rejected PASSED [  8%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_empty_lockfile_hash_rejected PASSED [  8%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_resolved_config_immutable PASSED [  9%]
+tests/unit/core/test_experiment.py::TestExperimentManifest::test_instruments_is_tuple PASSED [ 10%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_none PASSED [ 10%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_str PASSED [ 11%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_int PASSED [ 12%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_float PASSED [ 12%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_bool PASSED [ 13%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_list_to_tuple PASSED [ 14%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_dict_to_mapping_proxy PASSED [ 14%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_nested PASSED [ 15%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_dict_is_immutable PASSED [ 15%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_list_result_is_immutable PASSED [ 16%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_rejects_non_json_types PASSED [ 17%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_freeze_rejects_custom_objects PASSED [ 17%]
+tests/unit/core/test_json_types.py::TestFreezeJson::test_determinism PASSED [ 18%]
+tests/unit/core/test_market_types.py::TestInstrument::test_valid_instrument PASSED [ 19%]
+tests/unit/core/test_market_types.py::TestInstrument::test_empty_symbol_rejected PASSED [ 19%]
+tests/unit/core/test_market_types.py::TestInstrument::test_whitespace_symbol_rejected PASSED [ 20%]
+tests/unit/core/test_market_types.py::TestInstrument::test_negative_tick_size_rejected PASSED [ 21%]
+tests/unit/core/test_market_types.py::TestInstrument::test_zero_tick_size_rejected PASSED [ 21%]
+tests/unit/core/test_market_types.py::TestInstrument::test_zero_lot_size_rejected PASSED [ 22%]
+tests/unit/core/test_market_types.py::TestInstrument::test_negative_min_notional_rejected PASSED [ 22%]
+tests/unit/core/test_market_types.py::TestInstrument::test_same_base_quote_rejected PASSED [ 23%]
+tests/unit/core/test_market_types.py::TestInstrument::test_metadata_is_immutable PASSED [ 24%]
+tests/unit/core/test_market_types.py::TestInstrument::test_frozen_dataclass PASSED [ 24%]
+tests/unit/core/test_market_types.py::TestBar::test_valid_bar PASSED     [ 25%]
+tests/unit/core/test_market_types.py::TestBar::test_naive_timestamp_rejected PASSED [ 26%]
+tests/unit/core/test_market_types.py::TestBar::test_high_less_than_open_rejected PASSED [ 26%]
+tests/unit/core/test_market_types.py::TestBar::test_high_less_than_close_rejected PASSED [ 27%]
+tests/unit/core/test_market_types.py::TestBar::test_high_less_than_low_rejected PASSED [ 28%]
+tests/unit/core/test_market_types.py::TestBar::test_low_greater_than_open_rejected PASSED [ 28%]
+tests/unit/core/test_market_types.py::TestBar::test_low_greater_than_close_rejected PASSED [ 29%]
+tests/unit/core/test_market_types.py::TestBar::test_negative_volume_rejected PASSED [ 29%]
+tests/unit/core/test_market_types.py::TestBar::test_zero_price_rejected PASSED [ 30%]
+tests/unit/core/test_market_types.py::TestBar::test_negative_price_rejected PASSED [ 31%]
+tests/unit/core/test_market_types.py::TestBar::test_empty_symbol_rejected PASSED [ 31%]
+tests/unit/core/test_market_types.py::TestBar::test_zero_volume_allowed PASSED [ 32%]
+tests/unit/core/test_market_types.py::TestBar::test_equal_ohlc_allowed PASSED [ 33%]
+tests/unit/core/test_market_types.py::TestBookLevel::test_valid PASSED   [ 33%]
+tests/unit/core/test_market_types.py::TestBookLevel::test_zero_price_rejected PASSED [ 34%]
+tests/unit/core/test_market_types.py::TestBookLevel::test_negative_quantity_rejected PASSED [ 35%]
+tests/unit/core/test_market_types.py::TestBookLevel::test_zero_quantity_allowed PASSED [ 35%]
+tests/unit/core/test_market_types.py::TestTrade::test_valid PASSED       [ 36%]
+tests/unit/core/test_market_types.py::TestTrade::test_zero_price_rejected PASSED [ 36%]
+tests/unit/core/test_market_types.py::TestTrade::test_zero_quantity_rejected PASSED [ 37%]
+tests/unit/core/test_market_types.py::TestTrade::test_naive_timestamp_rejected PASSED [ 38%]
+tests/unit/core/test_market_types.py::TestFill::test_valid PASSED        [ 38%]
+tests/unit/core/test_market_types.py::TestFill::test_empty_order_id_rejected PASSED [ 39%]
+tests/unit/core/test_market_types.py::TestFill::test_negative_fee_rejected PASSED [ 40%]
+tests/unit/core/test_market_types.py::TestOrder::test_valid_limit_order PASSED [ 40%]
+tests/unit/core/test_market_types.py::TestOrder::test_limit_without_price_rejected PASSED [ 41%]
+tests/unit/core/test_market_types.py::TestOrder::test_filled_greater_than_quantity_rejected PASSED [ 42%]
+tests/unit/core/test_market_types.py::TestOrder::test_zero_quantity_rejected PASSED [ 42%]
+tests/unit/core/test_market_types.py::TestOrder::test_negative_filled_quantity_rejected PASSED [ 43%]
+tests/unit/core/test_market_types.py::TestOrder::test_market_order_valid PASSED [ 43%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_dummy_strategy_satisfies_protocol PASSED [ 44%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_no_on_bar_method PASSED [ 45%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_on_event_returns_tuple_of_intents PASSED [ 45%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_on_event_bar_produces_place_order PASSED [ 46%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_on_event_non_bar_produces_no_action PASSED [ 47%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_get_parameters_returns_mapping PASSED [ 47%]
+tests/unit/core/test_strategy_protocol.py::TestStrategyProtocol::test_reset_is_callable PASSED [ 48%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_valid_limit_order PASSED [ 49%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_valid_market_order PASSED [ 49%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_missing_instrument PASSED [ 50%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_missing_side PASSED [ 50%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_missing_quantity PASSED [ 51%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_zero_quantity_rejected PASSED [ 52%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_negative_quantity_rejected PASSED [ 52%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_limit_without_price PASSED [ 53%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_limit_with_zero_price PASSED [ 54%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_with_target_order_id_rejected PASSED [ 54%]
+tests/unit/core/test_trading_types.py::TestOrderIntentPlaceOrder::test_with_replacement_fields_rejected PASSED [ 55%]
+tests/unit/core/test_trading_types.py::TestOrderIntentCancelOrder::test_valid_cancel PASSED [ 56%]
+tests/unit/core/test_trading_types.py::TestOrderIntentCancelOrder::test_missing_target PASSED [ 56%]
+tests/unit/core/test_trading_types.py::TestOrderIntentCancelOrder::test_empty_target_rejected PASSED [ 57%]
+tests/unit/core/test_trading_types.py::TestOrderIntentCancelOrder::test_incompatible_fields_rejected PASSED [ 57%]
+tests/unit/core/test_trading_types.py::TestOrderIntentCancelOrder::test_incompatible_price_rejected PASSED [ 58%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_valid_replace_quantity PASSED [ 59%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_valid_replace_price PASSED [ 59%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_valid_replace_both PASSED [ 60%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_missing_target_rejected PASSED [ 61%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_no_new_values_rejected PASSED [ 61%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_zero_new_quantity_rejected PASSED [ 62%]
+tests/unit/core/test_trading_types.py::TestOrderIntentReplaceOrder::test_negative_new_price_rejected PASSED [ 63%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_valid_no_action PASSED [ 63%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_price_rejected PASSED [ 64%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_quantity_rejected PASSED [ 64%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_side_rejected PASSED [ 65%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_order_type_rejected PASSED [ 66%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_target_rejected PASSED [ 66%]
+tests/unit/core/test_trading_types.py::TestOrderIntentNoAction::test_with_instrument_rejected PASSED [ 67%]
+tests/unit/core/test_trading_types.py::TestBalance::test_valid PASSED    [ 68%]
+tests/unit/core/test_trading_types.py::TestBalance::test_inconsistent_total PASSED [ 68%]
+tests/unit/core/test_trading_types.py::TestBalance::test_negative_available PASSED [ 69%]
+tests/unit/core/test_trading_types.py::TestBalance::test_negative_locked PASSED [ 70%]
+tests/unit/core/test_trading_types.py::TestBalance::test_zero_balance PASSED [ 70%]
+tests/unit/core/test_trading_types.py::TestTimeRange::test_valid PASSED  [ 71%]
+tests/unit/core/test_trading_types.py::TestTimeRange::test_start_after_end_rejected PASSED [ 71%]
+tests/unit/core/test_trading_types.py::TestTimeRange::test_equal_start_end_rejected PASSED [ 72%]
+tests/unit/core/test_trading_types.py::TestTimeRange::test_naive_start_rejected PASSED [ 73%]
+tests/unit/core/test_trading_types.py::TestTimeRange::test_naive_end_rejected PASSED [ 73%]
+tests/unit/core/test_trading_types.py::TestMarketEvent::test_valid_event PASSED [ 74%]
+tests/unit/core/test_trading_types.py::TestMarketEvent::test_payload_immutable PASSED [ 75%]
+tests/unit/core/test_trading_types.py::TestMarketEvent::test_naive_timestamp_rejected PASSED [ 75%]
+tests/unit/core/test_trading_types.py::TestStrategyContext::test_valid_context PASSED [ 76%]
+tests/unit/core/test_trading_types.py::TestStrategyContext::test_parameters_immutable PASSED [ 77%]
+tests/unit/core/test_trading_types.py::TestStrategyContext::test_negative_balance_rejected PASSED [ 77%]
+tests/unit/core/test_trading_types.py::TestSimulationResult::test_valid PASSED [ 78%]
+tests/unit/core/test_trading_types.py::TestSimulationResult::test_metadata_immutable PASSED [ 78%]
+tests/unit/core/test_trading_types.py::TestSimulationResult::test_events_log_immutable PASSED [ 79%]
+tests/unit/core/test_trading_types.py::TestSimulationResult::test_empty_experiment_id_rejected PASSED [ 80%]
+tests/unit/core/test_trading_types.py::TestMetricsResult::test_valid PASSED [ 80%]
+tests/unit/core/test_trading_types.py::TestMetricsResult::test_metrics_immutable PASSED [ 81%]
+tests/unit/core/test_trading_types.py::TestMetricsResult::test_benchmarks_immutable PASSED [ 82%]
+tests/unit/infra/test_config.py::TestLoadConfigDefaults::test_default_config PASSED [ 82%]
+tests/unit/infra/test_config.py::TestLoadConfigDefaults::test_override_environment PASSED [ 83%]
+tests/unit/infra/test_config.py::TestLoadConfigFromYaml::test_load_from_yaml PASSED [ 84%]
+tests/unit/infra/test_config.py::TestLoadConfigFromYaml::test_empty_yaml PASSED [ 84%]
+tests/unit/infra/test_config.py::TestLoadConfigFromYaml::test_yaml_with_only_comments PASSED [ 85%]
+tests/unit/infra/test_config.py::TestLoadConfigFromYaml::test_malformed_yaml PASSED [ 85%]
+tests/unit/infra/test_config.py::TestLoadConfigEnvironmentOverride::test_env_override PASSED [ 86%]
+tests/unit/infra/test_config.py::TestDeepMerge::test_deep_merge_preserves_base PASSED [ 87%]
+tests/unit/infra/test_config.py::TestConfigValidation::test_unknown_environment_rejected PASSED [ 87%]
+tests/unit/infra/test_config.py::TestConfigValidation::test_invalid_log_level PASSED [ 88%]
+tests/unit/infra/test_config.py::TestConfigValidation::test_invalid_log_format PASSED [ 89%]
+tests/unit/infra/test_config.py::TestConfigValidation::test_extra_fields_rejected PASSED [ 89%]
+tests/unit/infra/test_config.py::TestLoggingYamlIntegration::test_logging_yaml_merged PASSED [ 90%]
+tests/unit/infra/test_logging.py::TestLoggingSetup::test_console_logging PASSED [ 91%]
+tests/unit/infra/test_logging.py::TestLoggingSetup::test_json_logging PASSED [ 91%]
+tests/unit/infra/test_logging.py::TestLoggingSetup::test_log_level_applied PASSED [ 92%]
+tests/unit/infra/test_logging.py::TestLoggingSetup::test_log_level_warning PASSED [ 92%]
+tests/unit/infra/test_utils.py::TestComputeFileHash::test_deterministic PASSED [ 93%]
+tests/unit/infra/test_utils.py::TestComputeFileHash::test_different_content_different_hash PASSED [ 94%]
+tests/unit/infra/test_utils.py::TestComputeFileHash::test_full_hash_not_truncated PASSED [ 94%]
+tests/unit/infra/test_utils.py::TestComputeLockfileHash::test_no_lockfile_returns_fallback PASSED [ 95%]
+tests/unit/infra/test_utils.py::TestComputeLockfileHash::test_uses_uv_lock_first PASSED [ 96%]
+tests/unit/infra/test_utils.py::TestComputeLockfileHash::test_falls_back_to_pyproject PASSED [ 96%]
+tests/unit/infra/test_utils.py::TestComputeLockfileHash::test_deterministic PASSED [ 97%]
+tests/unit/infra/test_utils.py::TestGetGitCommit::test_returns_commit_or_unknown PASSED [ 98%]
+tests/unit/infra/test_utils.py::TestGetGitCommit::test_in_git_repo_returns_hash PASSED [ 98%]
+tests/unit/infra/test_utils.py::TestFindProjectRoot::test_finds_root_from_workspace PASSED [ 99%]
+tests/unit/infra/test_utils.py::TestFindProjectRoot::test_not_found_raises PASSED [100%]
+
+---------- coverage: platform linux, python 3.12.3-final-0 -----------
+Name                                       Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------
+src/quantlab/__init__.py                       1      0   100%
+src/quantlab/cli.py                           45     24    47%   63-110
+src/quantlab/core/__init__.py                  0      0   100%
+src/quantlab/core/exceptions/__init__.py       2      0   100%
+src/quantlab/core/exceptions/base.py           6      0   100%
+src/quantlab/core/interfaces/__init__.py       2      0   100%
+src/quantlab/core/interfaces/strategy.py       8      0   100%
+src/quantlab/core/types/__init__.py            5      0   100%
+src/quantlab/core/types/experiment.py         36      2    94%   44, 50
+src/quantlab/core/types/json_types.py         19      0   100%
+src/quantlab/core/types/market.py            146      2    99%   86, 227
+src/quantlab/core/types/trading.py           175      8    95%   50, 91, 164, 269, 271-272, 320, 322
+src/quantlab/infra/__init__.py                 0      0   100%
+src/quantlab/infra/config/__init__.py          2      0   100%
+src/quantlab/infra/config/loader.py           78      3    96%   72, 80, 121
+src/quantlab/infra/logging/__init__.py         2      0   100%
+src/quantlab/infra/logging/setup.py           20      1    95%   30
+src/quantlab/infra/utils/__init__.py           4      0   100%
+src/quantlab/infra/utils/git.py               12      5    58%   24-28
+src/quantlab/infra/utils/hashing.py           20      0   100%
+src/quantlab/infra/utils/paths.py              8      0   100%
+------------------------------------------------------------------------
+TOTAL                                        591     45    92%
+Coverage XML written to file reports/coverage.xml
+
+Required test coverage of 80.0% reached. Total coverage: 92.39%
+
+============================= 157 passed in 0.46s ==============================
+exit: 0
