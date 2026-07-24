@@ -9,7 +9,6 @@
 ./config/environments/production.yaml
 ./config/environments/research.yaml
 ./config/.gitkeep
-./.coverage
 ./data
 ./docs
 ./docs/Arquitectura_Explicada.txt
