@@ -19,8 +19,8 @@ reports/*
 !reports/*.txt
 !reports/*.xml
 
-# Review packages (large ZIPs)
-QuantLab_Review_*.zip
+# Review packages: keep latest in repo root for GPT audit delivery
+# (older ZIPs may still be local-only)
 
 # IDE / SO
 .vscode/
