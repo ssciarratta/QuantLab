@@ -11,11 +11,10 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Sesión autonomía 4h (olas C1–C4):
-- Remediación H1/H2 + TD-06/11 + secret scan
-- Cobertura strategies/infra/optimizer/duckdb
-- Runbook + TD-12 documentado (doble mark intencional)
-- main sync continuo (último: AUTO_AUDIT waves)
+2026-07-25 — tests cobertura extra (solo tests/, sin tocar src):
+- tests/unit/simulation/test_fill_model_extra.py (ImmediateBarFillModel)
+- tests/unit/data/test_validators_extra.py (validate_trades/bars/sanitize)
+- 20 passed (pytest -q)
 
 PRÓXIMO PASO
 ------------
