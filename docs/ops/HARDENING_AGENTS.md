@@ -87,7 +87,7 @@ Implementado: `profit_factor` → `None` / `"undefined"`; Sortino con divisor mu
 
 **DoD:** workflow en repo; Roadmap alineado.
 
-Implementado: `.github/workflows/ci.yml` desde `docs/ci/ci.yml.example`; `docs/Roadmap.md` deprecado → `ROADMAP_ALIGNED.md`.
+Implementado: fuente CI en `docs/ci/ci.yml.example`; push de `.github/workflows/` requiere scope OAuth `workflow` (bloqueado 2026-07-25). `docs/Roadmap.md` → `ROADMAP_ALIGNED.md`.
 
 ---
 
