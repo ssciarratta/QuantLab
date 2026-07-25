@@ -11,14 +11,14 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Autauditoría multi-agente (sin intervención):
-- Remediación H1/H2 · TD-06/11 · secret scan · health · runbook
-- +tests strategies/infra/data/validation/simulation/optimizer
-- Incidente GCM/PAT: remote limpiado; token ghp verificado 401
+2026-07-25 — tests bordes (solo tests/, sin tocar src):
+- test_parquet_store_extra.py (vacío, columnas, ya existe, read missing)
+- test_registry_extra.py (CRUD/batch/sidecars bordes)
+- pytest: 16 passed
 
 PRÓXIMO PASO
 ------------
-- Seguir autonomía / cobertura
+- Seguir cobertura / cleanup TD
 - FASE_18_APPROVED solo con APROBADO Meta-Auditor
 - LIVE bloqueado
 
