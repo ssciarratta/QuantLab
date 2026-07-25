@@ -139,6 +139,9 @@ class PyRofexBackend:
         price: str | None,
         client_order_id: str,
     ) -> A3OrderAckDTO:
+        from quantlab.execution.live_gate import assert_live_routing_blocked
+
+        assert_live_routing_blocked()
         import pyRofex
 
         side_enum = pyRofex.Side.BUY if side.lower() == "buy" else pyRofex.Side.SELL
@@ -167,6 +170,9 @@ class PyRofexBackend:
         )
 
     def cancel_order(self, order_id: str) -> A3OrderAckDTO:
+        from quantlab.execution.live_gate import assert_live_routing_blocked
+
+        assert_live_routing_blocked()
         import pyRofex
 
         try:

@@ -16,6 +16,7 @@ from quantlab.execution.live_gate import (
     LiveOrderRouter,
     assert_live_routing_blocked,
 )
+from quantlab.execution.order_router import GatedBackendRouter, NullRouter, OrderRouter
 from quantlab.execution.protocols import FeeModel, LatencyModel, SlippageModel
 from quantlab.execution.slippage import (
     FixedSlippageModel,
@@ -30,11 +31,14 @@ __all__ = [
     "FeeModel",
     "FixedLatencyModel",
     "FixedSlippageModel",
+    "GatedBackendRouter",
     "LatencyDecision",
     "LatencyModel",
     "LiveOrderRouter",
     "MakerTakerFeeModel",
     "NoSlippageModel",
+    "NullRouter",
+    "OrderRouter",
     "ProportionalFeeModel",
     "SlippageModel",
     "VolumeShareSlippageModel",

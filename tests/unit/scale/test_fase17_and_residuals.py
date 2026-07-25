@@ -163,8 +163,14 @@ def test_parquet_roundtrip(tmp_path: Path) -> None:
 
 
 def test_duckdb_catalog_backend(tmp_path: Path) -> None:
+    import hashlib
+
     backend = DuckDBCatalogBackend(tmp_path / "cat.duckdb")
     now = datetime.now(tz=UTC)
+    data_file = tmp_path / "data.bin"
+    payload = b"quantlab-duckdb-verify"
+    data_file.write_bytes(payload)
+    checksum = hashlib.sha256(payload).hexdigest()
     manifest = DatasetManifest(
         dataset_id="ds-duck",
         version="v1",
@@ -176,9 +182,9 @@ def test_duckdb_catalog_backend(tmp_path: Path) -> None:
         ),
         granularity="1m",
         schema_version="1.0",
-        checksum="ab" * 32,
+        checksum=checksum,
         row_count=2,
-        storage_path=str(tmp_path / "data"),
+        storage_path=str(data_file),
         created_at=now,
     )
     cat = DataCatalog(tmp_path / "unused.sqlite", backend=backend)
@@ -187,6 +193,8 @@ def test_duckdb_catalog_backend(tmp_path: Path) -> None:
     assert got is not None
     assert got.provider == "generic_csv"
     assert cat.verify_dataset("ds-duck")
+    data_file.write_bytes(b"tampered")
+    assert cat.verify_dataset("ds-duck") is False
 
 
 def test_live_routing_blocked() -> None:

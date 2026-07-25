@@ -7,7 +7,7 @@
       "max_drawdown": 0.0,
       "n_bars": 6,
       "n_fills": 1,
-      "profit_factor": 999.0,
+      "profit_factor": "undefined",
       "sharpe": 100409.240996,
       "sortino": 0.0,
       "total_return": 0.0005,
@@ -15,7 +15,7 @@
     },
     "metrics_version": "1.1.0"
   },
-  "metrics_hash": "c1d3034b048a2062cda2b8057eca92ae3dfd40044e22d5ad8803e5eeec28e5bf",
+  "metrics_hash": "fab27b1699a3abc57e2daa4c0dee2b1cf800b4d3892c84b7b7b9c57b24145686",
   "name": "fase6_buy_once",
   "simulation": {
     "equity_curve": [

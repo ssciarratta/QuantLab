@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
+from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import IntentType, OrderType
 from quantlab.core.types.instrument import Instrument
 from quantlab.core.types.manifests import DatasetManifest, TimeRange
@@ -39,6 +40,8 @@ from quantlab.data.exchanges.a3.websocket import A3WebSocketCapture
 from quantlab.data.normalization.bars import build_bars_from_trades
 from quantlab.data.quality.validators import validate_bars, validate_trades
 from quantlab.data.storage.raw_store import ProcessedStore, RawStore
+from quantlab.execution.live_gate import assert_live_routing_blocked
+from quantlab.execution.order_router import NullRouter, OrderRouter
 from quantlab.infra.logging import get_logger
 
 logger = get_logger(__name__)
@@ -53,10 +56,13 @@ class A3Adapter:
         backend: A3Backend,
         *,
         account: str = "unknown",
+        order_router: OrderRouter | None = None,
     ) -> None:
         self._config = config
         self._backend = backend
         self._account = account
+        # Default NullRouter: market-data vía backend; órdenes nunca salen.
+        self._order_router: OrderRouter = order_router or NullRouter()
         self._mapper = A3SymbolMapper()
         self._raw = RawStore(config.storage.raw_root)
         self._processed = ProcessedStore(config.storage.processed_root)
@@ -68,6 +74,13 @@ class A3Adapter:
         self._last_price: Decimal | None = None
         self._open_client_ids: set[str] = set()
         self._run_id = str(uuid.uuid4())
+
+    @staticmethod
+    def _enforce_live_blocked() -> None:
+        try:
+            assert_live_routing_blocked()
+        except ValidationError as exc:
+            raise A3LiveTradingDisabledError(str(exc)) from exc
 
     def connect(self) -> None:
         self._backend.connect()
@@ -144,8 +157,6 @@ class A3Adapter:
         build = build_bars_from_trades(trades, timeframe=timeframe, instrument_id=f"a3:{symbol}")
         q = validate_bars(list(build.bars))
         rows = [dataclass_to_dict(b) for b in build.bars]
-        body = str(rows).encode("utf-8")
-        checksum = hashlib.sha256(body).hexdigest()
         dataset_id = f"a3-bars-{self._mapper.to_path_safe(symbol)}-{timeframe}"
         path = self._processed.write_jsonl(
             dataset_id=dataset_id,
@@ -160,6 +171,8 @@ class A3Adapter:
                 "quality": [i.code for i in q.issues],
             },
         )
+        # Checksum del storage real (verify_dataset hashea el archivo).
+        checksum = hashlib.sha256(path.read_bytes()).hexdigest()
         now = datetime.now(tz=UTC)
         tr = TimeRange(start=start if start.tzinfo else start.replace(tzinfo=UTC), end=end)
         manifest = DatasetManifest(
@@ -186,6 +199,8 @@ class A3Adapter:
         logger.info("a3_unsubscribe", symbols=symbols)
 
     def place_order(self, order_intent: OrderIntent) -> A3OrderAckDTO:
+        # Fail-closed universal (research-prod): antes de risk/backend.
+        self._enforce_live_blocked()
         if order_intent.intent_type is not IntentType.PLACE_ORDER:
             raise A3RiskRejectedError("place_order requiere PLACE_ORDER")
 
@@ -219,7 +234,8 @@ class A3Adapter:
         price = str(order_intent.price) if order_intent.price is not None else None
         size = str(order_intent.quantity) if order_intent.quantity is not None else "0"
 
-        ack = self._backend.place_order(
+        # NullRouter / GatedBackendRouter — nunca bypasea live_gate.
+        ack = self._order_router.place_order(
             symbol=symbol,
             side=side,
             size=size,
@@ -247,10 +263,11 @@ class A3Adapter:
         return ack
 
     def cancel_order(self, order_id: str) -> A3OrderAckDTO:
+        self._enforce_live_blocked()
         status = self._backend.get_order_status(order_id)
         if status.status.upper() in {"CANCELED", "CANCELLED", "FILLED", "REJECTED"}:
             return status
-        ack = self._backend.cancel_order(order_id)
+        ack = self._order_router.cancel_order(order_id)
         confirmed = self._backend.get_order_status(order_id)
         self._raw.append(
             kind="executions",

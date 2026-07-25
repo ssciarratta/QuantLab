@@ -58,12 +58,25 @@ def sortino_ratio(
     periods_per_year: float = 252.0,
     target: float = 0.0,
 ) -> float:
-    """Sortino: retorno medio anualizado / downside deviation."""
+    """Sortino: retorno medio anualizado / downside deviation.
+
+    Convención alineada con Sharpe: varianza muestral con divisor ``(N-1)``
+    sobre los retornos downside (incluyendo ceros de periodos no-negativos
+    no se usan; solo observaciones con ``r < target``). Si no hay downside,
+    retorna 0.0.
+    """
     if len(returns) < 2:
         return 0.0
     mean = sum(returns) / len(returns)
-    downside_sq = [(min(0.0, r - target)) ** 2 for r in returns]
-    downside_var = sum(downside_sq) / len(returns)
+    downside = [min(0.0, r - target) for r in returns if r < target]
+    if len(downside) < 2:
+        # Un solo downside: desviación 0 → no definir ratio infinito
+        if len(downside) == 1 and downside[0] != 0.0:
+            # Usar |downside| como proxy de escala
+            return ((mean - target) / abs(downside[0])) * sqrt(periods_per_year)
+        return 0.0
+    d_mean = sum(downside) / len(downside)
+    downside_var = sum((d - d_mean) ** 2 for d in downside) / (len(downside) - 1)
     downside_dev = sqrt(downside_var) if downside_var > 0 else 0.0
     if downside_dev == 0.0:
         return 0.0
@@ -105,8 +118,14 @@ def _mark_prices(result: SimulationResult) -> dict[str, Decimal]:
     return marks
 
 
-def win_rate_and_profit_factor(result: SimulationResult) -> tuple[float, float]:
-    """Win rate y profit factor vía FIFO + MTM de posiciones abiertas al cierre."""
+def win_rate_and_profit_factor(
+    result: SimulationResult,
+) -> tuple[float, float | None]:
+    """Win rate y profit factor vía FIFO + MTM de posiciones abiertas al cierre.
+
+    Si hay ganancia bruta sin pérdidas, ``profit_factor`` es ``None``
+    (antes sentinel 999 que distorsionaba rankings).
+    """
     inventory: dict[str, list[tuple[Decimal, Decimal]]] = {}
     wins = 0
     losses = 0
@@ -140,7 +159,6 @@ def win_rate_and_profit_factor(result: SimulationResult) -> tuple[float, float]:
             else:
                 lots[0] = (lot_qty, lot_px)
 
-    # Posiciones abiertas: mark-to-market al cierre del experimento
     marks = _mark_prices(result)
     for instrument_id, lots in inventory.items():
         mark = marks.get(instrument_id)
@@ -160,9 +178,9 @@ def win_rate_and_profit_factor(result: SimulationResult) -> tuple[float, float]:
     closed = wins + losses
     wr = (wins / closed) if closed else 0.0
     if gross_loss > 0:
-        pf = gross_profit / gross_loss
+        pf: float | None = gross_profit / gross_loss
     elif gross_profit > 0:
-        pf = 999.0
+        pf = None
     else:
         pf = 0.0
     return wr, pf
@@ -186,12 +204,15 @@ class MetricsEngine:
             "calmar": round(calmar_ratio(result.equity_curve, periods_per_year=self._periods), 6),
             "max_drawdown": round(max_drawdown(result.equity_curve), 6),
             "win_rate": round(wr, 6),
-            "profit_factor": round(pf, 6),
             "total_return": round(total_return, 6),
             "n_bars": len(result.equity_curve),
             "n_fills": len(result.fills),
             "final_equity": str(result.equity_curve[-1].equity) if result.equity_curve else "0",
         }
+        if pf is not None:
+            metrics["profit_factor"] = round(pf, 6)
+        else:
+            metrics["profit_factor"] = "undefined"  # sin pérdidas; no usar sentinel numérico
         return MetricsResult(
             experiment_id=result.experiment_id,
             metrics=metrics,

@@ -167,4 +167,4 @@ def test_open_position_mtm_in_win_rate() -> None:
     )
     wr, pf = win_rate_and_profit_factor(result)
     assert wr == 1.0
-    assert pf == 999.0
+    assert pf is None  # sin pérdidas: undefined (no sentinel 999)

@@ -28,20 +28,22 @@ class BatchRunReport:
 
 
 class ParallelBatchRunner:
-    """Ejecuta jobs indexados en thread-pool con monitoreo y chunks.
+    """Ejecuta jobs indexados en thread-pool con monitoreo y chunks."""
 
-    Usa threads (no procesos) para evitar problemas de pickling con closures
-    de estrategias; el cuello de botella típico aquí es I/O/CPU liberado por GIL
-    en workloads numéricos cortos + orquestación.
-    """
-
-    def __init__(self, *, max_workers: int = 4, chunk_size: int = 1000) -> None:
+    def __init__(
+        self,
+        *,
+        max_workers: int = 4,
+        chunk_size: int = 1000,
+        strict: bool = True,
+    ) -> None:
         if max_workers < 1:
             raise ValidationError("max_workers >= 1")
         if chunk_size < 1:
             raise ValidationError("chunk_size >= 1")
         self._max_workers = max_workers
         self._chunk_size = chunk_size
+        self._strict = strict
 
     def map_indexed(
         self,
@@ -68,19 +70,20 @@ class ParallelBatchRunner:
 
         results_buf: list[object | None] = [None] * n_jobs if store_results else []
         failed = 0
+        errors: list[Exception] = []
 
-        def _run_one(i: int) -> tuple[int, T | None, bool]:
+        def _run_one(i: int) -> tuple[int, T | None, bool, Exception | None]:
             try:
-                return i, fn(i), True
-            except Exception:
-                return i, None, False
+                return i, fn(i), True, None
+            except Exception as exc:
+                return i, None, False, exc
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             for start in range(0, n_jobs, self._chunk_size):
                 end = min(start + self._chunk_size, n_jobs)
                 futs = [pool.submit(_run_one, i) for i in range(start, end)]
                 for fut in as_completed(futs):
-                    idx, value, ok = fut.result()
+                    idx, value, ok, err = fut.result()
                     if ok:
                         monitor.tick(ok=True)
                         if store_results:
@@ -88,9 +91,16 @@ class ParallelBatchRunner:
                     else:
                         failed += 1
                         monitor.tick(ok=False)
+                        if err is not None:
+                            errors.append(err)
+
+        if self._strict and failed > 0:
+            raise ExceptionGroup(
+                f"ParallelBatchRunner: {failed} job(s) fallaron (strict=True)",
+                errors or [RuntimeError(f"{failed} failures without captured exception")],
+            )
 
         snap = monitor.snapshot()
-        out_results: tuple[object, ...] | None
         out_results = tuple(results_buf) if store_results else None
         return BatchRunReport(
             n_jobs=n_jobs,
@@ -109,7 +119,7 @@ class ParallelBatchRunner:
         *,
         initial: float = 0.0,
     ) -> tuple[float, BatchRunReport]:
-        """Map-reduce sin guardar todos los resultados (apto 100K+)."""
+        """Map-reduce materializando resultados (usar stream_sum para 100K+)."""
         total = initial
         report = self.map_indexed(n_jobs, fn, store_results=True)
         if report.results is None:
@@ -117,8 +127,6 @@ class ParallelBatchRunner:
         for v in report.results:
             if v is not None:
                 total += float(v)  # type: ignore[arg-type]
-        # Re-run pattern for true streaming reduce without storing:
-        # dedicated path below for large N
         return total, report
 
     def stream_sum(
@@ -132,25 +140,34 @@ class ParallelBatchRunner:
         monitor = ProgressMonitor(n_jobs)
         total = 0.0
         failed = 0
+        errors: list[Exception] = []
 
-        def _run_one(i: int) -> tuple[float, bool]:
+        def _run_one(i: int) -> tuple[float, bool, Exception | None]:
             try:
-                return float(fn(i)), True
-            except Exception:
-                return 0.0, False
+                return float(fn(i)), True, None
+            except Exception as exc:
+                return 0.0, False, exc
 
         with ThreadPoolExecutor(max_workers=self._max_workers) as pool:
             for start in range(0, n_jobs, self._chunk_size):
                 end = min(start + self._chunk_size, n_jobs)
                 futs = [pool.submit(_run_one, i) for i in range(start, end)]
                 for fut in as_completed(futs):
-                    value, ok = fut.result()
+                    value, ok, err = fut.result()
                     if ok:
                         total += value
                         monitor.tick(ok=True)
                     else:
                         failed += 1
                         monitor.tick(ok=False)
+                        if err is not None:
+                            errors.append(err)
+
+        if self._strict and failed > 0:
+            raise ExceptionGroup(
+                f"ParallelBatchRunner.stream_sum: {failed} fallos (strict=True)",
+                errors or [RuntimeError(f"{failed} failures")],
+            )
 
         snap = monitor.snapshot()
         report = BatchRunReport(
@@ -179,7 +196,9 @@ def run_trivial_capacity_probe(
 ) -> BatchRunReport:
     """Suma 1..n en paralelo sin guardar resultados — smoke 100K+."""
     assert_capacity_claim(n_jobs)
-    runner = ParallelBatchRunner(max_workers=max_workers, chunk_size=chunk_size)
+    runner = ParallelBatchRunner(
+        max_workers=max_workers, chunk_size=chunk_size, strict=True
+    )
     _total, report = runner.stream_sum(n_jobs, lambda i: 1.0)
     if report.completed != n_jobs:
         raise ValidationError("capacity probe incompleto")

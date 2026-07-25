@@ -11,7 +11,7 @@ market_data:
   queue_maxsize: 10000
 
 execution:
-  enabled: true
+  enabled: false  # research-prod: órdenes bloqueadas por defecto
   allow_live_orders: false
   account_allowlist: []
   require_live_confirmation: true

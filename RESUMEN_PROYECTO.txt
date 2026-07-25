@@ -7,25 +7,33 @@ ESTADO
 ------
 - Fases 0–17 con MVP certificado (roadmap alineado cerrado)
 - Certificado F17 + residuos: docs/audit/FASE_17_APPROVED.md
+- Research-prod hardening A0–A7: CERRADO (checklist verde)
 - LIVE order routing: BLOQUEADO (LIVE_BLOCKED = True)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Certificación oficial 2026-07-25 (Meta-Auditor):
-- F17 Escalabilidad APROBADA
-- Residuos F10 (multiple testing), F12 (Pareto), F14 (Avellaneda) APROBADOS
-- Live Gate VERIFICADO
+Hardening research-prod 2026-07-25 (A1→A7 autónomo):
+- Live-gate fail-closed en A3Adapter + PyRofexBackend
+- NullRouter default + GatedBackendRouter (sin import circular)
+- Batch strict (ExceptionGroup), Parquet atómico, SQLite WAL
+- verify_dataset hashea storage; checksum A3 = hash del JSONL
+- Accounting falla con orphan fills
+- profit_factor sin sentinel 999 → "undefined"
+- CI restaurado (.github/workflows/ci.yml)
+- Roadmap.md → índice a ROADMAP_ALIGNED.md
+- Checklist: docs/ops/RESEARCH_PROD_CHECKLIST.md
 
 PRÓXIMO PASO
 ------------
-- Ops opcionales: CI workflow PAT (scope workflow), TD-03 ledger multi-nodo
-- Sin Fase 18 en roadmap oficial
+- Operar en research-prod; no habilitar LIVE
+- Sin Fase 18 hasta nuevo alcance explícito
+- Mantener secret scan / remote limpio
 
 REVIEW PACKAGE F17
 ------------------
 - QuantLab_Review_Fase_17_v1.0.zip
 - SHA256: bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
-- Tests: 191 · Coverage: 90.7%
+- Tests: 201 · gate mypy/ruff/pytest verdes (post-hardening)
 
 BLOQUEOS
 --------

@@ -28,8 +28,10 @@ class SqliteCatalogBackend:
         self._init_db()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self._path)
+        conn = sqlite3.connect(self._path, timeout=30.0)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout=30000")
         return conn
 
     def _init_db(self) -> None:
@@ -134,11 +136,24 @@ class SqliteCatalogBackend:
         return self._row_to_entry(row)
 
     def verify_dataset(self, dataset_id: str) -> bool:
+        """Valida formato SHA-256 y recalcula hash del archivo en storage_path."""
+        import hashlib
+        from pathlib import Path
+
         entry = self.get_dataset(dataset_id)
         if entry is None:
             return False
         checksum = entry.manifest.get("checksum")
-        return isinstance(checksum, str) and bool(_SHA256_RE.fullmatch(checksum))
+        if not isinstance(checksum, str) or not _SHA256_RE.fullmatch(checksum):
+            return False
+        storage_path = entry.manifest.get("storage_path")
+        if not isinstance(storage_path, str) or not storage_path:
+            return False
+        path = Path(storage_path)
+        if not path.is_file():
+            return False
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        return digest.lower() == checksum.lower()
 
 
 class DataCatalog:

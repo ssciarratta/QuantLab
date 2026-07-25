@@ -14,10 +14,7 @@ from quantlab.core.types.orders import OrderIntent
 from quantlab.data.exchanges.a3.adapter import A3Adapter
 from quantlab.data.exchanges.a3.config import A3Config, load_a3_config
 from quantlab.data.exchanges.a3.constants import LIVE_TRADING_CONFIRMATION, A3EnvironmentName
-from quantlab.data.exchanges.a3.exceptions import (
-    A3LiveTradingDisabledError,
-    A3RiskRejectedError,
-)
+from quantlab.data.exchanges.a3.exceptions import A3LiveTradingDisabledError
 from quantlab.data.exchanges.a3.fake_backend import FakeA3Backend
 from quantlab.data.exchanges.a3.kill_switch import KillSwitch, KillSwitchState
 from quantlab.data.exchanges.a3.mappers import parse_instrument_dto, sanitize_symbol_for_path
@@ -86,7 +83,8 @@ def test_slice_c_websocket_queue(tmp_path: Path) -> None:
     assert adapter.websocket_capture.stats.dropped == 0
 
 
-def test_slice_d_simulation_order_and_cancel(tmp_path: Path) -> None:
+def test_slice_d_simulation_order_blocked_by_live_gate(tmp_path: Path) -> None:
+    """Research-prod: incluso simulation + FakeBackend no envía órdenes."""
     adapter = _adapter(tmp_path)
     adapter.get_market_snapshot("DLR/DIC24")
     intent = OrderIntent(
@@ -99,10 +97,10 @@ def test_slice_d_simulation_order_and_cancel(tmp_path: Path) -> None:
         order_type=OrderType.LIMIT,
         time_in_force=TimeInForce.GTC,
     )
-    ack = adapter.place_order(intent)
-    assert ack.order_id
-    canceled = adapter.cancel_order(ack.order_id)
-    assert canceled.status == "CANCELED"
+    with pytest.raises(A3LiveTradingDisabledError, match="BLOQUEADO"):
+        adapter.place_order(intent)
+    with pytest.raises(A3LiveTradingDisabledError, match="BLOQUEADO"):
+        adapter.cancel_order("any-id")
 
 
 def test_production_orders_blocked_even_with_fake_creds(
@@ -186,6 +184,9 @@ def test_parse_instrument_and_quality() -> None:
 
 
 def test_risk_rejects_oversized(tmp_path: Path) -> None:
+    """Risk gate unitario (live_gate del adapter se evalúa antes en place_order)."""
+    from quantlab.data.exchanges.a3.risk import DefaultPreTradeRiskGate, TradingContext
+
     adapter = _adapter(tmp_path)
     adapter.get_market_snapshot("DLR/DIC24")
     intent = OrderIntent(
@@ -198,8 +199,22 @@ def test_risk_rejects_oversized(tmp_path: Path) -> None:
         order_type=OrderType.LIMIT,
         time_in_force=TimeInForce.GTC,
     )
-    with pytest.raises(A3RiskRejectedError):
+    # Con LIVE_BLOCKED, place_order falla por live gate; risk se prueba directo.
+    with pytest.raises(A3LiveTradingDisabledError):
         adapter.place_order(intent)
+    ctx = TradingContext(
+        environment="simulation",
+        account="SIM-001",
+        is_production=False,
+        execution_enabled=True,
+        allow_live_orders=False,
+        live_env_confirmed=False,
+        last_market_data_at=datetime.now(tz=UTC),
+        last_price=Decimal("1000"),
+        open_client_order_ids=frozenset(),
+    )
+    decision = DefaultPreTradeRiskGate(adapter._config, adapter._kill).evaluate(intent, ctx)
+    assert not decision.approved
 
 
 def test_live_confirmation_constant_not_default() -> None:

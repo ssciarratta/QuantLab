@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,7 +24,7 @@ class ParquetWriteResult:
 
 
 class ParquetProcessedStore:
-    """Escribe/lee datasets processed como Parquet (DuckDB COPY)."""
+    """Escribe/lee datasets processed como Parquet (DuckDB COPY + replace atómico)."""
 
     def __init__(self, root: Path) -> None:
         self._root = root
@@ -56,6 +57,9 @@ class ParquetProcessedStore:
 
         cols_sql = ", ".join(f'"{c}"' for c in columns)
         create_sql = ", ".join(f'"{c}" VARCHAR' for c in columns)
+        tmp = directory / "data.parquet.tmp"
+        if tmp.exists():
+            tmp.unlink()
         con = duckdb.connect(database=":memory:")
         try:
             con.execute(f"CREATE TABLE data ({create_sql})")
@@ -64,10 +68,10 @@ class ParquetProcessedStore:
             for row in rows:
                 vals = [None if row[c] is None else str(row[c]) for c in columns]
                 con.execute(insert_sql, vals)
-            # path con forward slashes para DuckDB en Windows
-            con.execute(f"COPY data TO '{out.as_posix()}' (FORMAT PARQUET)")
+            con.execute(f"COPY data TO '{tmp.as_posix()}' (FORMAT PARQUET)")
         finally:
             con.close()
+        os.replace(tmp, out)
 
         meta_path = directory / "meta.json"
         payload = {

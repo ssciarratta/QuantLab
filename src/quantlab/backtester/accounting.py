@@ -26,14 +26,21 @@ def _order_sides(result: SimulationResult) -> dict[str, OrderSide]:
     return {o.order_id: o.side for o in result.orders}
 
 
-def reconstruct_cash(result: SimulationResult, *, initial_cash: Decimal) -> tuple[Decimal, Decimal]:
-    """Reconstruye cash y fees a partir de fills (long-only baseline 5A)."""
+def reconstruct_cash(
+    result: SimulationResult, *, initial_cash: Decimal
+) -> tuple[Decimal, Decimal, tuple[str, ...]]:
+    """Reconstruye cash y fees a partir de fills (long-only baseline 5A).
+
+    Retorna también IDs de fills huérfanos (order_id desconocido).
+    """
     cash = initial_cash
     fees = Decimal("0")
     sides = _order_sides(result)
+    orphans: list[str] = []
     for fill in result.fills:
         side = sides.get(fill.order_id)
         if side is None:
+            orphans.append(fill.fill_id)
             continue
         fee = fill.fee.amount
         fees += fee
@@ -42,7 +49,7 @@ def reconstruct_cash(result: SimulationResult, *, initial_cash: Decimal) -> tupl
             cash -= notional + fee
         else:
             cash += notional - fee
-    return cash, fees
+    return cash, fees, tuple(orphans)
 
 
 def assert_accounting_balanced(
@@ -72,7 +79,11 @@ def assert_accounting_balanced(
 
     reported_cash = snap.balances[0].total
     reported_equity = snap.total_equity
-    reconstructed_cash, total_fees = reconstruct_cash(result, initial_cash=initial_cash)
+    reconstructed_cash, total_fees, orphans = reconstruct_cash(
+        result, initial_cash=initial_cash
+    )
+    if orphans:
+        issues.append(f"orphan fills (order_id desconocido): {', '.join(orphans)}")
 
     for label, value in (
         ("reported_cash", reported_cash),
