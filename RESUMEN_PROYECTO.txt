@@ -5,21 +5,20 @@ Versión: 0.10.0
 
 ESTADO
 ------
-- F0–F17 certificados · F18 código (Review Package; sin APPROVED falso)
-- Autauditoría multi-agente: PASS
-- Coverage ~87% · Suite 270+ · LIVE BLOQUEADO
+- F0–F17 certificados · F18 código (sin APPROVED falso)
+- Autonomía multi-agente C1–C6 en curso / sync main
+- Suite: 318 passed · coverage ~87% · LIVE BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-07-25 — tests cobertura causal + splits (solo tests/, sin tocar src):
-- tests/unit/features/test_causal_extra.py (assert_bars_causal_ready / causal_window gaps)
-- tests/unit/validation/test_splits_extra.py (train_val_oos / walk_forward / overlap bordes)
-- 27 passed (pytest -q)
+Tests extra bordes (solo tests/, 2026-07-25):
+- config loader · atomic_io · leakage → 30 passed
+- Sin cambios en src/
 
 PRÓXIMO PASO
 ------------
-- Meta-Auditor → FASE_18_APPROVED (solo con APROBADO humano)
-- LIVE bloqueado · TD-03/05 abiertos por diseño
+- Seguir cobertura / cleanup sin LIVE
+- FASE_18_APPROVED solo con APROBADO Meta-Auditor
 
 BLOQUEOS
 --------
