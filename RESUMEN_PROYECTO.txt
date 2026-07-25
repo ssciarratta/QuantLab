@@ -12,19 +12,19 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Noche F7–F16:
-- 5B micro (replay, partial fill, book slippage, inventory MM)
-- ReportGenerator HTML, ExperimentRegistry
-- Validation splits/leakage, MonteCarlo, GridOptimizer
-- Alpha explain, position sizing, GenericCsvProvider
-- HummingbotExporter (live blocked)
-- Suite pytest en verde · mypy strict · ruff
+Remediación críticos F6/F7 (2026-07-25):
+- 5B MARKET: Best Bid/Ask L2 primero; last_px solo fallback
+- BookSlippageModel: SlippageMode.LINEAR | SQUARE_ROOT
+- MicroSimulationEngine: TTL resting + OrderCancelledEvent TTL_EXPIRED
+- 5A BarBacktester/BarSimulationEngine: multi-activo sync por timestamp_close
+- Tests: tests/unit/backtester/test_critical_remediation_f6_f7.py
+- Suite 166 pytest · mypy strict · ruff OK
 
 PRÓXIMO PASO
 ------------
+- Review Package / re-auditoría F6–F7 post-remediación
 - F17 escalabilidad (si se prioriza)
 - Restaurar CI con PAT scope workflow
-- Rotar token GitHub del remote si aplica
 
 BLOQUEOS
 --------

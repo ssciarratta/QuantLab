@@ -31,6 +31,7 @@ class MicroBacktestConfig:
     cash_asset: str = "USDT"
     max_abs_inventory: Decimal = Decimal("100")
     enforce_accounting: bool = True
+    resting_max_age_ticks: int | None = None
 
 
 class MicroBacktester:
@@ -51,6 +52,7 @@ class MicroBacktester:
                 initial_cash=config.initial_cash,
                 cash_asset=config.cash_asset,
                 max_abs_inventory=config.max_abs_inventory,
+                resting_max_age_ticks=config.resting_max_age_ticks,
             ),
             fill_model=fill_model or PartialFillModel(),
             fee_model=fee_model,

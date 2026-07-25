@@ -1,7 +1,8 @@
-"""Facade Backtester bar-based 5A (Fase 6)."""
+"""Facade Backtester bar-based 5A (Fase 6) — mono y multi-activo sincronizado."""
 
 from __future__ import annotations
 
+from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
@@ -37,12 +38,14 @@ class BarBacktestConfig:
     schema_version: str = "1.0"
     min_timeframe_minutes: int = 1
     enforce_accounting: bool = True
+    allow_multi_asset: bool = True
 
 
 class BarBacktester:
     """Facade 5A sobre `BarSimulationEngine` + Metrics + contabilidad cuadrada.
 
     Operación principal: `run(strategy, bars) → BarBacktestResult`.
+    Soporta múltiples `instrument_id` sincronizados por `timestamp_close`.
     No valida market-making ni microestructura (eso es Fase 7 / 5B).
     """
 
@@ -102,17 +105,25 @@ class BarBacktester:
     def _validate_bars_5a(self, bars: Sequence[Bar]) -> None:
         if not bars:
             raise ValidationError("backtester 5A requiere al menos una barra")
-        instrument = bars[0].instrument_id
-        prev_close = None
+        by_inst: dict[str, list[Bar]] = defaultdict(list)
         min_seconds = self._config.min_timeframe_minutes * 60
         for bar in bars:
-            if bar.instrument_id != instrument:
-                raise ValidationError("5A: un solo instrument_id por corrida")
             duration = (bar.timestamp_close - bar.timestamp_open).total_seconds()
             if duration < min_seconds - 1e-9:
                 raise ValidationError(
                     f"5A: timeframe de barra < {self._config.min_timeframe_minutes}m"
                 )
-            if prev_close is not None and bar.timestamp_close <= prev_close:
-                raise ValidationError("5A: barras deben ser estrictamente ascendentes")
-            prev_close = bar.timestamp_close
+            by_inst[bar.instrument_id].append(bar)
+
+        if not self._config.allow_multi_asset and len(by_inst) > 1:
+            raise ValidationError("5A: un solo instrument_id por corrida")
+
+        for instrument_id, ibars in by_inst.items():
+            ordered = sorted(ibars, key=lambda b: b.timestamp_close)
+            prev_close = None
+            for bar in ordered:
+                if prev_close is not None and bar.timestamp_close <= prev_close:
+                    raise ValidationError(
+                        f"5A: barras de {instrument_id} deben ser estrictamente ascendentes"
+                    )
+                prev_close = bar.timestamp_close

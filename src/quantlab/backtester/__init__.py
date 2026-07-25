@@ -2,7 +2,7 @@
 
 from quantlab.backtester.accounting import AccountingReport, assert_accounting_balanced
 from quantlab.backtester.bar_based import BarBacktestConfig, BarBacktester, BarBacktestResult
-from quantlab.backtester.book_slippage import BookSlippageModel
+from quantlab.backtester.book_slippage import BookSlippageModel, SlippageMode
 from quantlab.backtester.golden import (
     GoldenRunSpec,
     assert_matches_golden,
@@ -13,7 +13,11 @@ from quantlab.backtester.golden import (
 from quantlab.backtester.inventory import InventoryTracker
 from quantlab.backtester.market_replay import MarketReplay, ReplayEvent
 from quantlab.backtester.micro import MicroBacktestConfig, MicroBacktester, MicroBacktestResult
-from quantlab.backtester.micro_engine import MicroSimulationConfig, MicroSimulationEngine
+from quantlab.backtester.micro_engine import (
+    MicroSimulationConfig,
+    MicroSimulationEngine,
+    OrderCancelledEvent,
+)
 from quantlab.backtester.partial_fill import PartialFillDecision, PartialFillModel, RestingOrder
 
 __all__ = [
@@ -30,10 +34,12 @@ __all__ = [
     "MicroBacktester",
     "MicroSimulationConfig",
     "MicroSimulationEngine",
+    "OrderCancelledEvent",
     "PartialFillDecision",
     "PartialFillModel",
     "ReplayEvent",
     "RestingOrder",
+    "SlippageMode",
     "assert_accounting_balanced",
     "assert_matches_golden",
     "build_golden",

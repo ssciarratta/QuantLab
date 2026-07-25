@@ -28,6 +28,7 @@ class RestingOrder:
     intent: OrderIntent
     remaining: Decimal
     status: str = "open"
+    created_tick: int = 0
 
 
 class PartialFillModel:

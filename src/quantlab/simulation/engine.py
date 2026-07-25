@@ -1,4 +1,7 @@
-"""Motor de simulación bar-based / event-driven (Fase 4 + políticas F5 opcionales)."""
+"""Motor de simulación bar-based / event-driven (Fase 4 + políticas F5 opcionales).
+
+Soporta multi-activo: sincroniza barras que comparten ``timestamp_close``.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +9,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+from itertools import groupby
 from uuid import uuid4
 
 from quantlab.core.contracts.strategy import Strategy, StrategyContext
@@ -47,6 +51,15 @@ class _PendingIntent:
     effective_index: int
 
 
+def synchronize_bars_by_timestamp(bars: Sequence[Bar]) -> list[list[Bar]]:
+    """Agrupa barras por ``timestamp_close`` (orden estable por instrument_id)."""
+    ordered = sorted(bars, key=lambda b: (b.timestamp_close, b.instrument_id))
+    steps: list[list[Bar]] = []
+    for _, group in groupby(ordered, key=lambda b: b.timestamp_close):
+        steps.append(list(group))
+    return steps
+
+
 class BarSimulationEngine:
     """Ejecuta Strategy sobre una secuencia de barras y produce SimulationResult."""
 
@@ -85,96 +98,119 @@ class BarSimulationEngine:
         events_log: list[dict[str, object]] = []
         marks: dict[str, Decimal] = {}
         pending: list[_PendingIntent] = []
-        bar_list = list(bars)
-        n = len(bar_list)
+        steps = synchronize_bars_by_timestamp(bars)
+        n = len(steps)
 
-        for idx, bar in enumerate(bar_list):
-            marks[bar.instrument_id] = bar.close
+        for step_idx, step_bars in enumerate(steps):
+            # Actualizar marks de todos los activos del step (sin cross-talk de PnL).
+            for bar in step_bars:
+                marks[bar.instrument_id] = bar.close
 
-            # Fills diferidos (latencia) ANTES del contexto de estrategia
-            due = [p for p in pending if p.effective_index == idx]
-            pending = [p for p in pending if p.effective_index != idx]
+            by_inst = {b.instrument_id: b for b in step_bars}
+            due = [p for p in pending if p.effective_index == step_idx]
+            pending = [p for p in pending if p.effective_index != step_idx]
             for item in due:
+                bar_for = by_inst.get(item.intent.instrument_id)
+                if bar_for is None:
+                    if step_idx + 1 < n:
+                        pending.append(
+                            _PendingIntent(intent=item.intent, effective_index=step_idx + 1)
+                        )
+                    else:
+                        events_log.append(
+                            {
+                                "skipped": item.intent.intent_id,
+                                "reason": "no_bar_for_instrument",
+                            }
+                        )
+                    continue
                 self._try_fill(
                     intent=item.intent,
-                    bar=bar,
+                    bar=bar_for,
                     tracker=tracker,
                     fills=fills,
                     orders=orders,
                     events_log=events_log,
                 )
 
+            step_ts = step_bars[0].timestamp_close
             clock = SimulationClock(
-                current_time=bar.timestamp_close,
+                current_time=step_ts,
                 mode=ClockMode.EVENT_DRIVEN,
                 speed=ClockSpeed.ACCELERATED,
             )
-            portfolio = tracker.mark_equity(marks, bar.timestamp_close)
+            portfolio = tracker.mark_equity(marks, step_ts)
             ctx = StrategyContext(
                 clock=clock,
                 portfolio_state=portfolio,
                 parameters=strategy.get_parameters(),
             )
-            event = MarketEvent(
-                event_id=self._next_id("evt"),
-                event_type=EventType.BAR,
-                timestamp=bar.timestamp_close,
-                instrument_id=bar.instrument_id,
-                payload={"timeframe": bar.timeframe, "close": str(bar.close)},
-            )
 
-            intents = strategy.on_event(event, ctx)
-            if not intents:
-                intents = strategy.on_bar(bar, ctx)
+            for bar in step_bars:
+                event = MarketEvent(
+                    event_id=self._next_id("evt"),
+                    event_type=EventType.BAR,
+                    timestamp=bar.timestamp_close,
+                    instrument_id=bar.instrument_id,
+                    payload={"timeframe": bar.timeframe, "close": str(bar.close)},
+                )
+                intents = strategy.on_event(event, ctx)
+                if not intents:
+                    intents = strategy.on_bar(bar, ctx)
 
-            for intent in intents:
-                events_log.append(
-                    {
-                        "bar_ts": bar.timestamp_close.isoformat(),
-                        "intent_id": intent.intent_id,
-                        "intent_type": intent.intent_type.value,
-                        "submit_index": idx,
-                    }
-                )
-                if intent.intent_type is not IntentType.PLACE_ORDER:
-                    continue
-                latency = self._latency.resolve(
-                    submit_index=idx,
-                    submit_time=bar.timestamp_close,
-                    series_length=n,
-                )
-                if not latency.executable or latency.effective_index is None:
+                for intent in intents:
                     events_log.append(
                         {
-                            "skipped": intent.intent_id,
-                            "reason": latency.reason,
+                            "bar_ts": bar.timestamp_close.isoformat(),
+                            "instrument_id": bar.instrument_id,
+                            "intent_id": intent.intent_id,
+                            "intent_type": intent.intent_type.value,
+                            "submit_index": step_idx,
                         }
                     )
-                    continue
-                if latency.effective_index == idx:
-                    self._try_fill(
-                        intent=intent,
-                        bar=bar,
-                        tracker=tracker,
-                        fills=fills,
-                        orders=orders,
-                        events_log=events_log,
+                    if intent.intent_type is not IntentType.PLACE_ORDER:
+                        continue
+                    latency = self._latency.resolve(
+                        submit_index=step_idx,
+                        submit_time=bar.timestamp_close,
+                        series_length=n,
                     )
-                else:
-                    pending.append(
-                        _PendingIntent(intent=intent, effective_index=latency.effective_index)
-                    )
-                    events_log.append(
-                        {
-                            "queued": intent.intent_id,
-                            "effective_index": latency.effective_index,
-                            "latency": self._latency.model_id,
-                        }
-                    )
+                    if not latency.executable or latency.effective_index is None:
+                        events_log.append(
+                            {
+                                "skipped": intent.intent_id,
+                                "reason": latency.reason,
+                            }
+                        )
+                        continue
+                    if latency.effective_index == step_idx:
+                        # Fill contra la barra del instrument_id del intent
+                        fill_bar = by_inst.get(intent.instrument_id, bar)
+                        self._try_fill(
+                            intent=intent,
+                            bar=fill_bar,
+                            tracker=tracker,
+                            fills=fills,
+                            orders=orders,
+                            events_log=events_log,
+                        )
+                    else:
+                        pending.append(
+                            _PendingIntent(
+                                intent=intent, effective_index=latency.effective_index
+                            )
+                        )
+                        events_log.append(
+                            {
+                                "queued": intent.intent_id,
+                                "effective_index": latency.effective_index,
+                                "latency": self._latency.model_id,
+                            }
+                        )
 
-            snap = tracker.mark_equity(marks, bar.timestamp_close)
+            snap = tracker.mark_equity(marks, step_ts)
             snapshots.append(snap)
-            point = EquityPoint(timestamp=bar.timestamp_close, equity=snap.total_equity)
+            point = EquityPoint(timestamp=step_ts, equity=snap.total_equity)
             if equity_curve and equity_curve[-1].timestamp == point.timestamp:
                 equity_curve[-1] = point
             else:
@@ -196,7 +232,9 @@ class BarSimulationEngine:
                 "slippage_model": self._slippage.model_id,
                 "latency_model": self._latency.model_id,
                 "fee_model": self._fee.model_id,
-                "bars": len(bar_list),
+                "bars": sum(len(s) for s in steps),
+                "sync_steps": n,
+                "instruments": sorted({b.instrument_id for s in steps for b in s}),
                 "initial_cash": str(self._config.initial_cash),
                 "completed_at": datetime.now(tz=UTC).isoformat(),
             },
