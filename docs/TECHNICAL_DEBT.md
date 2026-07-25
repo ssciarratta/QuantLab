@@ -11,12 +11,12 @@
 | TD-03 | Contabilidad / ledger distribuido multi-nodo | F17+/futuro | Alta | Fuera de F18 local |
 | TD-04 | ~~LogReturn float~~ | F18 | — | Mitigado: `Decimal.ln` |
 | TD-05 | Latencia wall-clock (`min_delay`) no implementada | F7 | Media | Se rechaza si `min_delay>0` |
-| TD-06 | AlphaScanner sin explicabilidad completa | F13 | Baja | — |
+| TD-06 | ~~AlphaScanner sin explicabilidad~~ | F18+audit | — | Mitigado: drivers con w×contrib |
 | TD-07 | ~~MetricsEngine sin reporting HTML~~ | F8 | — | Mitigado |
 | TD-08 | ~~Experiment Registry CRUD incompleto~~ | F9 | — | Mitigado |
 | TD-09 | FeatureStore filesystem local; sin backend remoto | F17 | Baja | — |
 | TD-10 | Order routing LIVE A3 bloqueado por diseño | N/A | — | Irrenunciable |
-| TD-11 | Forward-fill barras sintéticas (volumen 0) | F4+/research | Baja | — |
+| TD-11 | ~~Forward-fill sesga volatilidad AlphaScanner~~ | F18+audit | — | Mitigado: vol/liq solo `volume>0` |
 | TD-12 | `mark_equity` 2× por barra | F4 cleanup | Baja | — |
 | TD-13 | ~~Colisión path FeatureStore~~ | F18 | — | Mitigado: hashed segments |
 | TD-14 | ~~verify_dataset hash~~ | research-prod | — | Mitigado |

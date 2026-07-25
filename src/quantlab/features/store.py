@@ -70,6 +70,40 @@ class FeatureStore:
         directory.mkdir(parents=True, exist_ok=True)
         frame_path = directory / "frame.json"
         meta_path = directory / "meta.json"
+        if frame_path.exists():
+            existing = hashlib.sha256(frame_path.read_bytes()).hexdigest()
+            if existing == checksum:
+                # Idempotente: mismo contenido
+                meta_existing = (
+                    json.loads(meta_path.read_text(encoding="utf-8"))
+                    if meta_path.exists()
+                    else {}
+                )
+                created_raw = (
+                    meta_existing.get("created_at")
+                    if isinstance(meta_existing, dict)
+                    else None
+                )
+                created = (
+                    datetime.fromisoformat(str(created_raw))
+                    if isinstance(created_raw, str)
+                    else datetime.now(tz=UTC)
+                )
+                key = (frame.instrument_id, frame.pipeline_name, version)
+                self._cache[key] = frame
+                return FeatureStoreRef(
+                    instrument_id=frame.instrument_id,
+                    pipeline_name=frame.pipeline_name,
+                    version=version,
+                    path=str(frame_path),
+                    checksum=checksum,
+                    schema_version=frame.schema_version or FEATURES_SCHEMA_VERSION,
+                    created_at=created,
+                )
+            raise ValidationError(
+                f"feature version ya existe con otro checksum: {frame.instrument_id}/"
+                f"{frame.pipeline_name}/{version}"
+            )
         atomic_write_bytes(frame_path, raw_bytes)
         created = datetime.now(tz=UTC)
         meta = {
@@ -143,13 +177,11 @@ class FeatureStore:
             if not path.is_dir() or not (path / "frame.json").exists():
                 continue
             meta_path = path / "meta.json"
-            if meta_path.exists():
-                meta = json.loads(meta_path.read_text(encoding="utf-8"))
-                ver = meta.get("version") if isinstance(meta, dict) else None
-                if isinstance(ver, str) and ver:
-                    versions.append(ver)
-                    continue
-            # fallback: directorio legacy sin meta usable
-            versions.append(path.name)
+            if not meta_path.exists():
+                continue
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            ver = meta.get("version") if isinstance(meta, dict) else None
+            if isinstance(ver, str) and ver:
+                versions.append(ver)
         return tuple(sorted(set(versions)))
 

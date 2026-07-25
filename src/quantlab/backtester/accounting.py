@@ -118,7 +118,12 @@ def assert_accounting_balanced(
     if abs(curve_end - reported_equity) > tolerance:
         issues.append(f"equity_curve[-1]={curve_end} != snapshot.total_equity={reported_equity}")
 
-    fill_fee_sum = sum((f.fee.amount for f in result.fills), Decimal("0"))
+    # Solo fills no-huérfanos (alineado a reconstruct_cash)
+    known_orders = _order_sides(result)
+    fill_fee_sum = sum(
+        (f.fee.amount for f in result.fills if f.order_id in known_orders),
+        Decimal("0"),
+    )
     if abs(fill_fee_sum - total_fees) > tolerance:
         issues.append(f"fee sum mismatch: fills={fill_fee_sum} reconstructed={total_fees}")
 

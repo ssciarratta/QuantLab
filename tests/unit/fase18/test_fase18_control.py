@@ -113,11 +113,12 @@ def test_local_paper_ledger(tmp_path: Path) -> None:
     )
     ledger = LocalPaperLedger(tmp_path / "paper.sqlite")
     n = ledger.append_simulation(result)
-    assert n == 3  # order + fill + equity
+    assert n == 4  # order + fill + equity + simulation_meta
     entries = ledger.list_entries("f18-paper")
     kinds = {e.kind for e in entries}
-    assert kinds == {"order", "fill", "equity_end"}
-    assert ledger.count("f18-paper") == 3
+    assert kinds == {"order", "fill", "equity_end", "simulation_meta"}
+    assert ledger.count("f18-paper") == 4
+    assert ledger.append_simulation(result) == 0  # idempotente
 
 
 def test_feature_store_collision_isolated(tmp_path: Path) -> None:

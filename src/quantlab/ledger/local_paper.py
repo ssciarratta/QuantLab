@@ -2,10 +2,12 @@
 
 Persiste fills/órdenes de ``SimulationResult`` para auditoría research.
 No envía órdenes; no toca A3 LIVE.
+Idempotencia: un experiment_id se registra una sola vez (append-once).
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 from dataclasses import dataclass
@@ -15,6 +17,7 @@ from pathlib import Path
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.results import SimulationResult
 from quantlab.core.types.serialization import dataclass_to_dict
+from quantlab.core.types.validation import require_non_empty_str
 from quantlab.execution.live_gate import LIVE_BLOCKED
 
 
@@ -28,7 +31,7 @@ class PaperLedgerEntry:
 
 
 class LocalPaperLedger:
-    """Append-only SQLite para resultados de simulación / paper research."""
+    """Append-once SQLite para resultados de simulación / paper research."""
 
     def __init__(self, path: Path) -> None:
         if not LIVE_BLOCKED:
@@ -60,12 +63,56 @@ class LocalPaperLedger:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_paper_exp ON paper_entries(experiment_id)"
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS paper_experiments (
+                    experiment_id TEXT PRIMARY KEY,
+                    payload_sha256 TEXT NOT NULL,
+                    recorded_at TEXT NOT NULL
+                )
+                """
+            )
 
     def append_simulation(self, result: SimulationResult) -> int:
-        """Registra snapshot de fills + orders + equity final. Retorna filas insertadas."""
+        """Registra snapshot de fills + orders + equity final.
+
+        Idempotente: si ``experiment_id`` ya existe con el mismo hash → 0.
+        Si existe con hash distinto → ValidationError.
+        """
+        require_non_empty_str(result.experiment_id, "experiment_id")
         now = datetime.now(tz=UTC).isoformat()
-        rows = 0
+        meta_payload = {
+            "n_orders": len(result.orders),
+            "n_fills": len(result.fills),
+            "equity_end": (
+                str(result.equity_curve[-1].equity) if result.equity_curve else None
+            ),
+        }
+        digest_src = json.dumps(
+            {
+                "meta": meta_payload,
+                "orders": [dataclass_to_dict(o) for o in result.orders],
+                "fills": [dataclass_to_dict(f) for f in result.fills],
+            },
+            sort_keys=True,
+            default=str,
+        )
+        payload_sha = hashlib.sha256(digest_src.encode("utf-8")).hexdigest()
+
         with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT payload_sha256 FROM paper_experiments WHERE experiment_id = ?",
+                (result.experiment_id,),
+            ).fetchone()
+            if existing is not None:
+                if str(existing["payload_sha256"]) == payload_sha:
+                    return 0
+                raise ValidationError(
+                    f"paper ledger: experiment_id ya registrado con otro payload: "
+                    f"{result.experiment_id}"
+                )
+
+            rows = 0
             for order in result.orders:
                 conn.execute(
                     """
@@ -112,9 +159,31 @@ class LocalPaperLedger:
                     ),
                 )
                 rows += 1
+            meta_payload["payload_sha256"] = payload_sha
+            conn.execute(
+                """
+                INSERT INTO paper_entries(experiment_id, kind, payload_json, recorded_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    result.experiment_id,
+                    "simulation_meta",
+                    json.dumps(meta_payload, sort_keys=True),
+                    now,
+                ),
+            )
+            rows += 1
+            conn.execute(
+                """
+                INSERT INTO paper_experiments(experiment_id, payload_sha256, recorded_at)
+                VALUES (?, ?, ?)
+                """,
+                (result.experiment_id, payload_sha, now),
+            )
         return rows
 
     def list_entries(self, experiment_id: str) -> tuple[PaperLedgerEntry, ...]:
+        require_non_empty_str(experiment_id, "experiment_id")
         with self._connect() as conn:
             rows = conn.execute(
                 """

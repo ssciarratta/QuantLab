@@ -137,13 +137,13 @@ class AlphaScanner:
             gap_events.extend(events)
             if len(aligned) < min_bars:
                 continue
-            closes = [float(b.close) for b in aligned]
-            # Excluir sintéticas volume==0 del score de liquidez (evita rango 0 inflado)
+            # Excluir sintéticas volume==0 de liquidez Y volatilidad (TD-11)
             live = [b for b in aligned if b.volume > 0]
-            base_for_liq = live or list(aligned)
-            volumes = [float(b.volume) for b in base_for_liq]
+            base = live or list(aligned)
+            closes = [float(b.close) for b in base]
+            volumes = [float(b.volume) for b in base]
             ranges = [
-                float((b.high - b.low) / b.close) if b.close > 0 else 0.0 for b in base_for_liq
+                float((b.high - b.low) / b.close) if b.close > 0 else 0.0 for b in base
             ]
             rets = [
                 (closes[i] - closes[i - 1]) / closes[i - 1]

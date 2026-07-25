@@ -70,3 +70,33 @@ def test_scanner_handles_bar_gaps_forward_fill() -> None:
     assert result.selected == ("G",)
     assert result.gap_events
     assert any("bar_gap" in e for e in result.gap_events)
+
+
+def test_scanner_volatility_ignores_synthetic_zero_volume() -> None:
+    """TD-11: forward-fill no debe aplanar volatilidad vía closes sintéticos."""
+    base = datetime(2024, 6, 1, tzinfo=UTC)
+
+    def bar(close: str, minutes: int, vol: str = "100") -> Bar:
+        px = Decimal(close)
+        t0 = base + timedelta(minutes=minutes)
+        return Bar(
+            instrument_id="V",
+            open=px,
+            high=px + Decimal("0.5"),
+            low=px - Decimal("0.5"),
+            close=px,
+            volume=Decimal(vol),
+            timestamp_open=t0,
+            timestamp_close=t0 + timedelta(minutes=1),
+            timeframe="1m",
+        )
+
+    # delta 1m (primeras dos) + hueco → sintéticas vol=0; live con retornos fuertes
+    live = [bar("10", 0), bar("11", 1), bar("20", 10), bar("8", 11)]
+    result = AlphaScanner(gap_policy=GapPolicy.FORWARD_FILL).scan(
+        {"V": live}, top_n=1, min_bars=3
+    )
+    assert result.scores
+    assert result.gap_events
+    # Solo closes live → pstdev de retornos grandes; sintéticas no aplanan
+    assert result.scores[0].volatility > 0.1

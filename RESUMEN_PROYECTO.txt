@@ -7,26 +7,26 @@ ESTADO
 ------
 - Fases 0–17 certificadas
 - Fase 18 Control Total: código + Review Package (pendiente APROBADO)
-- Research-prod: LISTO
-- LIVE order routing: BLOQUEADO
+- Autauditoría ejecutable F18: PASS (docs/audit/AUTO_AUDIT_2026-07-25_F18.md)
+- Research-prod: LISTO · LIVE: BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-FASE 18 (2026-07-25):
-- FeatureStore anti-colisión (hashed segments)
-- LogReturn Decimal.ln
-- LocalPaperLedger SQLite
-- quantlab-health + ops export
-- Convención TD-17 documentada
-- Review: docs/audit/FASE_18_REVIEW_PACKAGE.md
+Autonomía post-F18 (2026-07-25):
+- Remediación H1 FeatureStore anti-overwrite + idempotente
+- Remediación H2 Paper ledger append-once + meta hash
+- Health smoke real (Windows-safe)
+- AlphaScanner TD-11: vol sin sintéticas
+- Accounting fees alineados a non-orphans
+- +tests LIVE cancel/PyRofex, sizing, momentum, logging, batch
+- Suite: 240+ passed
 
-PRÓXIMO PASO
-------------
-- Meta-Auditor → APROBADO F18 (no auto-certificar)
-- LIVE sigue BLOQUEADO
-- Sin cluster / TD-03
+PRÓXIMO PASO (autónomo / Meta-Auditor)
+--------------------------------------
+- Seguir cobertura strategies/ops
+- NO emitir FASE_18_APPROVED sin APROBADO explícito
+- LIVE bloqueado
 
 BLOQUEOS
 --------
 - ORDER ROUTING REAL / LIVE A3: BLOQUEADO
-- FASE_18_APPROVED.md: solo con APROBADO explícito
