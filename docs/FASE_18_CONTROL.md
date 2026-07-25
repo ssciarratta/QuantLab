@@ -5,13 +5,14 @@ Post F0–F17 certificado. Objetivo: endurecer operación de laboratorio **sin**
 ## Incluye
 - Paths FeatureStore sin colisión
 - LogReturn Decimal puro
-- Paper ledger local (auditoría de sims)
+- Paper ledger local (auditoría de sims) + federación de shards (reconcile/merge)
 - Health check CLI
 - Convención de fees/PnL documentada
+- Latencia wall-clock `min_delay` (TD-05)
 
 ## No incluye
 - Order routing LIVE / A3 real
-- Cluster / ledger multi-nodo (TD-03)
+- Cluster HA / ledger ACID multi-nodo (residual TD-03 trading-prod)
 - Certificado automático (requiere Meta-Auditor)
 
 ## Uso rápido

@@ -253,9 +253,10 @@ def test_slippage_rejects_bps_ge_10000() -> None:
         FixedSlippageModel(bps=Decimal("10000"))
 
 
-def test_latency_rejects_unimplemented_min_delay() -> None:
-    with pytest.raises(ValidationError):
-        FixedLatencyModel(bars_delay=0, min_delay=timedelta(seconds=1))
+def test_latency_min_delay_accepted_with_zero_bars() -> None:
+    """TD-05: min_delay > 0 ya no se rechaza en construcción."""
+    model = FixedLatencyModel(bars_delay=0, min_delay=timedelta(seconds=1))
+    assert model.min_delay == timedelta(seconds=1)
 
 
 # --- Features ---

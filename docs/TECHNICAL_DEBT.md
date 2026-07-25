@@ -1,6 +1,6 @@
 # QuantLab — Technical Debt
 
-**Actualizado:** 2026-07-25 (Fase 18 Control Total código)  
+**Actualizado:** 2026-07-25 (TD-03/TD-05 + CI Actions)  
 **Propósito:** Deudas residuales conocidas.  
 **Certificados / reports:** `FASE_*_APPROVED.md`, `FASE_18_IMPLEMENTATION_REPORT.md`
 
@@ -8,9 +8,9 @@
 |----|-------|---------------|-----------|-------|
 | TD-01 | ~~Processed solo JSONL~~ | F17 | — | Mitigado |
 | TD-02 | ~~Sin DuckDB catalog~~ | F17 | — | Mitigado |
-| TD-03 | Contabilidad / ledger distribuido multi-nodo | F17+/futuro | Alta | Fuera de F18 local |
+| TD-03 | ~~Federación shards paper ledger~~ | F18+ | — | Mitigado research: `node_id` + `reconcile`/`merge_from`. Residual: ACID multi-nodo / HA cluster (trading-prod) |
 | TD-04 | ~~LogReturn float~~ | F18 | — | Mitigado: `Decimal.ln` |
-| TD-05 | Latencia wall-clock (`min_delay`) no implementada | F7 | Media | Se rechaza si `min_delay>0` |
+| TD-05 | ~~Latencia wall-clock (`min_delay`)~~ | F18+ | — | Mitigado: `FixedLatencyModel` + `bar_times` en engine |
 | TD-06 | ~~AlphaScanner sin explicabilidad~~ | F18+audit | — | Mitigado: drivers con w×contrib |
 | TD-07 | ~~MetricsEngine sin reporting HTML~~ | F8 | — | Mitigado |
 | TD-08 | ~~Experiment Registry CRUD incompleto~~ | F9 | — | Mitigado |
@@ -27,5 +27,5 @@
 
 ## Notas
 
-- F18: paper ledger local ≠ ledger distribuido (TD-03).
-- CI Actions: `docs/ci/ci.yml.example` hasta scope OAuth `workflow`.
+- TD-03 residual trading-prod: cluster HA / ledger ACID distribuido — fuera de research-prod.
+- CI Actions: `.github/workflows/ci.yml` versionado (fuente espejo `docs/ci/ci.yml.example`).

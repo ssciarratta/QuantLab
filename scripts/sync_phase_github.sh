@@ -23,14 +23,14 @@ uv run mypy --strict src/quantlab
 uv run ruff check src/quantlab
 uv run pytest -q --tb=line
 
-echo "==> Staging (sin secretos / basura / workflows si el PAT no tiene scope workflow)"
+echo "==> Staging (sin secretos / basura)"
 git add -A
 # Nunca versionar ruido local
 git reset HEAD -- .coverage .env 2>/dev/null || true
-# Si el push falla por scope workflow, excluir CI y usar docs/ci/ci.yml.example
-if [[ "${SKIP_WORKFLOWS:-1}" == "1" ]]; then
+# Escape hatch: SKIP_WORKFLOWS=1 si el PAT/OAuth no tiene scope `workflow`
+if [[ "${SKIP_WORKFLOWS:-0}" == "1" ]]; then
+  echo "==> SKIP_WORKFLOWS=1 — excluyendo .github/workflows del commit"
   git reset HEAD -- .github/workflows 2>/dev/null || true
-  git checkout HEAD -- .github/workflows 2>/dev/null || rm -rf .github/workflows || true
 fi
 git status -sb
 

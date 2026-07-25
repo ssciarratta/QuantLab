@@ -34,6 +34,6 @@ bash scripts/sync_phase_github.sh --status   # diagnóstico
 
 - URL del remote: `https://github.com/ssciarratta/QuantLab.git` (**sin** token embebido).
 - Credenciales: `gh auth` (keyring) con scope `repo`.
-- CI workflow: si el PAT/OAuth no tiene scope `workflow`, no pushear `.github/workflows` (usar `docs/ci/ci.yml.example`).
+- CI workflow: versionado en `.github/workflows/ci.yml`. Si el PAT/OAuth no tiene scope `workflow`, usar `SKIP_WORKFLOWS=1` al sync.
 - Si alguna vez hubo un token `ghp_` en la URL: revocarlo en  
   https://github.com/settings/tokens

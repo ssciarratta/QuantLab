@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import datetime
 from decimal import Decimal
 from typing import Protocol
@@ -42,8 +43,12 @@ class LatencyModel(Protocol):
         submit_index: int,
         submit_time: datetime,
         series_length: int,
+        bar_times: Sequence[datetime] | None = None,
     ) -> LatencyDecision:
-        """Índice de barra efectiva o rechazo si cae fuera de la serie."""
+        """Índice de barra efectiva o rechazo si cae fuera de la serie.
+
+        ``bar_times`` es obligatorio cuando el modelo usa ``min_delay`` wall-clock.
+        """
         ...
 
 

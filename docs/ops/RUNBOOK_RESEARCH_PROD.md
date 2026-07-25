@@ -14,17 +14,24 @@ uv run pytest -q
 
 ## CI
 
-Fuente: `docs/ci/ci.yml.example`  
-Activar en Actions: `mkdir -p .github/workflows && cp docs/ci/ci.yml.example .github/workflows/ci.yml`  
-(Push requiere OAuth/PAT con scope `workflow`.)
+Workflow versionado: `.github/workflows/ci.yml`  
+Espejo documental: `docs/ci/ci.yml.example`  
+Si el push falla por scope OAuth `workflow`: `SKIP_WORKFLOWS=1 bash scripts/sync_phase_github.sh ...`
 
 ## Paper ledger
 
 ```python
 from pathlib import Path
 from quantlab.ledger import LocalPaperLedger
-ledger = LocalPaperLedger(Path("data/runtime/paper.sqlite"))
+
+ledger = LocalPaperLedger(Path("data/runtime/paper.sqlite"), node_id="lab-1")
 ledger.append_simulation(simulation_result)  # append-once por experiment_id
+
+# Federación research (TD-03 mitigado): merge de shards
+other = LocalPaperLedger(Path("data/runtime/paper-node2.sqlite"), node_id="lab-2")
+report = ledger.reconcile_with(other)
+if report.ok:
+    ledger.merge_from(other)
 ```
 
 ## Autauditoría

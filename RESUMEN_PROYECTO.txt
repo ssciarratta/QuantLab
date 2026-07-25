@@ -6,20 +6,22 @@ Versión: 0.10.0
 ESTADO
 ------
 - F0–F17 certificados · F18 código (sin APPROVED falso)
-- Autonomía C1–C7: en main (984d37c)
-- Suite: 348 passed · LIVE BLOQUEADO · remote limpio
+- Autonomía C1–C7 en main
+- TD-03 research federado · TD-05 min_delay · CI Actions versionado
+- LIVE BLOQUEADO · remote limpio (sin token en URL canónica)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-07-25 — tests bordes (solo tests/, sin tocar src):
-- test_parquet_store_extra.py (vacío, columnas, ya existe, read missing)
-- test_registry_extra.py (CRUD/batch/sidecars bordes)
-- pytest: 16 passed
+2026-07-25 — resolver deuda no bloqueante (punto 3):
+- TD-05: FixedLatencyModel.min_delay + bar_times en BarSimulationEngine
+- TD-03 research: node_id + reconcile_indexes + merge_from (shards SQLite)
+- CI: .github/workflows/ci.yml versionado (quitado de .gitignore)
+- Tests: latency min_delay + paper ledger federation
 
 PRÓXIMO PASO
 ------------
-- Seguir cobertura / cleanup TD
 - FASE_18_APPROVED solo con APROBADO Meta-Auditor
+- Residual TD-03 HA/ACID cluster (solo si trading-prod)
 - LIVE bloqueado
 
 BLOQUEOS
