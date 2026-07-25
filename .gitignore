@@ -61,5 +61,8 @@ format_report.txt
 requirements.txt
 review_staging/
 
-# (CI versionado en .github/workflows/ci.yml — push requiere scope OAuth `workflow`)
+# CI local hasta que el push tenga scope OAuth `workflow`.
+# Fuente remota: docs/ci/ci.yml.example
+# Activar: mkdir -p .github/workflows && cp docs/ci/ci.yml.example .github/workflows/ci.yml
+.github/workflows/ci.yml
 
