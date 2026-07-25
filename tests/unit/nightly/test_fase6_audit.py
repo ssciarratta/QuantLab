@@ -77,9 +77,7 @@ def test_momentum_roundtrip_accounting() -> None:
                 timeframe="1m",
             )
         )
-    bt = BarBacktester(
-        BarBacktestConfig(experiment_id="n6-mom", initial_cash=Decimal("100000"))
-    )
+    bt = BarBacktester(BarBacktestConfig(experiment_id="n6-mom", initial_cash=Decimal("100000")))
     result = bt.run(SimpleMomentumStrategy({"lookback": 2, "quantity": "1"}), bars)
     assert result.accounting.ok
     assert result.simulation.metadata.get("fill_model") == "fill.immediate_bar.v1"
@@ -88,9 +86,7 @@ def test_momentum_roundtrip_accounting() -> None:
 def test_dual_run_identical_fingerprint() -> None:
     from quantlab.backtester.golden import build_golden, fingerprint_hash, simulation_fingerprint
 
-    bt = BarBacktester(
-        BarBacktestConfig(experiment_id="n6-dup", initial_cash=Decimal("10000"))
-    )
+    bt = BarBacktester(BarBacktestConfig(experiment_id="n6-dup", initial_cash=Decimal("10000")))
     a = bt.run(BuyOnceStrategy({"quantity": "1"}), _bars())
     b = bt.run(BuyOnceStrategy({"quantity": "1"}), _bars())
     ha = fingerprint_hash(simulation_fingerprint(a.simulation))

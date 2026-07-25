@@ -169,7 +169,7 @@
 
 ### Fase 17 — Escalabilidad distribuida
 **Módulos:** paralelismo, monitoring, backup, 100K+ simulaciones.  
-**Estado en repo:** 📦 código entregado (`docs/audit/FASE_17_IMPLEMENTATION_REPORT.md`) — pendiente APROBADO Meta-Auditor  
+**Estado en repo:** ✅ certificada (`docs/audit/FASE_17_APPROVED.md`) — incluye residuos F10/F12/F14  
 **Extras TD:** Parquet (`ParquetProcessedStore`) + `DuckDBCatalogBackend`
 
 

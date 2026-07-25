@@ -84,8 +84,10 @@ class BookSlippageModel:
             base_depth = depth if depth > 0 else remaining
             ratio = remaining / base_depth
             impact = self.volatility * self.impact_coefficient * ratio.sqrt()
-            px = last_px * (Decimal("1") + impact) if side is OrderSide.BUY else last_px * (
-                Decimal("1") - impact
+            px = (
+                last_px * (Decimal("1") + impact)
+                if side is OrderSide.BUY
+                else last_px * (Decimal("1") - impact)
             )
         if px <= 0:
             raise ValidationError("precio post-penalty inválido")

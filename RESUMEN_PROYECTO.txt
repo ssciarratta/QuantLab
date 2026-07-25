@@ -5,28 +5,28 @@ Versión: 0.9.0
 
 ESTADO
 ------
-- Fases 0–16 MVP certificados
-- F17: código + Review Package (pendiente APROBADO Meta-Auditor)
-- Residuos F10/F12/F14: API auditoría completa
-- LIVE_BLOCKED = True (inviolable)
-- Review: docs/audit/FASE_17_REVIEW_PACKAGE.md
+- Fases 0–17 con MVP certificado (roadmap alineado cerrado)
+- Certificado F17 + residuos: docs/audit/FASE_17_APPROVED.md
+- LIVE order routing: BLOQUEADO (LIVE_BLOCKED = True)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Auditoría residual (2026-07-25):
-- adjust_pvalues(method=bonferroni|holm|fdr_bh) + filter_significant
-- compute_pareto_frontier(MetricsResult, objectives)
-- AvellanedaStoikovStrategy + quote_prices (inventario)
-- ParallelBacktester (ProcessPoolExecutor) + export Parquet
-- tests/unit/test_phase_residual_completion.py
-- QA: 191 pytest · mypy strict · ruff OK
+Certificación oficial 2026-07-25 (Meta-Auditor):
+- F17 Escalabilidad APROBADA
+- Residuos F10 (multiple testing), F12 (Pareto), F14 (Avellaneda) APROBADOS
+- Live Gate VERIFICADO
 
 PRÓXIMO PASO
 ------------
-- Meta-Auditor revisa FASE_17_REVIEW_PACKAGE.md (listas A+B)
-- Con APROBADO: certificado + sync (si aún no pusheado)
+- Ops opcionales: CI workflow PAT (scope workflow), TD-03 ledger multi-nodo
+- Sin Fase 18 en roadmap oficial
+
+REVIEW PACKAGE F17
+------------------
+- QuantLab_Review_Fase_17_v1.0.zip
+- SHA256: bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
+- Tests: 191 · Coverage: 90.7%
 
 BLOQUEOS
 --------
 - ORDER ROUTING REAL / LIVE A3: BLOQUEADO
-- Certificado F17: pendiente APROBADO (no falsear)

@@ -150,8 +150,7 @@ class ExperimentRegistry:
         placeholders = ",".join("?" for _ in seen)
         with self.transaction() as conn:
             existing = conn.execute(
-                "SELECT experiment_id FROM experiments "
-                f"WHERE experiment_id IN ({placeholders})",
+                f"SELECT experiment_id FROM experiments WHERE experiment_id IN ({placeholders})",
                 tuple(seen),
             ).fetchall()
             if existing:
@@ -175,9 +174,7 @@ class ExperimentRegistry:
     def list(self, *, status: ExperimentStatus | None = None) -> list[ExperimentRecord]:
         with self._connect() as conn:
             if status is None:
-                rows = conn.execute(
-                    "SELECT * FROM experiments ORDER BY created_at DESC"
-                ).fetchall()
+                rows = conn.execute("SELECT * FROM experiments ORDER BY created_at DESC").fetchall()
             else:
                 rows = conn.execute(
                     "SELECT * FROM experiments WHERE status = ? ORDER BY created_at DESC",

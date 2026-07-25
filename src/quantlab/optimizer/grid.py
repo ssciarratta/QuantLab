@@ -25,9 +25,7 @@ class OptimizationResult:
     method: str
 
 
-def _pick_best(
-    best: TrialResult | None, trial: TrialResult, *, maximize: bool
-) -> TrialResult:
+def _pick_best(best: TrialResult | None, trial: TrialResult, *, maximize: bool) -> TrialResult:
     if best is None:
         return trial
     if maximize and trial.score > best.score:

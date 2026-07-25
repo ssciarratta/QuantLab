@@ -338,9 +338,7 @@ class MicroSimulationEngine:
                     last_px=last_px,
                 )
                 if ref is None:
-                    events_log.append(
-                        {"skipped_market": order_id, "reason": "no_ref_price"}
-                    )
+                    events_log.append({"skipped_market": order_id, "reason": "no_ref_price"})
                     return
                 from quantlab.core.types.market import Trade
 
@@ -457,9 +455,7 @@ class MicroSimulationEngine:
             }
         )
 
-    def _mark_order_canceled(
-        self, orders: list[Order], order_id: str, timestamp: datetime
-    ) -> None:
+    def _mark_order_canceled(self, orders: list[Order], order_id: str, timestamp: datetime) -> None:
         for i, o in enumerate(orders):
             if o.order_id == order_id and o.status not in (
                 OrderStatus.FILLED,

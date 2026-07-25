@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -83,12 +84,16 @@ def test_f10_splits_and_leakage() -> None:
 
 
 def test_f11_montecarlo() -> None:
+    from quantlab.core.types.results import SimulationResult
+
     bars = _bars(12)
 
-    def runner(b):
-        return BarBacktester(
-            BarBacktestConfig(experiment_id="mc", initial_cash=Decimal("10000"))
-        ).run(BuyOnceStrategy({"quantity": "1"}), b).simulation
+    def runner(b: Sequence[Bar]) -> SimulationResult:
+        return (
+            BarBacktester(BarBacktestConfig(experiment_id="mc", initial_cash=Decimal("10000")))
+            .run(BuyOnceStrategy({"quantity": "1"}), b)
+            .simulation
+        )
 
     mc = MonteCarloSimulator(seed=7).run(bars, runner, n_scenarios=8, noise_bps=5.0)
     assert mc.n_scenarios == 8

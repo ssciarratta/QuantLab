@@ -60,7 +60,7 @@ class ParquetProcessedStore:
         try:
             con.execute(f"CREATE TABLE data ({create_sql})")
             placeholders = ", ".join("?" for _ in columns)
-            insert_sql = f'INSERT INTO data ({cols_sql}) VALUES ({placeholders})'
+            insert_sql = f"INSERT INTO data ({cols_sql}) VALUES ({placeholders})"
             for row in rows:
                 vals = [None if row[c] is None else str(row[c]) for c in columns]
                 con.execute(insert_sql, vals)

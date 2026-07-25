@@ -106,9 +106,7 @@ def test_micro_backtester_mm_run() -> None:
         _trade(7, "101", "1", OrderSide.BUY),
         _trade(9, "99", "1", OrderSide.SELL),
     ]
-    bt = MicroBacktester(
-        MicroBacktestConfig(experiment_id="f7-mm", initial_cash=Decimal("100000"))
-    )
+    bt = MicroBacktester(MicroBacktestConfig(experiment_id="f7-mm", initial_cash=Decimal("100000")))
     result = bt.run(
         InventoryMMStrategy({"quantity": "1", "half_spread": "1", "max_pos": "5"}),
         trades=trades,

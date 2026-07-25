@@ -9,6 +9,7 @@ from pathlib import Path
 from quantlab.backtester import (
     BarBacktestConfig,
     BarBacktester,
+    BarBacktestResult,
     assert_matches_golden,
     build_golden,
     load_golden,
@@ -42,7 +43,7 @@ def _bars() -> list[Bar]:
     return out
 
 
-def _run():
+def _run() -> BarBacktestResult:
     bt = BarBacktester(
         BarBacktestConfig(experiment_id="f6-golden-buy-once", initial_cash=Decimal("10000"))
     )

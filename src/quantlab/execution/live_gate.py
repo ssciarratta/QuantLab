@@ -8,8 +8,7 @@ from quantlab.core.exceptions import ValidationError
 LIVE_BLOCKED: bool = True
 
 LIVE_ROUTING_BLOCKED_MSG = (
-    "ORDER ROUTING REAL / LIVE A3: BLOQUEADO por diseño. "
-    "No implementar ni invocar conectores live."
+    "ORDER ROUTING REAL / LIVE A3: BLOQUEADO por diseño. No implementar ni invocar conectores live."
 )
 
 

@@ -167,9 +167,7 @@ def quote_prices(
     tau: float = 1.0,
 ) -> tuple[Decimal, Decimal, Decimal]:
     """Retorna (reservation, bid, ask) en Decimal para microestructura L2."""
-    r = reservation_price(
-        mid=mid, inventory=inventory, gamma=gamma, sigma=sigma, tau=tau
-    )
+    r = reservation_price(mid=mid, inventory=inventory, gamma=gamma, sigma=sigma, tau=tau)
     delta = optimal_half_spread(gamma=gamma, sigma=sigma, kappa=kappa, tau=tau)
     bid = Decimal(str(r - delta)).quantize(Decimal("0.00000001"))
     ask = Decimal(str(r + delta)).quantize(Decimal("0.00000001"))

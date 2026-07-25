@@ -46,9 +46,7 @@ def adjust_pvalues(
         return holm_bonferroni(pvalues).adjusted
     if key in ("fdr_bh", "bh", "benjamini_hochberg"):
         return benjamini_hochberg(pvalues).adjusted
-    raise ValidationError(
-        "method debe ser 'bonferroni' | 'holm' | 'fdr_bh'"
-    )
+    raise ValidationError("method debe ser 'bonferroni' | 'holm' | 'fdr_bh'")
 
 
 def filter_significant(
@@ -103,9 +101,7 @@ def holm_bonferroni(p_values: Sequence[float], *, alpha: float = 0.05) -> Multip
     )
 
 
-def benjamini_hochberg(
-    p_values: Sequence[float], *, alpha: float = 0.05
-) -> MultipleTestingResult:
+def benjamini_hochberg(p_values: Sequence[float], *, alpha: float = 0.05) -> MultipleTestingResult:
     """FDR Benjamini–Hochberg."""
     ps = _validate_p(p_values, alpha)
     m = len(ps)

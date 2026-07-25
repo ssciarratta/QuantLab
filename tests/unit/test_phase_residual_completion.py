@@ -84,9 +84,7 @@ def test_live_blocked_invariant() -> None:
 
 
 def test_parallel_backtester_faster_or_competitive(tmp_path: Path) -> None:
-    jobs = tuple(
-        SimJob(job_id=i, params={"seed": i, "work": 80_000}) for i in range(12)
-    )
+    jobs = tuple(SimJob(job_id=i, params={"seed": i, "work": 80_000}) for i in range(12))
     bt = ParallelBacktester(max_workers=min(4, os.cpu_count() or 2))
     seq = bt.run_sequential(jobs)
     par = bt.run(jobs, export_parquet_dir=tmp_path / "pq")

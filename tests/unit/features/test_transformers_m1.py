@@ -121,15 +121,27 @@ def test_feature_point_rejects_nan_and_infinity() -> None:
     from quantlab.features.contracts import FeaturePoint
 
     ts = datetime(2024, 5, 1, tzinfo=UTC)
-    base = {
-        "timestamp": ts,
-        "instrument_id": "FEAT:TEST",
-        "name": "x",
-        "lookback_used": 1,
-    }
     with pytest.raises(ValidationError, match="NaN ni infinito"):
-        FeaturePoint(**base, value=Decimal("NaN"))
+        FeaturePoint(
+            timestamp=ts,
+            instrument_id="FEAT:TEST",
+            name="x",
+            lookback_used=1,
+            value=Decimal("NaN"),
+        )
     with pytest.raises(ValidationError, match="NaN ni infinito"):
-        FeaturePoint(**base, value=Decimal("Infinity"))
+        FeaturePoint(
+            timestamp=ts,
+            instrument_id="FEAT:TEST",
+            name="x",
+            lookback_used=1,
+            value=Decimal("Infinity"),
+        )
     with pytest.raises(ValidationError, match="NaN ni infinito"):
-        FeaturePoint(**base, value=Decimal("-Infinity"))
+        FeaturePoint(
+            timestamp=ts,
+            instrument_id="FEAT:TEST",
+            name="x",
+            lookback_used=1,
+            value=Decimal("-Infinity"),
+        )

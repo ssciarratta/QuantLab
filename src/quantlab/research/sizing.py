@@ -8,9 +8,7 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.validation import require_positive
 
 
-def fixed_fractional(
-    equity: Decimal, *, risk_fraction: Decimal, stop_distance: Decimal
-) -> Decimal:
+def fixed_fractional(equity: Decimal, *, risk_fraction: Decimal, stop_distance: Decimal) -> Decimal:
     """qty = (equity * risk_fraction) / stop_distance."""
     require_positive(equity, "equity")
     require_positive(risk_fraction, "risk_fraction")

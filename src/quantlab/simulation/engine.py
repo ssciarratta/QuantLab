@@ -196,9 +196,7 @@ class BarSimulationEngine:
                         )
                     else:
                         pending.append(
-                            _PendingIntent(
-                                intent=intent, effective_index=latency.effective_index
-                            )
+                            _PendingIntent(intent=intent, effective_index=latency.effective_index)
                         )
                         events_log.append(
                             {
