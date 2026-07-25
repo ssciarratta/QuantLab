@@ -94,6 +94,10 @@ class ParallelBatchRunner:
                         if err is not None:
                             errors.append(err)
 
+        if failed > 0:
+            from quantlab.infra.ops_metrics import get_ops_metrics
+
+            get_ops_metrics().inc("batch.failed_jobs", failed)
         if self._strict and failed > 0:
             raise ExceptionGroup(
                 f"ParallelBatchRunner: {failed} job(s) fallaron (strict=True)",
@@ -163,6 +167,10 @@ class ParallelBatchRunner:
                         if err is not None:
                             errors.append(err)
 
+        if failed > 0:
+            from quantlab.infra.ops_metrics import get_ops_metrics
+
+            get_ops_metrics().inc("batch.failed_jobs", failed)
         if self._strict and failed > 0:
             raise ExceptionGroup(
                 f"ParallelBatchRunner.stream_sum: {failed} fallos (strict=True)",

@@ -8,33 +8,27 @@ ESTADO
 - Fases 0–17 con MVP certificado (roadmap alineado cerrado)
 - Certificado F17 + residuos: docs/audit/FASE_17_APPROVED.md
 - Research-prod hardening A0–A7: CERRADO (checklist verde)
+- Research-prod: LISTO (SELF_AUDIT actualizado)
 - LIVE order routing: BLOQUEADO (LIVE_BLOCKED = True)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Hardening research-prod 2026-07-25 (A1→A7 autónomo):
-- Live-gate fail-closed en A3Adapter + PyRofexBackend
-- NullRouter default + GatedBackendRouter (sin import circular)
-- Batch strict (ExceptionGroup), Parquet atómico, SQLite WAL
-- verify_dataset hashea storage; checksum A3 = hash del JSONL
-- Accounting falla con orphan fills
-- profit_factor sin sentinel 999 → "undefined"
-- CI restaurado (.github/workflows/ci.yml)
-- Roadmap.md → índice a ROADMAP_ALIGNED.md
-- Checklist: docs/ops/RESEARCH_PROD_CHECKLIST.md
+Post-hardening residuales 2026-07-25:
+- zip-slip bloqueado en restore_backup
+- Ops metrics in-process (live_gate.blocked, batch.failed_jobs)
+- SELF_AUDIT + TECHNICAL_DEBT alineados (TD-14/15/16/18 mitigados)
+- .gitignore: CI local no se trackea (scope OAuth workflow)
 
 PRÓXIMO PASO
 ------------
 - Operar en research-prod; no habilitar LIVE
-- Sin Fase 18 hasta nuevo alcance explícito
-- Mantener secret scan / remote limpio
+- Sin Fase 18 hasta alcance explícito
+- Pushear CI Actions cuando exista scope `workflow`
 
 REVIEW PACKAGE F17
 ------------------
 - QuantLab_Review_Fase_17_v1.0.zip
 - SHA256: bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
-- Tests: 201 · gate mypy/ruff/pytest verdes (post-hardening)
-- Sync GitHub: 01ff349 (hardening en main; CI vía docs/ci/ci.yml.example por scope OAuth)
 
 BLOQUEOS
 --------

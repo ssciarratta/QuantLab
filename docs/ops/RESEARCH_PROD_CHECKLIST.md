@@ -16,6 +16,8 @@ Marcar tras cada agente. **Trading-prod / LIVE real: N/A (bloqueado).**
 | 10 | CI workflow activo o bloqueo documentado | ✅ | Fuente: `docs/ci/ci.yml.example`. Push de `.github/workflows/ci.yml` bloqueado por OAuth sin scope `workflow` (2026-07-25); restaurar localmente con `cp docs/ci/ci.yml.example .github/workflows/ci.yml` cuando haya PAT con scope `workflow`. |
 | 11 | Docs roadmap alineadas | ✅ | `docs/Roadmap.md` apunta a `ROADMAP_ALIGNED.md` |
 | 12 | Suite pytest + mypy strict + ruff verdes | ✅ | Gate post-hardening 2026-07-25 |
+| 13 | Ops metrics mínimas (H7) | ✅ | `infra/ops_metrics.py` + contadores live_gate/batch |
+| 14 | `restore_backup` anti zip-slip | ✅ | Path traversal → ValidationError |
 
 **Definition of Research-Prod Ready:** todos ✅ excepto filas N/A; LIVE sigue BLOQUEADO.
 

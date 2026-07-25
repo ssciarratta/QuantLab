@@ -60,3 +60,7 @@ ruff_report.txt
 format_report.txt
 requirements.txt
 review_staging/
+
+# CI local (fuente: docs/ci/ci.yml.example). Push de workflows requiere scope OAuth `workflow`.
+.github/workflows/ci.yml
+

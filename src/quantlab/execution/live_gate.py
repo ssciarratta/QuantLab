@@ -14,6 +14,9 @@ LIVE_ROUTING_BLOCKED_MSG = (
 
 def assert_live_routing_blocked() -> None:
     """Siempre falla — contrato de producto hasta decisión explícita."""
+    from quantlab.infra.ops_metrics import get_ops_metrics
+
+    get_ops_metrics().inc("live_gate.blocked")
     if LIVE_BLOCKED:
         raise ValidationError(LIVE_ROUTING_BLOCKED_MSG)
     raise ValidationError(LIVE_ROUTING_BLOCKED_MSG)

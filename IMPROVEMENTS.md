@@ -1,20 +1,24 @@
-# IMPROVEMENTS — Fase 2 v1.2
+# IMPROVEMENTS — Research-prod post-hardening
 
-**Fecha:** 2026-07-24
+**Fecha:** 2026-07-25
 
 ## Qué funcionó
-- Política centralizada + validación post-ZIP eliminó caches del paquete.
-- Invariantes en `__post_init__` suben la calidad de contrato sin Fase 3.
-- `uv.lock` cierra la deuda de reproducibilidad de deps.
+- Plan A0–A7 ejecutable de punta a punta sin habilitar LIVE.
+- Fail-closed universal (`NullRouter` + live_gate) con tests red-team.
+- Separar `order_router` de imports runtime de `a3` eliminó el ciclo de import.
+- Checklist + SELF_AUDIT como DoD verificable.
 
 ## Qué no funcionó / fricciones
-- Incluir el SHA del ZIP dentro del propio ZIP es imposible sin invalidarlo; sidecar obligatorio.
-- `requirements.txt` legacy contenía URL con token (eliminado); rotar credencial si llegó a remoto.
+- Push de `.github/workflows/ci.yml` rechazado por OAuth sin scope `workflow`.
+  Mitigación: fuente en `docs/ci/ci.yml.example` + `.gitignore` del workflow local.
+- Checksum A3 hasheaba `str(rows)` en vez del JSONL → verify_dataset fallaba hasta alinear hash al archivo.
 
 ## Riesgos
-- Secret scan por regex es necesario pero incompleto.
-- Migraciones de manifests aún no implementadas (solo política).
+- LIVE sigue bloqueado; no confundir research-prod con trading-prod.
+- Ops metrics son in-process (sin Prometheus/exporter); suficiente para lab, no HA.
+- TD-03 ledger distribuido sigue fuera de alcance.
 
 ## Mejoras futuras
-- Acción CI que falle si `git ls-files` encuentra bytecode (ya añadido).
-- En Fase 3: `from_dict` + persistencia con schema_version.
+- Cuando haya PAT con scope `workflow`, pushear CI desde el example.
+- Subir cobertura DuckDB/batch/sizing sin abrir Fase 18.
+- TD-04 Decimal puro en LogReturn si aparece sesgo numérico en research.

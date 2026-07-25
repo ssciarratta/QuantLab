@@ -41,6 +41,25 @@ def backup_directory(source: Path, dest_dir: Path, *, label: str = "backup") -> 
     )
 
 
+def _assert_safe_zip_member(member: str, dest_root: Path) -> Path:
+    """Rechaza path traversal / zip-slip (nombres absolutos o ``..``)."""
+    name = member.replace("\\", "/")
+    if not name or name.endswith("/"):
+        # directorios se crean al extraer archivos; ok vacío
+        return dest_root
+    if name.startswith("/") or name.startswith("../") or "/../" in f"/{name}/":
+        raise ValidationError(f"zip-slip blocked: {member}")
+    # Windows drive / UNC
+    if len(name) >= 2 and name[1] == ":":
+        raise ValidationError(f"zip-slip blocked: {member}")
+    target = (dest_root / name).resolve()
+    try:
+        target.relative_to(dest_root.resolve())
+    except ValueError as exc:
+        raise ValidationError(f"zip-slip blocked: {member}") from exc
+    return target
+
+
 def restore_backup(archive: Path, dest_dir: Path) -> Path:
     """Extrae un ZIP de backup en ``dest_dir`` (debe no existir o estar vacío)."""
     if not archive.is_file():
@@ -48,8 +67,18 @@ def restore_backup(archive: Path, dest_dir: Path) -> Path:
     dest_dir.mkdir(parents=True, exist_ok=True)
     if any(dest_dir.iterdir()):
         raise ValidationError(f"dest_dir no vacío: {dest_dir}")
+    dest_root = dest_dir.resolve()
     with zipfile.ZipFile(archive, "r") as zf:
-        zf.extractall(dest_dir)
+        for info in zf.infolist():
+            _assert_safe_zip_member(info.filename, dest_root)
+        for info in zf.infolist():
+            target = _assert_safe_zip_member(info.filename, dest_root)
+            if info.is_dir() or info.filename.endswith(("/", "\\")):
+                target.mkdir(parents=True, exist_ok=True)
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(info, "r") as src, target.open("wb") as dst:
+                shutil.copyfileobj(src, dst)
     return dest_dir
 
 
