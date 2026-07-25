@@ -29,3 +29,11 @@ bash scripts/sync_phase_github.sh --status   # diagnóstico
 ## Regla Cursor
 
 `.cursor/rules/phase-github-sync.mdc` (alwaysApply)
+
+## Remote limpio (celular / Cursor)
+
+- URL del remote: `https://github.com/ssciarratta/QuantLab.git` (**sin** token embebido).
+- Credenciales: `gh auth` (keyring) con scope `repo`.
+- CI workflow: si el PAT/OAuth no tiene scope `workflow`, no pushear `.github/workflows` (usar `docs/ci/ci.yml.example`).
+- Si alguna vez hubo un token `ghp_` en la URL: revocarlo en  
+  https://github.com/settings/tokens
