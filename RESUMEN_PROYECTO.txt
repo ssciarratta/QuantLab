@@ -34,6 +34,7 @@ REVIEW PACKAGE F17
 - QuantLab_Review_Fase_17_v1.0.zip
 - SHA256: bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
 - Tests: 201 · gate mypy/ruff/pytest verdes (post-hardening)
+- Sync GitHub: 01ff349 (hardening en main; CI vía docs/ci/ci.yml.example por scope OAuth)
 
 BLOQUEOS
 --------
