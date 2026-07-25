@@ -17,7 +17,7 @@
 | TD-09 | FeatureStore filesystem local; sin backend remoto | F17 | Baja | — |
 | TD-10 | Order routing LIVE A3 bloqueado por diseño | N/A | — | Irrenunciable |
 | TD-11 | ~~Forward-fill sesga volatilidad AlphaScanner~~ | F18+audit | — | Mitigado: vol/liq solo `volume>0` |
-| TD-12 | `mark_equity` 2× por barra | F4 cleanup | Baja | — |
+| TD-12 | `mark_equity` 2× por barra | F4 | Baja | Intencional: pre-ctx vs post-trade (comentado en engine) |
 | TD-13 | ~~Colisión path FeatureStore~~ | F18 | — | Mitigado: hashed segments |
 | TD-14 | ~~verify_dataset hash~~ | research-prod | — | Mitigado |
 | TD-15 | ~~profit_factor=999~~ | research-prod | — | Mitigado |

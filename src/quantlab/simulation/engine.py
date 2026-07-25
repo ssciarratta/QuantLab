@@ -139,6 +139,7 @@ class BarSimulationEngine:
                 mode=ClockMode.EVENT_DRIVEN,
                 speed=ClockSpeed.ACCELERATED,
             )
+            # TD-12: mark pre-decisión (post fills diferidos) — no eliminar
             portfolio = tracker.mark_equity(marks, step_ts)
             ctx = StrategyContext(
                 clock=clock,
@@ -206,6 +207,7 @@ class BarSimulationEngine:
                             }
                         )
 
+            # TD-12: mark post-trade same-bar para equity/accounting — no eliminar
             snap = tracker.mark_equity(marks, step_ts)
             snapshots.append(snap)
             point = EquityPoint(timestamp=step_ts, equity=snap.total_equity)
