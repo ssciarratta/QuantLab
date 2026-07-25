@@ -1,0 +1,46 @@
+# Copia a .github/workflows/ci.yml (ya versionado en el repo).
+# Fuente canónica del pipeline simple research-prod.
+
+name: QuantLab CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.11
+        run: uv python install 3.11
+
+      - name: Sync dependencies (frozen lockfile)
+        run: uv sync --frozen --extra dev
+
+      - name: Remote URL secret scan (local clone)
+        run: uv run python scripts/check_git_remote_clean.py
+
+      - name: Ruff
+        run: uv run ruff check src/quantlab
+
+      - name: Mypy --strict
+        run: uv run mypy --strict src/quantlab
+
+      - name: Pytest
+        env:
+          QUANTLAB_ENABLE_LIVE_TRADING: DISABLED
+        run: uv run pytest -q --tb=line
+
+      - name: Health research-prod
+        run: uv run quantlab-health
