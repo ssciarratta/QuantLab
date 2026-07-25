@@ -5,26 +5,24 @@ Versión: 0.10.0
 
 ESTADO
 ------
-- Fases 0–17 certificadas
-- Fase 18 Control Total: código + Review Package (pendiente APROBADO)
-- Autauditoría ejecutable F18: PASS (docs/audit/AUTO_AUDIT_2026-07-25_F18.md)
-- Research-prod: LISTO · LIVE: BLOQUEADO
+- F0–F17 certificados · F18 código + Review Package (sin APPROVED falso)
+- Autauditoría ejecutable: PASS (docs/audit/AUTO_AUDIT_2026-07-25_F18.md)
+- Research-prod LISTO · LIVE BLOQUEADO
+- Suite: 263 passed · mypy/ruff verdes
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Autonomía post-F18 (2026-07-25):
-- Remediación H1 FeatureStore anti-overwrite + idempotente
-- Remediación H2 Paper ledger append-once + meta hash
-- Health smoke real (Windows-safe)
-- AlphaScanner TD-11: vol sin sintéticas
-- Accounting fees alineados a non-orphans
-- +tests LIVE cancel/PyRofex, sizing, momentum, logging, batch
-- Suite: 240+ passed
+Autonomía multi-agente (2026-07-25):
+- Remediación H1/H2 FeatureStore + Paper ledger
+- TD-11 vol / TD-06 explain
+- Health Windows-safe + secret scan reforzado
+- Cobertura: momentum, MM, Avellaneda, sizing, logging, platform_info
+- Sync: main @ AUTO_AUDIT waves
 
-PRÓXIMO PASO (autónomo / Meta-Auditor)
---------------------------------------
-- Seguir cobertura strategies/ops
-- NO emitir FASE_18_APPROVED sin APROBADO explícito
+PRÓXIMO PASO
+------------
+- Continuar cleanup TD-05/12 si hay tiempo en sesión
+- Meta-Auditor para FASE_18_APPROVED (humano)
 - LIVE bloqueado
 
 BLOQUEOS
