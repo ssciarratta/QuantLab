@@ -97,7 +97,7 @@
 - Inventory para MM
 - Slippage book-based
 
-**Estado en repo:** ⬜ / 🔶 (solo latencia/slippage/fees bar-level, no 5B)
+**Estado en repo:** ✅ MVP certificado (`docs/audit/FASE_07_APPROVED.md`)
 
 ### Fase 8 — Métricas y reporting
 **Módulos:**
@@ -106,7 +106,7 @@
 - Templates HTML
 - Contratos neutrales `MetricsResult`
 
-**Estado en repo:** 🔶 (`MetricsEngine` MVP sí; reporting HTML no)
+**Estado en repo:** ✅ MVP certificado (`docs/audit/FASE_08_APPROVED.md`)
 
 ### Fase 9 — Experiment Registry + artifacts
 **Módulos:**
@@ -114,7 +114,7 @@
 - Vinculación manifest ↔ artifacts
 - Persistencia de resultados
 
-**Estado en repo:** 🔶 (`ArtifactsEngine` sí; registry CRUD completo no)
+**Estado en repo:** ✅ MVP certificado (`docs/audit/FASE_09_APPROVED.md`)
 
 ### Fase 10 — Scientific Validation
 **Módulos:**
@@ -124,11 +124,11 @@
 - Benchmarks y control de overfitting
 - Corrección por múltiples comparaciones
 
-**Estado en repo:** ⬜
+**Estado en repo:** ✅ MVP (`docs/audit/FASE_10_TO_16_APPROVED.md`) — splits/leakage/WF; sin corrección múltiple plena
 
 ### Fase 11 — Monte Carlo
 **Módulos:** Simulator estocástico, N escenarios, intervalos de confianza, seed fija.  
-**Estado en repo:** ⬜
+**Estado en repo:** ✅ MVP (`docs/audit/FASE_10_TO_16_APPROVED.md`)
 
 ### Fase 12 — Optimizer (Hyperparameters)
 **Módulos:**
@@ -138,12 +138,12 @@
 - Pareto multi-objetivo
 - **Dependencia:** F10 aprobada
 
-**Estado en repo:** ⬜  
+**Estado en repo:** ✅ MVP grid/random (`docs/audit/FASE_10_TO_16_APPROVED.md`) — sin Pareto pleno  
 **Equivalencia ChatGPT:** “Hyperparameters”
 
 ### Fase 13 — Alpha Scanner (completo)
 **Módulos:** scanner, ranking, explicabilidad, universo temporal explícito, 10+ activos.  
-**Estado en repo:** 🔶 (MVP F4; falta alcance completo)
+**Estado en repo:** ✅ MVP + explain (`docs/audit/FASE_10_TO_16_APPROVED.md`)
 
 ### Fase 14 — Estrategias avanzadas / Framework de estrategias
 **Módulos previstos:**
@@ -155,21 +155,22 @@
 - Inventory Skew / Adaptive MM / Avellaneda-Stoikov
 - **Dependencia fuerte:** F7 para MM
 
-**Estado en repo:** ⬜ (solo `DummyStrategy` / `BuyOnceStrategy`)  
+**Estado en repo:** ✅ parcial (sizing + InventoryMM + momentum) — Avellaneda no  
 **Equivalencia ChatGPT:** gran parte del “Framework de Estrategias” vive aquí (+ F5 Features + F12)
 
 ### Fase 15 — Multi-exchange
 **Módulos:** provider adicional, normalización cross-exchange, catálogo unificado.  
-**Estado en repo:** ⬜ (solo A3)
+**Estado en repo:** ✅ MVP `GenericCsvProvider` (+ A3)
 
 ### Fase 16 — Hummingbot export (v1)
 **Módulos:** validate / build / export package; sin deploy live obligatorio.  
-**Estado en repo:** ⬜  
+**Estado en repo:** ✅ MVP export (`HummingbotExporter`)  
 **Bloqueo permanente hasta decisión:** order routing LIVE.
 
 ### Fase 17 — Escalabilidad distribuida
 **Módulos:** paralelismo, monitoring, backup, 100K+ simulaciones.  
-**Estado en repo:** ⬜
+**Estado en repo:** ⬜ residual
+
 
 ---
 

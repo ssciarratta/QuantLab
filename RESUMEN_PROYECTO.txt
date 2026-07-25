@@ -1,28 +1,30 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-24
-Versión: 0.7.0
+Actualizado: 2026-07-25
+Versión: 0.8.0
 
 ESTADO
 ------
-- Fases 0–6 certificadas (F6 = Backtester 5A)
-- Certificado F6: docs/audit/FASE_06_APPROVED.md
-- Spec: docs/FASE_06_BACKTESTER_5A.md
-- Deuda: docs/TECHNICAL_DEBT.md
+- Fases 0–16 con MVP certificado (F17 residual)
+- Sync GitHub: docs/PROCESS_PHASE_GITHUB_SYNC.md
+- Night run: docs/audit/NIGHT_RUN_2026-07-25.md
+- LIVE order routing: BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Fase 6 — Backtester bar-based (5A):
-- quantlab.backtester: BarBacktester, accounting, golden runs
-- SimpleMomentumStrategy
-- Golden: tests/golden/fase6_buy_once.json
-- fill.immediate_bar.v1 en metadata
-- 149 tests · mypy strict OK · ruff OK · coverage ~89%
+Noche F7–F16:
+- 5B micro (replay, partial fill, book slippage, inventory MM)
+- ReportGenerator HTML, ExperimentRegistry
+- Validation splits/leakage, MonteCarlo, GridOptimizer
+- Alpha explain, position sizing, GenericCsvProvider
+- HummingbotExporter (live blocked)
+- Suite pytest en verde · mypy strict · ruff
 
 PRÓXIMO PASO
 ------------
-Fase 7 — Backtester microestructura (5B), si el Director prioriza.
-ORDER ROUTING REAL / LIVE A3: BLOQUEADO.
+- F17 escalabilidad (si se prioriza)
+- Restaurar CI con PAT scope workflow
+- Rotar token GitHub del remote si aplica
 
 BLOQUEOS
 --------
