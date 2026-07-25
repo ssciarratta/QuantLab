@@ -7,19 +7,20 @@ ESTADO
 ------
 - F0–F17 certificados · F18 código (sin APPROVED falso)
 - Research-prod LISTO · LIVE BLOQUEADO
-- CI: .github/workflows/ci.yml (uv + ruff + mypy strict + pytest + health)
+- CI Actions ACTIVO: .github/workflows/ci.yml (0887602)
+- gh scopes: gist, read:org, repo, workflow
 - Suite: 364+ passed
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-CI Pipeline QuantLab (2026-07-25):
-- Workflow simplificado del usuario adaptado a uv/lockfile
-- LIVE disabled en pytest · quantlab-health en CI
-- docs/ci/ci.yml.example alineado
+CI Pipeline activado en GitHub Actions (2026-07-25):
+- Scope OAuth workflow autorizado
+- Push de .github/workflows/ci.yml OK
+- uv + ruff + mypy --strict + pytest + quantlab-health
 
 PRÓXIMO PASO
 ------------
-- Push workflow requiere scope OAuth `workflow` (si falla, autorizar refresh)
+- Verificar run verde en Actions
 - FASE_18_APPROVED solo con APROBADO Meta-Auditor
 - LIVE bloqueado
 
