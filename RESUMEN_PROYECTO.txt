@@ -13,6 +13,9 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
+Wrapper tests agenda remediación: tests/unit/fase18/test_audit_remediation.py
+(A3 fail-closed, verify tamper, orphan accounting).
+
 Cierre residuales no críticos (R3/R5/R9, TD-06/09/12, OPS-PROM):
 - freeze_mapping deep-freeze
 - ATR metadata method=sma_tr; Calmar bar-based documentado
