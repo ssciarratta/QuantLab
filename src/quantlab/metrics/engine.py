@@ -88,7 +88,12 @@ def calmar_ratio(
     *,
     periods_per_year: float = 252.0,
 ) -> float:
-    """Calmar: retorno anualizado / max drawdown."""
+    """Calmar: retorno anualizado / max drawdown.
+
+    Convención QuantLab (R5): anualización **por número de puntos** de la
+    equity curve (``n_periods = len(curve) - 1``), no por calendario real.
+    Adecuado a backtests bar-based; no usa Δt entre timestamps.
+    """
     if len(curve) < 2:
         return 0.0
     start_eq = float(curve[0].equity)

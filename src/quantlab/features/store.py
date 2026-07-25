@@ -45,7 +45,11 @@ class FeatureStoreRef:
 
 @dataclass
 class FeatureStore:
-    """Persistencia versionada de FeatureFrame (JSON determinista + checksum + caché)."""
+    """Persistencia versionada de FeatureFrame (JSON determinista + checksum + caché).
+
+    TD-09 (aceptado research-prod): backend filesystem local únicamente.
+    Sin S3/remoto; ``root`` debe ser path local (no URL).
+    """
 
     root: Path
     _cache: dict[tuple[str, str, str], FeatureFrame] = field(
@@ -53,6 +57,15 @@ class FeatureStore:
     )
 
     def __post_init__(self) -> None:
+        root = Path(self.root)
+        # Windows: Path("s3://x") → "s3:/x"; detectar ambos estilos.
+        raw = str(self.root).replace("\\", "/").lower()
+        remote_prefixes = ("s3:/", "http:/", "https:/", "gs:/", "az:/")
+        if "://" in raw or raw.startswith(remote_prefixes):
+            raise ValidationError(
+                "FeatureStore TD-09: solo filesystem local (sin URL remota)"
+            )
+        self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
 
     def put(self, frame: FeatureFrame, *, version: str) -> FeatureStoreRef:

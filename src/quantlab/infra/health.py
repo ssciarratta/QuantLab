@@ -103,6 +103,16 @@ def export_ops_snapshot(path: Path) -> Path:
     return path
 
 
+def export_ops_prometheus(path: Path) -> Path:
+    """Escribe counters en text/plain Prometheus (research-prod scrape local)."""
+    from quantlab.infra.ops_metrics import render_prometheus_text
+
+    run_health_checks()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(render_prometheus_text(), encoding="utf-8")
+    return path
+
+
 def main() -> int:
     report = run_health_checks()
     print(json.dumps(report.to_dict(), indent=2, sort_keys=True))

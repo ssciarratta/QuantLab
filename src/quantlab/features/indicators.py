@@ -184,7 +184,11 @@ class RSIWilderIndicator:
 
 @dataclass(frozen=True, slots=True)
 class ATRIndicator:
-    """Average True Range causal — SMA deslizante O(1) sobre True Range."""
+    """Average True Range causal — SMA de True Range (no Wilder).
+
+    Convención QuantLab (R3): ``method=sma_tr``. RSI usa Wilder; ATR usa SMA
+    deslizante O(1) sobre TR. No confundir con ATR Wilder clásico.
+    """
 
     period: int = 14
     name: str = "atr"
@@ -224,7 +228,11 @@ class ATRIndicator:
                     name=self.name,
                     value=atr,
                     lookback_used=p + 1,
-                    metadata={"period": p, "algo": "sliding_sum_o1"},
+                    metadata={
+                        "period": p,
+                        "algo": "sliding_sum_o1",
+                        "method": "sma_tr",
+                    },
                 )
             )
         return _series(self.name, self.min_lookback, points)

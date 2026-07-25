@@ -1,15 +1,25 @@
-"""Contadores ops in-process (H7 research-prod). Sin exporter externo."""
+"""Contadores ops in-process (H7 research-prod) + export Prometheus text."""
 
 from __future__ import annotations
 
+import re
 import threading
 from collections.abc import Mapping
 from dataclasses import dataclass
+
+_PROM_NAME_RE = re.compile(r"[^a-zA-Z0-9_:]")
 
 
 @dataclass(frozen=True, slots=True)
 class OpsSnapshot:
     counters: Mapping[str, int]
+
+
+def _prom_metric_name(name: str) -> str:
+    cleaned = _PROM_NAME_RE.sub("_", name.strip())
+    if not cleaned or cleaned[0].isdigit():
+        cleaned = f"ql_{cleaned}"
+    return cleaned
 
 
 class OpsMetrics:
@@ -37,9 +47,25 @@ class OpsMetrics:
         with self._lock:
             self._counters.clear()
 
+    def render_prometheus_text(self) -> str:
+        """Export text/plain Prometheus (counters → ``TYPE counter``)."""
+        snap = self.snapshot()
+        lines: list[str] = []
+        for raw_name, value in snap.counters.items():
+            metric = _prom_metric_name(raw_name)
+            lines.append(f"# HELP {metric} QuantLab ops counter ({raw_name})")
+            lines.append(f"# TYPE {metric} counter")
+            lines.append(f"{metric} {int(value)}")
+        return "\n".join(lines) + ("\n" if lines else "")
+
 
 _GLOBAL = OpsMetrics()
 
 
 def get_ops_metrics() -> OpsMetrics:
     return _GLOBAL
+
+
+def render_prometheus_text() -> str:
+    """Atajo sobre el registro global."""
+    return get_ops_metrics().render_prometheus_text()

@@ -28,6 +28,10 @@ class AssetScore:
     volume_score: float
     liquidity_score: float
     composite: float
+    # Componentes normalizados usados en composite (TD-06 explain exacto)
+    volatility_n: float = 0.0
+    volume_n: float = 0.0
+    liquidity_n: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -186,6 +190,9 @@ class AlphaScanner:
                     volume_score=s.volume_score,
                     liquidity_score=s.liquidity_score,
                     composite=round(composite, 8),
+                    volatility_n=vols[i],
+                    volume_n=vols_n[i],
+                    liquidity_n=liqs[i],
                 )
             )
         scored.sort(key=lambda x: (-x.composite, x.instrument_id))

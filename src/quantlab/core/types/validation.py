@@ -44,11 +44,22 @@ def require_non_negative(value: Decimal, field: str) -> None:
         raise ValidationError(f"{field} no puede ser negativo")
 
 
+def _freeze_value(value: Any) -> Any:
+    """Congela mappings anidados y convierte list/set mutables a tuplas/frozenset."""
+    if isinstance(value, Mapping):
+        return MappingProxyType({str(k): _freeze_value(v) for k, v in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze_value(v) for v in value)
+    if isinstance(value, tuple):
+        return tuple(_freeze_value(v) for v in value)
+    if isinstance(value, set):
+        return frozenset(_freeze_value(v) for v in value)
+    return value
+
+
 def freeze_mapping(data: Mapping[str, Any]) -> MappingProxyType[str, Any]:
-    """Copia superficial inmutable de un mapping."""
-    if isinstance(data, MappingProxyType):
-        return data
-    return MappingProxyType(dict(data))
+    """Copia profunda inmutable de un mapping (R9: nested dict/list no mutables)."""
+    return MappingProxyType({str(k): _freeze_value(v) for k, v in data.items()})
 
 
 def require_checksum(value: str, field: str = "checksum") -> None:

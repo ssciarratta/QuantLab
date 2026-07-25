@@ -14,6 +14,7 @@ class ScoreExplanation:
     instrument_id: str
     composite: float
     drivers: tuple[str, ...]
+    contrib_sum: float
 
 
 def explain_scores(
@@ -24,11 +25,13 @@ def explain_scores(
 ) -> tuple[ScoreExplanation, ...]:
     out: list[ScoreExplanation] = []
     for score in result.scores[:top]:
+        drivers, contrib_sum = _drivers(score, weights=weights)
         out.append(
             ScoreExplanation(
                 instrument_id=score.instrument_id,
                 composite=score.composite,
-                drivers=_drivers(score, weights=weights),
+                drivers=drivers,
+                contrib_sum=contrib_sum,
             )
         )
     return tuple(out)
@@ -38,18 +41,24 @@ def _drivers(
     score: AssetScore,
     *,
     weights: ScannerWeights | None = None,
-) -> tuple[str, ...]:
+) -> tuple[tuple[str, ...], float]:
     from quantlab.research.alpha import ScannerWeights
 
     w = weights or ScannerWeights()
-    # Contribución aproximada: peso * score crudo (ranking relativo de drivers)
+    # Contribución exacta: peso * componente normalizado (misma fórmula del scanner)
     parts = [
-        ("volatility", w.volatility * score.volatility, w.volatility, score.volatility),
-        ("volume", w.volume * score.volume_score, w.volume, score.volume_score),
-        ("liquidity", w.liquidity * score.liquidity_score, w.liquidity, score.liquidity_score),
+        ("volatility", w.volatility * score.volatility_n, w.volatility, score.volatility),
+        ("volume", w.volume * score.volume_n, w.volume, score.volume_score),
+        ("liquidity", w.liquidity * score.liquidity_n, w.liquidity, score.liquidity_score),
     ]
+    contrib_sum = sum(p[1] for p in parts)
     parts.sort(key=lambda x: -x[1])
-    return tuple(
-        f"{name}={raw:.6g} (w={weight:.3g}, contrib≈{contrib:.6g})"
+    drivers = tuple(
+        (
+            f"{name}={raw:.6g} (n={contrib / weight if weight else 0.0:.6g}, w={weight:.3g}"
+            f", contrib={contrib:.6g}"
+            f", share={((contrib / contrib_sum) if contrib_sum else 0.0):.3g})"
+        )
         for name, contrib, weight, raw in parts
     )
+    return drivers, round(contrib_sum, 8)
