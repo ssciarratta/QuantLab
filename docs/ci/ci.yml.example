@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Sync dependencies (frozen lockfile)
+        run: uv sync --frozen --extra dev
+
+      - name: Forbid versioned caches/bytecode
+        run: |
+          if git ls-files | grep -E '(__pycache__|\.pyc$|\.pyo$|\.pytest_cache|\.mypy_cache|\.ruff_cache)'; then
+            echo "Caches/bytecode versionados detectados" >&2
+            exit 1
+          fi
+
+      - name: Required documentation present
+        run: |
+          test -f README.md
+          test -f CHANGELOG.md
+          test -f LESSONS_LEARNED.md
+          test -f PROJECT_STATUS.md
+          test -f REVIEW_REQUEST.md
+          test -f docs/MANIFEST_VERSIONING.md
+          test -f docs/REVIEW_PACKAGE.md
+          test -f .gitleaks.toml
+          test -f uv.lock
+          test -f scripts/build_review_package.py
+          test -f scripts/review_package_policy.py
+          test -f scripts/review_package_quality.py
+
+      - name: Ruff lint
+        run: uv run ruff check .
+
+      - name: Ruff format check
+        run: uv run ruff format --check .
+
+      - name: Mypy
+        run: uv run mypy src tests scripts
+
+      - name: Pytest with coverage + JUnit
+        env:
+          QUANTLAB_ENABLE_LIVE_TRADING: DISABLED
+        run: |
+          uv run pytest \
+            --junitxml=reports/pytest_junit.xml \
+            --cov=quantlab \
+            --cov-report=term-missing \
+            --cov-report=xml:reports/coverage.xml
+
+      - name: Review package unit tests
+        run: uv run pytest tests/unit/scripts -v
+
+      - name: Config validation smoke test
+        run: uv run python -c "from pathlib import Path; from quantlab.infra.config import resolve_config, validate_config; c=resolve_config(Path('config'), environment='dev'); validate_config(c); print('config ok')"
+
+      - name: Vertical slice smoke test
+        run: uv run quantlab-vertical-slice
+
+      - name: Gitleaks
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.0/gitleaks_8.24.0_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --verbose --no-git || ./gitleaks detect --source . --config .gitleaks.toml --verbose
+
+      - name: Build Review Package (authoritative, no skip-tests)
+        if: matrix.python-version == '3.12'
+        run: uv run python scripts/build_review_package.py --phase 2 --version 1.3
+
+      - name: Validate ZIP coherence and sidecar
+        if: matrix.python-version == '3.12'
+        run: |
+          uv run python - <<'PY'
+          import hashlib, json, zipfile, re
+          from pathlib import Path
+          from decimal import Decimal
+          import sys
+          sys.path.insert(0, 'scripts')
+          from review_package_quality import parse_junit_xml, load_quality_summary_json
+
+          zip_path = Path('QuantLab_Review_Fase_02_v1.3.zip')
+          sha_path = Path('QuantLab_Review_Fase_02_v1.3.zip.sha256')
+          ext = Path('QuantLab_Review_Fase_02_v1.3.validation.txt')
+          assert zip_path.exists() and sha_path.exists() and ext.exists()
+          digest = hashlib.sha256(zip_path.read_bytes()).hexdigest()
+          assert sha_path.read_text().split()[0] == digest
+          assert f'sha256={digest}' in ext.read_text()
+
+          with zipfile.ZipFile(zip_path) as zf:
+              names = zf.namelist()
+              assert 'REVIEW_PACKAGE_MANIFEST.json' in names
+              assert 'reports/quality_summary.json' in names
+              assert 'reports/pytest_junit.xml' in names
+              packed = zf.read('reports/review_package_validation.txt').decode()
+              assert 'validation=PASS' in packed
+              assert 'pre_zip_structural_gate' not in packed
+              manifest = json.loads(zf.read('REVIEW_PACKAGE_MANIFEST.json'))
+              status = zf.read('PROJECT_STATUS.md').decode()
+              q = json.loads(zf.read('reports/quality_summary.json'))
+          assert manifest['file_count'] == len(names)
+          assert int(q['test_count']) > 0
+          assert int(manifest['quality']['test_count']) == int(q['test_count'])
+          m = re.search(r'\|\s*Tests\s*\|\s*(\d+)\s*\|', status)
+          assert m and int(m.group(1)) == int(q['test_count'])
+          tests, *_ = parse_junit_xml(Path('reports/pytest_junit.xml'))
+          assert tests == int(q['test_count'])
+          print('coherence_ok', tests, digest)
+          PY
+
+      - name: Upload Review Package artifact
+        if: matrix.python-version == '3.12'
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-package-fase-02-v1.3
+          path: |
+            QuantLab_Review_Fase_02_v1.3.zip
+            QuantLab_Review_Fase_02_v1.3.zip.sha256
+            QuantLab_Review_Fase_02_v1.3.validation.txt
+          if-no-files-found: error

@@ -1,0 +1,29 @@
+QUANTLAB — RESUMEN DEL PROYECTO
+================================
+Actualizado: 2026-07-24
+Versión: 0.7.0
+
+ESTADO
+------
+- Fases 0–6 certificadas (F6 = Backtester 5A)
+- Certificado F6: docs/audit/FASE_06_APPROVED.md
+- Spec: docs/FASE_06_BACKTESTER_5A.md
+- Deuda: docs/TECHNICAL_DEBT.md
+
+ÚLTIMA IMPLEMENTACIÓN
+---------------------
+Fase 6 — Backtester bar-based (5A):
+- quantlab.backtester: BarBacktester, accounting, golden runs
+- SimpleMomentumStrategy
+- Golden: tests/golden/fase6_buy_once.json
+- fill.immediate_bar.v1 en metadata
+- 149 tests · mypy strict OK · ruff OK · coverage ~89%
+
+PRÓXIMO PASO
+------------
+Fase 7 — Backtester microestructura (5B), si el Director prioriza.
+ORDER ROUTING REAL / LIVE A3: BLOQUEADO.
+
+BLOQUEOS
+--------
+- ORDER ROUTING REAL / LIVE A3: BLOQUEADO

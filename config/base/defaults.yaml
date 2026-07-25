@@ -1,0 +1,14 @@
+quantlab:
+  environment: dev
+  project_name: QuantLab
+  data_root: data
+  reports_root: reports
+
+logging:
+  level: INFO
+  format: console
+  json_output: false
+
+experiment:
+  default_seed: 42
+  strategy_version: "0.0.0-dummy"

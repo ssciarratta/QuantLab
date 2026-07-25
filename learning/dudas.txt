@@ -5,52 +5,89 @@ Formato: [FECHA] DUD-XXX — Pregunta — Contexto — Recomendación — Estado
 ================================================================================
 
 [2026-07-23] DUD-001 — DuckDB vs SQLite como catálogo definitivo
-  Pregunta: ¿Confirmamos DuckDB como catálogo o preferimos SQLite por simplicidad?
-  Contexto: DuckDB es superior para analytics pero menos conocido.
-  Recomendación: DuckDB primario, SQLite como fallback documentado.
-  Estado: ABIERTA — requiere aprobación del revisor técnico.
+  Pregunta: ¿Confirmamos DuckDB como catálogo o preferimos SQLite?
+  Recomendación: DuckDB primario, SQLite fallback.
+  Estado: PARCIAL — Fase 3 usa SQLite local; DuckDB diferido (deuda documentada).
 
 [2026-07-23] DUD-002 — Modelo de slippage por defecto
-  Pregunta: ¿Qué modelo de slippage usamos como default en el backtester?
-  Contexto: Critical para estrategias de market making. Opciones: fixed bps,
-  proportional to volume, order book based.
-  Recomendación: Fixed bps como default (simple); order book based en Fase 11+.
-  Estado: ABIERTA — definir en Fase 5 antes de implementar backtester.
+  Pregunta: ¿Qué modelo de slippage usamos como default?
+  Resolución (PROMPT 001.1): Fixed bps solo baseline 5A bar-based.
+  NO default válido para MM ni 5B. Book-based en microestructura.
+  Estado: CERRADA — DEC-018.
 
 [2026-07-23] DUD-003 — Hummingbot v1 vs v2
-  Pregunta: ¿Cuál versión de Hummingbot es target de integración?
-  Contexto: API y config difieren entre versiones. Afecta diseño del adaptador.
-  Recomendación: Decidir en Fase 13; diseño del adaptador es agnóstico por ahora.
-  Estado: ABIERTA — no bloquea Fases 2-12.
+  Pregunta: ¿Cuál versión de Hummingbot es target?
+  Recomendación: Decidir en Fase 16; adaptador agnóstico; export-only v1.
+  Estado: ABIERTA — no bloquea Fases 2-15.
 
 [2026-07-23] DUD-004 — OHLCV vs order book replay
-  Pregunta: ¿El backtester inicial usa solo OHLCV o necesitamos replay de order book?
-  Contexto: MM strategies se benefician de order book data. Más complejo de ingerir.
-  Recomendación: OHLCV primero (Fase 5); order book en Fase 11+ si estrategias lo requieren.
-  Estado: ABIERTA — requiere input del revisor cuantitativo.
+  Pregunta: ¿El backtester inicial usa solo OHLCV o order book?
+  Resolución (PROMPT 001.1): Dos niveles — 5A OHLCV, 5B trades/book.
+  MM requiere 5B obligatoriamente.
+  Estado: CERRADA — DEC-017.
 
 [2026-07-23] DUD-005 — Granularidad temporal mínima
-  Pregunta: ¿Trabajamos con barras de 1 minuto, 1 segundo, o tick data?
-  Contexto: Afecta volumen de datos, storage, y fidelidad del backtest.
-  Recomendación: 1 minuto como default; tick data como extensión futura.
-  Estado: ABIERTA — requiere input del director del proyecto.
+  Pregunta: ¿1 minuto, 1 segundo, o tick?
+  Resolución (PROMPT 001.1): 1 min OK para infraestructura y 5A.
+  Tick/book obligatorio para MM y 5B. Fidelidad depende de familia de estrategia.
+  Estado: CERRADA — docs/Arquitectura.md §9.
 
 [2026-07-23] DUD-006 — Estrategia de backup de datos
   Pregunta: ¿Cómo protegemos data/ contra pérdida de disco?
-  Contexto: Todo local inicialmente. Un disco roto = todo perdido.
-  Recomendación: Documentar en Fase 3; cloud backup como FI-08.
-  Estado: ABIERTA — no bloquea Fase 1-2.
+  Recomendación: Documentar en Fase 3; cloud backup en Fase 17.
+  Estado: ABIERTA — no bloquea Fase 2.
 
 [2026-07-23] DUD-007 — Nomenclatura de experimentos
-  Pregunta: ¿IDs automáticos (UUID) o nomenclatura semántica (exp_2026_001_mm_btc)?
-  Contexto: Afecta usabilidad vs unicidad.
-  Recomendación: UUID interno + slug semántico opcional para humanos.
-  Estado: ABIERTA — definir en Fase 7.
+  Pregunta: ¿UUID o nomenclatura semántica?
+  Recomendación: UUID interno + slug semántico opcional.
+  Estado: ABIERTA — definir en Fase 9 (Experiment Registry).
 
 [2026-07-23] DUD-008 — Multi-activo en backtester
-  Pregunta: ¿El backtester de Fase 5 soporta portfolio multi-activo o solo single-asset?
-  Contexto: Alpha Scanner rankea múltiples activos; backtester debe poder probarlos.
-  Recomendación: Single-asset en Fase 5; multi-asset en Fase 8+.
+  Pregunta: ¿Backtester 5A soporta portfolio multi-activo?
+  Recomendación: Single-asset en 5A; multi-asset en 5B o Fase 14.
   Estado: ABIERTA — requiere input del revisor cuantitativo.
+
+[2026-07-23] DUD-009 — Tolerancias numéricas cross-environment
+  Pregunta: ¿Qué tolerancia documentada para equivalencia numérica entre entornos?
+  Contexto: DEC-022 reemplaza "bit a bit". Falta cuantificar (ej. 1e-8 en PnL).
+  Recomendación: Definir en Fase 6 con golden runs.
+  Estado: ABIERTA — no bloquea aprobación de diseño.
+
+[2026-07-23] DUD-010 — Corrección estadística para múltiples comparaciones
+  Pregunta: ¿Bonferroni, FDR, o otro método en Scientific Validation?
+  Contexto: R16 documentado; método no elegido aún.
+  Recomendación: Decidir en diseño de Fase 10.
+  Estado: ABIERTA — no bloquea Fase 2.
+
+[2026-07-23] DUD-011 — FillModel default para 5B
+  Pregunta: ¿Queue position, probabilistic, o hybrid?
+  Contexto: W1 en autoevaluación; critical para MM.
+  Recomendación: Prototipar en diseño de Fase 7; sensibilidad obligatoria.
+  Estado: ABIERTA — diseño detallado en Fase 7.
+
+[2026-07-23] DUD-012 — Herramientas CI específicas
+  Pregunta: ¿ruff + mypy + pytest? ¿GitHub Actions?
+  Resolución Fase 2: ruff, mypy strict, pytest cov≥80%, GitHub Actions confirmados.
+  Estado: CERRADA — DEC-033.
+
+[2026-07-23] DUD-013 — Lockfile de dependencias
+  Pregunta: ¿Adoptar uv/poetry lockfile para dependency_versions_or_hash determinista?
+  Resolución (PROMPT 005): uv.lock + uv sync --frozen (DEC-038).
+  Estado: CERRADA — DEC-038.
+
+[2026-07-24] DUD-014 — ¿Incluir .sha256 dentro del ZIP?
+  Pregunta: ¿El hash del paquete debe vivir dentro o fuera del ZIP?
+  Resolución: Fuera (sidecar). Dentro crea dependencia circular con el hash.
+  Estado: CERRADA — docs/REVIEW_PACKAGE.md.
+
+[2026-07-24] DUD-015 — ¿Cómo contar tests de forma autoritativa?
+  Pregunta: ¿collect-only, JSON plugin o JUnit?
+  Resolución: JUnit XML de la corrida principal (DEC-039).
+  Estado: CERRADA — DEC-039.
+
+[2026-07-24] DUD-016 — ¿Parquet ahora o JSONL processed?
+  Pregunta: ¿Migrar processed a Parquet en F3 o diferir?
+  Resolución F3: JSONL determinista + sidecar; Parquet/DuckDB post-auditoría.
+  Estado: ABIERTA — no bloquea auditoría F3 si se acepta deuda.
 
 ================================================================================

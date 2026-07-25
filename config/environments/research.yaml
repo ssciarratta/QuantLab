@@ -1,0 +1,7 @@
+quantlab:
+  environment: research
+
+logging:
+  level: INFO
+  format: json
+  json_output: true

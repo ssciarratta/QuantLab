@@ -1,0 +1,13 @@
+# Gitleaks configuration — QuantLab
+
+title = "QuantLab"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist mínima Fase 2"
+paths = [
+  '''reports/.*''',
+  '''.*\.sha256$''',
+]

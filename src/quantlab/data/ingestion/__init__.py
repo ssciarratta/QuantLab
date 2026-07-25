@@ -1,0 +1,1 @@
+"""Ingesta (orquestación futura)."""

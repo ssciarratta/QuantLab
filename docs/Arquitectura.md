@@ -1,8 +1,8 @@
 # QuantLab — Arquitectura del Sistema
 
-**Versión:** 1.0  
-**Fase:** 1 — Diseño  
-**Estado:** Pendiente de revisión  
+**Versión:** 1.1  
+**Fase:** 1 — Diseño (Iteración 1.1 — correcciones obligatorias post-revisión)  
+**Estado:** Pendiente de segunda revisión  
 **Autor:** Cursor (CTO / Arquitecto Principal)
 
 ---
@@ -13,13 +13,17 @@
 2. [Árbol completo del proyecto](#2-árbol-completo-del-proyecto)
 3. [Diagrama de arquitectura](#3-diagrama-de-arquitectura)
 4. [Definición de módulos](#4-definición-de-módulos)
-5. [Interfaces principales](#5-interfaces-principales)
-6. [Flujo de datos](#6-flujo-de-datos)
-7. [Decisiones tecnológicas](#7-decisiones-tecnológicas)
-8. [Riesgos](#8-riesgos)
-9. [Roadmap](#9-roadmap)
-10. [Future Improvements](#10-future-improvements)
-11. [Autoevaluación crítica](#11-autoevaluación-crítica)
+5. [Contratos de dominio](#5-contratos-de-dominio)
+6. [Interfaces principales](#6-interfaces-principales)
+7. [Arquitectura de simulación](#7-arquitectura-de-simulación)
+8. [Calidad de datos](#8-calidad-de-datos)
+9. [Slippage, fills y granularidad](#9-slippage-fills-y-granularidad)
+10. [Flujo de datos](#10-flujo-de-datos)
+11. [Decisiones tecnológicas](#11-decisiones-tecnológicas)
+12. [Riesgos](#12-riesgos)
+13. [Roadmap](#13-roadmap)
+14. [Future Improvements](#14-future-improvements)
+15. [Autoevaluación crítica](#15-autoevaluación-crítica)
 
 ---
 
@@ -32,7 +36,8 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 - Adquirir, validar y versionar datos de mercado.
 - Transformar datos en features reutilizables.
 - Descubrir oportunidades (Alpha Scanner).
-- Simular estrategias con rigor científico (backtesting + Monte Carlo).
+- Simular estrategias con rigor científico (backtesting bar-based y de microestructura + Monte Carlo).
+- Validar resultados con metodología científica (walk-forward, out-of-sample).
 - Optimizar parámetros de forma reproducible.
 - Generar reportes comparativos y auditables.
 - Exportar estrategias validadas hacia un motor de ejecución externo (Hummingbot).
@@ -42,8 +47,8 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 | # | Objetivo | Métrica de éxito futura |
 |---|----------|-------------------------|
 | O1 | Modularidad | Nueva estrategia sin modificar más de 1 módulo |
-| O2 | Reproducibilidad | Mismo experimento → mismos resultados (bit a bit en métricas clave) |
-| O3 | Escalabilidad | 1M+ simulaciones sin rediseño arquitectónico |
+| O2 | Reproducibilidad | Determinismo exacto en el mismo entorno controlado; equivalencia numérica con tolerancias documentadas entre entornos; versionado completo del entorno |
+| O3 | Escalabilidad | Escalabilidad progresiva hacia 1M+ simulaciones sin modificar los contratos principales del dominio, aceptando cambios de infraestructura y orquestación |
 | O4 | Multi-exchange | Nuevo exchange = nuevo conector, sin tocar simulación |
 | O5 | Multi-estrategia | 30+ estrategias coexistiendo con interfaces comunes |
 | O6 | Multi-activo | 100+ activos en pipeline paralelo |
@@ -54,12 +59,13 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 
 **Incluido (diseño completo, implementación futura):**
 
-- Pipeline de datos (ingesta → almacenamiento → features).
+- Pipeline de datos (ingesta → almacenamiento → calidad → features).
 - Motor de investigación (Alpha Scanner, registro de experimentos).
-- Motor de simulación (backtest, Monte Carlo, optimización).
-- Motor de métricas y reportes.
-- Adaptador de ejecución hacia Hummingbot.
-- Infraestructura transversal (config, logging, catálogo).
+- Motor de simulación descompuesto (backtest bar-based, backtest de microestructura, Monte Carlo, optimización).
+- Validación científica (train/validation/test, walk-forward).
+- Motor de métricas y reportes desacoplados de implementaciones concretas.
+- Adaptador de ejecución hacia Hummingbot (exportación, no orquestación live).
+- Infraestructura transversal (config, logging, catálogo, manifests).
 
 **Excluido de QuantLab (delegado a sistemas externos):**
 
@@ -70,14 +76,20 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 
 ### 1.4 Principios de diseño
 
-1. **Interface-first** — Todo módulo expone una interfaz; la implementación es intercambiable.
+1. **Interface-first con disciplina** — Abstraer solo cuando hay frontera externa real, dos implementaciones plausibles o necesidad demostrada.
 2. **Data as first-class citizen** — Los datos tienen esquema, versión, linaje y catálogo.
 3. **Experiment-driven** — Toda corrida es un experimento registrado, no un script ad-hoc.
 4. **Fail fast, log everything** — Validación temprana; logging estructurado en cada capa.
 5. **Immutable snapshots** — Los datos usados en un experimento no cambian retroactivamente.
-6. **Separation of concerns** — Investigación ≠ ejecución ≠ reporting.
+6. **Separation of concerns** — Investigación ≠ simulación ≠ métricas ≠ reporting ≠ ejecución.
 7. **Convention over configuration** — Estructura predecible; config solo para lo que varía.
-8. **Progressive complexity** — Empezar simple (local, secuencial), escalar sin reescribir interfaces.
+8. **Progressive complexity** — Empezar simple (local, secuencial), escalar sin reescribir contratos de dominio.
+9. **Intenciones, no ejecución** — Strategy produce intenciones; el simulador decide fills, fees y latencia.
+10. **Raw inmutable** — `data/raw/` conserva datos originales sin mutación; la normalización produce `data/processed/`.
+
+**Principio registrado (DEC-013):**
+
+> No crear una abstracción sin una frontera externa real, dos implementaciones plausibles o una necesidad demostrada.
 
 ### 1.5 Restricciones
 
@@ -87,13 +99,15 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 - Sin acoplamiento directo a Hummingbot en módulos de investigación.
 - Sin GUI en fases iniciales.
 - Todo código futuro debe tener tests (pytest).
+- CI básico desde Fase 2 (instalación limpia, lint, type checking, tests, validación de config).
 
 ### 1.6 Supuestos
 
-- Los datos de mercado llegan como series temporales (OHLCV, trades, order book snapshots).
+- Los datos de mercado llegan como series temporales (OHLCV, trades, order book snapshots/deltas).
 - Hummingbot permanece como motor de ejecución; QuantLab no lo reemplaza.
 - El equipo de investigación opera en entorno local o servidor dedicado con almacenamiento en disco.
-- Las estrategias comparten un contrato común (`Strategy`) aunque su lógica interna difiera.
+- Las estrategias comparten un contrato event-driven (`Strategy`) aunque su lógica interna difiera.
+- La fidelidad de simulación requerida depende de la familia de estrategia (bar-based vs microestructura).
 - La optimización masiva puede ejecutarse en batch (no requiere latencia sub-milisegundo).
 - Los reportes iniciales serán archivos estáticos (HTML/Markdown/Parquet), no dashboards en tiempo real.
 
@@ -104,133 +118,82 @@ QuantLab es el **sistema central de un laboratorio de investigación cuantitativ
 ```
 QuantLab/
 │
-├── README.md                          # Entrada al proyecto
-├── LICENSE                            # Licencia MIT
-├── CHANGELOG.md                       # Historial de cambios por fase
-├── LESSONS_LEARNED.md                 # Lecciones al cierre de cada fase
-├── REVIEW_REQUEST.md                  # Solicitud formal de revisión
-├── .gitignore                         # Exclusiones (data, reports, secrets)
-├── pyproject.toml                     # [Fase 2] Dependencias y metadata Python
+├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── LESSONS_LEARNED.md
+├── REVIEW_REQUEST.md
+├── .gitignore
+├── pyproject.toml                     # [Fase 2] Dependencias bloqueadas
 │
 ├── docs/
-│   ├── Arquitectura.md                # Este documento
-│   ├── Arquitectura_Explicada.txt     # Versión en lenguaje claro
-│   ├── Diagrama.md                    # Diagramas Mermaid
-│   ├── protocols/                     # [Fase 2+] Protocolos de desarrollo
-│   └── adr/                           # [Fase 2+] Architecture Decision Records
+│   ├── Arquitectura.md
+│   ├── Arquitectura_Explicada.txt
+│   ├── Diagrama.md
+│   ├── protocols/
+│   └── adr/
 │
 ├── learning/
-│   ├── diario.txt                     # Bitácora diaria del proyecto
-│   ├── decisiones.txt                 # Registro de decisiones técnicas
-│   └── dudas.txt                      # Dudas abiertas pendientes de resolver
+│   ├── diario.txt
+│   ├── decisiones.txt
+│   └── dudas.txt
 │
 ├── config/
-│   ├── base/                          # Configuración base compartida
-│   │   ├── logging.yaml               # Config de logging
-│   │   └── defaults.yaml              # Defaults globales
-│   ├── environments/                  # Overrides por entorno
-│   │   ├── dev.yaml
-│   │   ├── research.yaml
-│   │   └── production.yaml            # Solo para exportación a ejecución
-│   └── schemas/                       # Esquemas de validación de config
-│       ├── experiment.schema.yaml
-│       └── dataset.schema.yaml
+│   ├── base/
+│   ├── environments/
+│   └── schemas/
 │
 ├── src/
 │   └── quantlab/
-│       ├── __init__.py
+│       ├── core/                      # Contratos, tipos, excepciones, manifests
+│       │   ├── types/                 # Instrument, Order, Fill, SimulationResult...
+│       │   └── exceptions/
 │       │
-│       ├── core/                      # Núcleo: interfaces, tipos, excepciones
-│       │   ├── interfaces/            # Contratos abstractos de cada módulo
-│       │   ├── types/                 # Tipos de dominio (Bar, Order, Signal...)
-│       │   └── exceptions/            # Jerarquía de errores del sistema
+│       ├── infra/
+│       │   ├── config/
+│       │   └── logging/
 │       │
-│       ├── infra/                     # Infraestructura transversal
-│       │   ├── config/                # Carga y validación de configuración
-│       │   ├── logging/               # Setup de logging estructurado
-│       │   └── utils/                 # Utilidades genéricas (paths, hashing)
+│       ├── data/
+│       │   ├── providers/
+│       │   ├── ingestion/
+│       │   ├── storage/
+│       │   ├── quality/               # Controles de calidad de datos
+│       │   └── catalog/
 │       │
-│       ├── data/                      # Capa de datos
-│       │   ├── providers/             # Implementaciones de DataProvider
-│       │   ├── ingestion/             # Pipelines de ingesta
-│       │   ├── storage/               # Implementaciones de Storage
-│       │   └── catalog/               # Catálogo y linaje de datasets
+│       ├── features/
 │       │
-│       ├── features/                  # Feature engineering
-│       │   ├── transformers/          # Transformaciones individuales
-│       │   └── pipelines/             # Pipelines composables de features
+│       ├── research/
+│       │   ├── alpha_scanner/
+│       │   ├── experiments/
+│       │   ├── validation/            # Scientific Validation (walk-forward, OOS)
+│       │   └── strategies/
 │       │
-│       ├── research/                  # Capa de investigación
-│       │   ├── alpha_scanner/         # Alpha Scanner
-│       │   ├── experiments/           # Registro y lifecycle de experimentos
-│       │   └── strategies/            # Implementaciones de Strategy
-│       │       ├── market_making/     # Pure MM, Inventory Skew, Adaptive...
-│       │       └── avellaneda_stoikov/ # [Futuro]
+│       ├── simulation/
+│       │   ├── orchestrator/          # Backtest Orchestrator
+│       │   ├── replay/                # Market Replay
+│       │   ├── clock/                 # Simulation Clock
+│       │   ├── runner/                # Strategy Runner
+│       │   ├── execution/             # Execution Simulator + políticas
+│       │   ├── ledger/                # Portfolio / Ledger
+│       │   ├── recorder/              # Result Recorder
+│       │   ├── backtester/            # Facade bar-based (5A) y micro (5B)
+│       │   ├── simulator/             # Monte Carlo
+│       │   └── optimizer/
 │       │
-│       ├── simulation/                # Capa de simulación
-│       │   ├── backtester/            # Motor de backtesting
-│       │   ├── simulator/             # Monte Carlo y escenarios
-│       │   └── optimizer/             # Optimización de parámetros
-│       │
-│       ├── metrics/                   # Motor de métricas
-│       │   ├── calculators/           # Sharpe, drawdown, fill rate...
-│       │   └── aggregators/           # Agregación multi-estrategia / multi-activo
-│       │
-│       ├── reporting/                 # Generación de reportes
-│       │   ├── templates/             # Plantillas HTML/Markdown
-│       │   └── exporters/             # Export a HTML, PDF, Parquet
-│       │
-│       └── execution/                 # Capa de ejecución (adaptadores)
-│           ├── engine/                # ExecutionEngine
-│           └── adapters/              # Hummingbot adapter, paper trading...
+│       ├── metrics/
+│       ├── reporting/
+│       └── execution/
 │
 ├── tests/
-│   ├── unit/                          # Tests unitarios por módulo
-│   ├── integration/                   # Tests de integración entre capas
-│   ├── fixtures/                      # Datos sintéticos para tests
-│   └── conftest.py                    # Fixtures compartidas pytest
-│
 ├── experiments/
-│   ├── registry/                      # Registros JSON/YAML de experimentos ejecutados
-│   └── definitions/                   # Definiciones de experimentos reutilizables
-│
-├── reports/                           # Reportes generados (gitignored)
-│   └── .gitkeep
-│
+├── reports/
 ├── scripts/
-│   ├── ingest/                        # Scripts operativos de ingesta
-│   ├── run_experiment/                # CLI para lanzar experimentos
-│   └── maintenance/                   # Limpieza, migración, health checks
-│
-└── data/                              # Datos locales (gitignored)
-    ├── raw/                           # Datos crudos tal como llegan
-    ├── processed/                     # Datos normalizados
-    ├── features/                      # Features calculadas
-    └── catalog/                       # Índice DuckDB de datasets
+└── data/
+    ├── raw/                           # Inmutable — datos originales
+    ├── processed/                     # Normalizados — no reemplaza raw
+    ├── features/
+    └── catalog/
 ```
-
-### Justificación de carpetas
-
-| Carpeta | Propósito | ¿Por qué existe? |
-|---------|-----------|---------------------|
-| `docs/` | Documentación viva del sistema | Un laboratorio cuantitativo sin documentación no es reproducible |
-| `docs/adr/` | Architecture Decision Records | Registra el "por qué" de cada decisión importante |
-| `learning/` | Memoria del equipo | Decisiones, dudas y bitácora separadas del código |
-| `config/` | Configuración versionada | Separar config de código permite reproducir experimentos |
-| `src/quantlab/core/` | Interfaces y tipos | Punto único de contratos; evita acoplamiento |
-| `src/quantlab/infra/` | Transversal | Config y logging no pertenecen a ningún dominio |
-| `src/quantlab/data/` | Datos | Primera capa del pipeline; independiente de estrategias |
-| `src/quantlab/features/` | Features | Separar feature engineering de estrategias permite reutilización |
-| `src/quantlab/research/` | Investigación | Alpha Scanner y experimentos viven aquí, no en simulación |
-| `src/quantlab/simulation/` | Simulación | Backtest, Monte Carlo y optimización comparten datos, no lógica |
-| `src/quantlab/metrics/` | Métricas | Un solo lugar para definir KPIs; evita duplicación |
-| `src/quantlab/reporting/` | Reportes | Desacoplado de simulación; mismo reporte para distintos motores |
-| `src/quantlab/execution/` | Ejecución | Frontera clara con el mundo live; adaptadores intercambiables |
-| `tests/` | Calidad | Cada módulo con tests; fixtures con datos sintéticos |
-| `experiments/` | Registro científico | Los experimentos son artefactos del laboratorio, no logs temporales |
-| `reports/` | Salida | Generados, no versionados; pueden ser grandes |
-| `scripts/` | Operaciones | CLIs y tareas batch fuera del paquete importable |
-| `data/` | Almacenamiento local | Datos pesados fuera de git; estructura predecible |
 
 ---
 
@@ -243,41 +206,35 @@ Ver diagramas completos en [Diagrama.md](Diagrama.md).
 ```
 Data Sources (Exchanges, CSV, APIs)
         ↓
-   Ingestion Engine
+   Ingestion + Data Quality
         ↓
-   Validación + Normalización
+   Raw Storage (inmutable)
         ↓
-   Raw Storage (Parquet)
+   Normalización → Processed Storage
         ↓
-   Procesamiento temporal
+   Feature Engineering → Feature Store
         ↓
-   Processed Storage (Parquet)
-        ↓
-   Feature Engineering
-        ↓
-   Feature Store (Parquet)
-        ↓
-   ┌─────────────┬──────────────┐
-   ↓             ↓              ↓
-Alpha Scanner  Backtester    Experiment Registry
+   ┌─────────────┬──────────────────┐
+   ↓             ↓                  ↓
+Alpha Scanner  Backtest 5A/5B   Experiment Registry
+   ↓             ↓
+   ↓         Scientific Validation
    ↓             ↓
    ↓         Simulator (Monte Carlo)
    ↓             ↓
    └────→ Optimizer ←────┘
               ↓
-        Metrics Engine
+        Metrics Engine  ←── SimulationResult (core)
               ↓
-       Report Generator
+       Report Generator ←── ExperimentManifest, MetricsResult (core)
               ↓
      Reports (HTML / Parquet)
-              
+
    [Aprobación manual]
               ↓
-      Execution Engine
+      Execution Engine (export only v1)
               ↓
-         Hummingbot
-              ↓
-          Exchange
+         Hummingbot → Exchange
 ```
 
 ---
@@ -288,577 +245,684 @@ Alpha Scanner  Backtester    Experiment Registry
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Definir contratos, tipos de dominio y excepciones compartidas |
-| **Responsabilidades** | Interfaces abstractas, tipos inmutables, jerarquía de errores |
+| **Objetivo** | Contratos de dominio, tipos inmutables, manifests y excepciones compartidas |
+| **Responsabilidades** | Tipos neutrales (`SimulationResult`, `ExperimentManifest`, `MetricsResult`), contratos conceptuales, jerarquía de errores |
 | **Entradas** | Ninguna (módulo raíz) |
 | **Salidas** | Contratos importables por todos los módulos |
 | **Dependencias** | Ninguna |
-| **Extensiones futuras** | Nuevos tipos de dominio (options, futures), nuevas interfaces |
 
 ### 4.2 infra
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Proveer configuración, logging y utilidades transversales |
-| **Responsabilidades** | Cargar config por entorno, setup de logging estructurado, helpers de paths/hashing |
-| **Entradas** | Archivos YAML/TOML de `config/` |
-| **Salidas** | Objetos de config validados, logger configurado |
+| **Objetivo** | Configuración, logging y utilidades transversales |
 | **Dependencias** | `core` |
-| **Extensiones futuras** | Telemetría, tracing distribuido, secrets manager |
 
 ### 4.3 data
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Adquirir, validar, almacenar y catalogar datos de mercado |
-| **Responsabilidades** | Conectores de ingesta, normalización, storage Parquet, catálogo DuckDB |
-| **Entradas** | Feeds de exchanges, archivos CSV/Parquet, APIs |
-| **Salidas** | Datasets versionados en `data/processed/`, entradas en catálogo |
+| **Objetivo** | Adquirir, validar calidad, almacenar y catalogar datos |
+| **Responsabilidades** | Ingesta, controles de calidad, normalización a processed, catálogo DuckDB |
+| **Regla raw/processed** | Raw inmutable; processed es derivado versionado, nunca reemplaza raw |
 | **Dependencias** | `core`, `infra` |
-| **Extensiones futuras** | Nuevos exchanges (nuevo provider), streaming en tiempo real, data lake S3 |
-
-**Submódulos:**
-
-- `providers/` — Implementaciones de `DataProvider` (Binance, CSV local, etc.)
-- `ingestion/` — Pipelines batch de descarga y carga
-- `storage/` — Implementaciones de `Storage` (Parquet local, futuro S3)
-- `catalog/` — Metadatos, linaje, versiones de datasets
 
 ### 4.4 features
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Transformar datos procesados en features reutilizables |
-| **Responsabilidades** | Pipelines composables de transformaciones (volatilidad, spread, volumen...) |
-| **Entradas** | Datasets procesados |
-| **Salidas** | Feature sets en `data/features/` |
+| **Objetivo** | Transformar datos processed en features reutilizables |
 | **Dependencias** | `data`, `core` |
-| **Extensiones futuras** | Feature store online, auto-feature discovery, ML features |
 
 ### 4.5 research
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Descubrir oportunidades y gestionar el ciclo de vida de experimentos |
-| **Responsabilidades** | Alpha Scanner, registro de experimentos, implementaciones de estrategias |
-| **Entradas** | Features, config de experimento, definiciones de estrategia |
-| **Salidas** | Rankings de oportunidades, experimentos registrados, señales |
+| **Objetivo** | Estrategias, experimentos, Alpha Scanner y validación científica |
+| **Submódulos** | `strategies/`, `experiments/`, `alpha_scanner/`, `validation/` |
 | **Dependencias** | `features`, `data`, `core` |
-| **Extensiones futuras** | AutoML para selección de features, meta-learning entre estrategias |
-
-**Submódulos clave:**
-
-- `alpha_scanner/` — Evalúa activos/mercados y rankea oportunidades
-- `experiments/` — CRUD de experimentos, estados (draft → running → completed → approved)
-- `strategies/` — Implementaciones concretas de `Strategy`
 
 ### 4.6 simulation
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Simular estrategias con rigor estadístico |
-| **Responsabilidades** | Backtesting event-driven, Monte Carlo, optimización de parámetros |
-| **Entradas** | Strategy + dataset + config de simulación |
-| **Salidas** | Resultados de simulación (trades, equity curve, distribuciones) |
+| **Objetivo** | Simular estrategias con rigor estadístico en dos niveles de fidelidad |
+| **Salidas** | `SimulationResult` (contrato en core) |
 | **Dependencias** | `features`, `data`, `core` |
-| **Extensiones futuras** | Simulación distribuida, GPU acceleration, walk-forward automático |
 
-**Submódulos:**
-
-- `backtester/` — Simulación histórica event-driven con modelado de latencia/slippage
-- `simulator/` — Monte Carlo: perturbación de parámetros, escenarios, bootstrap
-- `optimizer/` — Grid search, bayesian optimization, genetic algorithms
+Ver [§7 Arquitectura de simulación](#7-arquitectura-de-simulación) para descomposición interna.
 
 ### 4.7 metrics
 
 | Atributo | Descripción |
 |----------|-------------|
-| **Objetivo** | Calcular y agregar KPIs de forma consistente |
-| **Responsabilidades** | Sharpe, Sortino, max drawdown, fill rate, inventory risk, PnL, etc. |
-| **Entradas** | Resultados de simulación (trades, equity) |
-| **Salidas** | Métricas estructuradas (dict / Parquet) |
-| **Dependencias** | `core`, `simulation` (solo tipos de salida) |
-| **Extensiones futuras** | Métricas custom por estrategia, benchmarks, risk parity |
+| **Objetivo** | Calcular KPIs de forma consistente |
+| **Entradas** | `SimulationResult`, `MetricsResult` inputs (contratos de core) |
+| **Salidas** | `MetricsResult` |
+| **Dependencias** | **`core` únicamente** — no depende de implementaciones de `simulation` |
+| **Regla** | Metrics consume contratos neutrales; nunca importa clases concretas del backtester |
 
 ### 4.8 reporting
 
 | Atributo | Descripción |
 |----------|-------------|
 | **Objetivo** | Generar reportes auditables y comparativos |
-| **Responsabilidades** | Templates, export HTML/Markdown/Parquet, comparación multi-experimento |
-| **Entradas** | Métricas, resultados, metadata de experimento |
-| **Salidas** | Archivos en `reports/` |
-| **Dependencias** | `metrics`, `research` |
-| **Extensiones futuras** | Dashboard web, alertas, reportes programados |
+| **Entradas** | `ExperimentManifest`, `SimulationResult`, `MetricsResult` (core) |
+| **Dependencias** | **`core`, `metrics`** — no depende de implementaciones de `research` ni `simulation` |
+| **Regla** | Reporting renderiza contratos; no accede a estado interno de estrategias |
 
 ### 4.9 execution
 
 | Atributo | Descripción |
 |----------|-------------|
 | **Objetivo** | Exportar estrategias aprobadas hacia motores de ejecución |
-| **Responsabilidades** | Traducir config QuantLab → config Hummingbot, validar pre-flight |
-| **Entradas** | Experimento aprobado + config de estrategia |
-| **Salidas** | Archivo de config para Hummingbot, confirmación de despliegue |
-| **Dependencias** | `core`, `research` |
-| **Extensiones futuras** | Paper trading interno, multi-bot orchestration, kill switch |
+| **Alcance v1** | `validate_export`, `build_execution_package`, `export_configuration` |
+| **Fuera de alcance v1** | deploy, status, stop, kill switch, orchestration (extensiones futuras) |
+| **Dependencias** | `core` |
 
 ---
 
-## 5. Interfaces principales
+## 5. Contratos de dominio
 
-> Definición **conceptual**. Sin código. Cada interfaz será un contrato abstracto en `core/interfaces/`.
+> Definición **conceptual**. Sin implementaciones. Tipos inmutables en `core/types/`.
 
-### 5.1 DataProvider
+### 5.1 Instrument
 
-**Propósito:** Abstraer la fuente de datos de mercado.
+**Propósito:** Identificar un activo negociable con sus reglas de mercado.
 
-**Operaciones conceptuales:**
-- `get_bars(symbol, timeframe, start, end)` → serie temporal OHLCV
-- `get_trades(symbol, start, end)` → tick data
-- `get_orderbook_snapshot(symbol, timestamp)` → snapshot de libro
-- `list_symbols()` → universo de activos disponibles
-- `get_metadata()` → info del provider (exchange, latencia, límites)
+**Campos mínimos:** `instrument_id`, `symbol`, `base_asset`, `quote_asset`, `venue_id`, `tick_size`, `lot_size`, `min_notional`, `status` (active/delisted), `metadata` (historial de cambios de símbolo).
 
-**Implementaciones futuras:** BinanceProvider, CSVProvider, ParquetProvider, MockProvider (tests).
+### 5.2 Venue
 
-### 5.2 Storage
+**Propósito:** Representar un exchange o lugar de ejecución con sus reglas.
 
-**Propósito:** Abstraer la persistencia de datasets.
+**Campos mínimos:** `venue_id`, `name`, `timezone`, `fee_schedule_ref`, `latency_profile_ref`, `constraints` (rate limits, min order size).
 
-**Operaciones conceptuales:**
-- `write(dataset_id, data, schema_version)` → persiste con versionado
-- `read(dataset_id, version)` → recupera snapshot inmutable
-- `list_versions(dataset_id)` → historial de versiones
-- `exists(dataset_id, version)` → verificación
-- `delete(dataset_id, version)` → limpieza (con confirmación)
+### 5.3 MarketEvent
 
-**Implementaciones futuras:** ParquetStorage (local), S3Storage (cloud).
+**Propósito:** Evento unificado del bus de simulación.
 
-### 5.3 Strategy
+**Campos mínimos:** `event_id`, `event_type`, `timestamp`, `instrument_id`, `payload` (tipado según subtipo).
 
-**Propósito:** Contrato universal para toda estrategia de trading.
+**Subtipos:** bar, trade, order_book_snapshot, order_book_delta, timer, order_accepted, order_rejected, partial_fill, full_fill, canceled, expired, balance_update, position_update.
 
-**Operaciones conceptuales:**
-- `on_bar(bar, context)` → procesa nueva barra; retorna señales/órdenes
-- `on_fill(fill, context)` → callback de ejecución
-- `get_parameters()` → parámetros actuales (para optimización)
-- `set_parameters(params)` → inyección de parámetros
-- `get_state()` → estado interno serializable (inventario, posición)
-- `reset()` → reinicio para nueva simulación
+### 5.4 Bar
 
-**Implementaciones futuras:** PureMarketMaking, InventorySkew, AdaptiveMM, AvellanedaStoikov.
+**Propósito:** OHLCV agregado en intervalo temporal.
 
-### 5.4 Backtester
+**Campos mínimos:** `instrument_id`, `open`, `high`, `low`, `close`, `volume`, `timestamp_open`, `timestamp_close`, `timeframe`.
 
-**Propósito:** Simular una estrategia sobre datos históricos.
+### 5.5 Trade
 
-**Operaciones conceptuales:**
-- `run(strategy, dataset, config)` → ejecuta backtest completo
-- `get_results()` → trades, equity curve, eventos
-- `get_config()` → config usada (para reproducibilidad)
+**Propósito:** Tick de mercado ejecutado.
 
-**Parámetros de config:** slippage model, fee schedule, latency model, initial capital.
+**Campos mínimos:** `instrument_id`, `price`, `quantity`, `side` (buy/sell aggressor), `timestamp`, `trade_id`.
 
-### 5.5 Simulator
+### 5.6 OrderBookSnapshot
 
-**Propósito:** Ejecutar simulaciones estocásticas (Monte Carlo).
+**Propósito:** Estado completo del libro en un instante.
 
-**Operaciones conceptuales:**
-- `run(strategy, dataset, config, n_scenarios, seed)` → N escenarios
-- `get_distribution()` → distribución de métricas clave
-- `get_scenario(id)` → detalle de un escenario individual
-- `get_confidence_intervals(levels)` → intervalos de confianza
+**Campos mínimos:** `instrument_id`, `timestamp`, `bids[]` (price, qty), `asks[]` (price, qty), `sequence_id`.
 
-### 5.6 Optimizer
+### 5.7 OrderBookDelta
 
-**Propósito:** Encontrar parámetros óptimos de una estrategia.
+**Propósito:** Cambio incremental del libro.
 
-**Operaciones conceptuales:**
-- `optimize(strategy, dataset, param_space, objective, method)` → mejor config
-- `get_search_history()` → todas las combinaciones evaluadas
-- `get_pareto_front()` → frente de Pareto (multi-objetivo)
-- `get_sensitivity()` → análisis de sensibilidad por parámetro
+**Campos mínimos:** `instrument_id`, `timestamp`, `sequence_id`, `changes[]` (side, price, qty, action: add/update/delete).
 
-**Métodos futuros:** grid, random, bayesian, genetic.
+### 5.8 OrderIntent
 
-### 5.7 MetricsEngine
+**Propósito:** Intención de la estrategia — no implica ejecución.
 
-**Propósito:** Calcular KPIs de forma estandarizada.
+**Campos mínimos:** `intent_id`, `intent_type` (place/cancel/replace/no_action), `instrument_id`, `side`, `quantity`, `price`, `order_type`, `time_in_force`, `replace_target_id` (si replace).
 
-**Operaciones conceptuales:**
-- `calculate(results, metrics_list)` → dict de métricas
-- `compare(results_a, results_b)` → delta entre dos corridas
-- `rank(results_list, objective)` → ranking de múltiples corridas
-- `register_custom_metric(name, fn)` → extensibilidad
+### 5.9 Order
 
-**Métricas estándar:** total_pnl, sharpe_ratio, sortino_ratio, max_drawdown, win_rate, fill_rate, avg_spread_captured, inventory_turnover.
+**Propósito:** Orden reconocida por el simulador o venue.
 
-### 5.8 AlphaScanner
+**Campos mínimos:** `order_id`, `client_order_id`, `instrument_id`, `side`, `quantity`, `filled_quantity`, `price`, `status`, `created_at`, `updated_at`.
 
-**Propósito:** Evaluar y rankear oportunidades de mercado automáticamente.
+### 5.10 Fill
 
-**Operaciones conceptuales:**
-- `scan(universe, features, criteria)` → ranking de activos/mercados
-- `get_opportunities(top_n)` → top N oportunidades con score
-- `explain(symbol)` → desglose de por qué un activo rankea alto/bajo
-- `update_criteria(criteria)` → modificar criterios de selección
+**Propósito:** Ejecución parcial o total de una orden.
 
-### 5.9 ExecutionEngine
+**Campos mínimos:** `fill_id`, `order_id`, `instrument_id`, `price`, `quantity`, `fee`, `timestamp`, `liquidity` (maker/taker).
 
-**Propósito:** Puente entre QuantLab y motores de ejecución live.
+### 5.11 Fee
 
-**Operaciones conceptuales:**
-- `validate(strategy_config)` → pre-flight checks
-- `export(experiment_id, target)` → genera config para Hummingbot
-- `deploy(config)` → envía config al motor (futuro)
-- `get_status()` → estado del despliegue
-- `stop()` → detener ejecución
+**Propósito:** Costo de transacción desglosado.
 
-### 5.10 ReportGenerator
+**Campos mínimos:** `fee_id`, `fill_id`, `amount`, `currency`, `fee_type` (maker/taker/funding/other).
 
-**Propósito:** Producir reportes a partir de resultados de experimentos.
+### 5.12 Position
 
-**Operaciones conceptuales:**
-- `generate(experiment_id, template, format)` → reporte renderizado
-- `compare(experiment_ids, template)` → reporte comparativo
-- `list_templates()` → plantillas disponibles
-- `register_template(name, template)` → extensibilidad
+**Propósito:** Exposición neta en un instrumento.
 
----
+**Campos mínimos:** `instrument_id`, `quantity`, `avg_entry_price`, `unrealized_pnl`, `realized_pnl`, `updated_at`.
 
-## 6. Flujo de datos
+### 5.13 Balance
 
-### 6.1 Ingesta (Exchange → Raw Storage)
+**Propósito:** Saldo de un activo en el portfolio.
 
-1. Un **conector de ingesta** (script o pipeline) solicita datos al exchange vía `DataProvider`.
-2. Los datos crudos se validan contra un **esquema** definido en `config/schemas/`.
-3. Si la validación pasa, se escriben en `data/raw/{exchange}/{symbol}/{timeframe}/` como Parquet particionado.
-4. El **catálogo** (DuckDB) registra: dataset_id, versión, timestamp, hash, filas, rango temporal.
+**Campos mínimos:** `asset`, `available`, `locked`, `total`, `updated_at`.
 
-### 6.2 Procesamiento (Raw → Processed)
+### 5.14 PortfolioState
 
-1. Un pipeline de procesamiento lee datos raw del catálogo.
-2. Normaliza: timezones UTC, tipos consistentes, deduplicación, fill de gaps.
-3. Escribe en `data/processed/` con el mismo esquema de partición.
-4. Actualiza catálogo con nueva versión processed.
+**Propósito:** Snapshot agregado de posiciones, balances y PnL.
 
-### 6.3 Feature Engineering (Processed → Features)
+**Campos mínimos:** `timestamp`, `positions[]`, `balances[]`, `total_equity`, `total_realized_pnl`, `total_unrealized_pnl`.
 
-1. Pipelines de features leen datos processed.
-2. Aplican transformaciones composables (volatilidad rolling, spread medio, volumen relativo...).
-3. Escriben feature sets en `data/features/`.
-4. Cada feature set tiene metadata: inputs usados, parámetros, versión.
+### 5.15 ExecutionReport
 
-### 6.4 Investigación (Features → Alpha Scanner)
+**Propósito:** Reporte del ciclo de vida de una orden desde el simulador.
 
-1. Alpha Scanner recibe universo de activos + feature sets.
-2. Aplica criterios configurables (spread, volumen, volatilidad, correlación...).
-3. Produce ranking de oportunidades con scores y explicaciones.
-4. Registra resultado como experimento en `experiments/registry/`.
+**Campos mínimos:** `order_id`, `status`, `fills[]`, `reject_reason`, `timestamp`.
 
-### 6.5 Simulación (Features + Strategy → Results)
+### 5.16 SimulationClock
 
-1. Se selecciona estrategia, activo, rango temporal y parámetros.
-2. Se registra experimento con ID único, seed, versiones de datos.
-3. **Backtester** ejecuta simulación event-driven sobre datos históricos.
-4. Opcionalmente, **Simulator** ejecuta N escenarios Monte Carlo perturbando parámetros.
-5. Opcionalmente, **Optimizer** busca mejores parámetros en el espacio definido.
-6. Resultados (trades, equity, distribuciones) se almacenan referenciados al experiment_id.
+**Propósito:** Reloj virtual de la simulación.
 
-### 6.6 Métricas y reportes (Results → Reports)
+**Campos mínimos:** `current_time`, `mode` (event-driven/step), `speed` (realtime/accelerated).
 
-1. **MetricsEngine** calcula KPIs estandarizados sobre resultados.
-2. **ReportGenerator** renderiza reporte usando template + métricas + metadata.
-3. Reporte se escribe en `reports/{experiment_id}/`.
-4. Reporte incluye: config usada, versiones de datos, seed, métricas, gráficos (futuro).
+### 5.17 DatasetManifest
 
-### 6.7 Ejecución (Aprobación → Hummingbot → Exchange)
+**Propósito:** Describir un dataset versionado e inmutable.
 
-1. Investigador aprueba experimento manualmente.
-2. **ExecutionEngine** valida config pre-flight.
-3. Exporta config compatible con Hummingbot.
-4. Hummingbot ejecuta en exchange (fuera de QuantLab).
-5. QuantLab puede recibir fills de vuelta para análisis post-trade (futuro).
+**Campos mínimos:** `dataset_id`, `version`, `source`, `instruments[]`, `time_range`, `granularity`, `schema_version`, `checksum`, `row_count`, `storage_path`, `created_at`.
+
+**Versionado de schema:** `schema_version` es obligatorio y sigue la política de
+[docs/MANIFEST_VERSIONING.md](MANIFEST_VERSIONING.md) (DEC-036). No confundir con
+`version` del dataset ni con la versión de QuantLab.
+
+### 5.18 ExperimentManifest
+
+**Propósito:** Registro completo para reproducibilidad de un experimento.
+
+**Campos mínimos:** `experiment_id`, `dataset_id`, `dataset_version`, `resolved_config`, `seed`, `git_commit`, `python_version`, `dependency_versions_or_hash`, `platform`, `strategy_version`, `execution_model_versions` (fee/slippage/latency/fill), `artifacts_produced[]`, `created_at`, `status`.
+
+### 5.19 SimulationResult
+
+**Propósito:** Contrato neutral de salida de cualquier simulación.
+
+**Campos mínimos:** `experiment_id`, `equity_curve[]`, `fills[]`, `orders[]`, `portfolio_snapshots[]`, `events_log[]`, `metrics_summary` (opcional pre-calculado), `metadata` (modelos usados, duración, seed).
+
+### 5.20 MetricsResult
+
+**Propósito:** Contrato neutral de salida del motor de métricas.
+
+**Campos mínimos:** `experiment_id`, `metrics` (dict nombre→valor), `computed_at`, `metrics_version`, `benchmarks` (opcional).
 
 ---
 
-## 7. Decisiones tecnológicas
+## 6. Interfaces principales
 
-### 7.1 Python 3.11+
+> Definición **conceptual**. Las interfaces marcadas como **Fase N** no se implementan antes de esa fase.
+> Fase 2 implementa solo tipos de dominio, manifests y contratos del vertical slice — no las diez interfaces abstractas.
 
-| Ventajas | Desventajas |
-|----------|-------------|
-| Ecosistema cuantitativo maduro (numpy, polars, scipy) | GIL limita paralelismo CPU puro |
-| Tipado gradual con type hints | Performance inferior a Rust/C++ para hot paths |
-| Productividad alta para investigación | Gestión de dependencias puede ser frágil |
-| Integración natural con Jupyter para exploración | |
-| `tomllib` built-in desde 3.11 | |
+### 6.1 Strategy (rediseñada — event-driven)
 
-**Decisión:** Python como lenguaje principal. Hot paths futuros (simulador inner loop) pueden migrarse a Rust via PyO3 si profiling lo justifica.
+**Propósito:** Contrato universal orientado a eventos. Produce **intenciones**, no asume ejecución.
 
-### 7.2 Parquet
+**Modelo conceptual:**
 
-| Ventajas | Desventajas |
-|----------|-------------|
-| Columnar: lectura selectiva eficiente | No ideal para datos pequeños (< 1000 filas) |
-| Compresión excelente (snappy, zstd) | Schema evolution requiere disciplina |
-| Compatible con Polars, DuckDB, Pandas | Escritura random-access limitada |
-| Particionamiento nativo por directorio | |
-| Estándar de facto en data engineering | |
+```
+Strategy recibe MarketEvent → procesa → retorna OrderIntent[]
+```
 
-**Decisión:** Parquet como formato universal de almacenamiento de series temporales.
+**Eventos que debe contemplar el contrato:**
 
-### 7.3 DuckDB (primario) + SQLite (fallback)
+| Categoría | Eventos |
+|-----------|---------|
+| Market data | bar, trade, order_book_snapshot, order_book_delta |
+| Timer | timer (heartbeat, rebalance, quote refresh) |
+| Order lifecycle | order_accepted, order_rejected, partial_fill, full_fill, canceled, expired |
+| Portfolio | balance_update, position_update |
 
-| Criterio | DuckDB | SQLite |
-|----------|--------|--------|
-| Analytics sobre Parquet | Nativo, cero-copy | Requiere import |
-| Agregaciones grandes | Optimizado columnar | Row-based, más lento |
-| Catálogo de metadata | Excelente | Suficiente para pocos datasets |
-| Concurrencia escritura | Single-writer | Single-writer |
-| Dependencias | Zero external deps | Built-in Python |
-| Portabilidad | Archivo único .duckdb | Archivo único .db |
+**Intenciones que produce:**
 
-**Decisión:** DuckDB como motor analítico y catálogo (`data/catalog/`). SQLite solo como fallback si DuckDB presenta problemas en algún entorno.
+| Intención | Descripción |
+|-----------|-------------|
+| `place_order` | Nueva orden |
+| `cancel_order` | Cancelar orden existente |
+| `replace_order` | Cancel-replace |
+| `no_action` | Sin cambios |
 
-### 7.4 Polars (primario) + Pandas (compatibilidad)
+**Operaciones conceptuales:**
 
-| Criterio | Polars | Pandas |
-|----------|--------|--------|
-| Performance | 5-30x más rápido en agregaciones | Baseline |
-| Memoria | Lazy evaluation, streaming | Eager por defecto |
-| API | Expresiva, tipo Rust | Estándar de la industria |
-| Ecosistema | Creciendo, compatible con Arrow | Enorme, toda librería cuant lo soporta |
-| Curva de aprendizaje | Distinta a Pandas | Familiar para todos |
+- `on_event(event: MarketEvent, context) → list[OrderIntent]` — handler universal
+- `on_bar(bar, context) → list[OrderIntent]` — **adaptador opcional** para estrategias bar-based; no es el contrato universal
+- `get_parameters()` / `set_parameters(params)` — para optimización
+- `get_state()` / `reset()` — serialización y reinicio
 
-**Decisión:** Polars como motor principal de transformación. Pandas solo en fronteras donde una librería externa lo requiera (ej. ciertos indicadores técnicos).
+**Regla:** El simulador traduce intenciones en órdenes, aplica FillModel/LatencyModel/FeeModel, y emite eventos de lifecycle de vuelta a Strategy.
 
-### 7.5 Pytest
+**Implementaciones futuras:** PureMarketMaking (5B), SimpleMomentum (5A), InventorySkew, AvellanedaStoikov.
 
-| Ventajas | Desventajas |
-|----------|-------------|
-| Estándar de facto en Python | Fixtures complejas pueden ser difíciles de seguir |
-| Fixtures, parametrización, markers | No es framework de benchmarking |
-| Integración con CI (futuro) | |
-| Plugins: pytest-cov, pytest-xdist (paralelo) | |
+### 6.2 DataProvider — Fase 3
 
-**Decisión:** pytest para toda la pirámide de tests (unit + integration).
+**Operaciones:** `get_bars`, `get_trades`, `get_orderbook_snapshot`, `list_symbols`, `get_metadata`.
 
-### 7.6 Configuración (YAML + TOML)
+### 6.3 Storage — Fase 3
 
-| Formato | Uso |
-|---------|-----|
-| `pyproject.toml` | Metadata del proyecto, dependencias, tools |
-| `config/**/*.yaml` | Configuración de runtime (entornos, experimentos, datasets) |
-| `experiments/definitions/*.yaml` | Definiciones de experimentos |
+**Operaciones:** `write`, `read`, `list_versions`, `exists`, `delete`.
 
-**Ventajas:** Legible, versionable, diff-friendly.  
-**Desventajas:** Sin tipado nativo (se compensa con schemas de validación en `config/schemas/`).
+### 6.4 Backtester — Fase 5A / 5B
 
-### 7.7 Logging (structlog)
+**Propósito:** Facade sobre el Backtest Orchestrator (§7).
 
-| Ventajas | Desventajas |
-|----------|-------------|
-| Logs estructurados (JSON) facilitan búsqueda | Overhead mínimo vs print |
-| Context binding (experiment_id, module) | Dependencia adicional |
-| Compatible con stdlib logging | |
-| Preparado para agregadores futuros (ELK, Datadog) | |
+**Operaciones:** `run(strategy, dataset_manifest, experiment_manifest) → SimulationResult`.
 
-**Decisión:** structlog sobre stdlib logging, configurado via `config/base/logging.yaml`.
+**5A:** datos OHLCV, barras ≥ 1 minuto, políticas baseline.  
+**5B:** trades, order book, lifecycle completo, políticas de microestructura.
+
+### 6.5 Simulator — Fase 11 (Monte Carlo)
+
+**Operaciones:** `run(...) → list[SimulationResult]`, `get_distribution()`, `get_confidence_intervals()`.
+
+### 6.6 Optimizer — Fase 12
+
+**Requisito previo:** Scientific Validation aprobada (Fase 9).
+
+**Operaciones:** `optimize(...)`, `get_search_history()`, `get_pareto_front()`, `get_sensitivity()`.
+
+### 6.7 MetricsEngine — Fase 7
+
+**Entrada:** `SimulationResult` (core). **Salida:** `MetricsResult` (core).
+
+**Operaciones:** `calculate(simulation_result, metrics_list) → MetricsResult`, `compare(...)`, `rank(...)`.
+
+### 6.8 AlphaScanner — Fase 13
+
+**Operaciones:** `scan(...)`, `get_opportunities(...)`, `explain(...)`.
+
+### 6.9 ExecutionEngine — Fase 15 (alcance v1)
+
+**Propósito:** Puente QuantLab → Hummingbot. Solo exportación en v1.
+
+**Operaciones v1:**
+
+- `validate_export(experiment_manifest) → ValidationResult`
+- `build_execution_package(experiment_manifest) → ExecutionPackage`
+- `export_configuration(package, target_path) → ExportResult`
+
+**Extensiones futuras (no v1):** `deploy`, `get_status`, `stop`, kill switch, orchestration multi-bot.
+
+### 6.10 ReportGenerator — Fase 7
+
+**Entrada:** `ExperimentManifest`, `MetricsResult`, `SimulationResult` (core).
+
+**Operaciones:** `generate(...)`, `compare(...)`, `list_templates()`.
 
 ---
 
-## 8. Riesgos
+## 7. Arquitectura de simulación
+
+El Backtester no es un monolito. Se descompone en componentes con responsabilidades claras.
+
+### 7.1 Componentes
+
+| Componente | Responsabilidad | Entradas | Salidas | Depende de |
+|------------|-----------------|----------|---------|------------|
+| **Backtest Orchestrator** | Coordina la corrida end-to-end | Strategy, DatasetManifest, ExperimentManifest, config | SimulationResult | Todos los subcomponentes |
+| **Market Replay** | Reproduce eventos históricos en orden | Dataset (bars/trades/book) | Stream de MarketEvent | DatasetManifest |
+| **Simulation Clock** | Avanza el tiempo virtual | Eventos, config de clock | Timestamp actual | — |
+| **Strategy Runner** | Invoca Strategy.on_event, recolecta OrderIntent | MarketEvent, Strategy | OrderIntent[] | Strategy |
+| **Execution Simulator** | Traduce intenciones en órdenes, aplica políticas | OrderIntent[], MarketEvent, políticas | ExecutionReport, Fill | Fee/Slippage/Latency/FillModel |
+| **Portfolio / Ledger** | Contabilidad: posiciones, balances, PnL, fees | Fill[], Fee[] | PortfolioState | — |
+| **Result Recorder** | Persiste artefactos de la corrida | Eventos, fills, equity | SimulationResult | ExperimentManifest |
+
+### 7.2 Políticas intercambiables (Execution Simulator)
+
+| Política | Propósito | Fase |
+|----------|-----------|------|
+| **FeeModel** | Maker/taker fees, descuentos, funding | 5A (simple), 5B (completo) |
+| **SlippageModel** | Impacto de precio al ejecutar | 5A (fixed bps baseline), 5B (book-based) |
+| **LatencyModel** | Retraso submit→acknowledge→fill | 5B |
+| **FillModel** | Condiciones de fill parcial/total | 5B |
+
+Las políticas se registran en `ExperimentManifest.execution_model_versions` para reproducibilidad.
+
+### 7.3 Flujo interno de una corrida
+
+```
+Orchestrator
+  → Market Replay emite MarketEvent
+  → Simulation Clock avanza
+  → Strategy Runner → OrderIntent[]
+  → Execution Simulator (políticas) → Fill / ExecutionReport
+  → Portfolio / Ledger actualiza PortfolioState
+  → eventos de lifecycle vuelven a Strategy Runner
+  → Result Recorder acumula SimulationResult
+```
+
+### 7.4 Dos niveles de backtesting
+
+| Nivel | Fase | Datos | Objetivo |
+|-------|------|-------|----------|
+| **5A — Bar-based** | 6 | OHLCV ≥ 1 min | Validar arquitectura, contabilidad, fees, métricas, reproducibilidad, golden runs |
+| **5B — Microestructura** | 7 | Trades, book snapshots/deltas | Pure MM, partial fills, latency, cancel/replace, inventory, venue constraints |
+
+**Regla:** No declarar validada una estrategia de market making utilizando solamente OHLCV.
+
+---
+
+## 8. Calidad de datos
+
+### 8.1 Principio raw/processed
+
+- **`data/raw/`:** datos originales tal como llegan. **Nunca se mutan.**
+- **`data/processed/`:** normalización, deduplicación, alineación temporal. Derivado versionado.
+- Un fallo de calidad en processed no destruye raw; se regenera processed desde raw.
+
+### 8.2 Controles conceptuales
+
+| Control | Descripción | Acción ante fallo |
+|---------|-------------|-------------------|
+| Timestamps monotónicos | Orden temporal estricto por instrumento | Reject o flag en catálogo |
+| Duplicados | Mismo event_id/trade_id/bar timestamp | Deduplicar en processed; reportar en raw metadata |
+| Gaps | Huecos temporales vs timeframe esperado | Registrar gap; no interpolar en raw |
+| Secuencias faltantes | Order book sequence_id discontinuo | Flag; reconstruir solo en processed si es posible |
+| Eventos fuera de orden | timestamp < último evento | Reorder en processed; preservar raw |
+| Precios/volúmenes imposibles | price ≤ 0, volume < 0 | Reject registro |
+| Bid > ask | Spread negativo en snapshot | Reject o flag según severidad |
+| Timezone | Todo en UTC internamente | Convertir en processed; documentar TZ original en raw |
+| Checksums | Hash por archivo/partición | Validar integridad en catálogo |
+| Cobertura | % del rango temporal esperado | Registrar en DatasetManifest |
+| Tick size / lot size | Precios y cantidades alineados a reglas del instrumento | Validar contra Instrument metadata |
+| Metadata histórica | Cambios de símbolo, delistings, splits | Instrument registry versionado |
+
+### 8.3 Integración en pipeline
+
+1. Ingesta → raw (sin transformación).
+2. Quality checks → reporte de calidad.
+3. Normalización → processed (solo si quality aceptable o con flags documentados).
+4. DatasetManifest registra checksums, cobertura, quality report.
+
+---
+
+## 9. Slippage, fills y granularidad
+
+### 9.1 Reglas por familia de estrategia
+
+| Aspecto | Bar-based (5A) | Microestructura (5B) | Market Making |
+|---------|----------------|----------------------|---------------|
+| Datos | OHLCV ≥ 1 min | Trades + book | Trades + book obligatorio |
+| Slippage default | Fixed bps (baseline aceptable) | Book-based / queue model | **Fixed bps NO es default válido** |
+| Fills | Modelo simplificado (bar close/vwap) | FillModel con partial fills | FillModel + inventory |
+| Latency | Opcional / fijo | LatencyModel obligatorio | LatencyModel obligatorio |
+| Validación MM | **No válida** | **Requerida** | Solo en 5B |
+
+### 9.2 Granularidad temporal
+
+- **OHLCV 1 minuto:** infraestructura, análisis general, estrategias bar-based, golden runs de contabilidad.
+- **Tick / book:** estrategias sensibles a ejecución, market making, validación de fills.
+- La fidelidad requerida **depende de la familia de estrategia**, no es global.
+
+### 9.3 Fixed bps
+
+- Aceptable **únicamente** como baseline para estrategias bar-based (Fase 5A).
+- **No** es default válido para market making ni para Fase 5B.
+- Documentar supuestos del modelo en ExperimentManifest.
+
+---
+
+## 10. Flujo de datos
+
+### 10.1 Ingesta (Exchange → Raw)
+
+1. Conector descarga datos vía DataProvider.
+2. Validación de esquema mínimo.
+3. Escritura en `data/raw/` sin mutación.
+4. Catálogo registra DatasetManifest con checksum.
+
+### 10.2 Calidad + Procesamiento (Raw → Processed)
+
+1. Controles de calidad (§8).
+2. Normalización: UTC, tipos, deduplicación.
+3. Escritura en `data/processed/` con nueva versión.
+4. DatasetManifest actualizado.
+
+### 10.3 Features (Processed → Features)
+
+1. Pipelines leen processed.
+2. Features versionadas en `data/features/`.
+
+### 10.4 Simulación
+
+1. ExperimentManifest registrado (seed, commit, config, dataset version).
+2. Backtest Orchestrator ejecuta según nivel 5A o 5B.
+3. SimulationResult persistido.
+
+### 10.5 Métricas y reportes
+
+1. MetricsEngine consume SimulationResult → MetricsResult.
+2. ReportGenerator consume ExperimentManifest + MetricsResult + SimulationResult.
+3. Reporte en `reports/{experiment_id}/`.
+
+### 10.6 Exportación (v1)
+
+1. Aprobación manual.
+2. ExecutionEngine: validate → build package → export config Hummingbot.
+
+---
+
+## 11. Decisiones tecnológicas
+
+(Sin cambios respecto a v1.0: Python 3.11+, Parquet, DuckDB/SQLite, Polars/Pandas, pytest, YAML/TOML, structlog.)
+
+Ver sección 7 de v1.0 para tablas comparativas detalladas.
+
+---
+
+## 12. Riesgos
 
 | # | Riesgo | Impacto | Probabilidad | Mitigación |
 |---|--------|---------|--------------|------------|
-| R1 | **Escalabilidad de simulaciones** — 1M+ escenarios agotan RAM/tiempo | Alto | Media | Diseño con streaming/chunking desde el inicio; paralelismo via multiprocessing; interfaces preparadas para workers distribuidos |
-| R2 | **Consumo de memoria** — datasets grandes cargados completos en RAM | Alto | Alta | Polars lazy evaluation; lectura particionada de Parquet; procesamiento por ventanas temporales |
-| R3 | **Acoplamiento estrategia-datos** — estrategias acceden a storage directamente | Alto | Media | Prohibir acceso directo; solo via interfaces; inyección de datos en backtester |
-| R4 | **Reproducibilidad rota** — datos mutados retroactivamente | Crítico | Baja | Snapshots inmutables; versionado en catálogo; hash de datasets en experimento |
-| R5 | **Latencia de ingesta** — APIs de exchange con rate limits | Medio | Alta | Cola de ingesta con retry/backoff; cache local; ingesta batch nocturna |
-| R6 | **Versionado de config** — configs cambian sin registro | Medio | Media | Config versionada en git; schemas de validación; config snapshot en experimento |
-| R7 | **Complejidad prematura** — over-engineering en fases tempranas | Medio | Alta | Progressive complexity; implementar lo mínimo viable por fase; Future Improvements para lo no urgente |
-| R8 | **Dependencia de Hummingbot** — cambios en su API rompen adaptador | Medio | Media | Adaptador aislado en `execution/adapters/`; tests de contrato; version pinning |
-| R9 | **Deuda de tests** — módulos sin cobertura | Alto | Media | Test obligatorio por módulo antes de cerrar fase; CI futuro |
-| R10 | **Pérdida de datos** — disco local sin backup | Alto | Baja | Documentar estrategia de backup; cloud como extensión; catálogo regenerable desde Parquet |
+| R1 | Escalabilidad de simulaciones | Alto | Media | Streaming/chunking; paralelismo; contratos estables |
+| R2 | Consumo de memoria | Alto | Alta | Polars lazy; particionado Parquet |
+| R3 | Acoplamiento estrategia-datos | Alto | Media | Solo vía Market Replay; prohibir acceso directo a storage |
+| R4 | Reproducibilidad rota | Crítico | Baja | ExperimentManifest completo; snapshots inmutables |
+| R5 | Latencia de ingesta | Medio | Alta | Retry/backoff; ingesta batch |
+| R6 | Versionado de config | Medio | Media | Config en git; snapshot en manifest |
+| R7 | Complejidad prematura | Medio | Alta | DEC-013; Fase 2 mínima; interfaces conceptuales hasta su fase |
+| R8 | Dependencia Hummingbot | Medio | Media | Adaptador aislado; export-only v1 |
+| R9 | Deuda de tests | Alto | Media | CI desde Fase 2; golden runs en 5A |
+| R10 | Pérdida de datos | Alto | Baja | Backup; raw inmutable |
+| R11 | **Look-ahead bias** | Crítico | Media | Simulation Clock estricto; features solo con datos disponibles al timestamp; tests de leakage |
+| R12 | **Survivorship bias** | Alto | Media | Instrument registry con delistings; universo temporal explícito en manifest |
+| R13 | **Data leakage** | Crítico | Media | Separación train/val/test; walk-forward; features sin futuro |
+| R14 | **Data snooping** | Alto | Media | Scientific Validation obligatoria antes de Optimizer |
+| R15 | **Parameter overfitting** | Alto | Alta | Walk-forward; OOS test; control de overfitting en Fase 9 |
+| R16 | **Múltiples comparaciones** | Alto | Alta | Corrección estadística; benchmarks; registro de todas las corridas |
+| R17 | **Fill model optimista** | Crítico | Alta | 5B obligatorio para MM; sensibilidad de FillModel; FI post-trade analytics |
+| R18 | **Market impact ignorado** | Alto | Media | SlippageModel en 5B; documentar supuestos |
+| R19 | **Cambios de régimen** | Alto | Media | Walk-forward; métricas por subperíodo |
+| R20 | **Delistings / cambios de símbolo** | Medio | Media | Instrument metadata histórica; quality checks |
+| R21 | **Errores de contabilidad** | Crítico | Media | Golden runs 5A; invariantes en Ledger; tests de PnL |
+| R22 | **Resultados no deterministas** | Alto | Media | Seed fija; documentar paralelismo; tolerancias entre entornos |
 
 ---
 
-## 9. Roadmap
+## 13. Roadmap
 
-### Fase 2 — Core + Infraestructura
+> Fases 0–1 completadas (fundación + diseño). Implementación desde Fase 2.
 
-| Atributo | Detalle |
-|----------|---------|
-| **Objetivo** | Establecer contratos, config, logging y tipos base |
-| **Dependencias** | Fase 1 aprobada |
-| **Entregables** | `core/` (interfaces + tipos), `infra/` (config + logging), tests unitarios, `pyproject.toml` |
-| **Criterio de cierre** | Todas las interfaces definidas (abstractas); config carga y valida; logging funciona; tests pasan |
-
-### Fase 3 — Capa de datos
+### Fase 2 — Fundación del dominio, manifests y CI
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | Pipeline de ingesta, storage Parquet, catálogo DuckDB |
-| **Dependencias** | Fase 2 |
-| **Entregables** | `DataProvider` (MockProvider + CSVProvider), `Storage` (ParquetStorage), catálogo, scripts de ingesta |
-| **Criterio de cierre** | Ingestar CSV → Parquet → catálogo → leer de vuelta; reproducible; testeado |
+| **Objetivo** | Tipos fundamentales, manifests, config, logging, CI |
+| **Entregables** | Tipos de dominio (§5), DatasetManifest, ExperimentManifest, config, logging, excepciones mínimas, contratos del vertical slice, pyproject.toml con deps bloqueadas, CI (install, lint, mypy, pytest, config validation), tests de infraestructura |
+| **No incluye** | Las 10 interfaces abstractas; Simulator, Optimizer, AlphaScanner, ExecutionEngine, ReportGenerator como ABC |
+| **Criterio de cierre** | CI verde; manifests serializan/deserializan; config valida; tipos importables |
 
-### Fase 4 — Feature Engineering
+### Fase 3 — Datos, catálogo y calidad
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | Pipeline raw→processed, catálogo, controles de calidad |
+| **Entregables** | DataProvider (Mock + CSV), Storage (Parquet), quality checks (§8), catálogo DuckDB |
+| **Criterio de cierre** | Ingesta → raw inmutable → quality → processed → catálogo; reproducible |
+
+### Fase 4 — Vertical slice reproducible
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | End-to-end mínimo: dataset → manifest → resultado stub → reporte básico |
+| **Entregables** | Pipeline con datos sintéticos, ExperimentManifest completo, SimulationResult stub, reporte mínimo |
+| **Criterio de cierre** | Mismo manifest + seed → mismo resultado stub; trazabilidad completa |
+
+### Fase 5 — Features
 
 | Atributo | Detalle |
 |----------|---------|
 | **Objetivo** | Pipelines composables de features |
-| **Dependencias** | Fase 3 |
-| **Entregables** | 3+ transformers (volatilidad, spread, volumen), pipeline composable, feature store |
-| **Criterio de cierre** | Pipeline ejecuta sobre datos reales; features versionadas; tests con datos sintéticos |
+| **Entregables** | 3+ transformers, pipeline composable, feature store |
+| **Criterio de cierre** | Features versionadas sobre datos reales |
 
-### Fase 5 — Backtester
-
-| Atributo | Detalle |
-|----------|---------|
-| **Objetivo** | Motor de backtesting event-driven con una estrategia simple |
-| **Dependencias** | Fase 4, interfaz `Strategy` |
-| **Entregables** | Backtester funcional, PureMarketMaking como estrategia de referencia, modelos de slippage/fees |
-| **Criterio de cierre** | Backtest reproducible sobre 1 activo; métricas básicas calculadas; testeado |
-
-### Fase 6 — Metrics + Reporting
+### Fase 6 — Backtester bar-based (5A)
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | KPIs estandarizados y reportes automáticos |
-| **Dependencias** | Fase 5 |
-| **Entregables** | MetricsEngine, ReportGenerator, template HTML básico |
-| **Criterio de cierre** | Reporte generado automáticamente post-backtest; comparación entre 2 experimentos |
+| **Objetivo** | Validar arquitectura de simulación con OHLCV |
+| **Entregables** | Componentes §7 con FillModel/FeeModel/SlippageModel baseline, estrategia bar-based simple, golden runs |
+| **Criterio de cierre** | Golden runs reproducibles; contabilidad cuadra; metrics básicas; **no validar MM aquí** |
 
-### Fase 7 — Experiment Registry
+### Fase 7 — Backtester de microestructura (5B)
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | Ciclo de vida formal de experimentos |
-| **Dependencias** | Fase 6 |
-| **Entregables** | CRUD experimentos, estados, vinculación config/datos/resultados |
-| **Criterio de cierre** | Experimento registrado → ejecutado → reportado → reproducido con mismo ID |
+| **Objetivo** | Pure MM y estrategias sensibles a ejecución |
+| **Entregables** | Market Replay con trades/book, LatencyModel, FillModel completo, cancel/replace, inventory |
+| **Criterio de cierre** | MM validada solo con datos de microestructura; partial fills; maker/taker |
 
-### Fase 8 — Simulator (Monte Carlo)
+### Fase 8 — Métricas y reporting
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | KPIs estandarizados y reportes sobre contratos neutrales |
+| **Entregables** | MetricsEngine → MetricsResult, ReportGenerator, template HTML |
+| **Criterio de cierre** | Metrics y reporting sin importar simulation/research concretos |
+
+### Fase 9 — Experiment Registry completo
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | Lifecycle formal de experimentos |
+| **Entregables** | CRUD, estados, vinculación manifest/artefactos |
+| **Criterio de cierre** | Experimento registrado → ejecutado → reportado → reproducido |
+
+### Fase 10 — Scientific Validation
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | Validación científica antes de optimización |
+| **Entregables** | Train/validation/OOS test, walk-forward, prevención look-ahead/leakage, benchmarks, control overfitting, múltiples comparaciones, selección temporal del universo |
+| **Criterio de cierre** | Ninguna optimización sin pipeline de validación aprobado |
+| **Requisito** | Obligatorio antes de Fase 12 (Optimizer) |
+
+### Fase 11 — Monte Carlo
 
 | Atributo | Detalle |
 |----------|---------|
 | **Objetivo** | Simulaciones estocásticas masivas |
-| **Dependencias** | Fase 5 |
-| **Entregables** | Simulator con N escenarios, distribuciones, intervalos de confianza |
-| **Criterio de cierre** | 10K escenarios reproducibles (seed fija); resultados en Parquet; paralelismo local |
+| **Entregables** | Simulator, N escenarios, intervalos de confianza |
+| **Criterio de cierre** | 10K escenarios reproducibles (seed fija) |
 
-### Fase 9 — Optimizer
+### Fase 12 — Optimizer
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | Búsqueda automática de parámetros |
-| **Dependencias** | Fase 8 |
-| **Entregables** | Grid search + random search; historial de búsqueda; sensibilidad |
-| **Criterio de cierre** | Optimización sobre 3+ parámetros; Pareto front en multi-objetivo; reproducible |
+| **Objetivo** | Búsqueda de parámetros con validación previa |
+| **Dependencias** | Fase 10 aprobada |
+| **Entregables** | Grid/random search, historial, sensibilidad |
+| **Criterio de cierre** | Optimización con OOS validation; Pareto multi-objetivo |
 
-### Fase 10 — Alpha Scanner
+### Fase 13 — Alpha Scanner
 
 | Atributo | Detalle |
 |----------|---------|
 | **Objetivo** | Selección automática de oportunidades |
-| **Dependencias** | Fase 4, Fase 6 |
-| **Entregables** | Scanner con criterios configurables, ranking, explicabilidad |
-| **Criterio de cierre** | Scan sobre 10+ activos; ranking reproducible; integrado con experiment registry |
+| **Entregables** | Scanner, ranking, explicabilidad |
+| **Criterio de cierre** | Scan 10+ activos; universo temporal explícito |
 
-### Fase 11 — Estrategias avanzadas
+### Fase 14 — Estrategias avanzadas
 
 | Atributo | Detalle |
 |----------|---------|
 | **Objetivo** | Inventory Skew, Adaptive MM, Avellaneda & Stoikov |
-| **Dependencias** | Fase 5 |
-| **Entregables** | 3 estrategias implementadas con tests y backtests de referencia |
-| **Criterio de cierre** | Cada estrategia pasa backtest de referencia; comparables via MetricsEngine |
+| **Dependencias** | Fase 7 (5B) |
+| **Criterio de cierre** | Cada estrategia validada en 5B |
 
-### Fase 12 — Multi-exchange + DataProvider extensible
-
-| Atributo | Detalle |
-|----------|---------|
-| **Objetivo** | Soporte para múltiples exchanges |
-| **Dependencias** | Fase 3 |
-| **Entregables** | BinanceProvider (o similar), factory de providers, normalización cross-exchange |
-| **Criterio de cierre** | Datos de 2+ exchanges ingeridos y normalizados; catálogo unificado |
-
-### Fase 13 — Execution Engine + Hummingbot
+### Fase 15 — Multi-exchange
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | Exportar estrategias aprobadas a Hummingbot |
-| **Dependencias** | Fase 7, Fase 11 |
-| **Entregables** | ExecutionEngine, HummingbotAdapter, pre-flight validation |
-| **Criterio de cierre** | Config exportada y validada; despliegue documentado; sin ejecución live obligatoria |
+| **Objetivo** | Múltiples exchanges |
+| **Entregables** | Provider adicional, normalización cross-exchange |
+| **Criterio de cierre** | 2+ exchanges en catálogo unificado |
 
-### Fase 14 — Escalabilidad y producción
+### Fase 16 — Hummingbot (export v1)
 
 | Atributo | Detalle |
 |----------|---------|
-| **Objetivo** | Preparar para volumen real de investigación |
-| **Dependencias** | Fases 8-13 |
-| **Entregables** | Paralelismo distribuido, CI/CD, monitoring, backup strategy |
-| **Criterio de cierre** | 100K+ simulaciones en tiempo razonable; CI verde; documentación operativa |
+| **Objetivo** | Exportar estrategias aprobadas |
+| **Entregables** | ExecutionEngine v1 (validate, build, export) |
+| **Criterio de cierre** | Config exportada y validada; sin deploy live obligatorio |
+
+### Fase 17 — Escalabilidad distribuida
+
+| Atributo | Detalle |
+|----------|---------|
+| **Objetivo** | Volumen real de investigación |
+| **Entregables** | Paralelismo distribuido, monitoring, backup |
+| **Criterio de cierre** | 100K+ simulaciones; contratos de dominio sin cambios |
 
 ---
 
-## 10. Future Improvements
+## 14. Future Improvements
 
-> Registradas para referencia. **No implementar sin autorización.**
+> Walk-forward movido a Fase 10 (Scientific Validation). No implementar sin autorización.
 
-| # | Mejora | Módulo afectado | Beneficio | Prioridad |
-|---|--------|------------------|-----------|-----------|
-| FI-01 | Event sourcing para experimentos | research/experiments | Auditoría completa de cambios de estado | Media |
-| FI-02 | Feature store online (Redis/SQLite) | features | Features en tiempo real para scanner live | Baja |
-| FI-03 | Hot paths en Rust via PyO3 | simulation | 10-100x speedup en inner loop de Monte Carlo | Alta (cuando profiling lo justifique) |
-| FI-04 | Orchestrador distribuido (Celery/Ray) | simulation | Millones de simulaciones en cluster | Alta (Fase 14) |
-| FI-05 | Dashboard web (FastAPI + frontend) | reporting | Visualización interactiva de experimentos | Media |
-| FI-06 | AutoML para feature selection | research/alpha_scanner | Descubrimiento automático de features predictivas | Baja |
-| FI-07 | Walk-forward analysis automático | simulation/backtester | Validación out-of-sample sistemática | Alta |
-| FI-08 | Data lake en S3/MinIO | data/storage | Escalabilidad de almacenamiento beyond local | Media |
-| FI-09 | Schema registry (Confluent-style) | data/catalog | Evolución controlada de esquemas de datos | Baja |
-| FI-10 | Paper trading interno | execution | Validación pre-Hummingbot sin riesgo | Media |
-| FI-11 | Post-trade analytics loop | data + metrics | Fills de Hummingbot → análisis de slippage real vs simulado | Alta |
-| FI-12 | ML pipeline para meta-strategy | research | Ensemble de estrategias basado en régimen de mercado | Baja |
-| FI-13 | ADR automatizado en cada PR | docs/adr | Trazabilidad de decisiones arquitectónicas | Media |
-| FI-14 | Property-based testing (Hypothesis) | tests | Validación de invariantes en simulador | Media |
-| FI-15 | Config hot-reload | infra/config | Cambiar parámetros sin reiniciar pipeline | Baja |
+| # | Mejora | Módulo | Prioridad |
+|---|--------|--------|-----------|
+| FI-01 | Event sourcing para experimentos | research/experiments | Media |
+| FI-02 | Feature store online | features | Baja |
+| FI-03 | Hot paths Rust/PyO3 | simulation | Alta (si profiling lo justifica) |
+| FI-04 | Orchestrador distribuido | simulation | Alta (Fase 17) |
+| FI-05 | Dashboard web | reporting | Media |
+| FI-06 | AutoML feature selection | research | Baja |
+| FI-07 | Data lake S3/MinIO | data | Media |
+| FI-08 | Schema registry | data/catalog | Baja |
+| FI-09 | Paper trading interno | execution | Media |
+| FI-10 | Post-trade analytics loop | data + metrics | Alta |
+| FI-11 | ML meta-strategy | research | Baja |
+| FI-12 | Property-based testing (Hypothesis) | tests | Media |
+| FI-13 | Config hot-reload | infra | Baja |
 
 ---
 
-## 11. Autoevaluación crítica
+## 15. Autoevaluación crítica
 
-### Fortalezas del diseño
+### Fortalezas
 
-1. **Separación clara de capas** — Datos, features, investigación, simulación, ejecución y reporting son independientes.
-2. **Interface-first** — Permite reemplazar cualquier implementación sin efecto cascada.
-3. **Reproducibilidad by design** — Snapshots inmutables, versionado, seeds, registro de experimentos.
-4. **Escalabilidad progresiva** — Empieza local/simple; interfaces preparadas para distribución.
-5. **Roadmap incremental** — 14 fases pequeñas con criterios de cierre claros.
+1. Strategy event-driven con intenciones — apta para market making.
+2. Contratos de dominio explícitos — metrics/reporting desacoplados.
+3. Backtester descompuesto — políticas intercambiables.
+4. Dos niveles de fidelidad (5A/5B) — evita falsa validación de MM.
+5. Scientific Validation antes de Optimizer.
+6. Fase 2 realista — no congela interfaces prematuras.
 
-### Debilidades identificadas
+### Debilidades residuales
 
-| # | Debilidad | Severidad | Acción recomendada |
-|---|-----------|-----------|---------------------|
-| W1 | **Complejidad inicial alta** — 9 módulos + 10 interfaces pueden intimidar en Fase 2 | Media | Implementar solo interfaces necesarias por fase; no crear módulos vacíos |
-| W2 | **Sin estrategia de testing de simulador** — validar correctness del backtester es difícil | Alta | Definir en Fase 5 "golden runs" con resultados conocidos; FI-14 (Hypothesis) |
-| W3 | **Catálogo DuckDB como single point** — corrupción del .duckdb pierde metadata | Media | Catálogo regenerable desde Parquet; backup periódico |
-| W4 | **Sin definición de latencia model** — critical para MM strategies | Alta | Definir en Fase 5 antes de implementar backtester; documentar supuestos |
-| W5 | **Alpha Scanner sin criterios concretos aún** — riesgo de scope creep | Media | Definir criterios mínimos en Fase 10; no antes |
-| W6 | **Dependencia de Polars** — si Polars cambia API major, impacto alto | Baja | Abstraer operaciones comunes en `features/`; no usar Polars directo en estrategias |
-| W7 | **Sin plan de migración de datos** — cambio de schema puede invalidar datasets | Media | Schema versioning en Parquet metadata; script de migración en `scripts/maintenance/` |
+| # | Debilidad | Severidad | Acción |
+|---|-----------|-----------|--------|
+| W1 | FillModel/LatencyModel aún conceptuales | Media | Detallar en diseño de Fase 7 |
+| W2 | Instrument registry no tiene fase propia | Baja | Incluir en Fase 3 |
+| W3 | Tolerancias numéricas cross-env no cuantificadas | Media | Definir en Fase 6 con golden runs |
 
-### Preguntas abiertas (ver `learning/dudas.txt`)
-
-- ¿DuckDB o SQLite para catálogo? (Recomendación: DuckDB, con fallback documentado)
-- ¿Qué modelo de slippage usar como default? (Depende de estrategias; definir en Fase 5)
-- ¿Hummingbot v1 o v2 como target de integración? (Definir en Fase 13)
-- ¿Necesitamos order book replay o solo OHLCV para fase inicial? (Recomendación: OHLCV primero)
+### Confianza post-corrección: **8/10**
 
 ---
 
-*Documento generado en Fase 1. Pendiente de revisión técnica.*
+*Documento v1.1 — Iteración post-revisión técnica PROMPT 001.1. Pendiente segunda revisión.*

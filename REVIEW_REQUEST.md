@@ -1,141 +1,132 @@
-# REVIEW REQUEST — Fase 1: Diseño de Arquitectura
+# REVIEW REQUEST — Fase 5 v1.0 (pendiente de auditoría)
 
 **Proyecto:** QuantLab  
-**Fase:** 1 — Diseño de arquitectura  
-**Fecha:** 2026-07-23  
+**Fase:** 5 — Motor de Ejecución Avanzado (Slippage, Latencia, Fees, Artifacts)  
+**Paquete:** `QuantLab_Review_Fase_05_v1.0.zip`  
+**Fecha:** 2026-07-24  
+**Versión proyecto:** 0.5.0  
 **Solicitante:** Cursor (CTO / Arquitecto Principal)  
-**Revisor esperado:** GPT (Arquitecto cuantitativo principal) + Director del proyecto
+**Revisor esperado:** Meta-Auditor GPT (Zero-Trust) + Director  
+
+**Estado solicitado:** auditoría técnica — **NO** hay certificado de aprobado aún.
 
 ---
 
-## Resumen ejecutivo
+## Solicitud al auditor
 
-Se solicita revisión técnica de la arquitectura completa de QuantLab antes de autorizar la Fase 2 (implementación). Esta fase produjo **solo diseño y documentación**, sin código funcional, cumpliendo las restricciones establecidas.
+Revisar implementación Fase 5 (Módulos 1–3) y emitir veredicto:
 
----
+- `APROBADO` / `APROBADO CON CAMBIOS` / `RECHAZADO`
 
-## Documentos a revisar
-
-| Prioridad | Documento | Contenido |
-|-----------|-----------|-----------|
-| **Alta** | [docs/Arquitectura.md](docs/Arquitectura.md) | Arquitectura completa (11 secciones) |
-| **Alta** | [docs/Diagrama.md](docs/Diagrama.md) | 6 diagramas Mermaid |
-| **Media** | [docs/Arquitectura_Explicada.txt](docs/Arquitectura_Explicada.txt) | Versión en lenguaje claro |
-| **Media** | [README.md](README.md) | Entrada al proyecto |
-| **Media** | [LESSONS_LEARNED.md](LESSONS_LEARNED.md) | Autoevaluación de la fase |
-| **Baja** | [learning/decisiones.txt](learning/decisiones.txt) | 12 decisiones registradas |
-| **Baja** | [learning/dudas.txt](learning/dudas.txt) | 8 dudas abiertas |
+Solo tras APROBADO se emitirá `docs/audit/FASE_05_APPROVED.md`.
 
 ---
 
-## Preguntas específicas para el revisor
+## Prerrequisito
 
-### Arquitectura general
-
-1. ¿La separación en 9 módulos es adecuada o hay módulos que deberían fusionarse/dividirse?
-2. ¿La frontera QuantLab / Hummingbot es suficientemente clara?
-3. ¿Falta alguna capa crítica para un laboratorio cuantitativo profesional?
-
-### Interfaces
-
-4. ¿Las 10 interfaces cubren todos los contratos necesarios?
-5. ¿Falta alguna operación crítica en Strategy, Backtester o Simulator?
-6. ¿El contrato de AlphaScanner es suficientemente flexible para evolucionar?
-
-### Tecnología
-
-7. ¿DuckDB es la elección correcta sobre SQLite para catálogo?
-8. ¿Polars como primario con Pandas en fronteras es pragmático?
-9. ¿Parquet es suficiente o necesitamos un format alternativo para order book data?
-
-### Escalabilidad
-
-10. ¿La arquitectura soporta 30+ estrategias, 100+ activos y simulaciones masivas sin reescritura?
-11. ¿El diseño de progressive complexity (local → distribuido) es realista?
-12. ¿Qué componente será el cuello de botella primero?
-
-### Riesgos
-
-13. ¿Los 10 riesgos identificados son los correctos? ¿Falta alguno crítico?
-14. ¿La debilidad W4 (sin modelo de latencia definido) es aceptable para esta fase?
-
-### Dudas abiertas
-
-15. Resolución de DUD-002 (slippage model): ¿fixed bps es aceptable como default?
-16. Resolución de DUD-004 (OHLCV vs order book): ¿OHLCV primero es correcto?
-17. Resolución de DUD-005 (granularidad): ¿1 minuto como default es suficiente?
-
-### Roadmap
-
-18. ¿Las 14 fases están en el orden correcto?
-19. ¿Alguna fase debería dividirse o fusionarse?
-20. ¿Falta alguna fase crítica?
+- Fase 4 certificada: `docs/audit/FASE_04_APPROVED.md`
 
 ---
 
-## Criterios de aprobación
+## Alcance entregado
 
-La Fase 1 se considera **aprobada** si el revisor confirma:
+| Módulo | Paquete / archivos | Contenido |
+|--------|-------------------|-----------|
+| 1 | `src/quantlab/execution/slippage.py`, `latency.py`, `protocols.py` | `NoSlippage` / `Fixed` / `VolumeShare`; `ZeroLatency` / `FixedLatency` |
+| 2 | `src/quantlab/execution/fees.py` | `ZeroFee` / `Proportional` / `MakerTaker`; integración en `BarSimulationEngine` |
+| 3 | `src/quantlab/artifacts/` | `ArtifactsEngine` — JSON determinista, SHA-256, `bundle_manifest.json` |
 
-- [ ] La arquitectura soporta el crecimiento proyectado (30+ estrategias, 100+ activos, simulaciones masivas).
-- [ ] Las interfaces son suficientes y no sobre-dimensionadas.
-- [ ] Las decisiones tecnológicas están justificadas.
-- [ ] Los riesgos principales están identificados con mitigaciones viables.
-- [ ] El roadmap es incremental y ejecutable.
-- [ ] No hay acoplamientos ocultos que causen reescritura en 6 meses.
-- [ ] Las dudas bloqueantes para Fase 5 están resueltas o tienen plan de resolución.
+Integración: `BarSimulationEngine` acepta `slippage_model`, `latency_model`, `fee_model` (defaults = comportamiento F4).
 
 ---
 
-## Formato de respuesta esperado
+## DECs a validar
 
-Por favor, estructurar la revisión como:
+- DEC-048 — Políticas en `execution/` (no en `core/`)
+- DEC-049 — FeeModel Decimal + maker/taker
+- DEC-050 — ArtifactsEngine JSON determinista
 
+Relacionadas F4 (contexto): DEC-045..047.
+
+---
+
+## Matriz de requisitos
+
+| Requisito | Evidencia | Estado |
+|-----------|-----------|--------|
+| Separación dominio vs ejecución | `execution/` vs `core/` | HECHO |
+| Defaults no rompen F4 | `NoSlippage` + `ZeroLatency` + `ZeroFee` / proportional desde `fee_rate` | HECHO |
+| Slippage adverso + caps | tests `test_slippage_latency.py` | HECHO |
+| Latencia beyond-series | `latency_beyond_series` | HECHO |
+| Fees maker/taker | `test_fees.py` | HECHO |
+| Artifacts checksum + bundle | `test_artifacts_engine.py` | HECHO |
+| Decimal en saldo/fees | PortfolioTracker + FeeAssessment | HECHO |
+| mypy strict | CI / local | HECHO |
+| Order routing LIVE | bloqueado | N/A (fuera de alcance) |
+
+---
+
+## Cómo reproducir calidad
+
+```bash
+uv sync --frozen --extra dev
+uv run mypy --strict src/quantlab
+uv run pytest
+uv run ruff check src/quantlab
 ```
-## Qué está excelente
-- ...
 
-## Qué cambiaría
-- ...
+Smoke F4 (sigue válido):
 
-## Qué eliminaría
-- ...
+```bash
+uv run quantlab-fase4-slice
+```
 
-## Qué falta
-- ...
+Generar este paquete:
 
-## Qué puede traer problemas en 6 meses
-- ...
-
-## Resolución de dudas (DUD-001 a DUD-008)
-- ...
-
-## Veredicto
-[ ] APROBADO — avanzar a Fase 2
-[ ] APROBADO CON CAMBIOS — listar cambios requeridos antes de Fase 2
-[ ] RECHAZADO — requiere redisño
+```bash
+uv run python scripts/build_review_package.py --phase 5 --version 1.0
 ```
 
 ---
 
-## Restricciones recordadas
+## Deuda / fuera de alcance (explícito)
 
-- No se escribió código funcional en esta fase.
-- No se implementaron estrategias, backtesting, simulaciones, Binance, APIs, Hummingbot ni interfaces gráficas.
-- Future Improvements (15 items) están registradas pero NO implementadas.
-
----
-
-## Autoevaluación del diseñador
-
-**Confianza general:** 7.5/10
-
-**Fortalezas:** Modularidad, reproducibilidad, roadmap incremental, separación investigación/ejecución.
-
-**Debilidades principales:** Complejidad inicial del árbol, 8 dudas sin resolver, sin modelo de latencia/slippage definido, sin golden runs planificados explícitamente en el roadmap.
-
-**Recomendación propia:** Aprobar con cambios menores. Resolver DUD-002, DUD-004 y DUD-005 antes de autorizar Fase 5.
+- Microestructura book-based / queue position
+- Fee rebates negativos
+- Order routing real / LIVE A3
+- Parquet/DuckDB (deuda F3)
 
 ---
 
-*Esperando revisión para autorizar Fase 2.*
+<!-- BEGIN_GENERATED_QUALITY_SECTION -->
+## Calidad (fuente estructurada)
+
+| Check | Resultado |
+|-------|-----------|
+| Tests | **86 passed** |
+| Cobertura | **~89.7%** |
+| Ruff / format / mypy | PASS |
+| Vertical slice | PASS |
+| Secret scan | PASS |
+| ZIP validation | PASS (ver reports/review_package_validation.txt) |
+
+<!-- BEGIN_QUALITY_METRICS -->
+phase: 5
+package_version: 1.0
+test_count: 86
+passed: 86
+failed: 0
+errors: 0
+skipped: 0
+coverage_pct: 89.7
+authoritative: true
+<!-- END_QUALITY_METRICS -->
+<!-- END_GENERATED_QUALITY_SECTION -->
+
+---
+
+## Autoevaluación (CTO)
+
+**Confianza implementación:** 8.5/10  
+**Listo para auditoría:** sí  
+**Certificado de aprobado:** no emitido (correcto hasta veredicto GPT)

@@ -4,16 +4,30 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+htmlcov/
+dist/
+build/
 
 # Entornos y credenciales
 .env
 *.secret
 
-# Datos (nunca versionar datos crudos ni pesados)
-data/*
-!data/.gitkeep
+# Artifacts de experimentos (runtime)
+artifacts/
+!artifacts/.gitkeep
 
-# Reportes generados
+# Feature store runtime
+feature_store/
+!feature_store/.gitkeep
+
+# Reportes generados (se regeneran en Review Package)
 reports/*
 !reports/.gitkeep
 
@@ -22,8 +36,27 @@ reports/*
 .idea/
 .DS_Store
 Thumbs.db
+.cursor/
 
 # Jupyter
 .ipynb_checkpoints/
 sync_token.txt
 sync_approved.txt
+
+# Review Package (generados al cierre de fase)
+QuantLab_Review_Fase_*.zip
+QuantLab_Review_Fase_*.zip.sha256
+QuantLab_Review_Fase_*.validation.txt
+REVIEW_PACKAGE_MANIFEST.json
+tree.txt
+PROJECT_STATUS.md
+
+# Reportes legacy en raíz
+coverage.xml
+coverage.txt
+pytest_report.txt
+mypy_report.txt
+ruff_report.txt
+format_report.txt
+requirements.txt
+review_staging/

@@ -8,74 +8,263 @@ Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
   Decisión: Python 3.11+
   Justificación: Ecosistema cuantitativo maduro, productividad, tipado gradual.
   Alternativas descartadas: Rust (prematura), Julia (ecosistema menor).
-  Pregunta respondida: ¿Más fácil de mantener en 5 años? Sí.
 
 [2026-07-23] DEC-002 — Formato de almacenamiento
   Decisión: Apache Parquet
   Justificación: Columnar, comprimido, estándar, compatible con Polars/DuckDB.
-  Alternativas descartadas: CSV (lento, sin schema), HDF5 (menos ecosistema).
-  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
 
 [2026-07-23] DEC-003 — Motor analítico / catálogo
   Decisión: DuckDB (primario), SQLite (fallback)
   Justificación: Consulta Parquet nativa, analytics columnar, zero deps.
-  Alternativas descartadas: PostgreSQL (overkill local), solo SQLite (lento
-  en agregaciones grandes).
-  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
 
 [2026-07-23] DEC-004 — Librería de transformación de datos
   Decisión: Polars (primario), Pandas (compatibilidad en fronteras)
   Justificación: 5-30x más rápido, lazy evaluation, menor consumo de RAM.
-  Alternativas descartadas: Solo Pandas (insuficiente para escala).
-  Pregunta respondida: ¿Más rápido? Sí. ¿Más escalable? Sí.
 
 [2026-07-23] DEC-005 — Framework de tests
   Decisión: pytest
   Justificación: Estándar de facto, fixtures, parametrización, plugins.
-  Pregunta respondida: ¿Más científico? Sí (reproducibilidad verificable).
 
 [2026-07-23] DEC-006 — Logging
   Decisión: structlog sobre stdlib logging
-  Justificación: Logs estructurados JSON, context binding, preparado para
-  agregadores futuros.
-  Pregunta respondida: ¿Más reproducible? Sí. ¿Más mantenible? Sí.
+  Justificación: Logs estructurados JSON, context binding.
 
 [2026-07-23] DEC-007 — Configuración
   Decisión: YAML para runtime, TOML para proyecto (pyproject.toml)
-  Justificación: Legible, versionable, diff-friendly. Schemas de validación
-  en config/schemas/.
-  Pregunta respondida: ¿Más reproducible? Sí.
+  Justificación: Legible, versionable, schemas de validación.
 
 [2026-07-23] DEC-008 — Separación investigación / ejecución
-  Decisión: QuantLab investiga; Hummingbot ejecuta. ExecutionEngine como
-  frontera con adaptador aislado.
-  Justificación: Evita riesgo de órdenes accidentales; permite investigar
-  sin infraestructura live.
-  Pregunta respondida: ¿Más modular? Sí. ¿Más mantenible? Sí.
+  Decisión: QuantLab investiga; Hummingbot ejecuta. ExecutionEngine v1 solo export.
+  Justificación: Evita órdenes accidentales; frontera clara.
 
 [2026-07-23] DEC-009 — Arquitectura por capas
-  Decisión: 9 módulos (core, infra, data, features, research, simulation,
-  metrics, reporting, execution) con interfaces en core/.
-  Justificación: Cada capa evoluciona independientemente; nueva estrategia
-  o exchange no requiere cambios en otras capas.
-  Pregunta respondida: ¿Más modular? Sí. ¿Más escalable? Sí.
+  Decisión: 9 módulos con contratos en core/
+  Justificación: Capas evolucionan independientemente.
 
 [2026-07-23] DEC-010 — Licencia
   Decisión: MIT
-  Justificación: Ya estaba en repo desde Fase 0. Permisiva, estándar.
-  Pregunta respondida: ¿Más mantenible? Sí.
+  Justificación: Permisiva, estándar.
 
 [2026-07-23] DEC-011 — Datos fuera de git
   Decisión: data/ y reports/ en .gitignore con .gitkeep
-  Justificación: Datos de mercado pesados no pertenecen al repositorio.
-  Catálogo regenerable desde Parquet.
-  Pregunta respondida: ¿Más escalable? Sí.
+  Justificación: Datos pesados no pertenecen al repositorio.
 
 [2026-07-23] DEC-012 — Progressive complexity
-  Decisión: Empezar local/secuencial; interfaces preparadas para distribución
-  futura sin implementarla ahora.
-  Justificación: Evita over-engineering. FI-04 (orquestador distribuido)
-  registrado para Fase 14.
-  Pregunta respondida: ¿Más mantenible en 5 años? Sí.
+  Decisión: Empezar local/secuencial; escalar infra sin cambiar contratos de dominio.
+  Justificación: Evita over-engineering.
+
+[2026-07-23] DEC-013 — Disciplina de abstracción
+  Decisión: No crear abstracción sin frontera externa real, dos implementaciones
+  plausibles o necesidad demostrada.
+  Justificación: Revisor técnico PROMPT 001.1; evita interfaces prematuras en Fase 2.
+  Referencia: docs/Arquitectura.md §1.4, §6.
+
+[2026-07-23] DEC-014 — Strategy event-driven con intenciones
+  Decisión: Strategy.on_event() como contrato universal; produce OrderIntent
+  (place/cancel/replace/no_action); on_bar() solo como adaptador bar-based.
+  Justificación: on_bar/on_fill insuficiente para market making; revisor 001.1 §1.
+  Referencia: docs/Arquitectura.md §6.1.
+
+[2026-07-23] DEC-015 — Desacoplamiento metrics/reporting
+  Decisión: metrics y reporting consumen SimulationResult, ExperimentManifest,
+  MetricsResult desde core. No dependen de simulation ni research.
+  Justificación: Revisor 001.1 §4; evita acoplamiento oculto.
+  Referencia: docs/Diagrama.md §3.
+
+[2026-07-23] DEC-016 — Backtester descompuesto
+  Decisión: 7 componentes (Orchestrator, Market Replay, Clock, Strategy Runner,
+  Execution Simulator, Ledger, Result Recorder) + 4 políticas intercambiables.
+  Justificación: Revisor 001.1 §3; separación de responsabilidades.
+  Referencia: docs/Arquitectura.md §7.
+
+[2026-07-23] DEC-017 — Dos niveles de backtesting
+  Decisión: Fase 5A bar-based (OHLCV) y Fase 5B microestructura (trades/book).
+  MM no validable solo con OHLCV.
+  Justificación: Revisor 001.1 §7-8.
+  Referencia: docs/Arquitectura.md §7.4, §9.
+
+[2026-07-23] DEC-018 — Slippage fixed bps solo bar-based
+  Decisión: Fixed bps aceptable como baseline en 5A; NO default válido para MM ni 5B.
+  Justificación: Revisor 001.1 §8.
+  Referencia: docs/Arquitectura.md §9.3.
+
+[2026-07-23] DEC-019 — Raw inmutable / processed derivado
+  Decisión: data/raw/ nunca se muta; normalización solo en data/processed/.
+  Justificación: Revisor 001.1 §11; trazabilidad y regeneración.
+  Referencia: docs/Arquitectura.md §8.1.
+
+[2026-07-23] DEC-020 — Scientific Validation antes de Optimizer
+  Decisión: Fase 10 obligatoria (train/val/OOS, walk-forward, anti-leakage)
+  antes de Fase 12 Optimizer.
+  Justificación: Revisor 001.1 §9; walk-forward no puede quedar como FI.
+  Referencia: docs/Arquitectura.md §13 Fase 10.
+
+[2026-07-23] DEC-021 — Fase 2 acotada
+  Decisión: Fase 2 implementa tipos, manifests, config, logging, CI — NO las 10 ABC.
+  Justificación: Revisor 001.1 §5-6.
+  Referencia: docs/Arquitectura.md §13 Fase 2.
+
+[2026-07-23] DEC-022 — Reproducibilidad realista
+  Decisión: Determinismo exacto en entorno controlado; equivalencia numérica con
+  tolerancias documentadas entre entornos; versionado completo del entorno.
+  Reemplaza "bit a bit en cualquier entorno".
+  Justificación: Revisor 001.1 §13.
+  Referencia: docs/Arquitectura.md §1.2 O2.
+
+[2026-07-23] DEC-023 — Escalabilidad realista
+  Decisión: Escalabilidad progresiva hacia 1M+ simulaciones sin modificar
+  contratos principales del dominio; cambios permitidos en infra/orquestación.
+  Justificación: Revisor 001.1 §13.
+  Referencia: docs/Arquitectura.md §1.2 O3.
+
+[2026-07-23] DEC-024 — ExecutionEngine v1 export-only
+  Decisión: v1 limitado a validate_export, build_execution_package,
+  export_configuration. Deploy/status/stop/kill switch = futuro.
+  Justificación: Revisor 001.1 §12.
+  Referencia: docs/Arquitectura.md §4.9, §6.9.
+
+[2026-07-23] DEC-025 — CI desde Fase 2
+  Decisión: CI básico en Fase 2: install limpio, lint, mypy, pytest, config validation.
+  Justificación: Revisor 001.1 §6.
+  Referencia: docs/Arquitectura.md §13 Fase 2.
+
+[2026-07-23] DEC-026 — ExperimentManifest mínimo en Fase 2
+  Decisión: ExperimentManifest (experiment_id, dataset, config, seed, commit,
+  python/deps, platform, strategy/model versions, artifacts) desde Fase 2.
+  Justificación: Revisor 001.1 §6; reproducibilidad temprana.
+  Referencia: docs/Arquitectura.md §5.18.
+
+[2026-07-23] DEC-027 — Tipos inmutables
+  Decisión: @dataclass(frozen=True, slots=True) para tipos de dominio.
+  Justificación: Inmutabilidad, mypy strict, alineación arquitectura §5.
+  Fase: 2.
+
+[2026-07-23] DEC-028 — StrEnum para enumeraciones
+  Decisión: enum.StrEnum en lugar de (str, Enum).
+  Justificación: Python 3.11+, ruff UP042, serialización natural.
+  Fase: 2.
+
+[2026-07-23] DEC-029 — Config Pydantic v2
+  Decisión: AppConfig con Pydantic; campo json_output (no json).
+  Justificación: Validación en frontera infra; evita colisión BaseModel.json.
+  Fase: 2.
+
+[2026-07-23] DEC-030 — Strategy como Protocol
+  Decisión: typing.Protocol + @runtime_checkable; no ABC vacío.
+  Justificación: Contrato aprobado DEC-014; cumple DEC-013.
+  Fase: 2.
+
+[2026-07-23] DEC-031 — DummyStrategy en research/strategies
+  Decisión: Única implementación Strategy en Fase 2 para vertical slice.
+  Fase: 2.
+
+[2026-07-23] DEC-032 — Módulo vertical_slice + CLI
+  Decisión: run_vertical_slice() + entry point quantlab-vertical-slice.
+  Fase: 2.
+
+[2026-07-23] DEC-033 — CI mínimo Fase 2
+  Decisión: GitHub Actions: ruff, mypy strict, pytest cov≥80%, smoke tests.
+  Fase: 2.
+
+[2026-07-23] DEC-034 — Execution models placeholder Fase 2
+  Decisión: execution_model_versions = none-phase2 en vertical slice.
+  Justificación: Simulación no existe aún; campo presente para contrato.
+  Fase: 2.
+
+[2026-07-23] DEC-035 — Review Package obligatorio (PROMPT 003)
+  Decisión: Al cierre de cada fase generar QuantLab_Review_Fase_XX_vY.Y.zip
+  con código, tests, config, docs, reportes de calidad y PROJECT_STATUS.md.
+  Script: scripts/build_review_package.py
+  Justificación: Auditoría GPT sin solicitar archivos adicionales.
+  Entregables: ZIP + REVIEW_REQUEST.md únicamente.
+
+[2026-07-24] DEC-036 — Versionado explícito de schemas de manifests
+  Contexto: Fase 3 persistirá datasets; sin política de schema_version el
+  ecosistema romperá lecturas entre versiones.
+  Problema: Confundir versión de schema, dataset, experimento y QuantLab.
+  Alternativas:
+    A) Sin versión hasta Fase 3 (rechazada: deuda silenciosa)
+    B) schema_version semver + política documentada (elegida)
+    C) Framework completo de migraciones ya (rechazada: prematuro)
+  Decisión: Todo manifest exige schema_version; compatibilidad patch/minor/major
+  documentada en docs/MANIFEST_VERSIONING.md; migraciones futuras explícitas.
+  Consecuencias: Lectores rechazan major desconocida / sin versión; serialización
+  canónica determinista; manifests históricos inmutables.
+  Compatibilidad: schema 1.0 actual en DatasetManifest.
+  Impacto futuro: datasets/experimentos versionados sin reescritura silenciosa.
+  Fase: 2 (cierre v1.2).
+
+[2026-07-24] DEC-037 — Review Package con política centralizada y validación ZIP
+  Decisión: scripts/review_package_policy.py como fuente única; generación vía
+  zipfile; validación pre/post; REVIEW_PACKAGE_MANIFEST.json; SHA-256 sidecar.
+  Justificación: v1.1 filtró mal caches; auditoría exige cero elementos prohibidos.
+  Fase: 2.
+
+[2026-07-24] DEC-039 — Métricas autoritativas vía JUnit/coverage XML + ZIP en dos pasadas
+  Contexto: v1.2 rechazado — test_count=0 en PROJECT_STATUS; reporte incluido solo prevalidación.
+  Problema: parsing de consola y dependencia circular del SHA dentro del ZIP.
+  Alternativas:
+    A) Seguir con collect-only (rechazada)
+    B) pytest-json-report plugin extra (viable, más deps)
+    C) JUnit XML stdlib + QualitySummary + ZIP 2 pasadas (elegida)
+  Decisión: QualitySummary tipado; conteo desde JUnit; cobertura desde coverage.xml;
+  validación estructural dentro del ZIP; SHA-256 solo en sidecar + .validation.txt externo.
+  Fase: 2 (v1.3).
+
+[2026-07-24] DEC-040 — Adaptador anticorrupción A3
+  Decisión: Dominio no importa pyRofex; DTOs+mappers en data/exchanges/a3.
+  Fase: 3.
+
+[2026-07-24] DEC-041 — Separación Data Plane / Execution Plane
+  Decisión: Market data operable sin habilitar órdenes; execution gated.
+  Fase: 3.
+
+[2026-07-24] DEC-042 — Producción bloqueada por múltiples gates
+  Decisión: environment+allow_live+env confirm+allowlists+risk+kill switch.
+  Fase: 3.
+
+[2026-07-24] DEC-043 — Barras OHLCV desde trades
+  Decisión: get_trade_history → agregación determinista versionada (schema 1.0).
+  Fase: 3.
+
+[2026-07-24] DEC-044 — Raw append-only
+  Decisión: payloads externos nunca se sobrescriben; checksum + ingestion_run_id.
+  Fase: 3.
+
+[2026-07-24] DEC-045 — Fill bar-based inmediato (Fase 4 MVP)
+  Decisión: ImmediateBarFillModel en la misma barra (MARKET@close; LIMIT por touch).
+  No microestructura 5B; reproducible y testeable offline.
+  Fase: 4.
+
+[2026-07-24] DEC-046 — Métricas versionadas MetricsEngine 1.0.0
+  Decisión: Sharpe/MDD/WR/PF desde SimulationResult → MetricsResult inmutable.
+  Fase: 4.
+
+[2026-07-24] DEC-047 — Alpha Scanner scoring min-max ponderado
+  Decisión: volatilidad + volumen + liquidez (1/rango); ranking determinista.
+  Fase: 4.
+
+[2026-07-24] DEC-048 — Políticas de ejecución en paquete `execution/`
+  Decisión: SlippageModel/LatencyModel fuera de `core/`; defaults NoSlippage +
+  ZeroLatency preservan comportamiento Fase 4; inyección opcional en BarSimulationEngine.
+  Fase: 5 (Módulo 1).
+
+[2026-07-24] DEC-049 — FeeModel maker/taker con Decimal
+  Decisión: ZeroFee / Proportional / MakerTakerFeeModel; motor usa FeeAssessment;
+  SimulationConfig.fee_rate mapea a ProportionalFeeModel si > 0.
+  Fase: 5 (Módulo 2).
+
+[2026-07-24] DEC-051 — Capa `quantlab.features` (F5 Oficial M1)
+  Decisión: contratos FeatureTransformer/Indicator + transformers causales;
+  features→core permitido; core↛features; anti-lookahead por prefijo estable.
+  Fase: 5 Oficial (Features).
+
+[2026-07-24] DEC-052 — FeaturePipeline composable (F5 Oficial M2)
+  Decisión: FeatureFrame inmutable; steps vectoriales; then() sin mutar.
+  Fase: 5 Oficial (Features).
+
+[2026-07-24] DEC-053 — FeatureStore + indicadores básicos (F5 Oficial M3)
+  Decisión: store JSON versionado+checksum; SMA/EMA/RSI/ATR causales Decimal.
+  Fase: 5 Oficial (Features).
 
 ================================================================================

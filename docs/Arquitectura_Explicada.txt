@@ -1,8 +1,8 @@
 ================================================================================
 QUANTLAB — ARQUITECTURA EXPLICADA EN LENGUAJE CLARO
 ================================================================================
-Versión: 1.0
-Fase: 1 — Diseño
+Versión: 1.1
+Fase: 1 — Diseño (Iteración 1.1 — correcciones post-revisión)
 Fecha: 2026-07-23
 ================================================================================
 
@@ -12,165 +12,161 @@ Fecha: 2026-07-23
 QuantLab NO es un bot de trading. Es un laboratorio donde un investigador
 cuantitativo puede:
 
-  1. Descargar datos de mercado.
+  1. Descargar y validar calidad de datos de mercado.
   2. Analizar qué activos tienen oportunidad (Alpha Scanner).
   3. Probar estrategias contra datos históricos (backtesting).
-  4. Simular miles o millones de escenarios posibles (Monte Carlo).
-  5. Encontrar los mejores parámetros (optimización).
-  6. Generar reportes comparativos.
-  7. Enviar la estrategia ganadora a Hummingbot para que la ejecute.
+  4. Validar resultados con rigor científico (walk-forward, out-of-sample).
+  5. Simular miles o millones de escenarios posibles (Monte Carlo).
+  6. Encontrar los mejores parámetros (optimización — solo después de validar).
+  7. Generar reportes comparativos.
+  8. Exportar la estrategia ganadora a Hummingbot para que la ejecute.
 
 QuantLab investiga. Hummingbot ejecuta. Nunca se mezclan.
 
 
-¿POR QUÉ TANTAS CARPETAS?
---------------------------
+¿QUÉ CAMBIÓ EN ESTA ITERACIÓN?
+-------------------------------
 
-Imaginá un laboratorio científico real:
+El revisor técnico aprobó la visión general pero pidió correcciones antes
+de escribir código. Los cambios principales:
 
-  - docs/        → Los manuales y papers del laboratorio
-  - learning/    → El cuaderno del investigador (decisiones, dudas, diario)
-  - config/      → Los ajustes de los instrumentos (no mezclados con el código)
-  - src/         → Los instrumentos de medición (el código)
-  - tests/       → Los controles de calidad (¿funciona bien cada instrumento?)
-  - experiments/ → El registro de cada experimento realizado
-  - reports/     → Los informes finales de cada experimento
-  - scripts/     → Herramientas operativas (encender, apagar, limpiar)
-  - data/        → Los datos crudos y procesados (demasiado pesados para git)
+  1. Strategy ya no es solo "on_bar" — ahora es orientada a eventos y produce
+     INTENCIONES (place/cancel/replace), no órdenes ejecutadas.
 
-Cada carpeta tiene UN propósito. Si algo no encaja en ninguna, probablemente
-sobra o falta una carpeta.
+  2. Se definieron 20 contratos de dominio (Instrument, Order, Fill, etc.)
+     para que métricas y reportes no dependan del backtester concreto.
+
+  3. El backtester se dividió en 7 componentes + 4 políticas intercambiables.
+
+  4. Hay DOS backtesters: uno simple con barras (5A) y uno de microestructura
+     para market making (5B). NO se puede validar market making solo con barras.
+
+  5. Fase 2 ya NO implementa 10 interfaces abstractas — solo tipos, manifests
+     y CI básico.
+
+  6. Walk-forward dejó de ser "mejora futura" — ahora es Fase 10 obligatoria
+     antes del optimizador.
 
 
 ¿CÓMO FLUYEN LOS DATOS?
 ------------------------
 
-Paso 1: LLEGAN DATOS
-  Un exchange (Binance, etc.) o un archivo CSV entrega datos de mercado.
-  Un "conector" los descarga y los guarda tal cual en data/raw/.
+Paso 1: LLEGAN DATOS (raw, inmutable)
+  Se guardan tal cual en data/raw/. Nunca se modifican.
 
-Paso 2: SE LIMPIAN
-  Se normalizan zonas horarias, se eliminan duplicados, se corrigen gaps.
-  Resultado en data/processed/.
+Paso 2: SE VALIDA CALIDAD
+  Timestamps, duplicados, gaps, bid>ask, etc.
 
-Paso 3: SE TRANSFORMAN EN FEATURES
-  Se calculan indicadores útiles: volatilidad, spread, volumen relativo, etc.
-  Resultado en data/features/.
+Paso 3: SE NORMALIZAN (processed)
+  Resultado en data/processed/. No reemplaza raw.
 
-Paso 4: EL ALPHA SCANNER EVALÚA OPORTUNIDADES
-  Mira todos los activos y dice: "Este par tiene buen spread y volumen,
-  este otro no." Rankea oportunidades.
+Paso 4: SE TRANSFORMAN EN FEATURES
+  Indicadores: volatilidad, spread, volumen relativo.
 
-Paso 5: SE SIMULA LA ESTRATEGIA
-  El backtester toma una estrategia (ej: market making) y la corre contra
-  datos históricos. Opcionalmente, el simulador Monte Carlo prueba miles de
-  variaciones. El optimizador busca los mejores parámetros.
+Paso 5: EL ALPHA SCANNER EVALÚA OPORTUNIDADES
+  Rankea activos según criterios configurables.
 
-Paso 6: SE CALCULAN MÉTRICAS
-  Sharpe ratio, drawdown, PnL, fill rate, etc. Siempre con las mismas
-  fórmulas, sin importar qué estrategia se probó.
+Paso 6: SE SIMULA LA ESTRATEGIA
+  5A (barras): infraestructura, contabilidad, golden runs.
+  5B (microestructura): market making, partial fills, latencia.
 
-Paso 7: SE GENERA UN REPORTE
-  HTML o Markdown con todos los resultados, la config usada, y las
-  versiones de datos. Reproducible.
+Paso 7: VALIDACIÓN CIENTÍFICA
+  Train/validation/test, walk-forward, prevención de overfitting.
 
-Paso 8 (FUTURO): SE ENVÍA A HUMMINGBOT
-  Si el investigador aprueba, QuantLab exporta la config y Hummingbot
-  la ejecuta en el exchange real.
+Paso 8: MONTE CARLO Y OPTIMIZACIÓN (solo si pasó validación)
+
+Paso 9: MÉTRICAS Y REPORTES
+  Consumen contratos neutrales — no conocen el backtester por dentro.
+
+Paso 10 (FUTURO): EXPORTAR A HUMMINGBOT
+  Solo validate + build + export. Sin deploy live en v1.
 
 
-¿QUÉ ES UNA "INTERFAZ"?
+¿QUÉ ES UNA "ESTRATEGIA" AHORA?
+--------------------------------
+
+Una estrategia RECIBE eventos:
+  - Datos de mercado (barra, trade, libro de órdenes)
+  - Timers (refrescar quotes cada X ms)
+  - Ciclo de vida de órdenes (aceptada, rechazada, fill parcial, cancelada)
+  - Cambios de posición y balance
+
+Y PRODUCE intenciones:
+  - "Quiero poner esta orden"
+  - "Quiero cancelar la orden X"
+  - "Quiero reemplazar la orden Y"
+  - "No hago nada"
+
+El simulador decide si la intención se ejecuta, con qué fill, qué fee y
+qué latencia. La estrategia NO asume ejecución.
+
+
+¿QUÉ ES UN "CONTRATO DE DOMINIO"?
+----------------------------------
+
+Es un tipo de dato acordado que todos los módulos entienden igual.
+Ejemplo: SimulationResult siempre tiene equity_curve, fills, orders.
+
+Así, Metrics no necesita importar el backtester. Solo lee SimulationResult.
+
+
+¿POR QUÉ DOS BACKTESTERS?
+--------------------------
+
+  5A (bar-based):
+    - Datos: OHLCV de 1 minuto o más.
+    - Slippage: fixed bps (baseline aceptable).
+    - Para: validar arquitectura, contabilidad, reproducibilidad.
+    - NO sirve para validar market making.
+
+  5B (microestructura):
+    - Datos: trades, order book snapshots/deltas.
+    - Slippage: basado en libro, no fixed bps.
+    - Para: Pure Market Making, partial fills, cancel/replace, inventory.
+    - OBLIGATORIO para estrategias sensibles a ejecución.
+
+
+¿QUÉ IMPLEMENTA FASE 2?
 ------------------------
 
-Una interfaz es un CONTRATO. Dice: "cualquier cosa que se llame DataProvider
-DEBE poder hacer estas operaciones: get_bars, get_trades, list_symbols."
+  SÍ:
+    - Tipos de dominio (Instrument, Order, Fill, etc.)
+    - DatasetManifest y ExperimentManifest
+    - Config, logging, excepciones mínimas
+    - pyproject.toml con dependencias bloqueadas
+    - CI: install, lint, type check, tests, config validation
 
-Así, el backtester no le importa si los datos vienen de Binance, de un CSV
-o de datos inventados para tests. Solo le importa que cumplan el contrato.
+  NO:
+    - Las 10 interfaces abstractas
+    - Backtester, Optimizer, AlphaScanner, etc.
 
-Las 10 interfaces principales son:
-
-  DataProvider    → De dónde vienen los datos
-  Storage         → Dónde se guardan los datos
-  Strategy        → Cómo decide operar una estrategia
-  Backtester      → Cómo se simula contra historia
-  Simulator       → Cómo se simulan escenarios aleatorios
-  Optimizer       → Cómo se buscan mejores parámetros
-  MetricsEngine   → Cómo se calculan KPIs
-  AlphaScanner    → Cómo se detectan oportunidades
-  ExecutionEngine → Cómo se envía a ejecución live
-  ReportGenerator → Cómo se generan informes
-
-
-¿POR QUÉ PYTHON, PARQUET, DUCKDB, POLARS?
-------------------------------------------
-
-PYTHON: El lenguaje estándar en finanzas cuantitativas. Ecosistema enorme.
-        No es el más rápido, pero es el más productivo para investigación.
-
-PARQUET: Formato de archivo columnar. Comprime bien, lee rápido, es el
-         estándar en data engineering. Ideal para series temporales.
-
-DUCKDB: Base de datos analítica embebida. Puede consultar Parquet directamente
-        sin importar. Perfecta como catálogo de datasets.
-
-POLARS: Librería de datos ultra-rápida (5-30x vs Pandas). Usamos Polars
-        para transformaciones pesadas. Pandas solo si una librería externa
-        lo exige.
-
-PYTEST: Framework de tests estándar en Python. Cada módulo tendrá tests.
-
-
-¿QUÉ PASA SI MAÑANA QUIERO AGREGAR UNA ESTRATEGIA NUEVA?
------------------------------------------------------------
-
-  1. Creás una clase que implemente la interfaz Strategy.
-  2. La ponés en src/quantlab/research/strategies/nueva_estrategia/.
-  3. La corrés en el backtester existente.
-  4. Las métricas y reportes funcionan automáticamente.
-
-NO tocás: data, features, backtester, metrics, reporting, execution.
-Eso es modularidad.
-
-
-¿QUÉ PASA SI MAÑANA QUIERO AGREGAR UN EXCHANGE NUEVO?
---------------------------------------------------------
-
-  1. Creás un DataProvider que implemente el contrato.
-  2. Lo ponés en src/quantlab/data/providers/nuevo_exchange/.
-  3. El pipeline de ingesta lo usa.
-
-NO tocás: estrategias, simulación, métricas, reportes.
+Regla: "No crear una abstracción sin frontera externa real, dos
+implementaciones plausibles o necesidad demostrada."
 
 
 ¿CUÁLES SON LOS RIESGOS PRINCIPALES?
 -------------------------------------
 
-  1. Simulaciones que consumen toda la RAM → mitigado con streaming y chunks.
-  2. Datos que cambian retroactivamente → mitigado con snapshots inmutables.
-  3. Estrategias acopladas a un exchange → mitigado con interfaces.
-  4. Backtester con bugs silenciosos → mitigado con "golden runs" en Fase 5.
-  5. Over-engineering temprano → mitigado con fases pequeñas e incrementales.
+  Además de los técnicos (RAM, datos corruptos, etc.), ahora documentamos
+  riesgos científicos:
+
+  - Look-ahead bias (usar datos del futuro sin querer)
+  - Survivorship bias (ignorar activos que dejaron de existir)
+  - Data leakage (filtrar info de test en train)
+  - Overfitting de parámetros
+  - Fill model optimista (simular fills mejores que la realidad)
+  - Resultados no deterministas por paralelismo
+
+  Cada uno tiene mitigación documentada en Arquitectura.md sección 12.
 
 
-¿CUÁNDO SE ESCRIBE CÓDIGO?
----------------------------
+¿QUÉ SIGUE?
+-----------
 
-  NO en esta fase. Esta fase es SOLO diseño.
+  Esta iteración corrige la documentación según PROMPT 001.1.
+  NO se inicia Fase 2 hasta segunda revisión aprobada.
 
-  El código empieza en Fase 2 (core + infraestructura) después de que vos
-  y el revisor técnico aprueben esta arquitectura.
-
-
-¿QUÉ SIGUE DESPUÉS DE ESTA FASE?
----------------------------------
-
-  Vos y GPT revisan estos documentos.
-  Si aprueban → Fase 2: implementar interfaces y config.
-  Si no → iteramos el diseño hasta que esté sólido.
-
-  El roadmap completo tiene 14 fases pequeñas, cada una con entregables
-  y criterios de cierre claros. Ver docs/Arquitectura.md sección 9.
+  Ver REVIEW_REQUEST.md para solicitar la segunda revisión.
 
 ================================================================================
 FIN DEL DOCUMENTO

@@ -1,0 +1,84 @@
+[project]
+name = "quantlab"
+version = "0.7.0"
+description = "Laboratorio de investigación cuantitativa"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "QuantLab" }]
+dependencies = [
+    "structlog>=24.4.0",
+    "PyYAML>=6.0.2",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.7.0",
+    "pyrofex>=0.5.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.9.0",
+    "mypy>=1.14.0",
+    "types-PyYAML>=6.0.12",
+]
+
+[project.scripts]
+quantlab-vertical-slice = "quantlab.vertical_slice.runner:main"
+quantlab-a3 = "quantlab.data.exchanges.a3.cli:main"
+quantlab-fase4-slice = "quantlab.vertical_slice.fase4:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+extend-exclude = ["reviews", "QuantLab_Review_Fase_*.zip"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+packages = ["quantlab"]
+mypy_path = "src:scripts"
+files = ["src", "tests", "scripts"]
+explicit_package_bases = true
+
+[[tool.mypy.overrides]]
+module = ["review_package_policy", "build_review_package", "review_package_quality"]
+strict = true
+
+[[tool.mypy.overrides]]
+module = ["pyRofex", "pyRofex.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "scripts"]
+addopts = "-ra --strict-markers"
+
+[tool.coverage.run]
+source = ["quantlab"]
+branch = true
+omit = [
+    "*/quantlab/data/exchanges/a3/cli.py",
+    "*/quantlab/data/exchanges/a3/client.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+]

@@ -1,0 +1,71 @@
+{
+  "metrics": {
+    "experiment_id": "f6-golden-buy-once",
+    "metrics": {
+      "calmar": 0.0,
+      "final_equity": "10004",
+      "max_drawdown": 0.0,
+      "n_bars": 6,
+      "n_fills": 1,
+      "profit_factor": 999.0,
+      "sharpe": 100409.240996,
+      "sortino": 0.0,
+      "total_return": 0.0005,
+      "win_rate": 1.0
+    },
+    "metrics_version": "1.1.0"
+  },
+  "metrics_hash": "c1d3034b048a2062cda2b8057eca92ae3dfd40044e22d5ad8803e5eeec28e5bf",
+  "name": "fase6_buy_once",
+  "simulation": {
+    "equity_curve": [
+      {
+        "equity": "9999",
+        "ts": "2024-05-01T00:01:00+00:00"
+      },
+      {
+        "equity": "10000",
+        "ts": "2024-05-01T00:02:00+00:00"
+      },
+      {
+        "equity": "10001",
+        "ts": "2024-05-01T00:03:00+00:00"
+      },
+      {
+        "equity": "10002",
+        "ts": "2024-05-01T00:04:00+00:00"
+      },
+      {
+        "equity": "10003",
+        "ts": "2024-05-01T00:05:00+00:00"
+      },
+      {
+        "equity": "10004",
+        "ts": "2024-05-01T00:06:00+00:00"
+      }
+    ],
+    "experiment_id": "f6-golden-buy-once",
+    "fills": [
+      {
+        "fee": "0",
+        "instrument_id": "F6:GOLD",
+        "price": "101",
+        "quantity": "1",
+        "side": "buy",
+        "ts": "2024-05-01T00:01:00+00:00"
+      }
+    ],
+    "final_equity": "10004",
+    "n_fills": 1,
+    "n_orders": 1,
+    "policy": {
+      "fee_model": "fee.zero.v1",
+      "fill_model": "fill.immediate_bar.v1",
+      "initial_cash": "10000",
+      "latency_model": "latency.zero.v1",
+      "schema_version": "1.0",
+      "slippage_model": "slippage.none.v1"
+    }
+  },
+  "simulation_hash": "eec586678d2e562cb42b4922e4f9843b79b40531567cb38941d3d757211f0a09"
+}
