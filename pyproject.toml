@@ -1,6 +1,6 @@
 [project]
 name = "quantlab"
-version = "0.8.0"
+version = "0.9.0"
 description = "Laboratorio de investigación cuantitativa"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.10.0",
     "pydantic-settings>=2.7.0",
     "pyrofex>=0.5.0",
+    "duckdb>=1.5.5",
 ]
 
 [project.optional-dependencies]
@@ -61,6 +62,10 @@ strict = true
 
 [[tool.mypy.overrides]]
 module = ["pyRofex", "pyRofex.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["duckdb", "duckdb.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

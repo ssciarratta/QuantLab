@@ -1,31 +1,32 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-25
-Versión: 0.8.0
+Versión: 0.9.0
 
 ESTADO
 ------
-- Fases 0–16 con MVP certificado (F17 residual)
-- Sync GitHub: docs/PROCESS_PHASE_GITHUB_SYNC.md
-- Night run: docs/audit/NIGHT_RUN_2026-07-25.md
-- LIVE order routing: BLOQUEADO
+- Fases 0–16 MVP certificados
+- F17: código + Review Package (pendiente APROBADO Meta-Auditor)
+- Residuos F10/F12/F14: API auditoría completa
+- LIVE_BLOCKED = True (inviolable)
+- Review: docs/audit/FASE_17_REVIEW_PACKAGE.md
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Remediación críticos F6/F7 (2026-07-25):
-- 5B MARKET: Best Bid/Ask L2 primero; last_px solo fallback
-- BookSlippageModel: SlippageMode.LINEAR | SQUARE_ROOT
-- MicroSimulationEngine: TTL resting + OrderCancelledEvent TTL_EXPIRED
-- 5A BarBacktester/BarSimulationEngine: multi-activo sync por timestamp_close
-- Tests: tests/unit/backtester/test_critical_remediation_f6_f7.py
-- Suite 166 pytest · mypy strict · ruff OK
+Auditoría residual (2026-07-25):
+- adjust_pvalues(method=bonferroni|holm|fdr_bh) + filter_significant
+- compute_pareto_frontier(MetricsResult, objectives)
+- AvellanedaStoikovStrategy + quote_prices (inventario)
+- ParallelBacktester (ProcessPoolExecutor) + export Parquet
+- tests/unit/test_phase_residual_completion.py
+- QA: 191 pytest · mypy strict · ruff OK
 
 PRÓXIMO PASO
 ------------
-- Review Package / re-auditoría F6–F7 post-remediación
-- F17 escalabilidad (si se prioriza)
-- Restaurar CI con PAT scope workflow
+- Meta-Auditor revisa FASE_17_REVIEW_PACKAGE.md (listas A+B)
+- Con APROBADO: certificado + sync (si aún no pusheado)
 
 BLOQUEOS
 --------
 - ORDER ROUTING REAL / LIVE A3: BLOQUEADO
+- Certificado F17: pendiente APROBADO (no falsear)

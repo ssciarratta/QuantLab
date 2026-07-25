@@ -18,6 +18,7 @@ from quantlab.backtester.micro_engine import (
     MicroSimulationEngine,
     OrderCancelledEvent,
 )
+from quantlab.backtester.parallel_runner import ParallelBacktester, ParallelRunResult, SimJob
 from quantlab.backtester.partial_fill import PartialFillDecision, PartialFillModel, RestingOrder
 
 __all__ = [
@@ -35,10 +36,13 @@ __all__ = [
     "MicroSimulationConfig",
     "MicroSimulationEngine",
     "OrderCancelledEvent",
+    "ParallelBacktester",
+    "ParallelRunResult",
     "PartialFillDecision",
     "PartialFillModel",
     "ReplayEvent",
     "RestingOrder",
+    "SimJob",
     "SlippageMode",
     "assert_accounting_balanced",
     "assert_matches_golden",

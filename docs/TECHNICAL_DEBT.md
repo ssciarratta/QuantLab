@@ -1,14 +1,14 @@
 # QuantLab — Technical Debt
 
-**Actualizado:** 2026-07-25 (post remediación críticos F6/F7)  
-**Propósito:** Deudas residuales conocidas tras hardening F2–F16 + remediación motors.  
-**Certificados:** `NIGHT_AUDIT_2026-07-24.md`, `FASE_06_APPROVED.md`, `FASE_07_APPROVED.md`
+**Actualizado:** 2026-07-25 (post F17 MVP + residuos)  
+**Propósito:** Deudas residuales conocidas tras hardening F2–F17 código.  
+**Certificados / reports:** `FASE_*_APPROVED.md`, `FASE_17_IMPLEMENTATION_REPORT.md`
 
 | ID | Deuda | Fase sugerida | Severidad | Notas |
 |----|-------|---------------|-----------|-------|
-| TD-01 | Processed storage aún JSONL; migrar a Parquet columnar | F17 | Media | Protocolo `CatalogBackend` ya desacopla consultas |
-| TD-02 | Catálogo SQLite; DuckDB como motor analítico primario | F17 | Media | `SqliteCatalogBackend` implementa el protocol |
-| TD-03 | Contabilidad / ledger distribuido y reconciliación multi-nodo | F17 | Alta | — |
+| TD-01 | ~~Processed solo JSONL~~ | F17 | — | Mitigado: `ParquetProcessedStore` (JSONL sigue disponible) |
+| TD-02 | ~~Sin DuckDB catalog~~ | F17 | — | Mitigado: `DuckDBCatalogBackend` (SQLite sigue default) |
+| TD-03 | Contabilidad / ledger distribuido y reconciliación multi-nodo | F17+ | Alta | Fuera de MVP F17 local |
 | TD-04 | LogReturn usa `math.log` vía float (no Decimal puro) | F5+/numéricas | Baja | — |
 | TD-05 | Latencia wall-clock (`min_delay`) no implementada | F7 | Media | Ahora se rechaza si `min_delay>0` |
 | TD-06 | AlphaScanner sin explicabilidad completa de scores | F13 | Baja | Gaps + liquidez; explain MVP en F13 |
@@ -39,6 +39,11 @@
 - Slippage solo lineal en libro → `SlippageMode.SQUARE_ROOT` (2026-07-25)
 - Resting huérfanas sin TTL → `resting_max_age_ticks` + `TTL_EXPIRED` (2026-07-25)
 - 5A mono-instrumento forzado → sync multi-activo por `timestamp_close` (2026-07-25)
+- F17 paralelismo/monitor/backup/100K probe (2026-07-25)
+- F10 multiple testing Bonferroni/Holm/BH (2026-07-25)
+- F12 Pareto front (2026-07-25)
+- F14 Avellaneda–Stoikov MVP (2026-07-25)
+- Parquet + DuckDB catalog backends (2026-07-25)
 
 ## Notas
 

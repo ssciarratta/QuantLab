@@ -1,9 +1,11 @@
-"""CRUD de experimentos + vinculación artifacts (Fase 9)."""
+"""CRUD de experimentos + vinculación artifacts (Fase 9) + batch Bloque 3."""
 
 from __future__ import annotations
 
 import json
 import sqlite3
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -13,6 +15,13 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import ExperimentStatus
 from quantlab.core.types.validation import require_non_empty_str
 from quantlab.data.atomic_io import atomic_write_text
+
+_UPSERT_SQL = """
+INSERT OR REPLACE INTO experiments
+(experiment_id, status, dataset_id, strategy_version, created_at, updated_at,
+ artifact_paths_json, metadata_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+"""
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +50,20 @@ class ExperimentRegistry:
         conn = sqlite3.connect(self._path)
         conn.row_factory = sqlite3.Row
         return conn
+
+    @contextmanager
+    def transaction(self) -> Iterator[sqlite3.Connection]:
+        """Conexión reutilizable con una sola transacción (BEGIN…COMMIT)."""
+        conn = self._connect()
+        try:
+            conn.execute("BEGIN")
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            conn.close()
 
     def _init(self) -> None:
         with self._connect() as conn:
@@ -86,6 +109,59 @@ class ExperimentRegistry:
         )
         self._upsert(rec)
         return rec
+
+    def create_batch(self, records: list[dict[str, Any]]) -> list[ExperimentRecord]:
+        """Inserta N experimentos en una sola transacción SQLite + sidecars.
+
+        Cada dict requiere: ``experiment_id``, ``dataset_id``, ``strategy_version``.
+        Opcional: ``metadata`` (dict).
+        """
+        if not records:
+            return []
+        prepared: list[ExperimentRecord] = []
+        seen: set[str] = set()
+        now = datetime.now(tz=UTC)
+        for raw in records:
+            experiment_id = str(raw["experiment_id"])
+            dataset_id = str(raw["dataset_id"])
+            strategy_version = str(raw["strategy_version"])
+            require_non_empty_str(experiment_id, "experiment_id")
+            require_non_empty_str(dataset_id, "dataset_id")
+            require_non_empty_str(strategy_version, "strategy_version")
+            if experiment_id in seen:
+                raise ValidationError(f"experiment duplicado en batch: {experiment_id}")
+            seen.add(experiment_id)
+            meta = raw.get("metadata")
+            if meta is not None and not isinstance(meta, dict):
+                raise ValidationError("metadata debe ser dict")
+            prepared.append(
+                ExperimentRecord(
+                    experiment_id=experiment_id,
+                    status=ExperimentStatus.DRAFT,
+                    dataset_id=dataset_id,
+                    strategy_version=strategy_version,
+                    created_at=now,
+                    updated_at=now,
+                    artifact_paths=(),
+                    metadata=dict(meta or {}),
+                )
+            )
+
+        placeholders = ",".join("?" for _ in seen)
+        with self.transaction() as conn:
+            existing = conn.execute(
+                "SELECT experiment_id FROM experiments "
+                f"WHERE experiment_id IN ({placeholders})",
+                tuple(seen),
+            ).fetchall()
+            if existing:
+                ids = ", ".join(sorted(r["experiment_id"] for r in existing))
+                raise ValidationError(f"experiment ya existe: {ids}")
+            conn.executemany(_UPSERT_SQL, [self._row_params(r) for r in prepared])
+
+        for rec in prepared:
+            self._write_sidecar(rec)
+        return prepared
 
     def get(self, experiment_id: str) -> ExperimentRecord | None:
         with self._connect() as conn:
@@ -146,6 +222,11 @@ class ExperimentRegistry:
         return updated
 
     def _upsert(self, rec: ExperimentRecord) -> None:
+        with self.transaction() as conn:
+            conn.execute(_UPSERT_SQL, self._row_params(rec))
+        self._write_sidecar(rec)
+
+    def _write_sidecar(self, rec: ExperimentRecord) -> None:
         payload = {
             "experiment_id": rec.experiment_id,
             "status": rec.status.value,
@@ -156,29 +237,22 @@ class ExperimentRegistry:
             "artifact_paths": list(rec.artifact_paths),
             "metadata": rec.metadata,
         }
-        with self._connect() as conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO experiments
-                (experiment_id, status, dataset_id, strategy_version, created_at, updated_at,
-                 artifact_paths_json, metadata_json)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    rec.experiment_id,
-                    rec.status.value,
-                    rec.dataset_id,
-                    rec.strategy_version,
-                    rec.created_at.isoformat(),
-                    rec.updated_at.isoformat(),
-                    json.dumps(list(rec.artifact_paths)),
-                    json.dumps(rec.metadata, sort_keys=True),
-                ),
-            )
-            conn.commit()
         atomic_write_text(
             self._sidecar / f"{rec.experiment_id}.json",
             json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        )
+
+    @staticmethod
+    def _row_params(rec: ExperimentRecord) -> tuple[str, ...]:
+        return (
+            rec.experiment_id,
+            rec.status.value,
+            rec.dataset_id,
+            rec.strategy_version,
+            rec.created_at.isoformat(),
+            rec.updated_at.isoformat(),
+            json.dumps(list(rec.artifact_paths)),
+            json.dumps(rec.metadata, sort_keys=True),
         )
 
     @staticmethod

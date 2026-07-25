@@ -124,7 +124,7 @@
 - Benchmarks y control de overfitting
 - Corrección por múltiples comparaciones
 
-**Estado en repo:** ✅ MVP (`docs/audit/FASE_10_TO_16_APPROVED.md`) — splits/leakage/WF; sin corrección múltiple plena
+**Estado en repo:** ✅ MVP (`docs/audit/FASE_10_TO_16_APPROVED.md`) + corrección múltiple (`bonferroni`/`holm`/`BH`, 2026-07-25)
 
 ### Fase 11 — Monte Carlo
 **Módulos:** Simulator estocástico, N escenarios, intervalos de confianza, seed fija.  
@@ -138,7 +138,7 @@
 - Pareto multi-objetivo
 - **Dependencia:** F10 aprobada
 
-**Estado en repo:** ✅ MVP grid/random (`docs/audit/FASE_10_TO_16_APPROVED.md`) — sin Pareto pleno  
+**Estado en repo:** ✅ MVP grid/random + Pareto (`optimizer/pareto.py`, 2026-07-25)  
 **Equivalencia ChatGPT:** “Hyperparameters”
 
 ### Fase 13 — Alpha Scanner (completo)
@@ -155,7 +155,7 @@
 - Inventory Skew / Adaptive MM / Avellaneda-Stoikov
 - **Dependencia fuerte:** F7 para MM
 
-**Estado en repo:** ✅ parcial (sizing + InventoryMM + momentum) — Avellaneda no  
+**Estado en repo:** ✅ sizing + InventoryMM + momentum + Avellaneda–Stoikov MVP (2026-07-25)  
 **Equivalencia ChatGPT:** gran parte del “Framework de Estrategias” vive aquí (+ F5 Features + F12)
 
 ### Fase 15 — Multi-exchange
@@ -169,7 +169,8 @@
 
 ### Fase 17 — Escalabilidad distribuida
 **Módulos:** paralelismo, monitoring, backup, 100K+ simulaciones.  
-**Estado en repo:** ⬜ residual
+**Estado en repo:** 📦 código entregado (`docs/audit/FASE_17_IMPLEMENTATION_REPORT.md`) — pendiente APROBADO Meta-Auditor  
+**Extras TD:** Parquet (`ParquetProcessedStore`) + `DuckDBCatalogBackend`
 
 
 ---
@@ -214,10 +215,8 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ---
 
-## Próximo paso sugerido (sin código)
+## Próximo paso sugerido
 
-1. Acordar con ChatGPT/AI Studio que **este archivo** es la numeración única.  
-2. Decidir si la siguiente implementación es:
-   - **A)** Fase 5 Features (oficial), o  
-   - **B)** Completar F6 golden runs / reporting, o  
-   - **C)** Framework estrategias (F14) sabiendo dependencias.
+1. Review Package F17 + residuos → Meta-Auditor.  
+2. Con **APROBADO** explícito: emitir `FASE_17_APPROVED.md` + sync GitHub.  
+3. LIVE routing sigue **BLOQUEADO** hasta decisión de producto.
