@@ -6,8 +6,10 @@ title = "QuantLab"
 useDefault = true
 
 [allowlist]
-description = "Allowlist mínima Fase 2"
+description = "Allowlist mínima + fixtures de tests"
 paths = [
   '''reports/.*''',
   '''.*\.sha256$''',
+  '''.*/__pycache__/.*''',
+  '''tests/unit/ops/test_check_git_remote_clean\.py''',
 ]

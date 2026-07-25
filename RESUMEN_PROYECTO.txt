@@ -7,21 +7,21 @@ ESTADO
 ------
 - F0–F17 certificados · F18 código (sin APPROVED falso)
 - Research-prod LISTO · LIVE BLOQUEADO
-- CI Actions ACTIVO: .github/workflows/ci.yml (0887602)
+- CI Actions ACTIVO (.github/workflows/ci.yml)
+- TD-05 min_delay + TD-03 federación research integrados
 - gh scopes: gist, read:org, repo, workflow
-- Suite: 364+ passed
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-CI Pipeline activado en GitHub Actions (2026-07-25):
-- Scope OAuth workflow autorizado
-- Push de .github/workflows/ci.yml OK
-- uv + ruff + mypy --strict + pytest + quantlab-health
+Merge PR #2 en main (2026-07-25):
+- TD-05: FixedLatencyModel.min_delay + bar_times
+- TD-03 research: node_id + reconcile_indexes + merge_from
+- CI pipeline uv ya activo en Actions
 
 PRÓXIMO PASO
 ------------
-- Verificar run verde en Actions
 - FASE_18_APPROVED solo con APROBADO Meta-Auditor
+- Residual TD-03 HA/ACID cluster (solo trading-prod)
 - LIVE bloqueado
 
 BLOQUEOS

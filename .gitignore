@@ -61,6 +61,4 @@ format_report.txt
 requirements.txt
 review_staging/
 
-# CI versionado en .github/workflows/ci.yml (requiere scope OAuth workflow para push).
-# Fuente espejo: docs/ci/ci.yml.example
-
+# CI versionado en .github/workflows/ci.yml (espejo: docs/ci/ci.yml.example)

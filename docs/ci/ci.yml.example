@@ -1,5 +1,4 @@
-# Copia a .github/workflows/ci.yml (ya versionado en el repo).
-# Fuente canónica del pipeline simple research-prod.
+# Espejo de .github/workflows/ci.yml
 
 name: QuantLab CI Pipeline
 

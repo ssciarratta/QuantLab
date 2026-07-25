@@ -142,9 +142,7 @@ class AlphaScanner:
             base = live or list(aligned)
             closes = [float(b.close) for b in base]
             volumes = [float(b.volume) for b in base]
-            ranges = [
-                float((b.high - b.low) / b.close) if b.close > 0 else 0.0 for b in base
-            ]
+            ranges = [float((b.high - b.low) / b.close) if b.close > 0 else 0.0 for b in base]
             rets = [
                 (closes[i] - closes[i - 1]) / closes[i - 1]
                 for i in range(1, len(closes))

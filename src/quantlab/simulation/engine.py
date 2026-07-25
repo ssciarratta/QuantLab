@@ -100,6 +100,7 @@ class BarSimulationEngine:
         pending: list[_PendingIntent] = []
         steps = synchronize_bars_by_timestamp(bars)
         n = len(steps)
+        bar_times = tuple(step[0].timestamp_close for step in steps)
 
         for step_idx, step_bars in enumerate(steps):
             # Actualizar marks de todos los activos del step (sin cross-talk de PnL).
@@ -175,6 +176,7 @@ class BarSimulationEngine:
                         submit_index=step_idx,
                         submit_time=bar.timestamp_close,
                         series_length=n,
+                        bar_times=bar_times,
                     )
                     if not latency.executable or latency.effective_index is None:
                         events_log.append(

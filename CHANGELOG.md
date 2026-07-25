@@ -9,15 +9,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 ## [Unreleased]
 
 ### Added
-- Fase 5 M2: FeeModel (`ZeroFee`, `Proportional`, `MakerTaker`)
-- Fase 5 M3: `ArtifactsEngine` + bundle manifest
-- Regla `auto-next-module.mdc`
-- DEC-049, DEC-050
+- TD-05: `FixedLatencyModel.min_delay` wall-clock con `bar_times` en `BarSimulationEngine`
+- TD-03 research: federación de paper ledger (`node_id`, `reconcile_indexes`, `merge_from`)
+- CI Actions versionado: `.github/workflows/ci.yml` (espejo `docs/ci/ci.yml.example`)
 
 ### Changed
-- Versión **0.5.0**
-- `BarSimulationEngine` integra fee_model
-- `PortfolioTracker` acepta fee explícito
+- `.gitignore`: deja de excluir el workflow de CI
+- `sync_phase_github.sh`: `SKIP_WORKFLOWS` default `0` (escape hatch `=1`)
 
 ---
 

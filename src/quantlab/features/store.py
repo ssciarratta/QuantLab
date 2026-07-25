@@ -75,14 +75,10 @@ class FeatureStore:
             if existing == checksum:
                 # Idempotente: mismo contenido
                 meta_existing = (
-                    json.loads(meta_path.read_text(encoding="utf-8"))
-                    if meta_path.exists()
-                    else {}
+                    json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
                 )
                 created_raw = (
-                    meta_existing.get("created_at")
-                    if isinstance(meta_existing, dict)
-                    else None
+                    meta_existing.get("created_at") if isinstance(meta_existing, dict) else None
                 )
                 created = (
                     datetime.fromisoformat(str(created_raw))
@@ -184,4 +180,3 @@ class FeatureStore:
             if isinstance(ver, str) and ver:
                 versions.append(ver)
         return tuple(sorted(set(versions)))
-
