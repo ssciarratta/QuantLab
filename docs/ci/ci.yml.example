@@ -83,5 +83,6 @@ jobs:
 
       - name: Gitleaks
         run: |
+          find . -type d -name '__pycache__' -prune -exec rm -rf {} +
           curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.0/gitleaks_8.24.0_linux_x64.tar.gz | tar -xz gitleaks
           ./gitleaks detect --source . --config .gitleaks.toml --verbose --no-git
