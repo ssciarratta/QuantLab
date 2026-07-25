@@ -63,7 +63,7 @@ def test_r3_atr_method_sma_tr_not_wilder() -> None:
         )
     series = ATRIndicator(period=3).transform(bars)
     assert series.points
-    assert all(p.metadata.get("method") == "sma_tr" for p in series.points)
+    assert all((p.metadata or {}).get("method") == "sma_tr" for p in series.points)
     assert "sma_tr" in (ATRIndicator.__doc__ or "")
 
 

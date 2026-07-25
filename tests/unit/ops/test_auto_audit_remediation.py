@@ -70,9 +70,11 @@ def test_null_and_gated_cancel_blocked() -> None:
     with pytest.raises(ValidationError, match="BLOQUEADO"):
         NullRouter().cancel_order("x")
     with pytest.raises(ValidationError, match="BLOQUEADO"):
-        GatedBackendRouter(__import__(
-            "quantlab.data.exchanges.a3.fake_backend", fromlist=["FakeA3Backend"]
-        ).FakeA3Backend()).cancel_order("x")
+        GatedBackendRouter(
+            __import__(
+                "quantlab.data.exchanges.a3.fake_backend", fromlist=["FakeA3Backend"]
+            ).FakeA3Backend()
+        ).cancel_order("x")
 
 
 def test_pyrofex_backend_place_blocked() -> None:

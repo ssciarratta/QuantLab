@@ -7,8 +7,6 @@ from decimal import Decimal
 from math import log
 from pathlib import Path
 
-import pytest
-
 from quantlab.backtester.accounting import REALIZED_PNL_CONVENTION
 from quantlab.core.types.enums import (
     FeeType,
@@ -59,7 +57,9 @@ def test_safe_segment_no_collision() -> None:
 
 def test_log_return_decimal_ln() -> None:
     series = LogReturnTransformer().transform(_bars())
-    assert series.points[0].metadata["method"] == "Decimal.ln"
+    meta = series.points[0].metadata
+    assert meta is not None
+    assert meta["method"] == "Decimal.ln"
     expected = Decimal("110") / Decimal("100")
     assert series.points[0].value == expected.ln()
     # No float drift vs math.log beyond Decimal quantization

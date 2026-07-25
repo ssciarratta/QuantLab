@@ -62,9 +62,7 @@ class FeatureStore:
         raw = str(self.root).replace("\\", "/").lower()
         remote_prefixes = ("s3:/", "http:/", "https:/", "gs:/", "az:/")
         if "://" in raw or raw.startswith(remote_prefixes):
-            raise ValidationError(
-                "FeatureStore TD-09: solo filesystem local (sin URL remota)"
-            )
+            raise ValidationError("FeatureStore TD-09: solo filesystem local (sin URL remota)")
         self.root = root
         self.root.mkdir(parents=True, exist_ok=True)
 

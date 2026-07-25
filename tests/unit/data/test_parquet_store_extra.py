@@ -39,17 +39,23 @@ def test_write_rows_inconsistent_columns_raises(tmp_path: Path) -> None:
 
 def test_write_rows_already_exists_raises(tmp_path: Path) -> None:
     store = ParquetProcessedStore(tmp_path / "processed")
-    kwargs = {
-        "dataset_id": "ds",
-        "schema_version": "1.0",
-        "symbol": "X",
-        "timeframe": "1m",
-        "rows": [{"ts": "1", "close": "100"}],
-    }
-    first = store.write_rows(**kwargs)
+    rows = [{"ts": "1", "close": "100"}]
+    first = store.write_rows(
+        dataset_id="ds",
+        schema_version="1.0",
+        symbol="X",
+        timeframe="1m",
+        rows=rows,
+    )
     assert Path(first.path).is_file()
     with pytest.raises(ValidationError, match="ya existe"):
-        store.write_rows(**kwargs)
+        store.write_rows(
+            dataset_id="ds",
+            schema_version="1.0",
+            symbol="X",
+            timeframe="1m",
+            rows=rows,
+        )
 
 
 def test_read_rows_missing_file_raises(tmp_path: Path) -> None:

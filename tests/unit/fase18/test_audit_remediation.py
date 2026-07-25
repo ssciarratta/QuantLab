@@ -108,7 +108,9 @@ def test_audit_verify_dataset_false_when_storage_tampered(tmp_path: Path) -> Non
         storage_path=str(path),
         created_at=now,
     )
-    cat = DataCatalog(tmp_path / "cat.sqlite", backend=SqliteCatalogBackend(tmp_path / "cat.sqlite"))
+    cat = DataCatalog(
+        tmp_path / "cat.sqlite", backend=SqliteCatalogBackend(tmp_path / "cat.sqlite")
+    )
     cat.register_dataset(manifest, kind="bars", provider="test")
     assert cat.verify_dataset("ds-audit") is True
     path.write_bytes(b"tampered-byte-by-byte")

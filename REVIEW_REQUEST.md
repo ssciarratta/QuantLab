@@ -103,22 +103,22 @@ uv run python scripts/build_review_package.py --phase 5 --version 1.0
 
 | Check | Resultado |
 |-------|-----------|
-| Tests | **191 passed** |
-| Cobertura | **~90.7%** |
+| Tests | **392 passed** |
+| Cobertura | **~92.8%** |
 | Ruff / format / mypy | PASS |
 | Vertical slice | PASS |
 | Secret scan | PASS |
 | ZIP validation | PASS (ver reports/review_package_validation.txt) |
 
 <!-- BEGIN_QUALITY_METRICS -->
-phase: 17
+phase: 18
 package_version: 1.0
-test_count: 191
-passed: 191
+test_count: 392
+passed: 392
 failed: 0
 errors: 0
 skipped: 0
-coverage_pct: 90.7
+coverage_pct: 92.8
 authoritative: true
 <!-- END_QUALITY_METRICS -->
 <!-- END_GENERATED_QUALITY_SECTION -->

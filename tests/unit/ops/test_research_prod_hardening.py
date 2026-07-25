@@ -145,7 +145,9 @@ def test_verify_dataset_hashes_storage(tmp_path: Path) -> None:
         storage_path=str(path),
         created_at=now,
     )
-    cat = DataCatalog(tmp_path / "cat.sqlite", backend=SqliteCatalogBackend(tmp_path / "cat.sqlite"))
+    cat = DataCatalog(
+        tmp_path / "cat.sqlite", backend=SqliteCatalogBackend(tmp_path / "cat.sqlite")
+    )
     cat.register_dataset(manifest, kind="bars", provider="test")
     assert cat.verify_dataset("ds-hash") is True
     path.write_bytes(b"tampered")

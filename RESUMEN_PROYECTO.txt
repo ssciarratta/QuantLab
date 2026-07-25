@@ -3,32 +3,28 @@ QUANTLAB — RESUMEN DEL PROYECTO
 Actualizado: 2026-07-25
 Versión código actual: 0.10.0
 Certificado F17: código 0.9.0 / Review v1.0
+Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 
 ESTADO
 ------
-- F0–F17: CERTIFICADOS
-- F18: código + CI (pendiente Meta-Auditor)
-- Research-prod LISTO · LIVE BLOQUEADO
-- Self-audit: críticos + high + medium + residuales no críticos ACCIONABLES cerrados
+- F0–F18: CERTIFICADOS (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
+- Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO
+- Self-audit remediaciones C1–C3 / H1–H5 / M1 verificadas en certificado F18
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Wrapper tests agenda remediación: tests/unit/fase18/test_audit_remediation.py
-(A3 fail-closed, verify tamper, orphan accounting).
-
-Cierre residuales no críticos (R3/R5/R9, TD-06/09/12, OPS-PROM):
-- freeze_mapping deep-freeze
-- ATR metadata method=sma_tr; Calmar bar-based documentado
-- Alpha explain con *_n / share; contrib_sum == composite
-- FeatureStore rechaza URL remota (TD-09 aceptado local)
-- mark_equity 2×: test regresión TD-12
-- render_prometheus_text + export_ops_prometheus
-- tests/unit/ops/test_noncritical_residuals.py
+Certificado F18 APROBADO DEFINITIVO (Meta-Auditor GPT):
+- Remediaciones C1, C2/C3, H1–H5, M1, H3
+- Control Total research-ops (ledger, health, FeatureStore, LogReturn)
+- Suite tests/unit/fase18/test_audit_remediation.py
+- QA cierre: 392 passed · mypy strict · ruff · health ok
+- Review Package: QuantLab_Review_Fase_18_v1.0.zip
+  SHA256 bbdd5dd210c4fac8177723052341d04861014b6beff289d767af64f93cb94723
 
 PRÓXIMO PASO
 ------------
-- Meta-Auditor F18 — no auto-certificar
-- TD-03 HA solo si trading-prod
+- Avances post-F18 (trading-prod / LIVE / HA) solo con decisión explícita
+- LIVE bloqueado
 
 BLOQUEOS
 --------

@@ -33,7 +33,7 @@
 | 15 | Multi-exchange | ✅ | `docs/audit/FASE_10_TO_16_APPROVED.md` | **APROBADA** |
 | 16 | Hummingbot export v1 | ✅ | `docs/audit/FASE_10_TO_16_APPROVED.md` | **APROBADA** |
 | 17 | Escalabilidad + residuos F10/F12/F14 | ✅ | `docs/audit/FASE_17_APPROVED.md` | **APROBADO DEFINITIVO** (2026-07-25) |
-| **18** | **Control Total (research-ops)** | ❌ **FALTA** | Código + Review Package de trabajo | **📦 PENDIENTE APROBADO** |
+| **18** | **Control Total (research-ops)** | ✅ | `docs/audit/FASE_18_APPROVED.md` | **APROBADO DEFINITIVO** (2026-07-25) |
 
 ---
 
@@ -48,7 +48,7 @@
 | Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-25_F18.md` |
 | Checklist research-prod | `docs/ops/RESEARCH_PROD_CHECKLIST.md` |
 
-**NO existe aún:** `docs/audit/FASE_18_APPROVED.md` ← eso es lo que falta del Meta-Auditor.
+**Certificado emitido:** `docs/audit/FASE_18_APPROVED.md` (APROBADO DEFINITIVO Meta-Auditor, 2026-07-25).
 
 ### Lista A F18 (entregables)
 
@@ -79,7 +79,7 @@ Versión código F18: **0.10.0** · LIVE: **BLOQUEADO**.
 
 ## Mensaje corto para el auditor
 
-1. F0–F17 tienen certificado formal (F17 = APROBADO DEFINITIVO 2026-07-25).  
-2. **Fase 18 sí existe** en `docs/ROADMAP_ALIGNED.md` y en código 0.10.0.  
-3. Lo único que **falta** es el veredicto **APROBADO** → emitir `docs/audit/FASE_18_APPROVED.md`.  
+1. F0–F18 tienen certificado formal (F18 = APROBADO DEFINITIVO 2026-07-25).  
+2. QuantLab v0.10.0 certificado en su totalidad (research-prod).  
+3. **LIVE sigue BLOQUEADO.**  
 4. Arquitectura §13 original cortaba en F17; F18 es extensión post-MVP research-ops, no trading live.

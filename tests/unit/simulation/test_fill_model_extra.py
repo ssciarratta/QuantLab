@@ -156,6 +156,6 @@ def test_limit_sell_not_touched() -> None:
 
 def test_unsupported_order_type() -> None:
     model = ImmediateBarFillModel()
-    d = model.evaluate(_raw_intent(order_type="stop"), _bar())  # type: ignore[arg-type]
+    d = model.evaluate(_raw_intent(order_type="stop"), _bar())
     assert d.reason == "unsupported_order_type"
     assert not d.filled

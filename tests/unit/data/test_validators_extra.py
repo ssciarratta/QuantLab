@@ -107,13 +107,9 @@ def _raw_trade(**fields: Any) -> Trade:
 def test_quality_report_flags() -> None:
     empty = QualityReport(())
     assert not empty.has_fatal and not empty.has_error
-    fatal = QualityReport(
-        (QualityIssue("naive_timestamp", QualitySeverity.FATAL, "x"),)
-    )
+    fatal = QualityReport((QualityIssue("naive_timestamp", QualitySeverity.FATAL, "x"),))
     assert fatal.has_fatal
-    err = QualityReport(
-        (QualityIssue("non_positive_price", QualitySeverity.ERROR, "x"),)
-    )
+    err = QualityReport((QualityIssue("non_positive_price", QualitySeverity.ERROR, "x"),))
     assert err.has_error and not err.has_fatal
 
 
@@ -250,6 +246,9 @@ def test_sanitize_duplicate_and_ooo_warnings() -> None:
     kept, report = sanitize_bars([b0, dup, late, early])
     assert len(kept) == 2
     assert any(
-        i.code == "duplicate_timestamp" and i.severity is QualitySeverity.WARNING for i in report.issues
+        i.code == "duplicate_timestamp" and i.severity is QualitySeverity.WARNING
+        for i in report.issues
     )
-    assert any(i.code == "out_of_order" and i.severity is QualitySeverity.WARNING for i in report.issues)
+    assert any(
+        i.code == "out_of_order" and i.severity is QualitySeverity.WARNING for i in report.issues
+    )

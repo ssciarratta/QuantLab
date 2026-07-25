@@ -93,9 +93,7 @@ def test_scanner_volatility_ignores_synthetic_zero_volume() -> None:
 
     # delta 1m (primeras dos) + hueco → sintéticas vol=0; live con retornos fuertes
     live = [bar("10", 0), bar("11", 1), bar("20", 10), bar("8", 11)]
-    result = AlphaScanner(gap_policy=GapPolicy.FORWARD_FILL).scan(
-        {"V": live}, top_n=1, min_bars=3
-    )
+    result = AlphaScanner(gap_policy=GapPolicy.FORWARD_FILL).scan({"V": live}, top_n=1, min_bars=3)
     assert result.scores
     assert result.gap_events
     # Solo closes live → pstdev de retornos grandes; sintéticas no aplanan

@@ -2,8 +2,10 @@
 
 **Fecha:** 2026-07-25  
 **Versión código:** 0.10.0  
-**Tipo:** Review Package de trabajo (Meta-Auditor)  
-**NO es** `FASE_18_APPROVED.md` — requiere APROBADO explícito.
+**Tipo:** Review Package oficial (post APROBADO)  
+**Certificado:** `docs/audit/FASE_18_APPROVED.md` — **APROBADO DEFINITIVO** (2026-07-25).  
+**ZIP:** `QuantLab_Review_Fase_18_v1.0.zip`  
+**SHA256:** `bbdd5dd210c4fac8177723052341d04861014b6beff289d767af64f93cb94723`
 
 ---
 

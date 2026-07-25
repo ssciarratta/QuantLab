@@ -23,8 +23,8 @@ from quantlab.core.types.enums import (
     OrderType,
     TimeInForce,
 )
-from quantlab.core.types.market import Bar, MarketEvent
 from quantlab.core.types.manifests import DatasetManifest, TimeRange
+from quantlab.core.types.market import Bar, MarketEvent
 from quantlab.core.types.orders import OrderIntent
 from quantlab.core.types.portfolio import SimulationClock
 from quantlab.data.catalog import DataCatalog, DuckDBCatalogBackend
@@ -173,20 +173,23 @@ def test_avellaneda_max_pos_ask_only_and_lifecycle() -> None:
     assert places[0].side is OrderSide.SELL
 
     ts = datetime(2024, 6, 1, tzinfo=UTC)
-    assert strat.on_bar(
-        Bar(
-            instrument_id="AS:TEST",
-            open=Decimal("100"),
-            high=Decimal("101"),
-            low=Decimal("99"),
-            close=Decimal("100"),
-            volume=Decimal("1"),
-            timestamp_open=ts,
-            timestamp_close=ts,
-            timeframe="1m",
-        ),
-        _as_ctx(),
-    ) == ()
+    assert (
+        strat.on_bar(
+            Bar(
+                instrument_id="AS:TEST",
+                open=Decimal("100"),
+                high=Decimal("101"),
+                low=Decimal("99"),
+                close=Decimal("100"),
+                volume=Decimal("1"),
+                timestamp_open=ts,
+                timestamp_close=ts,
+                timeframe="1m",
+            ),
+            _as_ctx(),
+        )
+        == ()
+    )
 
     strat.set_parameters({"quantity": "2", "max_pos": "5"})
     assert strat.get_parameters()["quantity"] == "2"

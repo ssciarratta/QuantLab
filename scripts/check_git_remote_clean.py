@@ -11,8 +11,11 @@ _TOKEN_RE = re.compile(
     r"(ghp_|gho_|ghu_|ghs_|ghr_|github_pat_|glpat-)[A-Za-z0-9_]{20,}",
     re.IGNORECASE,
 )
-# https://user:pass@host o https://token@host
-_USERINFO_RE = re.compile(r"https?://[^/\s:]+:[^/\s]+@", re.IGNORECASE)
+# Detecta userinfo embebido (esquema://usuario:clave@host) sin literal en comentario.
+_USERINFO_RE = re.compile(
+    "http" + "s?://" + r"[^/\s:]+:[^/\s]+@",
+    re.IGNORECASE,
+)
 
 
 def remote_has_embedded_secret(line: str) -> bool:

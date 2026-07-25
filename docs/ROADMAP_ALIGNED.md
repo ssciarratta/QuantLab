@@ -183,7 +183,7 @@
 - Health check + export ops JSON (`quantlab-health`)
 - Docs/runbook research-prod
 
-**Estado en repo:** 📦 código entregado — pendiente APROBADO Meta-Auditor  
+**Estado en repo:** ✅ **APROBADO DEFINITIVO** Meta-Auditor (`docs/audit/FASE_18_APPROVED.md`, 2026-07-25)  
 **Bloqueo permanente:** order routing LIVE A3.
 
 ---
@@ -230,6 +230,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. Review Package F18 → Meta-Auditor.  
-2. Con **APROBADO** explícito: emitir `FASE_18_APPROVED.md` + sync GitHub.  
-3. LIVE routing sigue **BLOQUEADO** hasta decisión de producto.
+1. F0–F18 certificados (F18 APROBADO DEFINITIVO 2026-07-25).  
+2. Avances post-roadmap (trading-prod / LIVE / HA) solo con decisión explícita de producto.  
+3. LIVE routing sigue **BLOQUEADO**.

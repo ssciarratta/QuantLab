@@ -14,6 +14,7 @@ from quantlab.core.types.enums import (
     OrderSide,
 )
 from quantlab.core.types.market import Bar, MarketEvent
+from quantlab.core.types.orders import OrderIntent
 from quantlab.core.types.portfolio import (
     Balance,
     PortfolioState,
@@ -129,9 +130,10 @@ def test_sell_on_strict_down_when_long() -> None:
 def test_long_only_no_short_on_down_without_position() -> None:
     strat = SimpleMomentumStrategy({"lookback": 2, "quantity": "1"})
     ctx = _ctx()
-    intents = ()
+    intents: tuple[OrderIntent, ...] = ()
     for i, c in enumerate((Decimal("90"), Decimal("89"), Decimal("88"))):
         intents = strat.on_bar(_bar(c, i=i), ctx)
+    assert intents
     assert intents[0].intent_type is IntentType.NO_ACTION
     assert intents[0].intent_id == "noop"
     assert strat.get_state()["position"] == "0"
