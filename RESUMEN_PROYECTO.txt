@@ -6,19 +6,21 @@ Versión: 0.10.0
 ESTADO
 ------
 - F0–F17 certificados · F18 código (sin APPROVED falso)
-- Autonomía multi-agente C1–C6 en curso / sync main
-- Suite: 318 passed · coverage ~87% · LIVE BLOQUEADO
+- Autonomía C1–C7: en main (984d37c)
+- Suite: 348 passed · LIVE BLOQUEADO · remote limpio
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Tests extra bordes (solo tests/, 2026-07-25):
-- config loader · atomic_io · leakage → 30 passed
-- Sin cambios en src/
+Autauditoría multi-agente (sin intervención):
+- Remediación H1/H2 · TD-06/11 · secret scan · health · runbook
+- +tests strategies/infra/data/validation/simulation/optimizer
+- Incidente GCM/PAT: remote limpiado; token ghp verificado 401
 
 PRÓXIMO PASO
 ------------
-- Seguir cobertura / cleanup sin LIVE
+- Seguir autonomía / cobertura
 - FASE_18_APPROVED solo con APROBADO Meta-Auditor
+- LIVE bloqueado
 
 BLOQUEOS
 --------
