@@ -1,8 +1,9 @@
 # QuantLab — Roadmap alineado (única numeración)
 
-**Fecha:** 2026-07-24  
+**Fecha:** 2026-07-25  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensión producto **F18**  
+**Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
