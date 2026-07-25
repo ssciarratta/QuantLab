@@ -1,27 +1,25 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-25
-Versión: 0.10.0
+Versión código actual: 0.10.0
+Certificado F17: código 0.9.0 / Review v1.0
 
 ESTADO
 ------
-- F0–F17 certificados · F18 código (sin APPROVED falso)
-- Research-prod LISTO · LIVE BLOQUEADO
-- CI Actions ACTIVO (.github/workflows/ci.yml)
-- TD-05 min_delay + TD-03 federación research integrados
-- gh scopes: gist, read:org, repo, workflow
+- F0–F17: CERTIFICADOS (FASE_17_APPROVED definitivo Meta-Auditor 2026-07-25)
+- F18 Control Total: código + CI (pendiente APROBADO Meta-Auditor propio)
+- Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Merge PR #2 en main (2026-07-25):
-- TD-05: FixedLatencyModel.min_delay + bar_times
-- TD-03 research: node_id + reconcile_indexes + merge_from
-- CI pipeline uv ya activo en Actions
+Registro certificado F17 APROBADO DEFINITIVO (Meta-Auditor):
+- Lista A A1–A9 + residuos F10/F12/F14
+- Review Package SHA256 bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
+- docs/audit/FASE_17_APPROVED.md actualizado
 
 PRÓXIMO PASO
 ------------
-- FASE_18_APPROVED solo con APROBADO Meta-Auditor
-- Residual TD-03 HA/ACID cluster (solo trading-prod)
+- Meta-Auditor F18 (si aplica) — no auto-certificar
 - LIVE bloqueado
 
 BLOQUEOS

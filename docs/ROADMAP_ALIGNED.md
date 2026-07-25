@@ -169,8 +169,9 @@
 
 ### Fase 17 — Escalabilidad distribuida
 **Módulos:** paralelismo, monitoring, backup, 100K+ simulaciones.  
-**Estado en repo:** ✅ certificada (`docs/audit/FASE_17_APPROVED.md`) — incluye residuos F10/F12/F14  
-**Extras TD:** Parquet (`ParquetProcessedStore`) + `DuckDBCatalogBackend`
+**Estado en repo:** ✅ **APROBADO DEFINITIVO** Meta-Auditor (`docs/audit/FASE_17_APPROVED.md`, 2026-07-25) — incluye residuos F10/F12/F14  
+**Extras TD:** Parquet (`ParquetProcessedStore`) + `DuckDBCatalogBackend`  
+**Review Package:** `QuantLab_Review_Fase_17_v1.0.zip` · SHA256 `bc875475…`
 
 ### Fase 18 — Control Total (research-ops)
 **Módulos:**
