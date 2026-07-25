@@ -204,9 +204,7 @@ def run_trivial_capacity_probe(
 ) -> BatchRunReport:
     """Suma 1..n en paralelo sin guardar resultados — smoke 100K+."""
     assert_capacity_claim(n_jobs)
-    runner = ParallelBatchRunner(
-        max_workers=max_workers, chunk_size=chunk_size, strict=True
-    )
+    runner = ParallelBatchRunner(max_workers=max_workers, chunk_size=chunk_size, strict=True)
     _total, report = runner.stream_sum(n_jobs, lambda i: 1.0)
     if report.completed != n_jobs:
         raise ValidationError("capacity probe incompleto")

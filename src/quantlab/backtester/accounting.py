@@ -84,9 +84,7 @@ def assert_accounting_balanced(
 
     reported_cash = snap.balances[0].total
     reported_equity = snap.total_equity
-    reconstructed_cash, total_fees, orphans = reconstruct_cash(
-        result, initial_cash=initial_cash
-    )
+    reconstructed_cash, total_fees, orphans = reconstruct_cash(result, initial_cash=initial_cash)
     if orphans:
         issues.append(f"orphan fills (order_id desconocido): {', '.join(orphans)}")
 
