@@ -5,25 +5,22 @@ Versión: 0.10.0
 
 ESTADO
 ------
-- F0–F17 certificados · F18 código + Review Package (sin APPROVED falso)
-- Autauditoría ejecutable: PASS (docs/audit/AUTO_AUDIT_2026-07-25_F18.md)
-- Research-prod LISTO · LIVE BLOQUEADO
-- Suite: 263 passed · mypy/ruff verdes
+- F0–F17 certificados · F18 código (Review Package; sin APPROVED falso)
+- Autauditoría multi-agente: PASS
+- Coverage ~87% · Suite 270+ · LIVE BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Autonomía multi-agente (2026-07-25):
-- Remediación H1/H2 FeatureStore + Paper ledger
-- TD-11 vol / TD-06 explain
-- Health Windows-safe + secret scan reforzado
-- Cobertura: momentum, MM, Avellaneda, sizing, logging, platform_info
-- Sync: main @ AUTO_AUDIT waves
+Sesión autonomía 4h (olas C1–C4):
+- Remediación H1/H2 + TD-06/11 + secret scan
+- Cobertura strategies/infra/optimizer/duckdb
+- Runbook + TD-12 documentado (doble mark intencional)
+- main sync continuo (último: AUTO_AUDIT waves)
 
 PRÓXIMO PASO
 ------------
-- Continuar cleanup TD-05/12 si hay tiempo en sesión
-- Meta-Auditor para FASE_18_APPROVED (humano)
-- LIVE bloqueado
+- Meta-Auditor → FASE_18_APPROVED (solo con APROBADO humano)
+- LIVE bloqueado · TD-03/05 abiertos por diseño
 
 BLOQUEOS
 --------
