@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from decimal import Decimal
-from math import log
 
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
@@ -93,8 +92,8 @@ class LogReturnTransformer:
             cur = bars[i].close
             if prev <= 0 or cur <= 0:
                 raise ValidationError("closes deben ser > 0 para log-return")
-            ratio = float(cur / prev)
-            value = Decimal(str(log(ratio)))
+            # Decimal.ln — sin float intermedio (TD-04)
+            value = (cur / prev).ln()
             points.append(
                 FeaturePoint(
                     timestamp=bars[i].timestamp_close,
@@ -102,7 +101,7 @@ class LogReturnTransformer:
                     name=self.name,
                     value=value,
                     lookback_used=2,
-                    metadata={"method": "math.log"},
+                    metadata={"method": "Decimal.ln"},
                 )
             )
         return _series(self.name, self.min_lookback, points)

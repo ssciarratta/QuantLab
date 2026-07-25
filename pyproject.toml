@@ -1,6 +1,6 @@
 [project]
 name = "quantlab"
-version = "0.9.0"
+version = "0.10.0"
 description = "Laboratorio de investigación cuantitativa"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -28,6 +28,7 @@ dev = [
 quantlab-vertical-slice = "quantlab.vertical_slice.runner:main"
 quantlab-a3 = "quantlab.data.exchanges.a3.cli:main"
 quantlab-fase4-slice = "quantlab.vertical_slice.fase4:main"
+quantlab-health = "quantlab.infra.health:main"
 
 [build-system]
 requires = ["hatchling"]

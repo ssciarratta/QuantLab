@@ -9,6 +9,10 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import OrderSide
 from quantlab.core.types.results import SimulationResult
 
+# Convención TD-17 (explícita): realized_pnl de posiciones es BRUTO (sin fees).
+# Los fees impactan cash/equity vía fill.fee, no se restan del realized_pnl reportado.
+REALIZED_PNL_CONVENTION = "gross_excluding_fees"
+
 
 @dataclass(frozen=True, slots=True)
 class AccountingReport:
@@ -20,6 +24,7 @@ class AccountingReport:
     reported_cash: Decimal
     reported_equity: Decimal
     total_fees: Decimal
+    realized_pnl_convention: str = REALIZED_PNL_CONVENTION
 
 
 def _order_sides(result: SimulationResult) -> dict[str, OrderSide]:

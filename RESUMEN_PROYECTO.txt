@@ -1,35 +1,32 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-25
-Versión: 0.9.0
+Versión: 0.10.0
 
 ESTADO
 ------
-- Fases 0–17 con MVP certificado (roadmap alineado cerrado)
-- Certificado F17 + residuos: docs/audit/FASE_17_APPROVED.md
-- Research-prod hardening A0–A7: CERRADO (checklist verde)
-- Research-prod: LISTO (SELF_AUDIT actualizado)
-- LIVE order routing: BLOQUEADO (LIVE_BLOCKED = True)
+- Fases 0–17 certificadas
+- Fase 18 Control Total: código + Review Package (pendiente APROBADO)
+- Research-prod: LISTO
+- LIVE order routing: BLOQUEADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Post-hardening residuales 2026-07-25:
-- zip-slip bloqueado en restore_backup
-- Ops metrics in-process (live_gate.blocked, batch.failed_jobs)
-- SELF_AUDIT + TECHNICAL_DEBT alineados (TD-14/15/16/18 mitigados)
-- .gitignore: CI local no se trackea (scope OAuth workflow)
+FASE 18 (2026-07-25):
+- FeatureStore anti-colisión (hashed segments)
+- LogReturn Decimal.ln
+- LocalPaperLedger SQLite
+- quantlab-health + ops export
+- Convención TD-17 documentada
+- Review: docs/audit/FASE_18_REVIEW_PACKAGE.md
 
 PRÓXIMO PASO
 ------------
-- Operar en research-prod; no habilitar LIVE
-- Sin Fase 18 hasta alcance explícito
-- Pushear CI Actions cuando exista scope `workflow`
-
-REVIEW PACKAGE F17
-------------------
-- QuantLab_Review_Fase_17_v1.0.zip
-- SHA256: bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
+- Meta-Auditor → APROBADO F18 (no auto-certificar)
+- LIVE sigue BLOQUEADO
+- Sin cluster / TD-03
 
 BLOQUEOS
 --------
 - ORDER ROUTING REAL / LIVE A3: BLOQUEADO
+- FASE_18_APPROVED.md: solo con APROBADO explícito

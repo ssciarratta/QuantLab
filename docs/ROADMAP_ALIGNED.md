@@ -172,6 +172,17 @@
 **Estado en repo:** ✅ certificada (`docs/audit/FASE_17_APPROVED.md`) — incluye residuos F10/F12/F14  
 **Extras TD:** Parquet (`ParquetProcessedStore`) + `DuckDBCatalogBackend`
 
+### Fase 18 — Control Total (research-ops)
+**Módulos:**
+- FeatureStore anti-colisión de paths (TD-13)
+- LogReturn `Decimal.ln` (TD-04)
+- Convención TD-17 documentada (`gross_excluding_fees`)
+- `LocalPaperLedger` SQLite append-only (sin LIVE)
+- Health check + export ops JSON (`quantlab-health`)
+- Docs/runbook research-prod
+
+**Estado en repo:** 📦 código entregado — pendiente APROBADO Meta-Auditor  
+**Bloqueo permanente:** order routing LIVE A3.
 
 ---
 
@@ -217,6 +228,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. Review Package F17 + residuos → Meta-Auditor.  
-2. Con **APROBADO** explícito: emitir `FASE_17_APPROVED.md` + sync GitHub.  
+1. Review Package F18 → Meta-Auditor.  
+2. Con **APROBADO** explícito: emitir `FASE_18_APPROVED.md` + sync GitHub.  
 3. LIVE routing sigue **BLOQUEADO** hasta decisión de producto.

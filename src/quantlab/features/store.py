@@ -19,10 +19,15 @@ _SAFE_RE = re.compile(r"[^A-Za-z0-9._-]+")
 
 
 def _safe_segment(value: str) -> str:
+    """Sanitiza segmento e incluye hash del valor original (anti-colisión TD-13).
+
+    Así ``a/b`` y ``a_b`` no comparten path on-disk.
+    """
     cleaned = _SAFE_RE.sub("_", value.strip())
     if not cleaned or cleaned in {".", ".."} or set(cleaned) <= {"."}:
         raise ValidationError(f"segmento de path inseguro: {value!r}")
-    return cleaned
+    digest = hashlib.sha256(value.encode("utf-8")).hexdigest()[:10]
+    return f"{cleaned}__{digest}"
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,6 +81,7 @@ class FeatureStore:
             "created_at": created.isoformat(),
             "bar_count": frame.bar_count,
             "series": sorted(frame.series.keys()),
+            "path_layout": "hashed_segments_v1",
         }
         atomic_write_text(
             meta_path,
@@ -132,7 +138,18 @@ class FeatureStore:
         base = self.root / _safe_segment(instrument_id) / _safe_segment(pipeline_name)
         if not base.exists():
             return ()
-        versions = sorted(
-            p.name for p in base.iterdir() if p.is_dir() and (p / "frame.json").exists()
-        )
-        return tuple(versions)
+        versions: list[str] = []
+        for path in base.iterdir():
+            if not path.is_dir() or not (path / "frame.json").exists():
+                continue
+            meta_path = path / "meta.json"
+            if meta_path.exists():
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                ver = meta.get("version") if isinstance(meta, dict) else None
+                if isinstance(ver, str) and ver:
+                    versions.append(ver)
+                    continue
+            # fallback: directorio legacy sin meta usable
+            versions.append(path.name)
+        return tuple(sorted(set(versions)))
+
