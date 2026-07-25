@@ -9,13 +9,17 @@ ESTADO
 - F0–F17: CERTIFICADOS (FASE_17_APPROVED definitivo Meta-Auditor 2026-07-25)
 - F18 Control Total: código + CI (pendiente APROBADO Meta-Auditor propio)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO
+- Self-audit C1–C3 + H1–H5 + M1–M2 + A0–A7: CERRADOS
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Registro certificado F17 APROBADO DEFINITIVO (Meta-Auditor):
-- Lista A A1–A9 + residuos F10/F12/F14
-- Review Package SHA256 bc875475f77dbae87392f9be36fa1423c335669f5b1b0f333fc2f6fcf74d307d
-- docs/audit/FASE_17_APPROVED.md actualizado
+Cierre autónomo self-audit (canvas + residuales):
+- Red-team C2/C3 (NullRouter + A3Adapter place_order fail-closed)
+- Cobertura batch stream_sum/bordes, Avellaneda max_pos/lifecycle,
+  DuckDB verify storage vacío, grid random_search minimize
+- tests/unit/ops/test_self_audit_closure.py
+- Canvas + SELF_AUDIT sincronizados (0 críticos abiertos)
+- QA: 382 passed · mypy strict · ruff · health ok
 
 PRÓXIMO PASO
 ------------
