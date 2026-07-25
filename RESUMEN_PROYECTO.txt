@@ -11,10 +11,10 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-07-25 — tests cobertura extra (solo tests/, sin tocar src):
-- tests/unit/simulation/test_fill_model_extra.py (ImmediateBarFillModel)
-- tests/unit/data/test_validators_extra.py (validate_trades/bars/sanitize)
-- 20 passed (pytest -q)
+2026-07-25 — tests cobertura causal + splits (solo tests/, sin tocar src):
+- tests/unit/features/test_causal_extra.py (assert_bars_causal_ready / causal_window gaps)
+- tests/unit/validation/test_splits_extra.py (train_val_oos / walk_forward / overlap bordes)
+- 27 passed (pytest -q)
 
 PRÓXIMO PASO
 ------------
