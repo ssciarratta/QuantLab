@@ -699,7 +699,7 @@
 - DEC-097; bump 0.45.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F53.md`, 2026-07-26) — certificado externo `FASE_53_APPROVED.md` **NO emitido**  
-**Versión:** 0.45.0  
+**Versión:** 0.45.0 · implementación `065821b`  
 **Noche F19–F53:** `docs/audit/INTERNAL_AUDIT_F19_F53_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_53_DOCKER.md`  
 **Implementation report:** `docs/audit/FASE_53_IMPLEMENTATION_REPORT.md`

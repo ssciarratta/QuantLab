@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 53 — Dockerfile Workbench (opt-in)
 -------------------------------------------------------
-- v0.45.0 · DEC-097 · LIVE_BLOCKED intacto · sin FASE_53_APPROVED.
+- v0.45.0 · impl SHA 065821b · DEC-097 · LIVE_BLOCKED intacto · sin FASE_53_APPROVED.
 - Dockerfile.workbench (python 3.12-slim + uv sync) · .dockerignore ·
   docs/ops/DOCKER_WORKBENCH.md (-p 127.0.0.1:8765:8765).
 - CMD --allow-non-loopback / --no-browser (riesgo documentado).

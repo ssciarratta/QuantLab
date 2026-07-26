@@ -4,7 +4,7 @@
 **Versión:** 0.45.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F52 APROBADO_INTERNO  
-**Impl SHA:** _(post-commit)_  
+**Impl SHA:** `065821b`  
 **Alcance:** imagen Docker opt-in del Workbench — **sin flip LIVE**
 
 ---
