@@ -4,6 +4,7 @@
 **Versión:** 0.54.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F61 Request Access Log  
+**Impl SHA:** `7065400`  
 **Alcance:** Panel UI Access Log + menú + palette + auto-refresh — **sin flip LIVE**
 
 ---
