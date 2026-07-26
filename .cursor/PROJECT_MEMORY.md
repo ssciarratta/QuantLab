@@ -65,7 +65,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 46 | Multi-Session Switcher | 0.38.0 | `ce9cbdd` |
 | 47 | Chat Context Awareness | 0.39.0 | `afdf067` |
 | 48 | Theme CSS Completion | 0.40.0 | `9227750` |
-| 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | *(tip F49)* |
+| 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | `0ddbe67` |
 
 ---
 

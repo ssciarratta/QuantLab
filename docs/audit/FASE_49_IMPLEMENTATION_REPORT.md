@@ -4,6 +4,8 @@
 **Versión:** 0.41.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F48 Theme CSS Completion  
+**Impl SHA:** `0ddbe67`
+**Impl SHA:** `0ddbe67`
 **Alcance:** docs/milestone freeze F19–F48 + sync tip — **sin flip LIVE**
 
 ---

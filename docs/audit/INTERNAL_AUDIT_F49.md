@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Código tip:** v0.41.0 · F49 Milestone Freeze  
+**Código tip:** `0ddbe67` · **v0.41.0** · F49 Milestone Freeze
 **LIVE:** BLOQUEADO · flip **NO** ejecutado  
 **Certificado externo:** `FASE_49_APPROVED.md` **NO** emitido
 

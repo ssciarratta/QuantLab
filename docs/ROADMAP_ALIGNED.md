@@ -649,7 +649,7 @@
 - DEC-093; bump 0.41.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F49.md`, 2026-07-26) — certificado externo `FASE_49_APPROVED.md` **NO emitido**  
-**Versión:** 0.41.0  
+**Versión:** 0.41.0 · implementación `0ddbe67`  
 **Freeze:** `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Noche F19–F49:** `docs/audit/INTERNAL_AUDIT_F19_F49_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_49_MILESTONE.md`  

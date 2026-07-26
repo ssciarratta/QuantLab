@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código:** **v0.41.0** (Milestone Freeze Docs F49)  
+**Tip código:** `0ddbe67` · **v0.41.0** (Milestone Freeze Docs F49)
 **Milestone congelado:** v0.40.0 (F48 Theme CSS · impl `9227750`)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
@@ -61,7 +61,7 @@
 | **46** | Multi-Session Switcher | 0.38.0 | `ce9cbdd` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F46.md` |
 | **47** | Chat Context Awareness | 0.39.0 | `afdf067` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F47.md` |
 | **48** | Theme CSS Completion | 0.40.0 | `9227750` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F48.md` |
-| **49** | Milestone Freeze Docs + CHANGELOG | 0.41.0 | *(tip F49)* | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F49.md` |
+| **49** | Milestone Freeze Docs + CHANGELOG | 0.41.0 | `0ddbe67` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F49.md` |
 
 ### Arcos
 
@@ -88,13 +88,13 @@
 
 ## QA tip (noche)
 
-```
+`0ddbe67``
 uv run mypy --strict src/quantlab       # 175 ok
 uv run ruff check src/quantlab tests
 uv run pytest -q                        # 846
 uv run quantlab-health                  # 0.41.0 · live_blocked=true
 uv run python scripts/internal_audit_smoke.py  # 35/35
-```
+`0ddbe67``
 
 ## Bundle evidencia
 
@@ -102,11 +102,11 @@ uv run python scripts/internal_audit_smoke.py  # 35/35
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F49_v0.41.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F49_v0.41.0_MANIFEST.json` |
-| Digest | 0cf80f6b0667c2859bc8161f9dd7e13fb84606a8f1ae72cbc01b5f77f31d2795 |
+| Digest | f7c6516eadfd36a8af0fe83a39f3960a269c238b20a5cabf86554c19bf1ad1da |
 
-```text
-0cf80f6b0667c2859bc8161f9dd7e13fb84606a8f1ae72cbc01b5f77f31d2795  QuantLab_Internal_Review_F19_F49_v0.41.0.zip
-```
+`0ddbe67``text
+f7c6516eadfd36a8af0fe83a39f3960a269c238b20a5cabf86554c19bf1ad1da  QuantLab_Internal_Review_F19_F49_v0.41.0.zip
+`0ddbe67``
 
 > Path: `reports/QuantLab_Internal_Review_F19_F49_v0.41.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
 
