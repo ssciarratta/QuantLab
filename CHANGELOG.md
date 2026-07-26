@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.86.0] — 2026-07-26
+
+### Fase 94 — API Explorer Panel (read-only)
+
+#### Added
+- Pane Workbench `api_explorer.js`: navega el catálogo `/api/openapi.json`
+  (método, path, resumen, tags) con filtro incremental; solo GET
+- Cliente `QLApi.openapi()`; comando `open.api_explorer`; i18n `pane.api_explorer`
+- Tests `test_api_explorer_f94.py` + smoke `check_f94_api_explorer`
+
+#### Notes
+- Panel estrictamente read-only (única llamada `QLApi.openapi()`); sin rutas
+  LIVE en el catálogo; `LIVE_BLOCKED=True`
+
+---
+
 ## [0.85.0] — 2026-07-26
 
 ### Fase 93 — Venues / Broker Registry Panel (read-only)

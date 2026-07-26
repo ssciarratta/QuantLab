@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.85.0 (F93 Venues / Broker Registry Panel read-only)
+Versión código actual: 0.86.0 (F94 API Explorer Panel read-only)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,14 +75,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F93: APROBADO_INTERNO Zero-Trust (noche F19–F93; sin certificados externos)
+- F19–F93: APROBADO_INTERNO Zero-Trust; F94 (API Explorer) auditoría en curso
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F93 Venues / Broker Registry Panel read-only (0.85.0):
+F94 API Explorer Panel read-only (0.86.0):
+- Pane api_explorer.js navega /api/openapi.json (método/path/resumen/tags + filtro)
+- Cliente QLApi.openapi() + comando open.api_explorer + i18n; sin mutaciones
+- DEC-138; FASE_94_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+
+Previo — F93 Venues / Broker Registry Panel read-only (0.85.0):
 - /api/venues enriquecido: conexión + contrato plugins v1 (ReadOnlyBrokerPort)
 - Pane venues.js (builtin vs plugin, conectado) + comando open.venues + i18n
 - DEC-137; FASE_93_APPROVED.md NO emitido · LIVE_BLOCKED intacto

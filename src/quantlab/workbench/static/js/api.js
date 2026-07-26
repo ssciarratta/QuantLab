@@ -104,6 +104,9 @@
     venues: function () {
       return request("GET", "/api/venues");
     },
+    openapi: function () {
+      return request("GET", "/api/openapi.json");
+    },
     connect: function (venue, mode, opts) {
       const body = { venue: venue, mode: mode };
       if (opts && opts.md_source) {

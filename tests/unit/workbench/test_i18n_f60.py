@@ -32,8 +32,8 @@ _EN_JSON = _STATIC / "i18n" / "en.json"
 
 def test_live_blocked_and_version_f60() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.85.0"
-    assert PHASES_SUMMARY == "F19–F93 INTERNAL"
+    assert __version__ == "0.86.0"
+    assert PHASES_SUMMARY == "F19–F94 INTERNAL"
 
 
 def test_default_locale_es() -> None:

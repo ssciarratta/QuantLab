@@ -3227,3 +3227,34 @@ nuevas ni mutaciones.
 
 Versión código F93: **0.85.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 94 — API Explorer Panel (read-only)
+
+**Código:** 0.86.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-138
+**Qué es:** visor navegable del catálogo OpenAPI (F55) en el Workbench:
+método/path/resumen/tags con filtro. Reutiliza `GET /api/openapi.json`; sin
+rutas nuevas ni mutaciones.
+
+**DoD auditor:**
+- [x] Pane `api_explorer.js` read-only (única llamada `QLApi.openapi()`)
+- [x] Filtro incremental por path/método/tag
+- [x] Comando `open.api_explorer` + i18n `pane.api_explorer` es/en
+- [x] Tests F94 + smoke `check_f94_api_explorer`
+- [x] Sin `FASE_94_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F94; bump 0.86.0
+
+### Lista A F94
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Cliente | `src/quantlab/workbench/static/js/api.js` (`openapi()`) |
+| A2 | Pane | `src/quantlab/workbench/static/js/panes/api_explorer.js` |
+| A3 | Wiring | `shell.js` · `index.html` · `commands.py` |
+| A4 | Tests | `tests/unit/workbench/test_api_explorer_f94.py` |
+| A5 | Smoke | `scripts/internal_audit_smoke.py` |
+| A6 | Spec | `docs/FASE_94_API_EXPLORER.md` |
+
+Versión código F94: **0.86.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

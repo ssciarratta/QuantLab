@@ -1,3 +1,10 @@
+[2026-07-26] DEC-138 — API Explorer reutiliza openapi.json
+  Decisión: F94 agrega un visor de catálogo API en UI consumiendo el endpoint
+  existente GET /api/openapi.json (F55), sin crear rutas nuevas ni permitir
+  ejecutar requests desde el pane. Filtro en cliente; estrictamente read-only.
+  Bump 0.86.0. LIVE_BLOCKED=True; sin FASE_94_APPROVED.
+  Fase: 94.
+
 [2026-07-26] DEC-137 — Venues panel sin rutas nuevas
   Decisión: F93 expone el registro de brokers en UI enriqueciendo el GET
   /api/venues existente (connected_venue, md_provider, mode, live_blocked,

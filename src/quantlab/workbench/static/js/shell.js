@@ -221,6 +221,17 @@
     pane.refresh();
   }
 
+  function openApiExplorer() {
+    const pane = QLPanes.createApiExplorerPane();
+    wm.open(
+      "api_explorer",
+      tr("pane.api_explorer", "API Explorer"),
+      pane,
+      mergeOpts("api_explorer", { x: 300, y: 100, w: 560, h: 460 })
+    );
+    pane.refresh();
+  }
+
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
@@ -404,6 +415,7 @@
     risk: openRisk,
     reconciliation: openReconciliation,
     venues: openVenues,
+    api_explorer: openApiExplorer,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

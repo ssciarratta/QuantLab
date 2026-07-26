@@ -1185,6 +1185,16 @@
 - `LIVE_BLOCKED=True`; sin flip; sin `FASE_93_APPROVED.md`
 
 
+## Fase 94 — API Explorer Panel (read-only)
+
+**Version:** 0.86.0 · **DEC-138** · implementada, auditoría INTERNAL en curso
+
+- Pane `api_explorer.js` navega `/api/openapi.json` con filtro incremental
+- Cliente `QLApi.openapi()` + comando `open.api_explorer` + i18n es/en
+- Tests F94 + smoke; sin rutas nuevas ni mutaciones
+- `LIVE_BLOCKED=True`; sin flip; sin `FASE_94_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):
