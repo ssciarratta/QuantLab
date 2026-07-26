@@ -27,6 +27,9 @@
       '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
       '<input id="set-desktop-notif" type="checkbox" /> Desktop notifications (errors / kill)' +
       "</label>" +
+      '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
+      '<input id="set-sound-alerts" type="checkbox" /> Sound alerts (WebAudio beep · errors / kill)' +
+      "</label>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn" id="set-save" data-i18n="btn.save">Guardar</button>' +
       '<button type="button" class="btn secondary" id="set-refresh" data-i18n="btn.refresh">Recargar</button>' +
@@ -66,6 +69,7 @@
     const localeEl = root.querySelector("#set-locale");
     const accessLogEl = root.querySelector("#set-access-log");
     const desktopNotifEl = root.querySelector("#set-desktop-notif");
+    const soundAlertsEl = root.querySelector("#set-sound-alerts");
     const statusEl = root.querySelector("#set-status");
     const metaEl = root.querySelector("#set-meta");
     const zipStatusEl = root.querySelector("#set-zip-status");
@@ -116,6 +120,7 @@
       localeEl.value = s.locale === "en" ? "en" : "es";
       accessLogEl.checked = s.access_log !== false;
       desktopNotifEl.checked = s.desktop_notifications === true;
+      soundAlertsEl.checked = s.sound_alerts === true;
       fillStrategies(
         (data.strategy_ids || []).length
           ? data.strategy_ids
@@ -125,6 +130,9 @@
       applyTheme(s.theme);
       if (window.QLToasts && QLToasts.setDesktopNotifications) {
         QLToasts.setDesktopNotifications(desktopNotifEl.checked);
+      }
+      if (window.QLToasts && QLToasts.setSoundAlerts) {
+        QLToasts.setSoundAlerts(soundAlertsEl.checked);
       }
       if (window.QLi18n) {
         QLi18n.setLocale(localeEl.value);
@@ -176,6 +184,7 @@
         locale: localeEl.value === "en" ? "en" : "es",
         access_log: !!accessLogEl.checked,
         desktop_notifications: !!desktopNotifEl.checked,
+        sound_alerts: !!soundAlertsEl.checked,
       };
       const data = await QLApi.putSettings(body);
       render(data);

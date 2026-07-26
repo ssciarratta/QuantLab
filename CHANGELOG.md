@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.65.0] — 2026-07-26
+
+### Fase 73 — Optional Sound Alerts
+
+#### Added
+- Settings `sound_alerts` (default **false**) · checkbox UI
+- WebAudio short beep on toast errors + paper kill engage (no external assets; graceful if unsupported)
+- Docs: `FASE_73_SOUND.md` · implementation report · DEC-117
+- Suite `test_sound_alerts_f73.py` + smoke F73
+
+#### Changed
+- `phases_summary` → `F19–F73 INTERNAL`
+- Bump **0.65.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_73_APPROVED.md`; sound alerts opt-in
+
 ## [0.64.0] — 2026-07-26
 
 ### Fase 72 — Desktop Notifications Hook

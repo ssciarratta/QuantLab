@@ -947,6 +947,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 73 — Optional Sound Alerts
+
+**Versión:** 0.65.0 · **DEC-117** · **APROBADO_INTERNO** (sin `FASE_73_APPROVED.md`)
+
+- Settings `sound_alerts` (default **false**) · checkbox UI
+- Cuando true → WebAudio beep corto en toast errors + kill engage (sin assets externos)
+- Smoke F73; bundle INTERNAL default F19–F73
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

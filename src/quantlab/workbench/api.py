@@ -987,7 +987,7 @@ def handle_get_docs_content(state: WorkbenchState, query: str) -> dict[str, Any]
 
 
 def handle_get_settings(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/settings — preferencias (access_log / backup / desktop_notifications)."""
+    """GET /api/settings — preferencias (access_log / backup / notif / sound_alerts)."""
     session = state.ensure_session()
     try:
         settings = load_settings(session.settings_path)
@@ -1040,6 +1040,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "access_log",
             "auto_backup_minutes",
             "desktop_notifications",
+            "sound_alerts",
             "version",
         )
     ):
@@ -1060,6 +1061,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "access_log",
             "auto_backup_minutes",
             "desktop_notifications",
+            "sound_alerts",
         ):
             if key in payload:
                 merged[key] = payload[key]

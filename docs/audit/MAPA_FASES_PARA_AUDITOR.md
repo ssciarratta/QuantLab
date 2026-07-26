@@ -2372,3 +2372,47 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F72: **0.64.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 73 — Optional Sound Alerts
+
+**Código:** 0.65.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-117  
+**Qué es:** Settings opt-in `sound_alerts` (default false); cuando true, WebAudio beep corto en toast errors y paper kill engage (sin assets externos), con degradación graceful si AudioContext ausente; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_73_SOUND.md` |
+| Implementation report | `docs/audit/FASE_73_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F73.md` |
+| Review Package INTERNAL | `docs/audit/FASE_73_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F73.md` |
+| Noche F19–F73 | `docs/audit/INTERNAL_AUDIT_F19_F73_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 73** |
+
+**Certificado externo:** **NO** emitido (`FASE_73_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F73 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Settings field | `settings.py` · `api.py` |
+| A2 | Settings checkbox | `panes/settings.js` |
+| A3 | WebAudio beep hook | `toasts.js` · `shell.js` |
+| A4 | Spec | `docs/FASE_73_SOUND.md` |
+| A5 | Implementation report | `docs/audit/FASE_73_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-117 | `learning/decisiones.txt` |
+| A7 | Version 0.65.0 | `pyproject.toml` |
+| A8 | Suite + smoke F73 | `test_sound_alerts_f73.py` · smoke |
+
+### Lista B F73 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F73: **0.65.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

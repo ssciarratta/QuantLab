@@ -1,3 +1,10 @@
+[2026-07-26] DEC-117 — Optional Sound Alerts
+  Decisión: F73 = settings.sound_alerts default false (opt-in);
+  cuando true, WebAudio beep corto en toast errors y kill engage;
+  sin assets externos; graceful si AudioContext ausente; bump 0.65.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_73_APPROVED.
+  Fase: 73.
+
 [2026-07-26] DEC-116 — Desktop Notifications Hook
   Decisión: F72 = settings.desktop_notifications default false (opt-in);
   cuando true, JS Notification API en toast errors y kill engage;

@@ -283,6 +283,9 @@
             data.settings.desktop_notifications === true
           );
         }
+        if (window.QLToasts && QLToasts.setSoundAlerts) {
+          QLToasts.setSoundAlerts(data.settings.sound_alerts === true);
+        }
       }
     });
     wm.open("settings", tr("pane.settings", "Settings"), pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
@@ -613,6 +616,9 @@
         QLToasts.setDesktopNotifications(
           settingsData.settings.desktop_notifications === true
         );
+      }
+      if (window.QLToasts && QLToasts.setSoundAlerts) {
+        QLToasts.setSoundAlerts(settingsData.settings.sound_alerts === true);
       }
       updateStatusBar(settingsData);
       // Opcional: hidratar mensajes desde API (parity static JSON)
