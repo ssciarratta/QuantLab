@@ -48,6 +48,16 @@ from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRun
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
+from quantlab.workbench.session_zip import (
+    export_result_to_dict,
+    export_session,
+    import_result_to_dict,
+    import_session_zip,
+    make_temp_work_dir,
+    resolve_upload_archive,
+    rmtree_quiet,
+    write_export_sidecar_sha,
+)
 from quantlab.workbench.settings import load_settings, save_settings
 from quantlab.workbench.validation_runs import (
     get_validation_run,
@@ -248,6 +258,77 @@ def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
     }
     out.update(_md_info(state))
     return out
+
+
+def handle_get_session_export(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/session/export — ZIP research-safe de la sesión (path + meta)."""
+    session = state.ensure_session()
+    try:
+        result = export_session(session)
+        write_export_sidecar_sha(result)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return export_result_to_dict(result)
+
+
+def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/session/import — ZIP → sesión nueva o merge fail-closed."""
+    session = state.ensure_session()
+    mode_raw = body.get("mode", "new")
+    if not isinstance(mode_raw, str) or mode_raw not in ("new", "merge"):
+        raise ApiError(400, "mode debe ser 'new' o 'merge'")
+    mode: str = mode_raw
+    sid_raw = body.get("session_id")
+    session_id: str | None = None
+    if sid_raw is not None:
+        if not isinstance(sid_raw, str):
+            raise ApiError(400, "session_id debe ser string")
+        session_id = sid_raw.strip() or None
+
+    zip_path_raw = body.get("zip_path")
+    zip_b64_raw = body.get("zip_base64")
+    zip_path = zip_path_raw if isinstance(zip_path_raw, str) else None
+    zip_b64 = zip_b64_raw if isinstance(zip_b64_raw, str) else None
+
+    work = make_temp_work_dir()
+    owned_upload = False
+    try:
+        try:
+            archive = resolve_upload_archive(
+                zip_path=zip_path,
+                zip_base64=zip_b64,
+                work_dir=work,
+            )
+            owned_upload = zip_b64 is not None and bool(zip_b64.strip())
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
+
+        parent = session.root.parent
+        try:
+            if mode == "new":
+                result = import_session_zip(
+                    archive,
+                    session_parent=parent,
+                    mode="new",
+                    session_id=session_id,
+                )
+            else:
+                result = import_session_zip(
+                    archive,
+                    session_parent=parent,
+                    mode="merge",
+                    merge_into=session,
+                )
+                # Rehidrata book/journal tras merge.
+                state._hydrate_from_session()
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
+        return import_result_to_dict(result)
+    finally:
+        if owned_upload:
+            rmtree_quiet(work)
+        else:
+            rmtree_quiet(work)
 
 
 def handle_get_layout(state: WorkbenchState) -> dict[str, Any]:

@@ -1005,10 +1005,61 @@ Versión código F38: **0.30.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 39 — Session Export/Import ZIP (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.31.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** export/import del directorio durable de sesión como ZIP research-safe (sin secretos); `GET /api/session/export` (+ download) + `POST /api/session/import` (`new`|`merge` fail-closed); zip-slip vía `scale.backup`; UI en Settings.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_39_SESSION_ZIP.md` |
+| Implementation report | `docs/audit/FASE_39_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F39.md` |
+| Review Package INTERNAL | `docs/audit/FASE_39_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F39.md` |
+| Noche F19–F39 | `docs/audit/INTERNAL_AUDIT_F19_F39_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 39** |
+
+**Certificado externo:** **NO** emitido (`FASE_39_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F39 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Session ZIP | `workbench/session_zip.py` |
+| A2 | API + server | `api.py` · `server.py` |
+| A3 | Settings UI Export/Import | `static/js/panes/settings.js` |
+| A4 | API client | `static/js/api.js` |
+| A5 | Spec | `docs/FASE_39_SESSION_ZIP.md` |
+| A6 | Implementation report | `docs/audit/FASE_39_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-083 | `learning/decisiones.txt` |
+| A8 | Suite F39 | `tests/unit/workbench/test_session_zip_f39.py` |
+| A9 | Version 0.31.0 | `pyproject.toml` |
+
+### Lista B F39 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F39: **0.31.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F38 **APROBADO_INTERNO**.  
-2. QuantLab v0.30.0: Docs / Help Browser.  
-3. **LIVE sigue BLOQUEADO**; docs solo lectura local fail-closed.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F38 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F39 **APROBADO_INTERNO**.  
+2. QuantLab v0.31.0: Session Export/Import ZIP.  
+3. **LIVE sigue BLOQUEADO**; ZIP sin secretos · zip-slip fail-closed.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F39 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

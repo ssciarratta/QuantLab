@@ -1,4 +1,4 @@
-/** Panel Settings — preferencias de sesión (F36). */
+/** Panel Settings — preferencias de sesión (F36) + export/import ZIP (F39). */
 (function (global) {
   "use strict";
 
@@ -27,6 +27,27 @@
       '<div class="pane-section">' +
       "<h3>Sesión</h3>" +
       '<dl class="kv" id="set-meta"></dl>' +
+      "</div>" +
+      '<div class="pane-section">' +
+      "<h3>Export / Import ZIP</h3>" +
+      '<p class="muted" style="margin-top:0">Research-safe · sin secretos · zip-slip fail-closed · LIVE bloqueado.</p>' +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn" id="set-export">Exportar sesión</button>' +
+      '<button type="button" class="btn secondary" id="set-export-dl">Descargar ZIP</button>' +
+      "</div>" +
+      '<div class="pane-row" style="margin-top:0.5rem">' +
+      '<label class="field" style="flex:1">Importar ZIP' +
+      '<input id="set-import-file" type="file" accept=".zip,application/zip" />' +
+      "</label>" +
+      "</div>" +
+      '<div class="pane-row">' +
+      '<label class="field">Modo<select id="set-import-mode">' +
+      '<option value="new">nueva sesión</option>' +
+      '<option value="merge">merge (fail-closed)</option>' +
+      "</select></label>" +
+      '<button type="button" class="btn" id="set-import">Importar</button>' +
+      "</div>" +
+      '<p class="mono muted" id="set-zip-status">—</p>' +
       "</div>";
 
     const themeEl = root.querySelector("#set-theme");
@@ -36,6 +57,9 @@
     const localeEl = root.querySelector("#set-locale");
     const statusEl = root.querySelector("#set-status");
     const metaEl = root.querySelector("#set-meta");
+    const zipStatusEl = root.querySelector("#set-zip-status");
+    const importFileEl = root.querySelector("#set-import-file");
+    const importModeEl = root.querySelector("#set-import-mode");
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -134,6 +158,66 @@
       statusEl.textContent = "guardado";
     }
 
+    function fileToBase64(file) {
+      return new Promise(function (resolve, reject) {
+        const reader = new FileReader();
+        reader.onload = function () {
+          const result = String(reader.result || "");
+          const idx = result.indexOf(",");
+          resolve(idx >= 0 ? result.slice(idx + 1) : result);
+        };
+        reader.onerror = function () {
+          reject(new Error("no se pudo leer el ZIP"));
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function doExport() {
+      const data = await QLApi.sessionExport();
+      zipStatusEl.textContent =
+        "export ok · " +
+        (data.filename || "") +
+        " · " +
+        (data.files_count || 0) +
+        " files · " +
+        (data.path || "");
+      zipStatusEl.className = "mono muted status-ok";
+    }
+
+    function doDownload() {
+      const a = document.createElement("a");
+      a.href = QLApi.sessionExportDownloadUrl();
+      a.download = "quantlab-session.zip";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      zipStatusEl.textContent = "descarga iniciada";
+      zipStatusEl.className = "mono muted status-ok";
+    }
+
+    async function doImport() {
+      const file = importFileEl.files && importFileEl.files[0];
+      if (!file) {
+        throw new Error("seleccioná un archivo .zip");
+      }
+      zipStatusEl.textContent = "importando…";
+      const b64 = await fileToBase64(file);
+      const data = await QLApi.sessionImport({
+        mode: importModeEl.value === "merge" ? "merge" : "new",
+        zip_base64: b64,
+      });
+      zipStatusEl.textContent =
+        "import " +
+        data.mode +
+        " ok · session_id=" +
+        data.session_id +
+        " · written=" +
+        data.files_written;
+      zipStatusEl.className = "mono muted status-ok";
+      importFileEl.value = "";
+    }
+
     root.querySelector("#set-refresh").addEventListener("click", function () {
       refresh().catch(function (err) {
         statusEl.textContent = err.message;
@@ -144,6 +228,26 @@
       save().catch(function (err) {
         statusEl.textContent = err.message;
         statusEl.className = "mono status-bad";
+      });
+    });
+    root.querySelector("#set-export").addEventListener("click", function () {
+      doExport().catch(function (err) {
+        zipStatusEl.textContent = err.message;
+        zipStatusEl.className = "mono status-bad";
+      });
+    });
+    root.querySelector("#set-export-dl").addEventListener("click", function () {
+      try {
+        doDownload();
+      } catch (err) {
+        zipStatusEl.textContent = err.message || String(err);
+        zipStatusEl.className = "mono status-bad";
+      }
+    });
+    root.querySelector("#set-import").addEventListener("click", function () {
+      doImport().catch(function (err) {
+        zipStatusEl.textContent = err.message;
+        zipStatusEl.className = "mono status-bad";
       });
     });
 

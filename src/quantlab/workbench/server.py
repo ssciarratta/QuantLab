@@ -44,6 +44,7 @@ from quantlab.workbench.api import (
     handle_get_positions,
     handle_get_risk,
     handle_get_session,
+    handle_get_session_export,
     handle_get_settings,
     handle_get_snapshot,
     handle_get_universe,
@@ -64,6 +65,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
     handle_post_paper_submit,
+    handle_post_session_import,
     handle_put_layout,
     handle_put_settings,
     handle_put_watchlist,
@@ -77,13 +79,13 @@ def _json_bytes(payload: dict[str, Any], status: int = 200) -> tuple[int, bytes,
     return status, body, "application/json; charset=utf-8"
 
 
-def _read_json(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+def _read_json(handler: BaseHTTPRequestHandler, *, max_bytes: int = 1_000_000) -> dict[str, Any]:
     length_raw = handler.headers.get("Content-Length", "0")
     try:
         length = int(length_raw)
     except ValueError as exc:
         raise ApiError(400, "Content-Length inválido") from exc
-    if length < 0 or length > 1_000_000:
+    if length < 0 or length > max_bytes:
         raise ApiError(400, "body demasiado grande")
     raw = handler.rfile.read(length) if length else b"{}"
     if not raw:
@@ -95,6 +97,14 @@ def _read_json(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ApiError(400, "body JSON debe ser un objeto")
     return data
+
+
+def _wants_download(query: str) -> bool:
+    from urllib.parse import parse_qs
+
+    qs = parse_qs(query)
+    raw = (qs.get("download") or qs.get("format") or ["0"])[0].strip().lower()
+    return raw in {"1", "true", "yes", "zip"}
 
 
 def _safe_static_path(url_path: str) -> Path | None:
@@ -133,6 +143,15 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def _send_download(self, body: bytes, *, filename: str, content_type: str) -> None:
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(body)
@@ -184,6 +203,21 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
+                    return
+                if path == "/api/session/export":
+                    payload = handle_get_session_export(state)
+                    if _wants_download(parsed.query):
+                        zip_path = Path(str(payload["path"]))
+                        if not zip_path.is_file():
+                            self._send_error_json(404, "ZIP de export no encontrado")
+                            return
+                        self._send_download(
+                            zip_path.read_bytes(),
+                            filename=str(payload.get("filename") or zip_path.name),
+                            content_type="application/zip",
+                        )
+                        return
+                    self._send_json(payload)
                     return
                 if path == "/api/layout":
                     self._send_json(handle_get_layout(state))
@@ -301,7 +335,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             parsed = urlparse(self.path)
             path = parsed.path
             try:
-                body = _read_json(self)
+                # Import ZIP puede traer base64 grande (hasta ~50 MiB + overhead JSON).
+                max_body = 55_000_000 if path == "/api/session/import" else 1_000_000
+                body = _read_json(self, max_bytes=max_body)
                 if path == "/api/mode":
                     self._send_json(handle_post_mode(state, body))
                     return
@@ -346,6 +382,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/onboarding/complete":
                     self._send_json(handle_post_onboarding_complete(state, body))
+                    return
+                if path == "/api/session/import":
+                    self._send_json(handle_post_session_import(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

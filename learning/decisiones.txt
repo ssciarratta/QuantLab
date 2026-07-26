@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-083 — Session Export/Import ZIP
+  Decisión: F39 = export sesión durable a ZIP research-safe (journal,
+  book, layout, settings, reports, optimizer, etc.) sin secretos;
+  GET /api/session/export (JSON path o ?download=1 ZIP); POST
+  /api/session/import (mode=new|merge fail-closed) con zip-slip via
+  scale.backup._assert_safe_zip_member + allowlist; UI en Settings.
+  LIVE_BLOCKED=True; sin flip; sin FASE_39_APPROVED; sin LIVE.
+  Fase: 39.
+
 [2026-07-26] DEC-082 — Docs / Help Browser
   Decisión: F38 = browser Help/Docs read-only sobre docs/*.md y
   docs/ops/*.md; GET /api/docs lista paths relativos safe; GET

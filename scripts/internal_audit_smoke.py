@@ -770,6 +770,72 @@ def check_f38_docs_help() -> None:
     assert "open.docs" in ids
 
 
+def check_f39_session_zip() -> None:
+    """F39: session export/import ZIP + zip-slip fail-closed + LIVE_BLOCKED."""
+    import zipfile
+    from pathlib import Path
+
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_session_export,
+        handle_post_session_import,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+    from quantlab.workbench.session_zip import MANIFEST_NAME, export_session, import_session_zip
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f39-zip")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke39")
+    (session.reports_dir / "smoke.json").write_text('{"ok":true}\n', encoding="utf-8")
+    (session.root / ".env").write_text("NO=1\n", encoding="utf-8")
+
+    result = export_session(session)
+    assert result.archive_path.is_file()
+    with zipfile.ZipFile(result.archive_path, "r") as zf:
+        names = set(zf.namelist())
+    assert MANIFEST_NAME in names
+    assert ".env" not in names
+
+    imported = import_session_zip(
+        result.archive_path,
+        session_parent=root,
+        mode="new",
+        session_id="smoke39b",
+    )
+    assert imported.session_id == "smoke39b"
+    assert (imported.session_root / "reports" / "smoke.json").is_file()
+
+    evil = root / "evil.zip"
+    with zipfile.ZipFile(evil, "w") as zf:
+        zf.writestr(
+            MANIFEST_NAME,
+            '{"format":"quantlab_session_zip","format_version":1}',
+        )
+        zf.writestr("../pwn.txt", "x")
+    try:
+        import_session_zip(evil, session_parent=root, mode="new", session_id="evil39")
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("expected zip-slip ValidationError")
+
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    exp = handle_get_session_export(state)
+    assert exp["ok"] is True
+    assert exp["live_blocked"] is True
+    assert exp["live_routing"] is False
+    got = handle_post_session_import(
+        state,
+        {"mode": "new", "session_id": "smoke39c", "zip_path": exp["path"]},
+    )
+    assert got["ok"] is True
+    assert got["session_id"] == "smoke39c"
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -796,6 +862,7 @@ def main() -> int:
         ("F36 settings + status bar", check_f36_settings),
         ("F37 first-run onboarding wizard", check_f37_onboarding),
         ("F38 docs / help browser", check_f38_docs_help),
+        ("F39 session export/import ZIP", check_f39_session_zip),
     ]
     ok = True
     for name, fn in checks:

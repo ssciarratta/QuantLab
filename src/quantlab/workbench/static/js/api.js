@@ -222,5 +222,14 @@
         "/api/docs/content?path=" + encodeURIComponent(path || "")
       );
     },
+    sessionExport: function () {
+      return request("GET", "/api/session/export");
+    },
+    sessionExportDownloadUrl: function () {
+      return "/api/session/export?download=1";
+    },
+    sessionImport: function (body) {
+      return request("POST", "/api/session/import", body || {});
+    },
   };
 })(window);
