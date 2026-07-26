@@ -1,4 +1,11 @@
 
+[2026-07-26] DEC-106 — Access Log Panel UI
+  Decisión: F62 = panel SPA Access Log consumiendo GET /api/access-log (F61);
+  menú Inicio + command palette open.access_log; auto-refresh opcional 5s;
+  dispose al cerrar; suite test_access_log_ui_f62.py; bump 0.54.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_62_APPROVED.
+  Fase: 62.
+
 [2026-07-26] DEC-105 — Workbench Request Access Log
   Decisión: F61 = access.jsonl append-only por sesión (method, path, status, ms)
   sin bodies/secrets; toggle settings.access_log default true; GET /api/access-log;

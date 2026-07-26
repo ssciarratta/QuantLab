@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.54.0] — 2026-07-26
+
+### Fase 62 — Access Log Panel UI
+
+#### Added
+- Panel SPA Access Log (`static/js/panes/access_log.js`) · `QLApi.getAccessLog`
+- Menú Inicio → Sistema → Access Log · command palette `open.access_log`
+- Auto-refresh opcional (5s) + `dispose` al cerrar ventana (`wm.close`)
+- i18n `pane.access_log` · CSS access-list
+- Suite `tests/unit/workbench/test_access_log_ui_f62.py`
+- Docs: `FASE_62_ACCESS_LOG_UI.md` · implementation report · DEC-106
+- Bundle INTERNAL default F19–F62
+
+#### Changed
+- `phases_summary` → `F19–F62 INTERNAL`
+- Bump **0.54.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_62_APPROVED.md`
+
+---
+
 ## [0.53.0] — 2026-07-26
 
 ### Fase 61 — Workbench Request Access Log

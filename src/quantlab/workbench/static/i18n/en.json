@@ -31,6 +31,7 @@
   "pane.validation": "Validation Splits",
   "pane.sessions": "Sessions",
   "pane.activity": "Activity",
+  "pane.access_log": "Access Log",
   "pane.ops_metrics": "Ops Metrics",
   "pane.settings": "Settings",
   "pane.docs": "Help / Docs",

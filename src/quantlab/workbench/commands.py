@@ -200,6 +200,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("activity", "log", "toast", "eventos", "historial"),
     },
     {
+        "id": "open.access_log",
+        "kind": "pane",
+        "label": "Abrir Access Log",
+        "pane_id": "access_log",
+        "keywords": ("access", "access-log", "http", "requests", "jsonl", "auditoría"),
+    },
+    {
         "id": "open.ops_metrics",
         "kind": "pane",
         "label": "Abrir Ops Metrics",

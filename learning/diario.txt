@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 62 — Access Log Panel UI
+-------------------------------------------------------
+- v0.54.0 · DEC-106 · LIVE_BLOCKED intacto · sin FASE_62_APPROVED.
+- Panel Access Log (GET /api/access-log); menú Inicio + open.access_log;
+  auto-refresh opcional 5s; dispose wm.close.
+- Suite test_access_log_ui_f62.py; smoke F62; bundle F19–F62.
+- Noche F19–F62 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 61 — Workbench Request Access Log
 -------------------------------------------------------
 - v0.53.0 · DEC-105 · LIVE_BLOCKED intacto · sin FASE_61_APPROVED.

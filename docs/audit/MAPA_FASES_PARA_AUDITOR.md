@@ -1913,3 +1913,42 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F61: **0.53.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 62 — Access Log Panel UI
+
+**Código:** 0.54.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Panel SPA Access Log que consume `GET /api/access-log` (F61); menú Inicio + command palette `open.access_log`; auto-refresh opcional 5s.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_62_ACCESS_LOG_UI.md` |
+| Implementation report | `docs/audit/FASE_62_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F62.md` |
+| Noche F19–F62 | `docs/audit/INTERNAL_AUDIT_F19_F62_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 62** |
+| DEC | DEC-106 |
+
+### Lista A F62 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Panel Access Log | `static/js/panes/access_log.js` |
+| A2 | Menú + shell | `index.html` · `shell.js` |
+| A3 | Command palette | `open.access_log` |
+| A4 | Auto-refresh + dispose | checkbox 5s · `wm.close` |
+| A5 | Suite UI | `tests/unit/workbench/test_access_log_ui_f62.py` |
+| A6 | Version 0.54.0 | `pyproject.toml` |
+
+### Lista B F62 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F62: **0.54.0** · LIVE: **BLOQUEADO** · flip: **NO**.

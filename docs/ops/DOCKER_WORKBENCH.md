@@ -20,7 +20,7 @@ quantlab-workbench --host 0.0.0.0 --allow-non-loopback --no-browser
 Desde la raíz del repo:
 
 ```bash
-docker build -f Dockerfile.workbench -t quantlab-workbench:0.53.0 .
+docker build -f Dockerfile.workbench -t quantlab-workbench:0.54.0 .
 # o tag local corto:
 docker build -f Dockerfile.workbench -t quantlab-workbench .
 ```

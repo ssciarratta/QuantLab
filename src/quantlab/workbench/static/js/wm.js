@@ -199,6 +199,14 @@
   WindowManager.prototype.close = function (id) {
     const rec = this.windows.get(id);
     if (!rec) return;
+    const content = rec.body && rec.body.firstElementChild;
+    if (content && typeof content.dispose === "function") {
+      try {
+        content.dispose();
+      } catch (err) {
+        /* ignore dispose errors */
+      }
+    }
     rec.el.remove();
     rec.taskBtn.remove();
     this.windows.delete(id);

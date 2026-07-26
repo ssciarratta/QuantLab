@@ -321,6 +321,17 @@
     pane.refresh().catch(function () {});
   }
 
+  function openAccessLog() {
+    const pane = QLPanes.createAccessLogPane();
+    wm.open(
+      "access_log",
+      tr("pane.access_log", "Access Log"),
+      pane,
+      mergeOpts("access_log", { x: 230, y: 75, w: 560, h: 460 })
+    );
+    pane.refresh().catch(function () {});
+  }
+
   function openOpsMetrics() {
     const pane = QLPanes.createOpsMetricsPane();
     wm.open(
@@ -348,6 +359,7 @@
     about: openAbout,
     sessions: openSessions,
     activity: openActivity,
+    access_log: openAccessLog,
     ops_metrics: openOpsMetrics,
     backtest: openBacktest,
     scanner: openScanner,
