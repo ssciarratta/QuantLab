@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-102 — Milestone Freeze Docs + CHANGELOG Sync (v0.50)
+  Decisión: F58 = freeze documental del hito workbench v0.50.0:
+  inventario F19–F57/F58, invariantes Zero-Trust, cómo operar research/paper,
+  límites explícitos (no LIVE); sync CHANGELOG (resumen agrupado F19–F57),
+  RESUMEN, PROJECT_MEMORY, README; smoke tip version starts with 0.50;
+  bundle INTERNAL default F19–F58; bump 0.50.0. LIVE_BLOCKED=True; sin flip;
+  sin FASE_58_APPROVED. Sin features de producto nuevas.
+  Fase: 58.
+
 [2026-07-26] DEC-101 — Content-Security-Policy
   Decisión: F57 = CSP restrictiva en respuestas del workbench compatible
   con SPA local: default-src 'self'; script-src 'self'; style-src 'self'

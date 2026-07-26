@@ -2,6 +2,13 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 58 — Milestone Freeze Docs (v0.50)
+-------------------------------------------------------
+- v0.50.0 · DEC-102 · LIVE_BLOCKED intacto · sin FASE_58_APPROVED.
+- MILESTONE_V050_FREEZE.md · inventario F19–F57/F58 · operar · límites.
+- Smoke version starts with 0.50; bundle F19–F58; sync tip docs.
+- Noche F19–F58 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 57 — Content-Security-Policy
 -------------------------------------------------------
 - v0.49.0 · DEC-101 · LIVE_BLOCKED intacto · sin FASE_57_APPROVED.

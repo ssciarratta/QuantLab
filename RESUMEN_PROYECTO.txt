@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.49.0 (F57 Content-Security-Policy)
+Versión código actual: 0.50.0 (F58 Milestone Freeze Docs — hito v0.50)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -14,6 +14,7 @@ Auditoría INTERNAL F54: código 0.46.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F55: código 0.47.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F56: código 0.48.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F57: código 0.49.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F58: código 0.50.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -26,25 +27,27 @@ Noche F19–F54: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F54_NIGHT.md)
 Noche F19–F55: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F55_NIGHT.md)
 Noche F19–F56: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F56_NIGHT.md)
 Noche F19–F57: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F57_NIGHT.md)
-Freeze: docs/audit/MILESTONE_V040_FREEZE.md
+Noche F19–F58: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F58_NIGHT.md)
+Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
+Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F57: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49 freeze + F50 perf + F51 rate limit + F52 shutdown + F53 Docker + F54 probes + F55 OpenAPI + F56 security headers + F57 CSP
+- F19–F58: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49 freeze + F50–F57 ops/security + F58 milestone v0.50
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F57 Content-Security-Policy (v0.49.0) — APROBADO_INTERNO:
-- CSP default-src/script-src/connect-src 'self'; style-src 'self' 'unsafe-inline';
-  frame-ancestors 'none'; sin unsafe-eval
-- Scripts HTML externos; DEC-101; test_csp_f57.py; FASE_57_APPROVED.md NO emitido
+F58 Milestone Freeze Docs + CHANGELOG Sync (v0.50.0) — APROBADO_INTERNO:
+- MILESTONE_V050_FREEZE.md · inventario F19–F57/F58 · invariantes · operar · límites
+- Smoke version starts with 0.50; bundle F19–F58; DEC-102
+- FASE_58_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F57 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F58 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL

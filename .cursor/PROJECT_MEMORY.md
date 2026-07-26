@@ -2,8 +2,9 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.43.0** (F51 API Rate Limit loopback soft)  
-**Milestone congelado:** **v0.40.0** (F19–F48) · `docs/audit/MILESTONE_V040_FREEZE.md`  
+**Versión tip:** **0.50.0** (F58 Milestone Freeze Docs — hito v0.50)  
+**Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
+**Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
 ---
@@ -24,18 +25,23 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F49 | Milestone freeze docs + CHANGELOG sync · **0.41.0** |
 | F50 | Performance baseline Workbench API · **0.42.0** |
 | F51 | Soft API rate limit (IP/path) · **0.43.0** |
+| F52 | Graceful shutdown + paper session safety · **0.44.0** |
+| F53 | Dockerfile Workbench (opt-in) · **0.45.0** |
+| F54 | Readiness / liveness probes · **0.46.0** |
+| F55 | OpenAPI / API catalog · **0.47.0** |
+| F56 | Security headers · **0.48.0** |
+| F57 | Content-Security-Policy · **0.49.0** |
+| F58 | Milestone freeze docs + CHANGELOG sync (v0.50) · **0.50.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F48 | `docs/audit/INTERNAL_AUDIT_F19_F48_NIGHT.md` |
-| Noche F19–F49 | `docs/audit/INTERNAL_AUDIT_F19_F49_NIGHT.md` |
-| Noche F19–F50 | `docs/audit/INTERNAL_AUDIT_F19_F50_NIGHT.md` |
-| Noche F19–F51 | `docs/audit/INTERNAL_AUDIT_F19_F51_NIGHT.md` |
+| Noche F19–F57 | `docs/audit/INTERNAL_AUDIT_F19_F57_NIGHT.md` |
+| Noche F19–F58 | `docs/audit/INTERNAL_AUDIT_F19_F58_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F51 (SHAs impl) — tip v0.43.0
+## Arco nocturno F19–F58 (SHAs impl) — tip v0.50.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -72,6 +78,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | `0ddbe67` |
 | 50 | Performance Baseline Workbench API | 0.42.0 | `d91f239` |
 | 51 | API Rate Limit (loopback soft) | 0.43.0 | `2451802` |
+| 52 | Graceful Shutdown + Paper Session Safety | 0.44.0 | `feace00` |
+| 53 | Dockerfile Workbench (opt-in) | 0.45.0 | `065821b` |
+| 54 | Readiness / Liveness Probes | 0.46.0 | `a34902c` |
+| 55 | OpenAPI / API Catalog | 0.47.0 | `b415978` |
+| 56 | Security Headers | 0.48.0 | `6246a74` |
+| 57 | Content-Security-Policy | 0.49.0 | `fbb0355` |
+| 58 | Milestone Freeze Docs + CHANGELOG (v0.50) | 0.50.0 | *(tip F58)* |
 
 ---
 
@@ -88,24 +101,26 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 9. Strategy Catalog: factory compartida paper+lab; MM bar-backtest sintético; sin LIVE
 10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
 11. Catalog / Feature Store: read-only list; persist features solo sandbox sesión
-12. About / health `version` ≡ `quantlab.__version__` (F49 smoke)
+12. About / health `version` ≡ `quantlab.__version__` (F49); tip **startswith 0.50** (F58)
 13. Perf baseline F50: p95/max endpoints clave < 500ms loopback
 14. Soft rate limit F51: token bucket IP/path; default 120 rps; 429 JSON
+15. CSP F57 + security headers F56 + probes F54 intactos
 
 ---
 
 ## Paths clave
 
-- Freeze milestone: `docs/audit/MILESTONE_V040_FREEZE.md`
+- Freeze milestone v0.40: `docs/audit/MILESTONE_V040_FREEZE.md`
+- Freeze milestone v0.50: `docs/audit/MILESTONE_V050_FREEZE.md`
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
 - Resumen: `RESUMEN_PROYECTO.txt`
-- DECs: `learning/decisiones.txt` (DEC-054…095)
+- DECs: `learning/decisiones.txt` (DEC-054…102)
 - Workbench: `src/quantlab/workbench/`
 - Rate limit: `src/quantlab/workbench/rate_limit.py`
 - Perf baseline: `src/quantlab/workbench/perf_baseline.py`
 - Smoke: `scripts/internal_audit_smoke.py`
-- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F51)
+- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F58)
 - Flip checklist (no ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
 
 ---
@@ -127,7 +142,7 @@ uv run python scripts/workbench_perf_baseline.py
 ## Entry points útiles
 
 - `quantlab-health` — ops / LIVE gate
-- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F51
+- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F58
 - `scripts/workbench_perf_baseline.py` — latencia API F50
 - `quantlab-a3` — market data A3 (anticorrupción)
 - `quantlab-vertical-slice` — slice mínimo
