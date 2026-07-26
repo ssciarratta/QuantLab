@@ -521,7 +521,7 @@
 - UI menú Inicio → Espacios de trabajo; DEC-084; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F40.md`, 2026-07-26) — certificado externo `FASE_40_APPROVED.md` **NO emitido**  
-**Versión:** 0.32.0  
+**Versión:** 0.32.0 · implementación `8197f32`  
 **Review Package INTERNAL:** `docs/audit/FASE_40_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F40.md`  
 **Noche F19–F40:** `docs/audit/INTERNAL_AUDIT_F19_F40_NIGHT.md` = **APROBADO_INTERNO**  
