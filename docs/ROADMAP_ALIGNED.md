@@ -1112,7 +1112,7 @@
 
 ## Fase 88 — Paper Journal authoritative + Book reconciliation
 
-**Versión:** 0.80.0 · **DEC-132** · implementación completa, auditoría INTERNAL en curso
+**Versión:** 0.80.0 · **DEC-132** · **APROBADO_INTERNO** (sin `FASE_88_APPROVED.md`)
 
 - `journal.jsonl` append-only es source of truth; reader estricto y duplicados rechazados
 - `book.json` v2 es proyección atómica ligada a checkpoint SHA-256

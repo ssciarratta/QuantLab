@@ -40,7 +40,13 @@ class PaperBook:
         # symbol -> (quantity, avg_price)
         raw_positions = dict(positions or {})
         for sym, (qty, avg) in raw_positions.items():
-            if not sym.strip() or not qty.is_finite() or not avg.is_finite() or avg < 0:
+            if (
+                not sym.strip()
+                or not qty.is_finite()
+                or qty == 0
+                or not avg.is_finite()
+                or avg < 0
+            ):
                 raise ValidationError(f"posición inválida para {sym!r}")
             if not allow_short and qty < 0:
                 raise ValidationError(

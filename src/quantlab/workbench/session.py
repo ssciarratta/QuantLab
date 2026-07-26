@@ -345,5 +345,11 @@ class WorkbenchSession:
                 }
             )
         if not session.book_path.exists():
-            session.save_book(PaperBook(initial_cash=cash))
+            journal = PaperFillJournal(session.journal_path)
+            try:
+                journal_empty = journal.checkpoint().record_count == 0
+            except ValidationError:
+                journal_empty = False
+            if journal_empty:
+                session.save_book(PaperBook(initial_cash=cash))
         return session

@@ -77,10 +77,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F85 | Bring to Front / Send to Back · **APROBADO_INTERNO** · v0.77.0 |
 | F86 | Maximize / Restore Window · **APROBADO_INTERNO** · v0.78.0 |
 | F87 | Broker Plugin Contract v1 · **APROBADO_INTERNO** · v0.79.0 |
-| F88 | Paper Journal authoritative + Book reconciliation · implementación completa · v0.80.0 |
+| F88 | Paper Journal authoritative + Book reconciliation · **APROBADO_INTERNO** · v0.80.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Project memory](PROJECT_MEMORY.md) · [F88 reconciliation](docs/FASE_88_PAPER_RECONCILIATION.md)
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Project memory](PROJECT_MEMORY.md) · [F88 reconciliation](docs/FASE_88_PAPER_RECONCILIATION.md) · [Noche F19–F88](docs/audit/INTERNAL_AUDIT_F19_F88_NIGHT.md)
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

@@ -4,6 +4,7 @@ Fecha: 2026-07-26
 Versión: 0.80.0  
 Branch: `cursor/modo-real-workbench-aafd`  
 Prereq: F87 v0.79.0  
+Implementation SHA: `54161f5`
 Alcance: journal PAPER autoritativo y book reconstruible; sin flip LIVE.
 
 ## Entregas
@@ -31,8 +32,10 @@ reproduce el journal completo y jamás lo modifica.
 ```text
 ruff check src/quantlab tests scripts    PASS
 mypy --strict src/quantlab               PASS (198 source files)
-pytest -q                                PASS (1141 tests)
+pytest -q                                PASS (1144 tests post-audit)
+quantlab-health                          PASS (0.80.0, live_blocked=true)
+internal_audit_smoke.py                  PASS (73/73)
 ```
 
-Pendiente en este punto documental: smoke/health final y auditoría INTERNAL F88.
-No existe ni se debe crear `FASE_88_APPROVED.md`.
+Auditoría INTERNAL: **APROBADO_INTERNO**, con highs cerrados en el commit de
+auditoría. No existe ni se debe crear `FASE_88_APPROVED.md`.

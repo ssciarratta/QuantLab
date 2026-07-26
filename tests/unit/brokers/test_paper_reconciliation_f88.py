@@ -279,3 +279,48 @@ def test_reconciliation_http_handler_is_read_only(tmp_path: Path) -> None:
     assert payload["ok"] is True
     assert payload["status"] == "ok"
     assert session.journal_path.read_bytes() == before
+
+
+def test_http_check_does_not_migrate_externally_downgraded_legacy_book(
+    tmp_path: Path,
+) -> None:
+    session = WorkbenchSession.create_or_load(tmp_path, "http-legacy")
+    state = WorkbenchState(session=session, session_parent=tmp_path)
+    state.ensure_session()
+    legacy_text = json.dumps(PaperBook().to_dict())
+    session.book_path.write_text(legacy_text, encoding="utf-8")
+
+    payload = handle_get_paper_reconciliation(state)
+
+    assert payload["ok"] is False
+    assert "legacy_format" in payload["issues"]
+    assert session.book_path.read_text(encoding="utf-8") == legacy_text
+
+
+def test_missing_book_with_nonempty_journal_is_not_silently_recreated(
+    tmp_path: Path,
+) -> None:
+    session = WorkbenchSession.create_or_load(tmp_path, "missing")
+    PaperFillJournal(session.journal_path).append(_fill())
+    session.book_path.unlink()
+
+    reopened = WorkbenchSession.create_or_load(tmp_path, "missing")
+    state = WorkbenchState(session=reopened, session_parent=tmp_path)
+    state.ensure_session()
+
+    assert reopened.book_path.exists() is False
+    assert state.paper_reconciliation is not None
+    assert "book_missing" in state.paper_reconciliation.issues
+
+
+def test_book_zero_position_is_corruption_not_equal_state(tmp_path: Path) -> None:
+    session = WorkbenchSession.create_or_load(tmp_path, "zero-position")
+    payload = json.loads(session.book_path.read_text(encoding="utf-8"))
+    payload["book"]["positions"]["GHOST"] = {"quantity": "0", "avg_price": "1"}
+    session.book_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    state = WorkbenchState(session=session, session_parent=tmp_path)
+    state.ensure_session()
+
+    assert state.paper_reconciliation is not None
+    assert state.paper_reconciliation.status == "book_corrupt"

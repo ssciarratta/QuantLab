@@ -240,6 +240,7 @@ class WorkbenchState:
         *,
         stored_checkpoint: Any,
         schema_version: int,
+        migrate_legacy: bool = True,
     ) -> ReconciliationReport:
         if self.book is None or self.journal is None:
             raise ValidationError("book/journal no hidratados")
@@ -258,6 +259,8 @@ class WorkbenchState:
                     issues.insert(0, "checkpoint_mismatch")
             elif schema_version == 1:
                 issues.insert(0, "legacy_book_mismatch")
+            elif schema_version == 0:
+                issues.insert(0, "book_missing")
             return ReconciliationReport(
                 ok=False,
                 status=report.status,
@@ -290,7 +293,28 @@ class WorkbenchState:
 
         # Migración flat -> v2 sólo si replay y book coinciden exactamente.
         if schema_version in {0, 1} and report.checkpoint is not None and self.session is not None:
-            self.session.save_book(self.book, report.checkpoint)
+            if not migrate_legacy:
+                return ReconciliationReport(
+                    ok=False,
+                    status="rebuild_required",
+                    record_count=report.record_count,
+                    issues=("book_missing" if schema_version == 0 else "legacy_format",),
+                    expected_book=report.expected_book,
+                    persisted_book=report.persisted_book,
+                    checkpoint=report.checkpoint,
+                )
+            try:
+                self.session.save_book(self.book, report.checkpoint)
+            except (OSError, ValidationError) as exc:
+                return ReconciliationReport(
+                    ok=False,
+                    status="rebuild_required",
+                    record_count=report.record_count,
+                    issues=(f"legacy_migration_failed: {exc}",),
+                    expected_book=report.expected_book,
+                    persisted_book=report.persisted_book,
+                    checkpoint=report.checkpoint,
+                )
             return ReconciliationReport(
                 ok=True,
                 status="ok",
@@ -333,6 +357,7 @@ class WorkbenchState:
                 return self._reconcile_loaded_book(
                     stored_checkpoint=loaded.checkpoint,
                     schema_version=loaded.schema_version,
+                    migrate_legacy=False,
                 )
             finally:
                 self.book = live_book

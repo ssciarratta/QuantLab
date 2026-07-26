@@ -44,7 +44,7 @@ Auditoría INTERNAL F84: código 0.76.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F85: código 0.77.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F86: código 0.78.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F87: código 0.79.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F88: código 0.80.0 — en curso
+Auditoría INTERNAL F88: código 0.80.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -60,6 +60,7 @@ Noche F19–F84: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F84_NIGHT.md)
 Noche F19–F85: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F85_NIGHT.md)
 Noche F19–F86: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F86_NIGHT.md)
 Noche F19–F87: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F87_NIGHT.md)
+Noche F19–F88: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F88_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
@@ -68,7 +69,7 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F87: APROBADO_INTERNO Zero-Trust; F88 implementación completa, auditoría en curso
+- F19–F88: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book reconciliation
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado

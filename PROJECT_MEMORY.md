@@ -4,7 +4,7 @@ Actualizado: 2026-07-26 · tip funcional F88 · versión 0.80.0.
 
 - TESTER/PAPER operativos; REAL es alias de PAPER; LIVE routing sigue bloqueado.
 - `LIVE_BLOCKED=True` y ningún cambio de F88 autoriza un flip.
-- F17–F18 tienen certificación externa; F19–F87 están aprobadas INTERNAL.
+- F17–F18 tienen certificación externa; F19–F88 están aprobadas INTERNAL.
 - F88 implementa journal PAPER autoritativo y book reconstruible:
   - `journal.jsonl` append-only + fsync, lectura estricta.
   - `book.json` schema v2 atómico con checkpoint SHA-256.
@@ -13,4 +13,5 @@ Actualizado: 2026-07-26 · tip funcional F88 · versión 0.80.0.
   - rebuild únicamente por CLI offline, con backup; journal inmutable.
 - Endpoint `/api/paper/reconciliation` es read-only.
 - DEC vigente: DEC-132.
+- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F88_NIGHT.md`; QA 1144 tests.
 - No crear `FASE_88_APPROVED.md`; requiere Meta-Auditor externo.

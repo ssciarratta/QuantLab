@@ -30,9 +30,15 @@ class JournalCheckpoint:
     def from_dict(cls, data: dict[str, Any]) -> JournalCheckpoint:
         if not isinstance(data, dict):
             raise ValidationError("journal_checkpoint debe ser objeto")
+        if type(data.get("record_count")) is not int:
+            raise ValidationError("journal_checkpoint.record_count debe ser int")
+        last_fill_raw = data.get("last_fill_id")
+        if last_fill_raw is not None and not isinstance(last_fill_raw, str):
+            raise ValidationError("journal_checkpoint.last_fill_id debe ser string|null")
+        if not isinstance(data.get("sha256"), str):
+            raise ValidationError("journal_checkpoint.sha256 debe ser string")
         try:
             record_count = int(data["record_count"])
-            last_fill_raw = data.get("last_fill_id")
             last_fill_id = None if last_fill_raw is None else str(last_fill_raw)
             sha256 = str(data["sha256"])
         except (KeyError, TypeError, ValueError) as exc:
@@ -68,9 +74,15 @@ class ReconciliationReport:
 
 def _state(book: PaperBook) -> tuple[Any, ...]:
     """Estado económico exacto, independiente del orden de serialización."""
+    payload = book.to_dict()
+    raw_positions = payload["positions"]
     positions = tuple(
-        (position.symbol, position.quantity, position.avg_price)
-        for position in book.get_positions()
+        (
+            symbol,
+            Decimal(position["quantity"]),
+            Decimal(position["avg_price"]),
+        )
+        for symbol, position in sorted(raw_positions.items())
     )
     return (
         book.initial_cash,
