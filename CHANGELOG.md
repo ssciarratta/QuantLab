@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.30.0] — 2026-07-26
+
+### Fase 38 — Docs / Help Browser
+
+#### Added
+- `workbench/docs_browser.py` — lista/lee `docs/*.md` + `docs/ops/*.md` fail-closed
+- API `GET /api/docs` + `GET /api/docs/content?path=`
+- Panel Help/Docs (buscar + preview HTML escapado | pre text)
+- Chat `search_docs` incluye ops/; command palette `open.docs`
+- Tests `test_docs_f38.py` · DEC-082
+- Docs: `FASE_38_DOCS_HELP.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); path traversal fail-closed; sin place_order venue
+
+---
+
 ## [0.29.0] — 2026-07-26
 
 ### Fase 37 — First-run Onboarding Wizard

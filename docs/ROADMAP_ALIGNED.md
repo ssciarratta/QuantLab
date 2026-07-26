@@ -485,6 +485,21 @@
 **Spec:** `docs/FASE_37_ONBOARDING.md`  
 **Implementation report:** `docs/audit/FASE_37_IMPLEMENTATION_REPORT.md`
 
+### Fase 38 — Docs / Help Browser
+**Módulos:**
+- `workbench/docs_browser.py` — lista/lee `docs/*.md` + `docs/ops/*.md` fail-closed
+- API `GET /api/docs` + `GET /api/docs/content?path=`
+- Panel Help/Docs (buscar + preview HTML escapado | pre)
+- Chat `search_docs` incluye ops/; DEC-082; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F38.md`, 2026-07-26) — certificado externo `FASE_38_APPROVED.md` **NO emitido**  
+**Versión:** 0.30.0 · implementación *(tip post-impl)*  
+**Review Package INTERNAL:** `docs/audit/FASE_38_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F38.md`  
+**Noche F19–F38:** `docs/audit/INTERNAL_AUDIT_F19_F38_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_38_DOCS_HELP.md`  
+**Implementation report:** `docs/audit/FASE_38_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

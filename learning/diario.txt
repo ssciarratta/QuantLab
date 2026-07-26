@@ -2,6 +2,15 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 38 — Docs / Help Browser
+-------------------------------------------------------
+- v0.30.0 · DEC-082.
+- GET /api/docs lista docs/*.md + docs/ops/*.md; GET /api/docs/content?path=
+  fail-closed ante traversal; panel Help/Docs buscar + preview HTML|pre;
+  chat search_docs incluye ops/.
+- INTERNAL APROBADO_INTERNO; FASE_38_APPROVED.md NO emitido.
+- Noche F19–F38 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 36 — Settings + Status Bar
 -------------------------------------------------------
 - v0.28.0 · impl SHA 2c0cb11 · DEC-080.

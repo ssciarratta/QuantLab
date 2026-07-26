@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +11,7 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.api import WorkbenchState
+from quantlab.workbench.docs_browser import default_docs_root, search_docs_files
 
 ALLOWED_TOOLS: frozenset[str] = frozenset(
     {
@@ -57,7 +57,7 @@ _TOOL_META: dict[str, dict[str, str]] = {
         "description": "Guía de backtest + último summary de sesión si existe",
     },
     "search_docs": {
-        "description": "Busca keywords en docs/*.md locales",
+        "description": "Busca keywords en docs/*.md y docs/ops/*.md locales",
     },
     "list_experiments": {
         "description": "Lista experimentos del registry de sesión",
@@ -75,9 +75,6 @@ _BACKTEST_GUIDE = (
     "Resultado queda en sesión (GET /api/lab/metrics). Nunca envía órdenes live."
 )
 
-_REPO_ROOT = Path(__file__).resolve().parents[4]
-_DEFAULT_DOCS = _REPO_ROOT / "docs"
-
 
 class ToolRegistry:
     """Ejecuta solo tools allowlist; rechaza mutaciones / LIVE."""
@@ -89,7 +86,7 @@ class ToolRegistry:
         docs_root: Path | None = None,
     ) -> None:
         self._state = state
-        self._docs_root = docs_root if docs_root is not None else _DEFAULT_DOCS
+        self._docs_root = docs_root if docs_root is not None else default_docs_root()
 
     def list_allowlist(self) -> list[dict[str, str]]:
         items: list[dict[str, str]] = []
@@ -169,36 +166,7 @@ class ToolRegistry:
         raw_q = args.get("query") or args.get("q") or args.get("keywords") or ""
         if not isinstance(raw_q, str):
             raise ValidationError("search_docs: query debe ser string")
-        keywords = [k for k in re.split(r"\s+", raw_q.strip().lower()) if k]
-        if not keywords:
-            return {"query": "", "matches": [], "docs_root": str(self._docs_root)}
-        root = self._docs_root
-        matches: list[dict[str, Any]] = []
-        if root.is_dir():
-            for path in sorted(root.glob("*.md")):
-                try:
-                    text = path.read_text(encoding="utf-8", errors="replace")
-                except OSError:
-                    continue
-                lower = text.lower()
-                hits = [kw for kw in keywords if kw in lower]
-                if not hits:
-                    continue
-                snippet = _snippet_for(text, hits[0])
-                matches.append(
-                    {
-                        "file": path.name,
-                        "hits": hits,
-                        "snippet": snippet,
-                    }
-                )
-                if len(matches) >= 8:
-                    break
-        return {
-            "query": " ".join(keywords),
-            "matches": matches,
-            "docs_root": str(root),
-        }
+        return search_docs_files(raw_q, docs_root=self._docs_root, limit=8)
 
     def _list_experiments(self, _args: dict[str, Any]) -> dict[str, Any]:
         path = self._state.ensure_lab_registry_path()
@@ -217,16 +185,3 @@ class ToolRegistry:
             ),
             "chat_mutations": False,
         }
-
-
-def _snippet_for(text: str, keyword: str, radius: int = 80) -> str:
-    lower = text.lower()
-    idx = lower.find(keyword.lower())
-    if idx < 0:
-        return text[:160].replace("\n", " ").strip()
-    start = max(0, idx - radius)
-    end = min(len(text), idx + len(keyword) + radius)
-    chunk = text[start:end].replace("\n", " ").strip()
-    prefix = "…" if start > 0 else ""
-    suffix = "…" if end < len(text) else ""
-    return f"{prefix}{chunk}{suffix}"

@@ -16,6 +16,8 @@ from quantlab.workbench.api import (
     handle_get_catalog,
     handle_get_chat_tools,
     handle_get_commands,
+    handle_get_docs,
+    handle_get_docs_content,
     handle_get_health,
     handle_get_instruments,
     handle_get_lab_capabilities,
@@ -191,6 +193,12 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/onboarding":
                     self._send_json(handle_get_onboarding(state))
+                    return
+                if path == "/api/docs":
+                    self._send_json(handle_get_docs(state))
+                    return
+                if path == "/api/docs/content":
+                    self._send_json(handle_get_docs_content(state, parsed.query))
                     return
                 if path == "/api/watchlist":
                     self._send_json(handle_get_watchlist(state))

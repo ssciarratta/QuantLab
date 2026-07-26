@@ -213,5 +213,14 @@
     completeOnboarding: function (body) {
       return request("POST", "/api/onboarding/complete", body || {});
     },
+    docsList: function () {
+      return request("GET", "/api/docs");
+    },
+    docsContent: function (path) {
+      return request(
+        "GET",
+        "/api/docs/content?path=" + encodeURIComponent(path || "")
+      );
+    },
   };
 })(window);

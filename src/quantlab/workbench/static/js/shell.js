@@ -242,6 +242,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openDocs() {
+    const pane = QLPanes.createDocsPane();
+    wm.open("docs", "Help / Docs", pane, mergeOpts("docs", { x: 200, y: 50, w: 560, h: 480 }));
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -254,6 +260,7 @@
     risk: openRisk,
     chat: openChat,
     settings: openSettings,
+    docs: openDocs,
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,

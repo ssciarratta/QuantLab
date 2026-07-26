@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-082 — Docs / Help Browser
+  Decisión: F38 = browser Help/Docs read-only sobre docs/*.md y
+  docs/ops/*.md; GET /api/docs lista paths relativos safe; GET
+  /api/docs/content?path= lee markdown con path traversal fail-closed;
+  panel buscar + preview HTML simple (escape) o pre text; chat
+  search_docs reutiliza el mismo listado (incluye ops/).
+  LIVE_BLOCKED=True; sin flip; sin place_order venue.
+  Fase: 38.
+
 [2026-07-26] DEC-081 — First-run Onboarding Wizard
   Decisión: F37 = wizard modal first-run si session meta no tiene
   onboarding_done; 4 pasos (TESTER/REAL/LIVE bloqueado → conectar venue

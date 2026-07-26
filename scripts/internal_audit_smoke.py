@@ -706,6 +706,70 @@ def check_f37_onboarding() -> None:
     assert is_onboarding_done(session.load_meta()) is True
 
 
+def check_f38_docs_help() -> None:
+    """F38: docs list/content + path traversal fail-closed + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        ApiError,
+        WorkbenchState,
+        handle_get_docs,
+        handle_get_docs_content,
+    )
+    from quantlab.workbench.commands import list_commands
+    from quantlab.workbench.docs_browser import list_docs, read_docs_content
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    listed = list_docs()
+    assert listed["ok"] is True
+    assert listed["count"] >= 1
+    paths = {d["path"] for d in listed["docs"]}
+    assert any(p.endswith(".md") and "/" not in p for p in paths)
+    assert any(p.startswith("ops/") and p.endswith(".md") for p in paths)
+
+    sample = next(iter(paths))
+    content = read_docs_content(sample)
+    assert content["ok"] is True
+    assert "content" in content
+
+    for bad in ("../pyproject.toml", "audit/INTERNAL_AUDIT_F37.md"):
+        try:
+            read_docs_content(bad)
+        except ValidationError:
+            pass
+        else:
+            raise AssertionError(f"expected ValidationError for {bad!r}")
+
+    root = Path("/tmp/quantlab-smoke-f38-docs")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke38")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    got = handle_get_docs(state)
+    assert got["ok"] is True
+    assert got["kind"] == "docs"
+    assert got["live_blocked"] is True
+    assert got["live_routing"] is False
+
+    body = handle_get_docs_content(state, f"path={sample}")
+    assert body["ok"] is True
+    assert body["path"] == sample
+
+    try:
+        handle_get_docs_content(state, "path=../etc/passwd")
+    except ApiError:
+        pass
+    else:
+        raise AssertionError("expected ApiError for path traversal")
+
+    cmds = list_commands()
+    ids = {c["id"] for c in cmds["commands"]}
+    assert "open.docs" in ids
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -731,6 +795,7 @@ def main() -> int:
         ("F35 command palette + /api/commands", check_f35_commands),
         ("F36 settings + status bar", check_f36_settings),
         ("F37 first-run onboarding wizard", check_f37_onboarding),
+        ("F38 docs / help browser", check_f38_docs_help),
     ]
     ok = True
     for name, fn in checks:

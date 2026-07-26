@@ -25,6 +25,7 @@ from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
+from quantlab.workbench.docs_browser import list_docs, read_docs_content
 from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.layout import load_layout, save_layout
@@ -315,6 +316,40 @@ def handle_post_onboarding_complete(
         "session_id": session.session_id,
         "mode": state.mode.value,
         **status,
+    }
+
+
+def handle_get_docs(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/docs — lista docs/*.md y docs/ops/*.md (paths relativos safe)."""
+    _ = state.ensure_session()
+    try:
+        payload = list_docs()
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        **payload,
+        "session_id": state.ensure_session().session_id,
+        "mode": state.mode.value,
+    }
+
+
+def handle_get_docs_content(state: WorkbenchState, query: str) -> dict[str, Any]:
+    """GET /api/docs/content?path= — lee markdown solo bajo docs/ (fail-closed)."""
+    _ = state.ensure_session()
+    params = parse_qs(query, keep_blank_values=False)
+    paths = params.get("path") or params.get("file") or []
+    if not paths or not str(paths[0]).strip():
+        raise ApiError(400, "query param 'path' requerido")
+    try:
+        payload = read_docs_content(str(paths[0]))
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 404 if "no encontrado" in msg.lower() else 400
+        raise ApiError(status, msg) from exc
+    return {
+        **payload,
+        "session_id": state.ensure_session().session_id,
+        "mode": state.mode.value,
     }
 
 
