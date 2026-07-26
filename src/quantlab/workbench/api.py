@@ -62,6 +62,12 @@ from quantlab.workbench.optimizer_runs import (
 from quantlab.workbench.optimizer_runs import (
     validate_run_id as validate_optimizer_run_id,
 )
+from quantlab.workbench.paper_kill import (
+    is_paper_kill_engaged,
+    paper_kill_status,
+    raise_if_paper_kill_engaged,
+    set_paper_kill_engaged,
+)
 from quantlab.workbench.paper_pnl import pnl_from_book, pnl_from_broker
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.presets import apply_preset, list_presets
@@ -128,6 +134,7 @@ class WorkbenchState:
     slippage_bps: Decimal = field(default_factory=lambda: Decimal("0"))
     last_lab_result: dict[str, Any] | None = None
     paper_session: PaperSessionRunner | None = None
+    paper_kill_engaged: bool = False
     bind_host: str = "127.0.0.1"
     allow_non_loopback: bool = False
     session_parent: Path | None = None
@@ -180,6 +187,7 @@ class WorkbenchState:
         self._lab_registry_path = self.session.experiments_dir / "experiments.sqlite"
         self._lab_export_dir = self.session.exports_dir
         lab_services.ensure_demo_experiment(self._lab_registry_path)
+        self.paper_kill_engaged = is_paper_kill_engaged(self.session.load_meta())
 
     def _teardown_session_runtime(self) -> None:
         """Detiene runner paper, persiste book y limpia estado atado a sesión."""
@@ -241,6 +249,25 @@ class WorkbenchState:
         if self.book is None:
             return
         session.save_book(self.book)
+
+    def assert_paper_kill_clear(self) -> None:
+        """Fail-closed: ValidationError si paper kill switch engaged."""
+        raise_if_paper_kill_engaged(engaged=self.paper_kill_engaged)
+
+    def set_paper_kill(self, engaged: bool) -> dict[str, Any]:
+        """Engage/disengage kill switch y persiste en session meta."""
+        session = self.ensure_session()
+        status = set_paper_kill_engaged(session, bool(engaged))
+        self.paper_kill_engaged = bool(engaged)
+        return status
+
+    def paper_kill_status(self) -> dict[str, Any]:
+        """Estado kill switch (GET /api/paper/kill)."""
+        session = self.ensure_session()
+        status = paper_kill_status(session, engaged=self.paper_kill_engaged)
+        # Prefer in-memory flag (already hydrated / set).
+        status["engaged"] = self.paper_kill_engaged is True
+        return status
 
     def ensure_journal(self) -> PaperFillJournal:
         self.ensure_session()
@@ -1183,6 +1210,7 @@ def handle_get_risk(state: WorkbenchState) -> dict[str, Any]:
         "session_root": str(session.root),
         "live_blocked": LIVE_BLOCKED is True,
         "mode": state.mode.value,
+        "paper_kill_engaged": state.paper_kill_engaged is True,
     }
 
 
@@ -1476,11 +1504,35 @@ def _parse_order_intent(body: dict[str, Any]) -> OrderIntent:
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_get_paper_kill(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/paper/kill — estado del paper kill switch (F70)."""
+    return state.paper_kill_status()
+
+
+def handle_post_paper_kill(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/paper/kill — {engaged: bool}; persiste en session meta."""
+    if not LIVE_BLOCKED:
+        raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    raw = body.get("engaged")
+    if not isinstance(raw, bool):
+        raise ApiError(400, "campo 'engaged' requerido (bool)")
+    try:
+        status = state.set_paper_kill(raw)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    status["ok"] = True
+    return status
+
+
 def handle_post_paper_submit(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     try:
         _reject_live_mode(state.mode)
         if state.mode not in (OperatingMode.TESTER, OperatingMode.PAPER):
             raise ApiError(400, "paper/submit solo en modos tester|paper")
+        try:
+            state.assert_paper_kill_clear()
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
 
         broker = _require_broker(state)
         if not isinstance(broker, PaperBroker):
@@ -1652,6 +1704,10 @@ def handle_post_paper_session_step(state: WorkbenchState) -> dict[str, Any]:
     """POST /api/paper/session/step — un tick manual."""
     if not LIVE_BLOCKED:
         raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    try:
+        state.assert_paper_kill_clear()
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
     _require_paper_broker(state)
     if state.paper_session is None:
         raise ApiError(400, "sesión paper no iniciada; POST /api/paper/session/start")

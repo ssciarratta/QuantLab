@@ -53,6 +53,7 @@ from quantlab.workbench.api import (
     handle_get_paper_equity,
     handle_get_paper_fills,
     handle_get_paper_fills_csv,
+    handle_get_paper_kill,
     handle_get_paper_pnl,
     handle_get_paper_session_status,
     handle_get_positions,
@@ -80,6 +81,7 @@ from quantlab.workbench.api import (
     handle_post_lab_validation_run,
     handle_post_mode,
     handle_post_onboarding_complete,
+    handle_post_paper_kill,
     handle_post_paper_session_start,
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
@@ -360,6 +362,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/paper/session/status":
                     self._send_json(handle_get_paper_session_status(state))
                     return
+                if path == "/api/paper/kill":
+                    self._send_json(handle_get_paper_kill(state))
+                    return
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
                     return
@@ -549,6 +554,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/submit":
                     self._send_json(handle_post_paper_submit(state, body))
+                    return
+                if path == "/api/paper/kill":
+                    self._send_json(handle_post_paper_kill(state, body))
                     return
                 if path == "/api/paper/session/start":
                     self._send_json(handle_post_paper_session_start(state, body))

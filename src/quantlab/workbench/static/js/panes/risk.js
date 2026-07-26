@@ -1,4 +1,4 @@
-/** Panel Riesgo — límites paper + utilización vs book (F25 / F69). */
+/** Panel Riesgo — límites paper + utilización + kill switch (F25 / F69 / F70). */
 (function (global) {
   "use strict";
 
@@ -7,6 +7,14 @@
     root.className = "pane-risk";
 
     root.innerHTML =
+      '<div class="pane-section pane-kill-switch">' +
+      "<h3>Paper Kill Switch</h3>" +
+      '<p class="muted" style="margin-top:0">Bloquea paper submit y session step. No afecta LIVE (ya bloqueado).</p>' +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn danger" id="risk-kill-btn">ENGAGE KILL</button>' +
+      '<span class="mono muted" id="risk-kill-status">engaged=false</span>' +
+      "</div>" +
+      "</div>" +
       '<div class="pane-section">' +
       "<h3>Límites paper</h3>" +
       '<p class="muted" style="margin-top:0">Fail-closed en submit paper (qty / notional / símbolos).</p>' +
@@ -32,6 +40,9 @@
     const utilPosEl = root.querySelector("#risk-util-positions");
     const sessionEl = root.querySelector("#risk-session");
     const statusEl = root.querySelector("#risk-status");
+    const killBtn = root.querySelector("#risk-kill-btn");
+    const killStatusEl = root.querySelector("#risk-kill-status");
+    let killEngaged = false;
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -45,6 +56,14 @@
       var n = Number(raw);
       if (!isFinite(n)) return esc(raw) + "%";
       return n.toFixed(2) + "%";
+    }
+
+    function renderKill(engaged) {
+      killEngaged = !!engaged;
+      killBtn.textContent = killEngaged ? "DISENGAGE KILL" : "ENGAGE KILL";
+      killBtn.className = "btn danger" + (killEngaged ? " engaged" : "");
+      killStatusEl.textContent = "engaged=" + String(killEngaged);
+      killStatusEl.className = killEngaged ? "mono status-bad" : "mono muted";
     }
 
     function renderLimits(data) {
@@ -70,6 +89,9 @@
         "</dd>" +
         "<dt>LIVE_BLOCKED</dt><dd class=\"mono\">" +
         esc(String(data.live_blocked)) +
+        "</dd>" +
+        "<dt>paper_kill</dt><dd class=\"mono\">" +
+        esc(String(data.paper_kill_engaged)) +
         "</dd>";
       sessionEl.innerHTML =
         "<dt>session_id</dt><dd class=\"mono\">" +
@@ -81,6 +103,9 @@
         "<dt>mode</dt><dd class=\"mono\">" +
         esc(data.mode) +
         "</dd>";
+      if (typeof data.paper_kill_engaged === "boolean") {
+        renderKill(data.paper_kill_engaged);
+      }
     }
 
     function renderUtilization(data) {
@@ -138,6 +163,8 @@
       renderLimits(data);
       const util = await QLApi.riskUtilization();
       renderUtilization(util);
+      const kill = await QLApi.paperKill();
+      renderKill(kill.engaged);
       statusEl.textContent = "ok";
       statusEl.className = "mono muted status-ok";
     }
@@ -147,6 +174,19 @@
         statusEl.textContent = err.message;
         statusEl.className = "mono status-bad";
       });
+    });
+
+    killBtn.addEventListener("click", function () {
+      QLApi.setPaperKill(!killEngaged)
+        .then(function (data) {
+          renderKill(data.engaged);
+          statusEl.textContent = data.engaged ? "kill ENGAGED" : "kill clear";
+          statusEl.className = data.engaged ? "mono status-bad" : "mono muted status-ok";
+        })
+        .catch(function (err) {
+          statusEl.textContent = err.message;
+          statusEl.className = "mono status-bad";
+        });
     });
 
     root.refresh = refresh;

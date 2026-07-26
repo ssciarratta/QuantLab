@@ -72,6 +72,13 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("paper",),
     ),
     ApiRoute("/api/paper/submit", "POST", "Submit paper order (simulated fills)", ("paper",)),
+    ApiRoute("/api/paper/kill", "GET", "Paper kill switch status", ("paper", "risk")),
+    ApiRoute(
+        "/api/paper/kill",
+        "POST",
+        "Engage/disengage paper kill switch",
+        ("paper", "risk"),
+    ),
     ApiRoute("/api/paper/session/status", "GET", "Paper session runner status", ("paper",)),
     ApiRoute("/api/paper/session/start", "POST", "Start paper session runner", ("paper",)),
     ApiRoute("/api/paper/session/stop", "POST", "Stop paper session runner", ("paper",)),

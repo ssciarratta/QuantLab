@@ -31,7 +31,7 @@ def test_live_blocked_still_true() -> None:
 
 
 def test_phases_summary_f47() -> None:
-    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F70 INTERNAL"
 
 
 def test_new_tools_in_allowlist() -> None:

@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.61.0** (F69 Risk Utilization Report)  
+**Versión tip:** **0.62.0** (F70 Paper Kill Switch)  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
@@ -28,15 +28,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F59–F67 | A11y / i18n / access / backups / paper analytics · **0.51–0.59** |
 | F68 | Milestone freeze docs + CHANGELOG sync (v0.60) · **0.60.0** |
 | F69 | Risk Utilization Report · **0.61.0** |
+| F70 | Paper Kill Switch · **0.62.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F69 | `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md` |
+| Noche F19–F70 | `docs/audit/INTERNAL_AUDIT_F19_F70_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F69 (SHAs impl) — tip v0.61.0
+## Arco nocturno F19–F70 (SHAs impl) — tip v0.62.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|

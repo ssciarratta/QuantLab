@@ -19,6 +19,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.62.0] — 2026-07-26
+
+### Fase 70 — Paper Kill Switch
+
+#### Added
+- Paper kill switch: `WorkbenchState.paper_kill_engaged` + ValidationError on submit/step
+- `GET`/`POST /api/paper/kill` — engage/disengage; persist `meta.paper_kill_engaged`
+- Big red ENGAGE/DISENGAGE en Risk + Sesión Paper
+- Docs: `FASE_70_KILL_SWITCH.md` · implementation report · DEC-114
+- Suite `test_paper_kill_f70.py` + smoke F70
+- Bundle INTERNAL default F19–F70
+
+#### Changed
+- `phases_summary` → `F19–F70 INTERNAL`
+- Bump **0.62.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_70_APPROVED.md`
+
 ## [0.61.0] — 2026-07-26
 
 ### Fase 69 — Risk Utilization Report

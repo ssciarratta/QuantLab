@@ -922,6 +922,38 @@ button.btn.secondary:hover {
   border-color: var(--text-muted);
 }
 
+button.btn.danger {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  min-height: 2.4rem;
+  padding: 0.55rem 1.1rem;
+}
+
+button.btn.danger:hover {
+  filter: brightness(1.08);
+}
+
+button.btn.danger.engaged {
+  background: #7a1210;
+  border-color: #ff6b63;
+  box-shadow: 0 0 0 2px rgba(212, 84, 74, 0.35);
+}
+
+.pane-kill-switch {
+  border: 1px solid var(--danger);
+  background: var(--danger-soft);
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--radius);
+}
+
+.pane-kill-switch h3 {
+  color: var(--danger);
+  margin-top: 0;
+}
+
 .data-table {
   width: 100%;
   border-collapse: collapse;

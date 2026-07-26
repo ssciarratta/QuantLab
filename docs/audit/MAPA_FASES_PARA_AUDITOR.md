@@ -2237,3 +2237,50 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F69: **0.61.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+## Fase 70 — Paper Kill Switch
+
+**Código:** 0.62.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-114  
+**Qué es:** Kill switch paper-only — engage rechaza submit + session step con ValidationError; persist meta; API `/api/paper/kill`; botón rojo Risk/Sesión; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_70_KILL_SWITCH.md` |
+| Implementation report | `docs/audit/FASE_70_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F70.md` |
+| Review Package INTERNAL | `docs/audit/FASE_70_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F70.md` |
+| Noche F19–F70 | `docs/audit/INTERNAL_AUDIT_F19_F70_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 70** |
+
+**Certificado externo:** **NO** emitido (`FASE_70_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F70 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | paper_kill helpers | `workbench/paper_kill.py` |
+| A2 | WorkbenchState kill flag | `api.py` |
+| A3 | GET/POST /api/paper/kill | `api.py` · `server.py` |
+| A4 | OpenAPI routes | `api_catalog.py` |
+| A5 | Risk + Sesión Paper UI | `risk.js` · `paper_session.js` |
+| A6 | Spec | `docs/FASE_70_KILL_SWITCH.md` |
+| A7 | Implementation report | `docs/audit/FASE_70_IMPLEMENTATION_REPORT.md` |
+| A8 | DEC-114 | `learning/decisiones.txt` |
+| A9 | Version 0.62.0 | `pyproject.toml` |
+| A10 | Suite + smoke F70 | `test_paper_kill_f70.py` · smoke |
+
+### Lista B F70 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F70: **0.62.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

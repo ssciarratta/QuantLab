@@ -1,3 +1,8 @@
+[2026-07-26] F70 Paper Kill Switch — v0.62.0
+  Kill switch paper-only: engage rechaza submit+step; persist meta;
+  API /api/paper/kill; UI botón rojo Risk/Sesión; LIVE_BLOCKED intacto;
+  INTERNAL F70 + noche F19–F70; sin FASE_70_APPROVED.
+
 ================================================================================
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================

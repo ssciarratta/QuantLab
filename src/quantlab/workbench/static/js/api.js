@@ -6,6 +6,7 @@
   const TOAST_LABELS = {
     "POST /api/broker/connect": "Connect",
     "POST /api/paper/submit": "Submit",
+    "POST /api/paper/kill": "Kill switch",
     "POST /api/lab/backtest": "Backtest",
     "POST /api/lab/optimize": "Optimize",
     "GET /api/session/export": "Export",
@@ -155,6 +156,12 @@
     },
     riskUtilization: function () {
       return request("GET", "/api/risk/utilization");
+    },
+    paperKill: function () {
+      return request("GET", "/api/paper/kill");
+    },
+    setPaperKill: function (engaged) {
+      return request("POST", "/api/paper/kill", { engaged: !!engaged });
     },
     paperSubmit: function (intent) {
       return request("POST", "/api/paper/submit", intent);

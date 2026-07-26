@@ -1,3 +1,11 @@
+[2026-07-26] DEC-114 — Paper Kill Switch
+  Decisión: F70 = paper kill switch (meta.paper_kill_engaged);
+  when engaged reject paper submit + session step with ValidationError;
+  POST/GET /api/paper/kill; big red ENGAGE/DISENGAGE in Risk + Sesión Paper;
+  suite test_paper_kill_f70.py; bump 0.62.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_70_APPROVED.
+  Fase: 70.
+
 
 [2026-07-26] DEC-113 — Risk Utilization Report
   Decisión: F69 = GET /api/risk/utilization (% used max_qty/notional

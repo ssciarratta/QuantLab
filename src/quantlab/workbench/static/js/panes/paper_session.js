@@ -27,6 +27,14 @@
       "</div>" +
       '<p class="mono" id="ps-status">running=false · steps=0</p>' +
       "</div>" +
+      '<div class="pane-section pane-kill-switch">' +
+      "<h3>Paper Kill Switch</h3>" +
+      '<p class="muted" style="margin-top:0">ENGAGE rechaza submit + step (ValidationError).</p>' +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn danger" id="ps-kill-btn">ENGAGE KILL</button>' +
+      '<span class="mono muted" id="ps-kill-status">engaged=false</span>' +
+      "</div>" +
+      "</div>" +
       '<div class="pane-section">' +
       "<h3>Log</h3>" +
       '<pre class="mono" id="ps-log" style="max-height:220px;overflow:auto;white-space:pre-wrap;margin:0"></pre>' +
@@ -38,6 +46,17 @@
     const paramsRow = root.querySelector("#ps-params-row");
     const lines = [];
     let catalog = [];
+    const killBtn = root.querySelector("#ps-kill-btn");
+    const killStatusEl = root.querySelector("#ps-kill-status");
+    let killEngaged = false;
+
+    function renderKill(engaged) {
+      killEngaged = !!engaged;
+      killBtn.textContent = killEngaged ? "DISENGAGE KILL" : "ENGAGE KILL";
+      killBtn.className = "btn danger" + (killEngaged ? " engaged" : "");
+      killStatusEl.textContent = "engaged=" + String(killEngaged);
+      killStatusEl.className = killEngaged ? "mono status-bad" : "mono muted";
+    }
 
     function appendLog(msg) {
       const ts = new Date().toLocaleTimeString("es-AR", {
@@ -223,8 +242,25 @@
         });
     });
 
+    killBtn.addEventListener("click", function () {
+      QLApi.setPaperKill(!killEngaged)
+        .then(function (data) {
+          renderKill(data.engaged);
+          appendLog(data.engaged ? "KILL ENGAGED" : "KILL DISENGAGED");
+        })
+        .catch(function (err) {
+          appendLog("KILL ERROR: " + err.message);
+        });
+    });
+
     root.refresh = async function () {
       await loadCatalog();
+      try {
+        const kill = await QLApi.paperKill();
+        renderKill(kill.engaged);
+      } catch (err) {
+        /* ignore */
+      }
       try {
         await refreshStatus();
         const instruments = await QLApi.instruments();

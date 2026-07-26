@@ -913,6 +913,19 @@
 
 ---
 
+
+## Fase 70 — Paper Kill Switch
+
+**Versión:** 0.62.0 · **DEC-114** · **APROBADO_INTERNO** (sin `FASE_70_APPROVED.md`)
+
+- Kill switch paper-only: `meta.paper_kill_engaged`
+- When engaged → reject paper submit + session step (`ValidationError`)
+- API `GET`/`POST /api/paper/kill`
+- Big red ENGAGE/DISENGAGE en Risk + Sesión Paper
+- Smoke About≡`__version__` 0.62.0; bundle default F19–F70
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):
