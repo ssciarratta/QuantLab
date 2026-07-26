@@ -4,7 +4,7 @@
 **Versión:** 0.73.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F80 Custom Preset Save v0.72  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `2975729`  
 **Alcance:** DELETE custom presets + UI — **sin flip LIVE**
 
 ---
