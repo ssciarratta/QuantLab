@@ -89,7 +89,7 @@
 
 ---
 
-## Fail-hard noche 0cb9d7a
+## Fail-hard noche (tip)
 
 | Check | Resultado |
 |-------|-----------|
