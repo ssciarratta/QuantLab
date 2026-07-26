@@ -90,7 +90,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 66 | Equity Curve Snapshot | 0.58.0 | `d10c1ce` |
 | 67 | Paper PnL Summary | 0.59.0 | `57b78fd` |
 | 68 | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | `140eb25` |
-| 69 | Risk Utilization Report | 0.61.0 | *(tip)* |
+| 69 | Risk Utilization Report | 0.61.0 | `0d9d7c7` |
 
 ---
 

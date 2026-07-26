@@ -4,7 +4,7 @@
 **Versión:** 0.61.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F68 Milestone Freeze · F25 Risk panel · F23 PaperRiskLimits  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `0d9d7c7`  
 **Alcance:** `GET /api/risk/utilization` + sección Utilización en Risk — **sin flip LIVE**
 
 ---
