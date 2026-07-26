@@ -3,14 +3,14 @@
 **Fecha:** 2026-07-26  
 **Auditor:** Meta-Auditor INTERNO Zero-Trust  
 **Veredicto noche:** **APROBADO_INTERNO**  
-**Tip código:** `6246a74` · **v0.48.0** (Security Headers F56)  
+**Tip código:** `103ec30` · **v0.48.0** (Security Headers F56)  
 **Certificados externos F19+:** **NO** emitidos
 
 ---
 
 ## Alcance
 
-Revisión INTERNAL acumulada del arco workbench F19–F56 sobre tip `6246a74` (v0.48.0 · F56 Security Headers).  
+Revisión INTERNAL acumulada del arco workbench F19–F56 sobre tip `103ec30` (v0.48.0 · F56 Security Headers).  
 Sin flip LIVE. Sin `FASE_*_APPROVED.md` F19+.
 
 ## Checklist noche
@@ -79,7 +79,7 @@ uv run python scripts/internal_audit_smoke.py  # 42/42 PASS
 | SHA256 | `777e6f1c0d7021f903ca35bd882edaf807013e94c5344625d001cab0cdb390b2` |
 
 ```text
-777e6f1c0d7021f903ca35bd882edaf807013e94c5344625d001cab0cdb390b2  QuantLab_Internal_Review_F19_F56_v0.48.0.zip
+22377f752d5ea34e7674c47b2f279267dad7d2c295a2cf40ac5f2280f207f3a4  QuantLab_Internal_Review_F19_F56_v0.48.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F56_v0.48.0.zip` · tip impl `6246a74`; re-generar puede cambiar SHA (`created_at_utc`).
