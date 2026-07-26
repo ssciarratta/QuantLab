@@ -111,7 +111,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 80 | Custom Preset Save | 0.72.0 | `67fd498` |
 | 81 | Custom Preset Delete | 0.73.0 | `2975729` |
 | 82 | Window Snap to Edges | 0.74.0 | `bb57bed` |
-| 83 | Minimize / Restore All | 0.75.0 | *(tip)* |
+| 83 | Minimize / Restore All | 0.75.0 | 4bfb18d |
 
 ---
 

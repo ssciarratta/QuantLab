@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código:** *(post-commit)* · **v0.75.0** (Minimize / Restore All F83)  
+**Tip código:** 4bfb18d · **v0.75.0** (Minimize / Restore All F83)  
 **Producto previo:** v0.74.0 (F82 Window Snap · impl `bb57bed`)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
@@ -51,7 +51,7 @@
 | **80** | Custom Preset Save | 0.72.0 | 67fd498 | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F80.md` |
 | **81** | Custom Preset Delete | 0.73.0 | 2975729 | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F81.md` |
 | **82** | Window Snap to Edges | 0.74.0 | bb57bed | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F82.md` |
-| **83** | Minimize / Restore All | 0.75.0 | *(tip)* | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F83.md` |
+| **83** | Minimize / Restore All | 0.75.0 | 4bfb18d | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F83.md` |
 
 ### Arcos
 
@@ -98,13 +98,13 @@ uv run python scripts/internal_audit_smoke.py  # 68/68 PASS
 
 | Artifact | `reports/QuantLab_Internal_Review_F19_F83_v0.75.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F83_v0.75.0_MANIFEST.json` |
-| Digest | `0b082ebd4aa2bbf23e0e1960dbddb059882400c05c78ca84af581ebe13801c0d` |
+| Digest | `19d67a8215ec486621123c52fba61f98d189f371f0b624df598ab834a99875c5` |
 
 ```text
-0b082ebd4aa2bbf23e0e1960dbddb059882400c05c78ca84af581ebe13801c0d  QuantLab_Internal_Review_F19_F83_v0.75.0.zip
+19d67a8215ec486621123c52fba61f98d189f371f0b624df598ab834a99875c5  QuantLab_Internal_Review_F19_F83_v0.75.0.zip
 ```
 
-> Path: `reports/QuantLab_Internal_Review_F19_F83_v0.75.0.zip` · tip F83; re-generar puede cambiar SHA (`created_at_utc`).
+> Path: `reports/QuantLab_Internal_Review_F19_F83_v0.75.0.zip` · tip código `4bfb18d`; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 

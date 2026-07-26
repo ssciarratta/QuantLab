@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Código tip:** *(post-commit)* · **v0.75.0** · F83 Minimize / Restore All  
+**Código tip:** 4bfb18d · **v0.75.0** · F83 Minimize / Restore All  
 
 **Versión:** **0.75.0** · F83 Minimize / Restore All  
 **LIVE_BLOCKED:** True  

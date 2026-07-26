@@ -1,7 +1,7 @@
 # FASE 83 — Review Package (INTERNAL)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.75.0 · tip *(post-commit)*  
+**Versión:** 0.75.0 · tip 4bfb18d  
 **Branch:** `cursor/modo-real-workbench-aafd`
 
 ## Resumen

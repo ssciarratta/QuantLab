@@ -4,6 +4,7 @@
 **Versión:** 0.75.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F82 Window Snap to Edges v0.74  
+**Impl SHA:** `4bfb18d`  
 **Alcance:** Minimize all / Restore all windows — **sin flip LIVE**
 
 ---
