@@ -507,7 +507,7 @@
 - UI Export/Import en Settings; DEC-083; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F39.md`, 2026-07-26) — certificado externo `FASE_39_APPROVED.md` **NO emitido**  
-**Versión:** 0.31.0 · implementación `(tip)`  
+**Versión:** 0.31.0 · implementación `0cb9d7a`  
 **Review Package INTERNAL:** `docs/audit/FASE_39_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F39.md`  
 **Noche F19–F39:** `docs/audit/INTERNAL_AUDIT_F19_F39_NIGHT.md` = **APROBADO_INTERNO**  
