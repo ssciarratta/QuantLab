@@ -485,6 +485,9 @@
       startMenu.removeAttribute("hidden");
       startMenu.classList.remove("hidden");
       startBtn.classList.add("active");
+      if (typeof refreshPresetsMenu === "function") {
+        refreshPresetsMenu();
+      }
     } else {
       startMenu.setAttribute("hidden", "");
       startMenu.classList.add("hidden");
@@ -534,6 +537,60 @@
       .catch(function () {});
   }
 
+  const customPresetsHost = document.getElementById("custom-presets");
+  const btnPresetSave = document.getElementById("btn-preset-save");
+
+  function renderCustomPresets(presets) {
+    if (!customPresetsHost) return;
+    customPresetsHost.innerHTML = "";
+    const customs = (presets || []).filter(function (p) {
+      return p && p.custom === true;
+    });
+    if (!customs.length) return;
+    const group = document.createElement("div");
+    group.className = "start-group";
+    group.setAttribute("data-i18n", "preset.custom_group");
+    group.textContent =
+      (window.QLi18n && QLi18n.t && QLi18n.t("preset.custom_group")) || "Custom";
+    customPresetsHost.appendChild(group);
+    customs.forEach(function (p) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("data-preset", p.name);
+      btn.setAttribute("data-custom-preset", "1");
+      btn.title = p.description || p.name;
+      btn.textContent = p.label || p.name;
+      customPresetsHost.appendChild(btn);
+    });
+  }
+
+  function refreshPresetsMenu() {
+    if (!QLApi || !QLApi.getPresets) return;
+    QLApi.getPresets()
+      .then(function (payload) {
+        if (!payload || !payload.ok) return;
+        renderCustomPresets(payload.presets || []);
+      })
+      .catch(function () {});
+  }
+
+  function saveCurrentAsPreset() {
+    if (!QLApi || !QLApi.savePreset) return;
+    const promptMsg =
+      (window.QLi18n && QLi18n.t && QLi18n.t("preset.save_prompt")) ||
+      "Custom preset name:";
+    const raw = window.prompt(promptMsg, "");
+    if (raw === null) return;
+    const name = String(raw || "").trim();
+    if (!name) return;
+    QLApi.savePreset(name)
+      .then(function (payload) {
+        if (!payload || !payload.ok) return;
+        refreshPresetsMenu();
+      })
+      .catch(function () {});
+  }
+
   startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const name = btn.getAttribute("data-preset");
@@ -541,6 +598,28 @@
       applyWorkspacePreset(name);
     });
   });
+
+  if (customPresetsHost) {
+    customPresetsHost.addEventListener("click", function (ev) {
+      const btn = ev.target && ev.target.closest
+        ? ev.target.closest("[data-preset]")
+        : null;
+      if (!btn || !customPresetsHost.contains(btn)) return;
+      const name = btn.getAttribute("data-preset");
+      closeStartMenu();
+      applyWorkspacePreset(name);
+    });
+  }
+
+  if (btnPresetSave) {
+    btnPresetSave.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      closeStartMenu();
+      saveCurrentAsPreset();
+    });
+  }
+
+  refreshPresetsMenu();
 
   document.addEventListener("click", function () {
     closeStartMenu();

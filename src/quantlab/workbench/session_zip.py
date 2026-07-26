@@ -52,6 +52,7 @@ INCLUDE_DIRS: frozenset[str] = frozenset(
         "validation",
         "optimizer",
         "montecarlo",
+        "presets",
     }
 )
 

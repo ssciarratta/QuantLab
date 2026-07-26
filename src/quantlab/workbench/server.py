@@ -91,6 +91,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_stop,
     handle_post_paper_submit,
     handle_post_presets_apply,
+    handle_post_presets_save,
     handle_post_session_import,
     handle_post_sessions_new,
     handle_post_sessions_switch,
@@ -633,6 +634,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/presets/apply":
                     self._send_json(handle_post_presets_apply(state, body))
+                    return
+                if path == "/api/presets/save":
+                    self._send_json(handle_post_presets_save(state, body))
                     return
                 if path == "/api/shutdown":
                     client_ip = _client_ip(self)

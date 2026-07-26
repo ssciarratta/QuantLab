@@ -79,7 +79,7 @@ from quantlab.workbench.paper_kill import (
 )
 from quantlab.workbench.paper_pnl import pnl_from_book, pnl_from_broker
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
-from quantlab.workbench.presets import apply_preset, list_presets
+from quantlab.workbench.presets import apply_preset, list_presets, save_custom_preset
 from quantlab.workbench.probes import livez_payload, readyz_payload
 from quantlab.workbench.rate_limit import RateLimitConfig, RateLimiter
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
@@ -911,21 +911,45 @@ def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, 
 
 
 def handle_get_presets(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/presets — catálogo de espacios de trabajo (F40)."""
+    """GET /api/presets — catálogo built-in + custom de sesión (F40/F80)."""
     session = state.ensure_session()
-    payload = list_presets()
+    payload = list_presets(session.presets_dir)
     payload["session_id"] = session.session_id
     return payload
 
 
 def handle_post_presets_apply(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    """POST /api/presets/apply — aplica preset a ``layout.json`` (F40)."""
+    """POST /api/presets/apply — aplica preset (built-in o custom) a layout.json."""
     session = state.ensure_session()
     name = body.get("name")
     if not isinstance(name, str) or not name.strip():
-        raise ApiError(400, "body.name requerido (research|trading_paper|ops)")
+        raise ApiError(400, "body.name requerido (research|trading_paper|ops|custom)")
     try:
-        result = apply_preset(session.layout_path, name.strip())
+        result = apply_preset(
+            session.layout_path, name.strip(), session.presets_dir
+        )
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    return result
+
+
+def handle_post_presets_save(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/presets/save — guarda layout.json actual como preset custom (F80)."""
+    session = state.ensure_session()
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError(400, "body.name requerido (preset custom)")
+    label = body.get("label")
+    description = body.get("description")
+    try:
+        result = save_custom_preset(
+            session.layout_path,
+            session.presets_dir,
+            name.strip(),
+            label=label if isinstance(label, str) else None,
+            description=description if isinstance(description, str) else None,
+        )
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
     result["session_id"] = session.session_id

@@ -19,6 +19,30 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.72.0] — 2026-07-26
+
+### Fase 80 — Custom Preset Save
+
+#### Added
+- `POST /api/presets/save` `{name}` — guarda `layout.json` actual como `session/presets/{name}.json`
+- `GET /api/presets` incluye presets custom de sesión (`custom: true`)
+- `POST /api/presets/apply` aplica también presets custom
+- UI Inicio: **Guardar espacio actual…** + lista dinámica de custom
+- Docs: `FASE_80_CUSTOM_PRESETS.md` · implementation report · DEC-124
+- Suite `test_custom_presets_f80.py` + smoke F80
+
+#### Changed
+- `phases_summary` → `F19–F80 INTERNAL`
+- Bundle INTERNAL default F19–F80
+- Session ZIP export incluye dir `presets/`
+- Bump **0.72.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_80_APPROVED.md`
+- Nombres custom fail-closed (path-safe; no shadow built-ins)
+
+---
+
 ## [0.71.0] — 2026-07-26
 
 ### Fase 79 — Watchlist Import/Export JSON

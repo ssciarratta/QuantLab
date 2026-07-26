@@ -1,3 +1,11 @@
+[2026-07-26] DEC-124 — Custom Preset Save
+  Decisión: F80 = POST /api/presets/save {name} guarda layout.json
+  actual en session/presets/{name}.json; GET /api/presets incluye
+  custom; apply funciona para custom; UI Guardar espacio actual;
+  bump 0.72.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_80_APPROVED.
+  Fase: 80.
+
 [2026-07-26] DEC-123 — Watchlist Import/Export JSON
   Decisión: F79 = GET /api/watchlist/export (JSON download) +
   POST /api/watchlist/import {symbols, mode=merge|replace};

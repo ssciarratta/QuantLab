@@ -14,6 +14,8 @@
     "GET /api/session/export": "Export",
     "POST /api/session/import": "Import",
     "POST /api/watchlist/import": "Watchlist import",
+    "POST /api/presets/apply": "Preset",
+    "POST /api/presets/save": "Preset save",
   };
 
   function toastKey(method, path) {
@@ -206,6 +208,10 @@
     },
     applyPreset: function (name) {
       return request("POST", "/api/presets/apply", { name: name });
+    },
+    savePreset: function (name, extra) {
+      const body = Object.assign({ name: name }, extra || {});
+      return request("POST", "/api/presets/save", body);
     },
     watchlist: function () {
       return request("GET", "/api/watchlist");

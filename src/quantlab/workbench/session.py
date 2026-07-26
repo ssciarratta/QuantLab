@@ -139,6 +139,10 @@ class WorkbenchSession:
         return self._root / "layout.json"
 
     @property
+    def presets_dir(self) -> Path:
+        return self._root / "presets"
+
+    @property
     def settings_path(self) -> Path:
         return self._root / "settings.json"
 
@@ -180,6 +184,7 @@ class WorkbenchSession:
         self.optimizer_dir.mkdir(parents=True, exist_ok=True)
         self.montecarlo_dir.mkdir(parents=True, exist_ok=True)
         self.backups_dir.mkdir(parents=True, exist_ok=True)
+        self.presets_dir.mkdir(parents=True, exist_ok=True)
         if not self.journal_path.exists():
             self.journal_path.touch()
         if not self.chat_audit_path.exists():
@@ -228,6 +233,7 @@ class WorkbenchSession:
             "book": str(self.book_path),
             "meta": str(self.meta_path),
             "layout": str(self.layout_path),
+            "presets": str(self.presets_dir),
             "settings": str(self.settings_path),
             "watchlist": str(self.watchlist_path),
             "experiments": str(self.experiments_dir),
