@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.28.0] — 2026-07-26
+
+### Fase 36 — Settings + Status Bar
+
+#### Added
+- `workbench/settings.py` — `settings.json` por sesión (theme, venue, strategy, slip, locale es)
+- API `GET/PUT /api/settings` (LIVE_BLOCKED, research_safe, sin LIVE)
+- Panel Settings UI + status bar fija (mode, live, session, venue, md, clock)
+- Themes CSS `slate` | `high-contrast`
+- Tests `test_settings_f36.py` · DEC-080
+- Docs: `FASE_36_SETTINGS.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); settings fail-closed (theme/locale/strategy/slip)
+
+---
+
 ## [0.27.0] — 2026-07-26
 
 ### Fase 35 — Command Palette + Keyboard Shortcuts

@@ -852,10 +852,61 @@ Versión código F35: **0.27.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 36 — Settings + Status Bar (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.28.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** settings.json por sesión (theme, default_venue, default_strategy, slippage_bps, locale=es) + `GET/PUT /api/settings` + panel Settings + status bar fija inferior (mode, live_blocked, session_id, venue, md_provider, clock).
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_36_SETTINGS.md` |
+| Implementation report | `docs/audit/FASE_36_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F36.md` |
+| Review Package INTERNAL | `docs/audit/FASE_36_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F36.md` |
+| Noche F19–F36 | `docs/audit/INTERNAL_AUDIT_F19_F36_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 36** |
+
+**Certificado externo:** **NO** emitido (`FASE_36_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F36 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persistencia | `workbench/settings.py` |
+| A2 | API + server | `api.py` · `server.py` |
+| A3 | Panel Settings | `static/js/panes/settings.js` |
+| A4 | Status bar | `static/index.html` · `shell.js` · CSS |
+| A5 | Spec | `docs/FASE_36_SETTINGS.md` |
+| A6 | Implementation report | `docs/audit/FASE_36_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-080 | `learning/decisiones.txt` |
+| A8 | Suite F36 | `tests/unit/workbench/test_settings_f36.py` |
+| A9 | Version 0.28.0 | `pyproject.toml` |
+
+### Lista B F36 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F36: **0.28.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F35 **APROBADO_INTERNO**.  
-2. QuantLab v0.27.0: Command Palette + Keyboard Shortcuts.  
-3. **LIVE sigue BLOQUEADO**; comandos solo safe (open pane / health refresh / close).  
-4. Arcos F19–F22 + F23–F25 + noche F19–F35 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F36 **APROBADO_INTERNO**.  
+2. QuantLab v0.28.0: Settings + Status Bar.  
+3. **LIVE sigue BLOQUEADO**; settings fail-closed (theme/locale/strategy).  
+4. Arcos F19–F22 + F23–F25 + noche F19–F36 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

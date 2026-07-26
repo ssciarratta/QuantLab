@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-080 — Settings + Status Bar
+  Decisión: F36 = settings.json por sesión (theme slate|high-contrast,
+  default_venue, default_strategy, slippage_bps, locale=es);
+  GET/PUT /api/settings; panel Settings UI; status bar fija inferior
+  (mode, live_blocked, session_id, venue, md_provider, clock).
+  LIVE_BLOCKED=True; sin flip.
+  Fase: 36.
+
 [2026-07-26] DEC-079 — Command Palette + Keyboard Shortcuts
   Decisión: F35 = command palette Windows-like (Ctrl+K / Ctrl+Shift+P)
   con GET /api/commands (paneles + acciones seguras: health refresh,

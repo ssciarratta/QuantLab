@@ -454,6 +454,22 @@
 **Spec:** `docs/FASE_35_COMMAND_PALETTE.md`  
 **Implementation report:** `docs/audit/FASE_35_IMPLEMENTATION_REPORT.md`
 
+### Fase 36 — Settings + Status Bar
+**Módulos:**
+- `workbench/settings.py` — `settings.json` por sesión
+- API `GET/PUT /api/settings`
+- Panel Settings + status bar fija (mode, live, session, venue, md, clock)
+- Themes `slate` | `high-contrast` · locale `es`
+- DEC-080; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F36.md`, 2026-07-26) — certificado externo `FASE_36_APPROVED.md` **NO emitido**  
+**Versión:** 0.28.0 · implementación _(SHA post-commit)_  
+**Review Package INTERNAL:** `docs/audit/FASE_36_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F36.md`  
+**Noche F19–F36:** `docs/audit/INTERNAL_AUDIT_F19_F36_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_36_SETTINGS.md`  
+**Implementation report:** `docs/audit/FASE_36_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

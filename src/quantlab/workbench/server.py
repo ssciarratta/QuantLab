@@ -41,6 +41,7 @@ from quantlab.workbench.api import (
     handle_get_positions,
     handle_get_risk,
     handle_get_session,
+    handle_get_settings,
     handle_get_snapshot,
     handle_get_universe,
     handle_get_venues,
@@ -60,6 +61,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_stop,
     handle_post_paper_submit,
     handle_put_layout,
+    handle_put_settings,
     handle_put_watchlist,
 )
 
@@ -181,6 +183,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/layout":
                     self._send_json(handle_get_layout(state))
+                    return
+                if path == "/api/settings":
+                    self._send_json(handle_get_settings(state))
                     return
                 if path == "/api/watchlist":
                     self._send_json(handle_get_watchlist(state))
@@ -339,6 +344,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 body = _read_json(self)
                 if path == "/api/layout":
                     self._send_json(handle_put_layout(state, body))
+                    return
+                if path == "/api/settings":
+                    self._send_json(handle_put_settings(state, body))
                     return
                 if path == "/api/watchlist":
                     self._send_json(handle_put_watchlist(state, body))

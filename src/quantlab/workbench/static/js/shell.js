@@ -7,12 +7,18 @@
   const bannerMode = document.getElementById("banner-mode");
   const bannerLive = document.getElementById("banner-live");
   const bannerSession = document.getElementById("banner-session");
-  const clockEl = document.getElementById("taskbar-clock");
+  const clockEl = document.getElementById("sb-clock");
   const startBtn = document.getElementById("btn-start");
   const startMenu = document.getElementById("start-menu");
+  const sbMode = document.getElementById("sb-mode");
+  const sbLive = document.getElementById("sb-live");
+  const sbSession = document.getElementById("sb-session");
+  const sbVenue = document.getElementById("sb-venue");
+  const sbMd = document.getElementById("sb-md");
 
   let sessionMode = "tester";
   let savedGeom = {};
+  let cachedSessionId = "—";
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
 
@@ -33,6 +39,42 @@
     };
   }
 
+  function applyTheme(theme) {
+    const t = theme === "high-contrast" ? "high-contrast" : "slate";
+    document.documentElement.setAttribute("data-theme", t);
+    document.body.setAttribute("data-theme", t);
+  }
+
+  function updateStatusBar(payload) {
+    if (!payload) return;
+    if (payload.mode) {
+      sessionMode = payload.mode;
+      const label =
+        sessionMode === "paper" ? "PAPER (REAL)" : String(sessionMode).toUpperCase();
+      if (sbMode) sbMode.textContent = label;
+    }
+    const blocked = payload.live_blocked !== false;
+    if (sbLive) {
+      sbLive.textContent = blocked ? "LIVE_BLOCKED" : "LIVE_UNLOCKED";
+      sbLive.classList.toggle("unlocked", !blocked);
+    }
+    if (payload.session_id) {
+      cachedSessionId = payload.session_id;
+      if (sbSession) sbSession.textContent = cachedSessionId;
+    } else if (sbSession && cachedSessionId) {
+      sbSession.textContent = cachedSessionId;
+    }
+    if (sbVenue) {
+      sbVenue.textContent =
+        payload.venue ||
+        (payload.settings && payload.settings.default_venue) ||
+        "—";
+    }
+    if (sbMd) {
+      sbMd.textContent = payload.md_provider || "—";
+    }
+  }
+
   function updateBanner(modePayload) {
     if (!modePayload) return;
     sessionMode = modePayload.mode || sessionMode;
@@ -43,6 +85,11 @@
     bannerLive.textContent = blocked ? "LIVE_BLOCKED" : "LIVE_UNLOCKED";
     bannerLive.style.borderColor = blocked ? "" : "#d4544a";
     bannerLive.style.color = blocked ? "" : "#d4544a";
+    updateStatusBar({
+      mode: sessionMode,
+      live_blocked: blocked,
+      session_id: cachedSessionId !== "—" ? cachedSessionId : undefined,
+    });
   }
 
   function openHealth() {
@@ -186,6 +233,15 @@
     pane.refresh().catch(function () {});
   }
 
+  function openSettings() {
+    const pane = QLPanes.createSettingsPane(function (data) {
+      updateStatusBar(data);
+      if (data && data.settings) applyTheme(data.settings.theme);
+    });
+    wm.open("settings", "Settings", pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -197,6 +253,7 @@
     positions: openPositions,
     risk: openRisk,
     chat: openChat,
+    settings: openSettings,
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,
@@ -315,6 +372,7 @@
   });
 
   function tickClock() {
+    if (!clockEl) return;
     const now = new Date();
     clockEl.textContent = now.toLocaleTimeString("es-AR", {
       hour: "2-digit",
@@ -325,7 +383,7 @@
   tickClock();
   setInterval(tickClock, 1000);
 
-  // Boot: banner + layout restore + ventanas default
+  // Boot: banner + layout + settings + ventanas default
   QLApi.getMode()
     .then(updateBanner)
     .catch(function () {
@@ -339,20 +397,36 @@
     QLApi.getLayout().catch(function () {
       return null;
     }),
+    QLApi.getSettings().catch(function () {
+      return null;
+    }),
   ]).then(function (results) {
     const sessionData = results[0];
     const layoutData = results[1];
+    const settingsData = results[2];
     if (sessionData) {
       const sid =
         (sessionData.session && sessionData.session.session_id) ||
         sessionData.session_id ||
         "?";
+      cachedSessionId = sid;
       if (bannerSession) bannerSession.textContent = "session " + sid;
+      updateStatusBar({
+        mode: sessionData.mode || sessionMode,
+        live_blocked: sessionData.live_blocked !== false,
+        session_id: sid,
+        venue: sessionData.connected_venue || sessionData.venue,
+        md_provider: sessionData.md_provider,
+      });
     } else if (bannerSession) {
       bannerSession.textContent = "session ?";
     }
     if (layoutData && layoutData.layout && layoutData.layout.windows) {
       savedGeom = layoutData.layout.windows;
+    }
+    if (settingsData && settingsData.settings) {
+      applyTheme(settingsData.settings.theme);
+      updateStatusBar(settingsData);
     }
     openHealth();
     openMarket();

@@ -201,5 +201,11 @@
     commands: function () {
       return request("GET", "/api/commands");
     },
+    getSettings: function () {
+      return request("GET", "/api/settings");
+    },
+    putSettings: function (body) {
+      return request("PUT", "/api/settings", body || {});
+    },
   };
 })(window);

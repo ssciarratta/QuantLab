@@ -76,6 +76,10 @@ class WorkbenchSession:
         return self._root / "layout.json"
 
     @property
+    def settings_path(self) -> Path:
+        return self._root / "settings.json"
+
+    @property
     def reports_dir(self) -> Path:
         return self._root / "reports"
 
@@ -150,6 +154,7 @@ class WorkbenchSession:
             "book": str(self.book_path),
             "meta": str(self.meta_path),
             "layout": str(self.layout_path),
+            "settings": str(self.settings_path),
             "watchlist": str(self.watchlist_path),
             "experiments": str(self.experiments_dir),
             "exports": str(self.exports_dir),

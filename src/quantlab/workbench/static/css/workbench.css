@@ -16,9 +16,27 @@
   --mono: "IBM Plex Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   --sans: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", sans-serif;
   --taskbar-h: 40px;
+  --status-bar-h: 28px;
   --banner-h: 36px;
   --radius: 2px;
   --shadow-win: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+}
+
+html[data-theme="high-contrast"],
+body[data-theme="high-contrast"] {
+  --bg-deep: #000000;
+  --bg-panel: #0a0a0a;
+  --bg-elevated: #121212;
+  --bg-title: #1a1a1a;
+  --border: #ffffff;
+  --border-soft: #cccccc;
+  --text: #ffffff;
+  --text-muted: #e0e0e0;
+  --amber: #ffff00;
+  --amber-dim: #cccc00;
+  --amber-glow: rgba(255, 255, 0, 0.18);
+  --danger: #ff4444;
+  --ok: #00ff88;
 }
 
 *,
@@ -208,7 +226,57 @@ body {
   opacity: 0.55;
 }
 
-/* —— Taskbar —— */
+/* —— Bottom chrome: status bar + taskbar —— */
+.bottom-chrome {
+  flex: 0 0 calc(var(--status-bar-h) + var(--taskbar-h));
+  display: flex;
+  flex-direction: column;
+  z-index: 60;
+}
+
+.status-bar {
+  flex: 0 0 var(--status-bar-h);
+  height: var(--status-bar-h);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0 0.65rem;
+  background: linear-gradient(180deg, #101820 0%, #0c141e 100%);
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.sb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.sb-label {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.62rem;
+}
+
+.sb-sep {
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.sb-clock {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+#sb-live.unlocked {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
 .taskbar {
   flex: 0 0 var(--taskbar-h);
   height: var(--taskbar-h);
@@ -218,7 +286,6 @@ body {
   padding: 0 0.4rem;
   background: linear-gradient(180deg, #152031 0%, #0f1724 100%);
   border-top: 1px solid var(--border);
-  z-index: 60;
 }
 
 .start-btn {
@@ -298,10 +365,25 @@ body {
   padding: 0 0.5rem;
 }
 
+html[data-theme="high-contrast"] .desktop,
+body[data-theme="high-contrast"] .desktop {
+  background: #000;
+}
+
+html[data-theme="high-contrast"] .status-bar,
+body[data-theme="high-contrast"] .status-bar,
+html[data-theme="high-contrast"] .taskbar,
+body[data-theme="high-contrast"] .taskbar,
+html[data-theme="high-contrast"] .top-banner,
+body[data-theme="high-contrast"] .top-banner {
+  background: #000;
+  border-color: #fff;
+}
+
 .start-menu {
   position: absolute;
   left: 0.4rem;
-  bottom: calc(var(--taskbar-h) + 0.35rem);
+  bottom: calc(var(--status-bar-h) + var(--taskbar-h) + 0.35rem);
   min-width: 220px;
   max-height: min(70vh, 520px);
   overflow-y: auto;

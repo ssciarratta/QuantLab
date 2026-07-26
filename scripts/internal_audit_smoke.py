@@ -615,6 +615,56 @@ def check_f35_commands() -> None:
     assert body["count"] == len(body["commands"])
 
 
+def check_f36_settings() -> None:
+    """F36: settings.json + GET/PUT /api/settings + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_settings,
+        handle_put_settings,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+    from quantlab.workbench.settings import default_settings, load_settings, save_settings
+
+    assert LIVE_BLOCKED is True
+    defaults = default_settings()
+    assert defaults["locale"] == "es"
+    assert defaults["theme"] == "slate"
+
+    root = Path("/tmp/quantlab-smoke-f36-settings")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke36")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    got = handle_get_settings(state)
+    assert got["ok"] is True
+    assert got["kind"] == "settings"
+    assert got["live_blocked"] is True
+    assert got["live_routing"] is False
+    assert got["settings"]["locale"] == "es"
+
+    put = handle_put_settings(
+        state,
+        {
+            "theme": "high-contrast",
+            "default_venue": "paper",
+            "default_strategy": "momentum",
+            "slippage_bps": "7",
+            "locale": "es",
+        },
+    )
+    assert put["ok"] is True
+    assert put["settings"]["theme"] == "high-contrast"
+    assert session.settings_path.is_file()
+    loaded = load_settings(session.settings_path)
+    assert loaded["default_venue"] == "paper"
+    saved = save_settings(session.settings_path, loaded)
+    assert saved["locale"] == "es"
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -638,6 +688,7 @@ def main() -> int:
         ("F33 optimizer history + pareto", check_f33_optimizer_history),
         ("F34 montecarlo history + HB export", check_f34_mc_export),
         ("F35 command palette + /api/commands", check_f35_commands),
+        ("F36 settings + status bar", check_f36_settings),
     ]
     ok = True
     for name, fn in checks:

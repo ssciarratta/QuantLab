@@ -46,6 +46,7 @@ from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRun
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
+from quantlab.workbench.settings import load_settings, save_settings
 from quantlab.workbench.validation_runs import (
     get_validation_run,
     list_validation_runs,
@@ -281,6 +282,79 @@ def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, 
         "layout": saved,
         "session_id": session.session_id,
         "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_get_settings(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/settings — preferencias de sesión (theme/venue/strategy/slip/locale)."""
+    session = state.ensure_session()
+    try:
+        settings = load_settings(session.settings_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    # Hidrata slippage de estado desde settings si el archivo existe.
+    with contextlib.suppress(InvalidOperation, KeyError, TypeError):
+        state.slippage_bps = Decimal(str(settings["slippage_bps"]))
+    return {
+        "ok": True,
+        "kind": "settings",
+        "settings": settings,
+        "session_id": session.session_id,
+        "mode": state.mode.value,
+        "venue": state.venue,
+        "md_provider": state.md_provider,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+        "allowed_themes": ["slate", "high-contrast"],
+        "allowed_locales": ["es"],
+    }
+
+
+def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """PUT /api/settings — guarda settings en ``settings.json`` (fail-closed)."""
+    session = state.ensure_session()
+    if "settings" in body and isinstance(body["settings"], dict):
+        payload = body["settings"]
+    elif any(
+        k in body
+        for k in ("theme", "default_venue", "default_strategy", "slippage_bps", "locale", "version")
+    ):
+        payload = body
+    else:
+        raise ApiError(400, "body debe incluir settings o campos de settings")
+    try:
+        # Merge parcial sobre defaults/actuales.
+        current = load_settings(session.settings_path)
+        merged = dict(current)
+        for key in (
+            "version",
+            "theme",
+            "default_venue",
+            "default_strategy",
+            "slippage_bps",
+            "locale",
+        ):
+            if key in payload:
+                merged[key] = payload[key]
+        saved = save_settings(session.settings_path, merged)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    try:
+        state.slippage_bps = Decimal(str(saved["slippage_bps"]))
+    except (InvalidOperation, KeyError, TypeError) as exc:
+        raise ApiError(400, f"slippage_bps inválido tras save: {exc}") from exc
+    return {
+        "ok": True,
+        "kind": "settings",
+        "settings": saved,
+        "session_id": session.session_id,
+        "mode": state.mode.value,
+        "venue": state.venue,
+        "md_provider": state.md_provider,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
     }
 
 

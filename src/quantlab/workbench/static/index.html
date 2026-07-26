@@ -20,10 +20,24 @@
       <span id="banner-chat" class="chat-system-banner">Asistente research — no envía órdenes</span>
     </header>
     <div id="workspace" class="workspace" aria-label="Escritorio"></div>
-    <footer class="taskbar" id="taskbar">
-      <button type="button" class="start-btn" id="btn-start" title="Menú">QL</button>
-      <div class="taskbar-windows" id="taskbar-windows"></div>
-      <div class="taskbar-clock" id="taskbar-clock"></div>
+    <footer class="bottom-chrome" id="bottom-chrome">
+      <div class="status-bar" id="status-bar" role="status" aria-label="Status bar">
+        <span class="sb-item"><span class="sb-label">mode</span> <span id="sb-mode" class="mono">—</span></span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item"><span class="sb-label">live</span> <span id="sb-live" class="mono live-badge">LIVE_BLOCKED</span></span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item"><span class="sb-label">session</span> <span id="sb-session" class="mono muted">—</span></span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item"><span class="sb-label">venue</span> <span id="sb-venue" class="mono">—</span></span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item"><span class="sb-label">md</span> <span id="sb-md" class="mono">—</span></span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item sb-clock" id="sb-clock" class="mono"></span>
+      </div>
+      <div class="taskbar" id="taskbar">
+        <button type="button" class="start-btn" id="btn-start" title="Menú">QL</button>
+        <div class="taskbar-windows" id="taskbar-windows"></div>
+      </div>
     </footer>
   </div>
 
@@ -50,6 +64,8 @@
     <button type="button" data-open="features">Features</button>
     <button type="button" data-open="export_hb">Hummingbot Export</button>
     <button type="button" data-open="validation">Validation Splits</button>
+    <div class="start-group">Sistema</div>
+    <button type="button" data-open="settings">Settings</button>
   </div>
 
   <script src="/static/js/api.js"></script>
@@ -76,6 +92,7 @@
   <script src="/static/js/panes/features.js"></script>
   <script src="/static/js/panes/export_hb.js"></script>
   <script src="/static/js/panes/validation.js"></script>
+  <script src="/static/js/panes/settings.js"></script>
   <script src="/static/js/shell.js"></script>
 </body>
 </html>
