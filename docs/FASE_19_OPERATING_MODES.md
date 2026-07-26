@@ -1,8 +1,10 @@
 # Fase 19 — Operating Modes (TESTER / PAPER·REAL / LIVE)
 
-**Estado:** EN IMPLEMENTACIÓN  
-**Fecha diseño:** 2026-07-26  
-**Base certificada:** F0–F18 · código **v0.10.0** → target **v0.11.0**  
+**Estado:** ✅ **APROBADO_INTERNO** (Meta-Auditor INTERNO Zero-Trust, 2026-07-26)  
+**Certificado externo:** pendiente — **no** existe `FASE_19_APPROVED.md`  
+**Fecha diseño / auditoría INTERNAL:** 2026-07-26  
+**Código:** **v0.11.0** · commit implementación `a5b12d3`  
+**Evidencia INTERNAL:** `docs/audit/INTERNAL_AUDIT_F19.md` · `AUTO_AUDIT_2026-07-26_F19.md` · `FASE_19_REVIEW_PACKAGE.md`  
 **Pedido dueño (2026-07-26):** modo TESTER + modo REAL multiplataforma; workbench; chat IA; fases + auditor interno.  
 **Alcance F19:** modos operativos + `BrokerPort` multiplataforma + paper broker. **Sin UI** (F20). **Sin chat IA** (F21/F22). **Sin LIVE orders por default.**
 

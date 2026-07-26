@@ -1,8 +1,8 @@
 # QuantLab — Roadmap alineado (única numeración)
 
-**Fecha:** 2026-07-25  
+**Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensión producto **F18**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F19** (+ F20 diseño)  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
@@ -186,6 +186,21 @@
 **Estado en repo:** ✅ **APROBADO DEFINITIVO** Meta-Auditor (`docs/audit/FASE_18_APPROVED.md`, 2026-07-25)  
 **Bloqueo permanente:** order routing LIVE A3.
 
+### Fase 19 — Operating Modes + BrokerPort
+**Módulos:**
+- `OperatingMode` TESTER / PAPER / LIVE + `ModeGuard` fail-closed
+- Alias producto **REAL = PAPER** (MD/cuenta reales + fills simulados; REAL ≠ LIVE)
+- `BrokerPort` Protocol + DTOs neutrales + `BrokerRegistry`
+- `PaperBroker` + `PaperFillJournal` (≠ `LocalPaperLedger`)
+- Adapter A3 MD-only (`A3BrokerPort`); segundo venue fake `binance`
+- Health reporta `operating_mode` + venues
+- `docs/ops/LIVE_FLIP_CHECKLIST.md` (flip **no** ejecutado)
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F19.md`, 2026-07-26) — certificado externo `FASE_19_APPROVED.md` **pendiente**  
+**Versión:** 0.11.0 · implementación `a5b12d3`  
+**Review Package INTERNAL:** `docs/audit/FASE_19_REVIEW_PACKAGE.md`  
+**Siguiente:** F20 Workbench (`docs/FASE_20_WORKBENCH.md`)
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -230,6 +245,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados (F18 APROBADO DEFINITIVO 2026-07-25).  
-2. Avances post-roadmap (trading-prod / LIVE / HA) solo con decisión explícita de producto.  
-3. LIVE routing sigue **BLOQUEADO**.
+1. F0–F18 certificados externos; F19 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
+2. Implementar **F20 Workbench** (1-click / window manager) sobre modos F19.  
+3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

@@ -1,30 +1,34 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-25
-Versión código actual: 0.10.0
+Actualizado: 2026-07-26
+Versión código actual: 0.11.0
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
+Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
 
 ESTADO
 ------
-- F0–F18: CERTIFICADOS (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO
-- Self-audit remediaciones C1–C3 / H1–H5 / M1 verificadas en certificado F18
+- F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
+- F19: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F19.md, 2026-07-26)
+  · NO existe FASE_19_APPROVED.md (reserva Meta-Auditor externo)
+- Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (a3, binance, paper)
+- Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
-ÚLTIMA IMPLEMENTACIÓN
----------------------
-Certificado F18 APROBADO DEFINITIVO (Meta-Auditor GPT):
-- Remediaciones C1, C2/C3, H1–H5, M1, H3
-- Control Total research-ops (ledger, health, FeatureStore, LogReturn)
-- Suite tests/unit/fase18/test_audit_remediation.py
-- QA cierre: 392 passed · mypy strict · ruff · health ok
-- Review Package: QuantLab_Review_Fase_18_v1.0.zip
-  SHA256 bbdd5dd210c4fac8177723052341d04861014b6beff289d767af64f93cb94723
+ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
+---------------------------------
+F19 Operating Modes + BrokerPort (v0.11.0, commit a5b12d3):
+- ModeGuard fail-closed; REAL alias = PAPER
+- PaperBroker fills locales; PaperFillJournal ≠ LocalPaperLedger
+- A3BrokerPort MD-only; FakeBinance segundo venue
+- QA INTERNAL: mypy strict · ruff · 34 brokers passed · quantlab-health ok
+- Docs: AUTO_AUDIT_2026-07-26_F19 · FASE_19_REVIEW_PACKAGE · INTERNAL_AUDIT_F19
+- Diseño siguiente: docs/FASE_20_WORKBENCH.md
 
 PRÓXIMO PASO
 ------------
-- Avances post-F18 (trading-prod / LIVE / HA) solo con decisión explícita
-- LIVE bloqueado
+- F20 Workbench (1-click / ventanas) sobre modos F19
+- Certificado externo F19 solo con APROBADO Meta-Auditor externo
+- LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 
 BLOQUEOS
 --------
