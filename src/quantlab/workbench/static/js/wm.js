@@ -107,6 +107,7 @@
     taskBtn.className = "task-btn";
     taskBtn.textContent = title;
     taskBtn.dataset.id = id;
+    taskBtn.setAttribute("aria-label", "Ventana " + title);
     this.taskbar.appendChild(taskBtn);
 
     const record = {

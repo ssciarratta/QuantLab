@@ -11,30 +11,35 @@
   }
 
   function createOverlay() {
-    var existing = document.getElementById("about-dialog");
-    if (existing) return existing;
-    var overlay = document.createElement("div");
-    overlay.id = "about-dialog";
+    var overlay = document.getElementById("about-dialog");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "about-dialog";
+      overlay.className = "about-dialog hidden";
+      overlay.setAttribute("hidden", "");
+      document.body.appendChild(overlay);
+    }
     overlay.className = "about-dialog hidden";
     overlay.setAttribute("hidden", "");
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "Acerca de QuantLab");
-    overlay.innerHTML =
-      '<div class="about-panel">' +
-      '  <header class="about-header">' +
-      '    <div class="about-brand">QuantLab</div>' +
-      '    <button type="button" class="btn ghost about-close" id="about-close" aria-label="Cerrar">×</button>' +
-      "  </header>" +
-      '  <div class="about-body" id="about-body">' +
-      '    <p class="muted">Cargando…</p>' +
-      "  </div>" +
-      '  <footer class="about-footer">' +
-      '    <span class="live-badge" id="about-live">LIVE_BLOCKED</span>' +
-      '    <button type="button" class="btn primary" id="about-ok">Cerrar</button>' +
-      "  </footer>" +
-      "</div>";
-    document.body.appendChild(overlay);
+    if (!overlay.querySelector(".about-panel")) {
+      overlay.innerHTML =
+        '<div class="about-panel">' +
+        '  <header class="about-header">' +
+        '    <div class="about-brand">QuantLab</div>' +
+        '    <button type="button" class="btn ghost about-close" id="about-close" aria-label="Cerrar">×</button>' +
+        "  </header>" +
+        '  <div class="about-body" id="about-body">' +
+        '    <p class="muted">Cargando…</p>' +
+        "  </div>" +
+        '  <footer class="about-footer">' +
+        '    <span class="live-badge" id="about-live">LIVE_BLOCKED</span>' +
+        '    <button type="button" class="btn primary" id="about-ok" aria-label="Cerrar Acerca de">Cerrar</button>' +
+        "  </footer>" +
+        "</div>";
+    }
     return overlay;
   }
 

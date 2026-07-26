@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="/static/css/workbench.css" />
 </head>
 <body data-theme="slate">
+  <a class="skip-link" href="#workspace">Ir al contenido</a>
   <div id="desktop" class="desktop">
     <header class="top-banner" id="mode-banner" role="status">
       <span class="brand">QuantLab</span>
@@ -19,7 +20,7 @@
       <span class="banner-sep">·</span>
       <span id="banner-chat" class="chat-system-banner">Asistente research — no envía órdenes</span>
     </header>
-    <div id="workspace" class="workspace" aria-label="Escritorio"></div>
+    <div id="workspace" class="workspace" aria-label="Escritorio" tabindex="-1"></div>
     <footer class="bottom-chrome" id="bottom-chrome">
       <div class="status-bar" id="status-bar" role="status" aria-label="Status bar">
         <span class="sb-item"><span class="sb-label">mode</span> <span id="sb-mode" class="mono">—</span></span>
@@ -38,12 +39,17 @@
         <span class="sb-sep">·</span>
         <span class="sb-item sb-clock" id="sb-clock" class="mono"></span>
       </div>
-      <div class="taskbar" id="taskbar">
-        <button type="button" class="start-btn" id="btn-start" title="Menú">QL</button>
-        <div class="taskbar-windows" id="taskbar-windows"></div>
+      <div class="taskbar" id="taskbar" role="toolbar" aria-label="Barra de tareas">
+        <button type="button" class="start-btn" id="btn-start" title="Menú" aria-label="Menú inicio">QL</button>
+        <div class="taskbar-windows" id="taskbar-windows" role="group" aria-label="Ventanas abiertas"></div>
       </div>
     </footer>
   </div>
+
+  <!-- F59 a11y: dialog shells (JS enriches inner content) -->
+  <div id="command-palette" class="command-palette hidden" hidden role="dialog" aria-modal="true" aria-label="Command Palette"></div>
+  <div id="about-dialog" class="about-dialog hidden" hidden role="dialog" aria-modal="true" aria-label="Acerca de QuantLab"></div>
+  <div id="onboarding-wizard" class="onboarding-wizard hidden" hidden role="dialog" aria-modal="true" aria-label="Onboarding QuantLab"></div>
 
   <div id="start-menu" class="start-menu hidden" hidden>
     <div class="start-group">Espacios de trabajo</div>

@@ -770,6 +770,19 @@
 **Spec:** `docs/FASE_58_MILESTONE_V050.md`  
 **Implementation report:** `docs/audit/FASE_58_IMPLEMENTATION_REPORT.md`
 
+### Fase 59 — A11y Basics (focus + aria)
+**Alcance:**
+- `role="dialog"` + `aria-modal` + `aria-label` en palette / about / onboarding
+- `aria-label` en botones taskbar; focus trap Tab en Command Palette
+- Skip link «Ir al contenido» → `#workspace`
+- DEC-103; bump 0.51.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F59.md`, 2026-07-26) — certificado externo `FASE_59_APPROVED.md` **NO emitido**  
+**Versión:** 0.51.0  
+**Noche F19–F59:** `docs/audit/INTERNAL_AUDIT_F19_F59_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_59_A11Y.md`  
+**Implementation report:** `docs/audit/FASE_59_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -814,6 +827,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F58 **APROBADO_INTERNO** (noche F19–F58; freeze v0.40 + v0.50).  
+1. F0–F18 certificados externos; F19–F59 **APROBADO_INTERNO** (noche F19–F59; freeze v0.40 + v0.50).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

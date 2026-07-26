@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.51.0] — 2026-07-26
+
+### Fase 59 — A11y Basics (focus + aria)
+
+#### Added
+- Skip link «Ir al contenido» → `#workspace`
+- Dialog shells `role="dialog"` + `aria-modal` (palette / about / onboarding) en `index.html`
+- Focus trap básico (Tab ciclo) en Command Palette
+- `aria-label` en botones taskbar (inicio + ventanas)
+- Suite `tests/unit/workbench/test_a11y_f59.py`
+- Docs: `FASE_59_A11Y.md` · implementation report · DEC-103
+- Bundle INTERNAL default F19–F59
+
+#### Changed
+- `phases_summary` → `F19–F59 INTERNAL`
+- Bump **0.51.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_59_APPROVED.md`
+
+---
+
 ## [0.50.0] — 2026-07-26
 
 ### Fase 58 — Milestone Freeze Docs + CHANGELOG Sync (v0.50)

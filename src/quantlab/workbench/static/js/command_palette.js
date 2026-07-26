@@ -1,6 +1,10 @@
-/** Command Palette — Ctrl+K / Ctrl+Shift+P (F35). */
+/** Command Palette — Ctrl+K / Ctrl+Shift+P (F35); a11y focus trap (F59). */
 (function (global) {
   "use strict";
+
+  var FOCUSABLE =
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), ' +
+    'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
   function CommandPalette(opts) {
     this.openers = opts.openers || {};
@@ -13,31 +17,71 @@
     this._el = null;
     this._input = null;
     this._list = null;
+    this._prevFocus = null;
+    this._onKeyDown = null;
     this._buildDom();
   }
 
+  CommandPalette.prototype._focusables = function () {
+    if (!this._el) return [];
+    return Array.prototype.slice.call(this._el.querySelectorAll(FOCUSABLE)).filter(function (el) {
+      return el.offsetParent !== null || el === document.activeElement;
+    });
+  };
+
+  CommandPalette.prototype._trapFocus = function (ev) {
+    if (!this.visible || ev.key !== "Tab") return;
+    var nodes = this._focusables();
+    if (!nodes.length) {
+      ev.preventDefault();
+      if (this._input) this._input.focus();
+      return;
+    }
+    var first = nodes[0];
+    var last = nodes[nodes.length - 1];
+    if (ev.shiftKey) {
+      if (document.activeElement === first || !this._el.contains(document.activeElement)) {
+        ev.preventDefault();
+        last.focus();
+      }
+    } else if (document.activeElement === last) {
+      ev.preventDefault();
+      first.focus();
+    }
+  };
+
   CommandPalette.prototype._buildDom = function () {
-    const overlay = document.createElement("div");
-    overlay.id = "command-palette";
+    var overlay = document.getElementById("command-palette");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "command-palette";
+      overlay.className = "command-palette hidden";
+      overlay.setAttribute("hidden", "");
+      document.body.appendChild(overlay);
+    }
     overlay.className = "command-palette hidden";
     overlay.setAttribute("hidden", "");
     overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "Command Palette");
-    overlay.innerHTML =
-      '<div class="command-palette-panel">' +
-      '<div class="command-palette-header">' +
-      "<span>Command Palette</span>" +
-      '<span class="command-palette-hint">Ctrl+K · Esc</span>' +
-      "</div>" +
-      '<input type="search" class="command-palette-input" id="command-palette-input" ' +
-      'placeholder="Buscar panel o acción…" autocomplete="off" spellcheck="false" />' +
-      '<ul class="command-palette-list" id="command-palette-list" role="listbox"></ul>' +
-      '<div class="command-palette-footer">' +
-      "<span>↑↓ navegar · Enter ejecutar · Esc cerrar</span>" +
-      '<span class="mono muted">LIVE_BLOCKED</span>' +
-      "</div>" +
-      "</div>";
-    document.body.appendChild(overlay);
+    if (!overlay.querySelector(".command-palette-panel")) {
+      overlay.innerHTML =
+        '<div class="command-palette-panel">' +
+        '<div class="command-palette-header">' +
+        "<span>Command Palette</span>" +
+        '<span class="command-palette-hint">Ctrl+K · Esc</span>' +
+        "</div>" +
+        '<input type="search" class="command-palette-input" id="command-palette-input" ' +
+        'placeholder="Buscar panel o acción…" autocomplete="off" spellcheck="false" ' +
+        'aria-label="Buscar comando" />' +
+        '<ul class="command-palette-list" id="command-palette-list" role="listbox" ' +
+        'aria-label="Resultados"></ul>' +
+        '<div class="command-palette-footer">' +
+        "<span>↑↓ navegar · Enter ejecutar · Esc cerrar</span>" +
+        '<span class="mono muted">LIVE_BLOCKED</span>' +
+        "</div>" +
+        "</div>";
+    }
     this._el = overlay;
     this._input = overlay.querySelector("#command-palette-input");
     this._list = overlay.querySelector("#command-palette-list");
@@ -64,6 +108,9 @@
         self.hide();
       }
     });
+    this._onKeyDown = function (ev) {
+      self._trapFocus(ev);
+    };
   };
 
   CommandPalette.prototype.load = function () {
@@ -85,6 +132,7 @@
   CommandPalette.prototype.show = function () {
     const self = this;
     const open = function () {
+      self._prevFocus = document.activeElement;
       self.visible = true;
       self._el.removeAttribute("hidden");
       self._el.classList.remove("hidden");
@@ -92,6 +140,7 @@
       self._filter("");
       self._input.focus();
       self._input.select();
+      document.addEventListener("keydown", self._onKeyDown, true);
     };
     if (!this.commands.length) {
       this.load().then(open);
@@ -104,6 +153,17 @@
     this.visible = false;
     this._el.setAttribute("hidden", "");
     this._el.classList.add("hidden");
+    if (this._onKeyDown) {
+      document.removeEventListener("keydown", this._onKeyDown, true);
+    }
+    if (this._prevFocus && typeof this._prevFocus.focus === "function") {
+      try {
+        this._prevFocus.focus();
+      } catch (err) {
+        /* ignore */
+      }
+    }
+    this._prevFocus = null;
   };
 
   CommandPalette.prototype.toggle = function () {

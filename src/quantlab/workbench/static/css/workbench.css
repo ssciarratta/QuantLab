@@ -112,6 +112,29 @@ body {
   background: var(--bg-deep);
 }
 
+/* F59 — skip link (visible on focus) */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 200;
+  padding: 0.45rem 0.75rem;
+  background: var(--bg-elevated);
+  color: var(--amber);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: top 120ms ease;
+}
+
+.skip-link:focus {
+  top: 0.5rem;
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
 .desktop {
   position: relative;
   height: 100%;

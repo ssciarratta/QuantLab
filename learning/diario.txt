@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 59 — A11y Basics (focus + aria)
+-------------------------------------------------------
+- v0.51.0 · DEC-103 · LIVE_BLOCKED intacto · sin FASE_59_APPROVED.
+- role=dialog + aria-modal en palette/about/onboarding; aria taskbar;
+  focus trap Tab palette; skip link «Ir al contenido».
+- Suite test_a11y_f59.py; smoke F59; bundle F19–F59.
+- Noche F19–F59 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 58 — Milestone Freeze Docs (v0.50)
 -------------------------------------------------------
 - v0.50.0 · DEC-102 · LIVE_BLOCKED intacto · sin FASE_58_APPROVED.

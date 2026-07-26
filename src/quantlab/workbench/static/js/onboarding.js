@@ -5,40 +5,45 @@
   var TOTAL_STEPS = 4;
 
   function createOverlay() {
-    var existing = document.getElementById("onboarding-wizard");
-    if (existing) return existing;
-    var overlay = document.createElement("div");
-    overlay.id = "onboarding-wizard";
+    var overlay = document.getElementById("onboarding-wizard");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "onboarding-wizard";
+      overlay.className = "onboarding-wizard hidden";
+      overlay.setAttribute("hidden", "");
+      document.body.appendChild(overlay);
+    }
     overlay.className = "onboarding-wizard hidden";
     overlay.setAttribute("hidden", "");
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-label", "Onboarding QuantLab");
-    overlay.innerHTML =
-      '<div class="onboarding-panel">' +
-      '  <header class="onboarding-header">' +
-      '    <div class="onboarding-brand">QuantLab</div>' +
-      '    <div class="onboarding-meta">' +
-      '      <span class="live-badge">LIVE_BLOCKED</span>' +
-      '      <span class="onboarding-step-label" id="ob-step-label">Paso 1 / 4</span>' +
-      "    </div>" +
-      "  </header>" +
-      '  <div class="onboarding-progress" aria-hidden="true">' +
-      '    <span class="ob-dot active" data-step="1"></span>' +
-      '    <span class="ob-dot" data-step="2"></span>' +
-      '    <span class="ob-dot" data-step="3"></span>' +
-      '    <span class="ob-dot" data-step="4"></span>' +
-      "  </div>" +
-      '  <div class="onboarding-body" id="ob-body"></div>' +
-      '  <footer class="onboarding-footer">' +
-      '    <button type="button" class="btn ghost" id="ob-prev" disabled>Anterior</button>' +
-      '    <div class="onboarding-actions">' +
-      '      <button type="button" class="btn ghost" id="ob-skip">Omitir</button>' +
-      '      <button type="button" class="btn primary" id="ob-next">Siguiente</button>' +
-      "    </div>" +
-      "  </footer>" +
-      "</div>";
-    document.body.appendChild(overlay);
+    if (!overlay.querySelector(".onboarding-panel")) {
+      overlay.innerHTML =
+        '<div class="onboarding-panel">' +
+        '  <header class="onboarding-header">' +
+        '    <div class="onboarding-brand">QuantLab</div>' +
+        '    <div class="onboarding-meta">' +
+        '      <span class="live-badge">LIVE_BLOCKED</span>' +
+        '      <span class="onboarding-step-label" id="ob-step-label">Paso 1 / 4</span>' +
+        "    </div>" +
+        "  </header>" +
+        '  <div class="onboarding-progress" aria-hidden="true">' +
+        '    <span class="ob-dot active" data-step="1"></span>' +
+        '    <span class="ob-dot" data-step="2"></span>' +
+        '    <span class="ob-dot" data-step="3"></span>' +
+        '    <span class="ob-dot" data-step="4"></span>' +
+        "  </div>" +
+        '  <div class="onboarding-body" id="ob-body"></div>' +
+        '  <footer class="onboarding-footer">' +
+        '    <button type="button" class="btn ghost" id="ob-prev" aria-label="Paso anterior" disabled>Anterior</button>' +
+        '    <div class="onboarding-actions">' +
+        '      <button type="button" class="btn ghost" id="ob-skip" aria-label="Omitir onboarding">Omitir</button>' +
+        '      <button type="button" class="btn primary" id="ob-next" aria-label="Siguiente paso">Siguiente</button>' +
+        "    </div>" +
+        "  </footer>" +
+        "</div>";
+    }
     return overlay;
   }
 

@@ -1792,3 +1792,44 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F58: **0.50.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 59 — A11y Basics (focus + aria)
+
+**Código:** 0.51.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Mejoras a11y mínimas en SPA estático: `role=dialog` + `aria-modal` + `aria-label` en Command Palette / About / Onboarding; `aria-label` taskbar; focus trap Tab en palette; skip link «Ir al contenido».
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_59_A11Y.md` |
+| Implementation report | `docs/audit/FASE_59_IMPLEMENTATION_REPORT.md` |
+| Review package | `docs/audit/FASE_59_REVIEW_PACKAGE.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F59.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F59.md` |
+| Noche F19–F59 | `docs/audit/INTERNAL_AUDIT_F19_F59_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 59** |
+| DEC | DEC-103 |
+
+### Lista A F59 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Skip link + dialog shells | `static/index.html` |
+| A2 | Focus trap palette | `static/js/command_palette.js` |
+| A3 | About / onboarding aria | `about.js` · `onboarding.js` |
+| A4 | Taskbar aria-label | `wm.js` · `btn-start` |
+| A5 | Suite a11y | `tests/unit/workbench/test_a11y_f59.py` |
+| A6 | Version 0.51.0 | `pyproject.toml` |
+
+### Lista B F59 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F59: **0.51.0** · LIVE: **BLOQUEADO** · flip: **NO**.

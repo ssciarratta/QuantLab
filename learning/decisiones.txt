@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-103 — A11y Basics (focus + aria)
+  Decisión: F59 = mejoras a11y mínimas en SPA estático workbench:
+  role=dialog + aria-modal + aria-label en Command Palette / About /
+  Onboarding (shells en index.html); aria-label en botones taskbar;
+  focus trap básico Tab en palette; skip link «Ir al contenido»;
+  suite test_a11y_f59.py; bump 0.51.0. LIVE_BLOCKED=True; sin flip;
+  sin FASE_59_APPROVED. Sin axe-core / SR E2E completo.
+  Fase: 59.
+
 [2026-07-26] DEC-102 — Milestone Freeze Docs + CHANGELOG Sync (v0.50)
   Decisión: F58 = freeze documental del hito workbench v0.50.0:
   inventario F19–F57/F58, invariantes Zero-Trust, cómo operar research/paper,
