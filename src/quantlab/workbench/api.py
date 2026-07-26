@@ -805,6 +805,56 @@ def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
     }
 
 
+def handle_get_diagnostics(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/diagnostics — snapshot read-only agregado para soporte (F95).
+
+    Compone versión, modo, salud, conexión y estado de reconciliación en un
+    único payload. No muta estado ni reconstruye archivos.
+    """
+    from quantlab.workbench.about import PHASES_SUMMARY
+
+    session = state.ensure_session()
+
+    health = run_health_checks().to_dict()
+    checks = health.get("checks", [])
+    checks_total = len(checks) if isinstance(checks, list) else 0
+    checks_ok = (
+        sum(1 for c in checks if isinstance(c, dict) and c.get("ok") is True)
+        if isinstance(checks, list)
+        else 0
+    )
+
+    recon: dict[str, Any]
+    try:
+        report = state.check_paper_reconciliation()
+        recon = {"ok": report.ok, "status": report.status}
+    except ValidationError as exc:
+        recon = {"ok": False, "status": "error", "detail": str(exc)}
+
+    return {
+        "ok": True,
+        "kind": "diagnostics",
+        "version": __version__,
+        "phases_summary": PHASES_SUMMARY,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "mode": state.mode.value,
+        "real_alias": REAL_ALIAS.value,
+        "session_id": session.session_id,
+        "connected_venue": state.venue,
+        "md_provider": state.md_provider,
+        "md_source": state.md_source,
+        "broker_connected": state.broker is not None,
+        "paper_kill_engaged": state.paper_kill_engaged is True,
+        "health": {
+            "status": health.get("status"),
+            "checks_ok": checks_ok,
+            "checks_total": checks_total,
+        },
+        "reconciliation": recon,
+    }
+
+
 def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
     session = state.ensure_session()
     out: dict[str, Any] = {

@@ -3258,3 +3258,34 @@ rutas nuevas ni mutaciones.
 
 Versión código F94: **0.86.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 95 — Diagnostics Snapshot Panel (read-only)
+
+**Código:** 0.87.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-139
+**Qué es:** `GET /api/diagnostics` agrega en un payload compacto versión, modo,
+salud (ok/total), conexión y reconciliación, con pane que muestra el resumen y
+el JSON copiable. Read-only; no reemplaza `/api/health`.
+
+**DoD auditor:**
+- [x] Endpoint `/api/diagnostics` read-only agregado (sin acciones)
+- [x] Pane `diagnostics.js` (única llamada `QLApi.diagnostics()`)
+- [x] Comando `open.diagnostics` + i18n `pane.diagnostics` es/en
+- [x] Tests F95 + smoke `check_f95_diagnostics`
+- [x] Sin `FASE_95_APPROVED.md`; `LIVE_BLOCKED is True`; `live_routing=false`
+- [x] `phases_summary` F19–F95; bump 0.87.0
+
+### Lista A F95
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Endpoint | `src/quantlab/workbench/api.py` (`handle_get_diagnostics`) |
+| A2 | Ruta + catálogo | `server.py` · `api_catalog.py` |
+| A3 | Pane | `src/quantlab/workbench/static/js/panes/diagnostics.js` |
+| A4 | Tests | `tests/unit/workbench/test_diagnostics_f95.py` |
+| A5 | Smoke | `scripts/internal_audit_smoke.py` |
+| A6 | Spec | `docs/FASE_95_DIAGNOSTICS.md` |
+
+Versión código F95: **0.87.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.87.0] — 2026-07-26
+
+### Fase 95 — Diagnostics Snapshot Panel (read-only)
+
+#### Added
+- `GET /api/diagnostics`: snapshot agregado read-only (versión, phases, modo,
+  salud resumida, conexión, paper kill, reconciliación); nunca muta estado
+- Pane `diagnostics.js`: resumen + JSON + copiar al portapapeles
+- Cliente `QLApi.diagnostics()`; comando `open.diagnostics`; i18n `pane.diagnostics`
+- Tests `test_diagnostics_f95.py` + smoke `check_f95_diagnostics`
+
+#### Notes
+- Endpoint y pane estrictamente read-only; sin rutas LIVE; `LIVE_BLOCKED=True`
+
+---
+
 ## [0.86.0] — 2026-07-26
 
 ### Fase 94 — API Explorer Panel (read-only)

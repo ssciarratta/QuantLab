@@ -1,3 +1,7 @@
+[2026-07-26] F95 — Diagnostics Snapshot Panel read-only (v0.87.0)
+  /api/diagnostics agregado + pane diagnostics.js (resumen + JSON + copiar).
+  Sin mutaciones. DEC-139.
+
 [2026-07-26] F94 — API Explorer Panel read-only (v0.86.0)
   Pane api_explorer.js navega /api/openapi.json (método/path/resumen/tags) con
   filtro. Sin mutaciones. DEC-138.

@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.86.0 (F94 API Explorer Panel read-only)
+Versión código actual: 0.87.0 (F95 Diagnostics Snapshot Panel read-only)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,14 +75,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F94: APROBADO_INTERNO Zero-Trust (noche F19–F94; sin certificados externos)
+- F19–F94: APROBADO_INTERNO Zero-Trust; F95 (Diagnostics) auditoría en curso
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F94 API Explorer Panel read-only (0.86.0):
+F95 Diagnostics Snapshot Panel read-only (0.87.0):
+- GET /api/diagnostics agrega versión/modo/salud/conexión/reconciliación
+- Pane diagnostics.js (resumen + JSON + copiar) + comando open.diagnostics + i18n
+- DEC-139; FASE_95_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+
+Previo — F94 API Explorer Panel read-only (0.86.0):
 - Pane api_explorer.js navega /api/openapi.json (método/path/resumen/tags + filtro)
 - Cliente QLApi.openapi() + comando open.api_explorer + i18n; sin mutaciones
 - DEC-138; FASE_94_APPROVED.md NO emitido · LIVE_BLOCKED intacto

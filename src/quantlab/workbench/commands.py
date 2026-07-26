@@ -228,6 +228,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("api", "openapi", "catálogo", "catalog", "rutas", "routes", "endpoints"),
     },
     {
+        "id": "open.diagnostics",
+        "kind": "pane",
+        "label": "Abrir Diagnostics",
+        "pane_id": "diagnostics",
+        "keywords": ("diagnostics", "diagnóstico", "soporte", "support", "snapshot", "estado"),
+    },
+    {
         "id": "open.backups",
         "kind": "pane",
         "label": "Abrir Backups",

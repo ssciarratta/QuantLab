@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.84.0** (F92 Milestone Freeze Docs arco v0.71–v0.83)
+**Versión tip:** **0.87.0** (F95 Diagnostics read-only)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
@@ -47,7 +47,10 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F90 | Paper Reconciliation Status Panel · **0.82.0** |
 | F91 | Paper Session Rehydrate post-rebuild · **0.83.0** |
 | F92 | Milestone Freeze Docs arco v0.71–v0.83 · **0.84.0** |
-| Noche F19–F91 | `docs/audit/INTERNAL_AUDIT_F19_F91_NIGHT.md` |
+| F93 | Venues / Broker Registry Panel read-only · **0.85.0** |
+| F94 | API Explorer Panel read-only · **0.86.0** |
+| F95 | Diagnostics Snapshot Panel read-only · **0.87.0** |
+| Noche F19–F94 | `docs/audit/INTERNAL_AUDIT_F19_F94_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
@@ -140,13 +143,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 6. Session paths fail-closed (`validate_session_id`, zip-slip)
 7. PaperBroker / Paper Session: fills simulados; sin venue submit
 8. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-9. Sin emitir `FASE_19`…`FASE_92_APPROVED.md` desde INTERNAL
-10. `phases_summary` tip: `F19–F92 INTERNAL`
-11. About / health `version` ≡ `__version__` y startswith `0.84`
+9. Sin emitir `FASE_19`…`FASE_95_APPROVED.md` desde INTERNAL
+10. `phases_summary` tip: `F19–F95 INTERNAL`
+11. About / health `version` ≡ `__version__` y startswith `0.87`
 12. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
 
 ## Próximo
 
-- Certificados externos F19–F92 solo con Meta-Auditor externo
-- Cierre INTERNAL F92 + bundle noche F19–F92; luego F93 según roadmap
+- Certificados externos F19–F95 solo con Meta-Auditor externo
+- Cierre INTERNAL F95 + bundle noche F19–F95; luego F96 según roadmap
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

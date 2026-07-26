@@ -1195,6 +1195,16 @@
 - `LIVE_BLOCKED=True`; sin flip; sin `FASE_94_APPROVED.md`
 
 
+## Fase 95 — Diagnostics Snapshot Panel (read-only)
+
+**Version:** 0.87.0 · **DEC-139** · implementada, auditoría INTERNAL en curso
+
+- `GET /api/diagnostics` agregado read-only (versión/modo/salud/reconciliación)
+- Pane `diagnostics.js` (resumen + JSON + copiar) + comando `open.diagnostics`
+- Cliente `QLApi.diagnostics()` + i18n es/en; tests F95 + smoke
+- `LIVE_BLOCKED=True`; sin flip; sin `FASE_95_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

@@ -1,3 +1,10 @@
+[2026-07-26] DEC-139 — /api/diagnostics agrega, no reemplaza
+  Decisión: F95 agrega un snapshot read-only agregado (/api/diagnostics) que
+  compone versión/modo/salud/conexión/reconciliación en un payload compacto para
+  soporte, sin reemplazar /api/health ni exponer acciones. Pane con copiar JSON.
+  Estrictamente read-only. Bump 0.87.0. LIVE_BLOCKED=True; sin FASE_95_APPROVED.
+  Fase: 95.
+
 [2026-07-26] DEC-138 — API Explorer reutiliza openapi.json
   Decisión: F94 agrega un visor de catálogo API en UI consumiendo el endpoint
   existente GET /api/openapi.json (F55), sin crear rutas nuevas ni permitir

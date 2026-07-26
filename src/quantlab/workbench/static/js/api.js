@@ -107,6 +107,9 @@
     openapi: function () {
       return request("GET", "/api/openapi.json");
     },
+    diagnostics: function () {
+      return request("GET", "/api/diagnostics");
+    },
     connect: function (venue, mode, opts) {
       const body = { venue: venue, mode: mode };
       if (opts && opts.md_source) {
@@ -365,6 +368,9 @@
     },
     openapi: function () {
       return request("GET", "/api/openapi.json");
+    },
+    diagnostics: function () {
+      return request("GET", "/api/diagnostics");
     },
     about: function () {
       return request("GET", "/api/about");

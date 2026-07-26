@@ -232,6 +232,17 @@
     pane.refresh();
   }
 
+  function openDiagnostics() {
+    const pane = QLPanes.createDiagnosticsPane();
+    wm.open(
+      "diagnostics",
+      tr("pane.diagnostics", "Diagnostics"),
+      pane,
+      mergeOpts("diagnostics", { x: 320, y: 110, w: 520, h: 480 })
+    );
+    pane.refresh();
+  }
+
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
@@ -416,6 +427,7 @@
     reconciliation: openReconciliation,
     venues: openVenues,
     api_explorer: openApiExplorer,
+    diagnostics: openDiagnostics,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

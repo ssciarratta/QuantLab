@@ -45,6 +45,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     # Meta / ops
     ApiRoute("/api/openapi.json", "GET", "OpenAPI 3 schema (API catalog)", ("meta",)),
     ApiRoute("/api/health", "GET", "Health report (rich)", ("ops",)),
+    ApiRoute(
+        "/api/diagnostics",
+        "GET",
+        "Read-only aggregate snapshot (version/mode/health/reconciliation)",
+        ("ops",),
+    ),
     ApiRoute("/api/livez", "GET", "Liveness probe", ("ops",)),
     ApiRoute("/api/readyz", "GET", "Readiness probe (LIVE_BLOCKED + writable)", ("ops",)),
     ApiRoute("/api/about", "GET", "About / version / phases INTERNAL", ("meta",)),
