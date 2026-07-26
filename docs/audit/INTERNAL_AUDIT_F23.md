@@ -4,6 +4,7 @@
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Repo:** `/workspace` · branch `cursor/modo-real-workbench-aafd`  
 **Código implementación:** `9b89274` · **v0.15.0**  
+**Remediación H1/H2:** `c846e81`  
 **Docs de trabajo:** `AUTO_AUDIT_2026-07-26_F23.md`, `FASE_23_IMPLEMENTATION_REPORT.md`, `FASE_23_REVIEW_PACKAGE.md`
 
 ---

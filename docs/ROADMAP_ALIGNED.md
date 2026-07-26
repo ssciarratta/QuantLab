@@ -257,7 +257,7 @@
 **Versión:** 0.15.0 · implementación `9b89274`  
 **Review Package INTERNAL:** `docs/audit/FASE_23_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F23.md`  
-**Remediación audit:** H1 session_id anti-traversal · H2 cash/shorts fail-closed en load
+**Remediación audit:** H1 session_id anti-traversal · H2 cash/shorts fail-closed en load (`c846e81`)
 
 ### Fase 24 — Venue plugins + MD read-only multiplataforma
 **Módulos:**
