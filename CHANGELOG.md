@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.64.0] — 2026-07-26
+
+### Fase 72 — Desktop Notifications Hook
+
+#### Added
+- Settings `desktop_notifications` (default **false**) · checkbox UI
+- JS Notification API hook on toast errors + paper kill engage (graceful if denied)
+- Docs: `FASE_72_NOTIFICATIONS.md` · implementation report · DEC-116
+- Suite `test_desktop_notifications_f72.py` + smoke F72
+
+#### Changed
+- `phases_summary` → `F19–F72 INTERNAL`
+- Bump **0.64.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_72_APPROVED.md`; notifications opt-in
+
 ## [0.63.0] — 2026-07-26
 
 ### Fase 71 — Health Extended + 1000 Tests Milestone

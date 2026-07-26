@@ -278,6 +278,11 @@
       if (data && data.settings) {
         applyTheme(data.settings.theme);
         applyLocale(data.settings.locale);
+        if (window.QLToasts && QLToasts.setDesktopNotifications) {
+          QLToasts.setDesktopNotifications(
+            data.settings.desktop_notifications === true
+          );
+        }
       }
     });
     wm.open("settings", tr("pane.settings", "Settings"), pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
@@ -604,6 +609,11 @@
     if (settingsData && settingsData.settings) {
       applyTheme(settingsData.settings.theme);
       applyLocale(settingsData.settings.locale || "es");
+      if (window.QLToasts && QLToasts.setDesktopNotifications) {
+        QLToasts.setDesktopNotifications(
+          settingsData.settings.desktop_notifications === true
+        );
+      }
       updateStatusBar(settingsData);
       // Opcional: hidratar mensajes desde API (parity static JSON)
       if (QLApi.getI18n) {

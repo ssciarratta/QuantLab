@@ -26,8 +26,8 @@ def test_live_blocked_invariant_f50() -> None:
 
 
 def test_version_and_phases_f50() -> None:
-    assert __version__ == "0.63.0"
-    assert PHASES_SUMMARY == "F19–F71 INTERNAL"
+    assert __version__ == "0.64.0"
+    assert PHASES_SUMMARY == "F19–F72 INTERNAL"
 
 
 def test_perf_baseline_key_endpoints_p95(

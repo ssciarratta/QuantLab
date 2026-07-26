@@ -2328,3 +2328,47 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F71: **0.63.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 72 — Desktop Notifications Hook
+
+**Código:** 0.64.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-116  
+**Qué es:** Settings opt-in `desktop_notifications` (default false); cuando true, JS Notification API en toast errors y paper kill engage, con degradación graceful si el permiso es denegado; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_72_NOTIFICATIONS.md` |
+| Implementation report | `docs/audit/FASE_72_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F72.md` |
+| Review Package INTERNAL | `docs/audit/FASE_72_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F72.md` |
+| Noche F19–F72 | `docs/audit/INTERNAL_AUDIT_F19_F72_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 72** |
+
+**Certificado externo:** **NO** emitido (`FASE_72_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F72 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Settings field | `settings.py` · `api.py` |
+| A2 | Settings checkbox | `panes/settings.js` |
+| A3 | Notification hook | `toasts.js` · `api.js` · `shell.js` |
+| A4 | Spec | `docs/FASE_72_NOTIFICATIONS.md` |
+| A5 | Implementation report | `docs/audit/FASE_72_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-116 | `learning/decisiones.txt` |
+| A7 | Version 0.64.0 | `pyproject.toml` |
+| A8 | Suite + smoke F72 | `test_desktop_notifications_f72.py` · smoke |
+
+### Lista B F72 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F72: **0.64.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

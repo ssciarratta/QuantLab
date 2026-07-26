@@ -24,6 +24,9 @@
       '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
       '<input id="set-access-log" type="checkbox" checked /> Access log (access.jsonl)' +
       "</label>" +
+      '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
+      '<input id="set-desktop-notif" type="checkbox" /> Desktop notifications (errors / kill)' +
+      "</label>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn" id="set-save" data-i18n="btn.save">Guardar</button>' +
       '<button type="button" class="btn secondary" id="set-refresh" data-i18n="btn.refresh">Recargar</button>' +
@@ -62,6 +65,7 @@
     const slipEl = root.querySelector("#set-slip");
     const localeEl = root.querySelector("#set-locale");
     const accessLogEl = root.querySelector("#set-access-log");
+    const desktopNotifEl = root.querySelector("#set-desktop-notif");
     const statusEl = root.querySelector("#set-status");
     const metaEl = root.querySelector("#set-meta");
     const zipStatusEl = root.querySelector("#set-zip-status");
@@ -111,6 +115,7 @@
       slipEl.value = s.slippage_bps != null ? String(s.slippage_bps) : "0";
       localeEl.value = s.locale === "en" ? "en" : "es";
       accessLogEl.checked = s.access_log !== false;
+      desktopNotifEl.checked = s.desktop_notifications === true;
       fillStrategies(
         (data.strategy_ids || []).length
           ? data.strategy_ids
@@ -118,6 +123,9 @@
         s.default_strategy || "momentum"
       );
       applyTheme(s.theme);
+      if (window.QLToasts && QLToasts.setDesktopNotifications) {
+        QLToasts.setDesktopNotifications(desktopNotifEl.checked);
+      }
       if (window.QLi18n) {
         QLi18n.setLocale(localeEl.value);
         QLi18n.applyDom(root);
@@ -167,6 +175,7 @@
         slippage_bps: slipEl.value.trim() || "0",
         locale: localeEl.value === "en" ? "en" : "es",
         access_log: !!accessLogEl.checked,
+        desktop_notifications: !!desktopNotifEl.checked,
       };
       const data = await QLApi.putSettings(body);
       render(data);

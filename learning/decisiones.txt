@@ -1,3 +1,10 @@
+[2026-07-26] DEC-116 — Desktop Notifications Hook
+  Decisión: F72 = settings.desktop_notifications default false (opt-in);
+  cuando true, JS Notification API en toast errors y kill engage;
+  graceful si permiso denegado / API ausente; bump 0.64.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_72_APPROVED.
+  Fase: 72.
+
 [2026-07-26] DEC-115 — Health Extended + 1000 Tests Milestone
   Decisión: F71 = extender GET /api/health y /api/about con flags
   paper_kill_engaged, auto_backup_minutes, access_log; suite útil

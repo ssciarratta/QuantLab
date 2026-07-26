@@ -59,6 +59,17 @@
     const brief =
       (data && (data.message || data.filename || data.venue || data.kind)) || "ok";
     maybeToast(method, path, true, String(brief));
+    // F72: desktop Notification on kill engage (opt-in settings).
+    if (
+      method === "POST" &&
+      String(path || "").split("?")[0] === "/api/paper/kill" &&
+      data &&
+      data.engaged === true &&
+      global.QLToasts &&
+      typeof global.QLToasts.notifyKillEngage === "function"
+    ) {
+      global.QLToasts.notifyKillEngage("Paper kill ENGAGED");
+    }
     return data;
   }
 

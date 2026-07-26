@@ -1,7 +1,7 @@
-"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61/F63.
+"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61/F63/F72.
 
 Campos: theme, default_venue, default_strategy, slippage_bps, locale, access_log,
-auto_backup_minutes.
+auto_backup_minutes, desktop_notifications.
 Sin LIVE / auth WAN.
 """
 
@@ -26,6 +26,7 @@ DEFAULT_SLIPPAGE_BPS = Decimal("0")
 DEFAULT_LOCALE = "es"
 DEFAULT_ACCESS_LOG = True
 DEFAULT_AUTO_BACKUP_MINUTES = 0
+DEFAULT_DESKTOP_NOTIFICATIONS = False
 MIN_AUTO_BACKUP_MINUTES = 0
 MAX_AUTO_BACKUP_MINUTES = 24 * 60  # 1 día
 
@@ -54,7 +55,7 @@ def parse_auto_backup_minutes(raw: Any) -> int:
 
 
 def default_settings() -> dict[str, Any]:
-    """Settings canónicos por defecto (locale es · access_log on · auto_backup off)."""
+    """Settings canónicos (locale es · access_log on · auto_backup off · desktop notif off)."""
     return {
         "version": SETTINGS_VERSION,
         "theme": DEFAULT_THEME,
@@ -64,6 +65,7 @@ def default_settings() -> dict[str, Any]:
         "locale": DEFAULT_LOCALE,
         "access_log": DEFAULT_ACCESS_LOG,
         "auto_backup_minutes": DEFAULT_AUTO_BACKUP_MINUTES,
+        "desktop_notifications": DEFAULT_DESKTOP_NOTIFICATIONS,
     }
 
 
@@ -143,6 +145,12 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(access_log_raw, bool):
         raise ValidationError("settings.access_log debe ser bool")
 
+    desktop_notifications_raw = payload.get(
+        "desktop_notifications", DEFAULT_DESKTOP_NOTIFICATIONS
+    )
+    if not isinstance(desktop_notifications_raw, bool):
+        raise ValidationError("settings.desktop_notifications debe ser bool")
+
     auto_backup_minutes = parse_auto_backup_minutes(
         payload.get("auto_backup_minutes", DEFAULT_AUTO_BACKUP_MINUTES)
     )
@@ -160,6 +168,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
         "locale": locale,
         "access_log": access_log_raw,
         "auto_backup_minutes": auto_backup_minutes,
+        "desktop_notifications": desktop_notifications_raw,
     }
 
 

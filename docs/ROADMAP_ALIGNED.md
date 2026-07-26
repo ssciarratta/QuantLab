@@ -937,6 +937,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 72 — Desktop Notifications Hook
+
+**Versión:** 0.64.0 · **DEC-116** · **APROBADO_INTERNO** (sin `FASE_72_APPROVED.md`)
+
+- Settings `desktop_notifications` (default **false**) · checkbox UI
+- Cuando true → JS Notification API en toast errors + kill engage (graceful si denied)
+- Smoke F72; bundle INTERNAL default F19–F72
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

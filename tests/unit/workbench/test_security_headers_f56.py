@@ -23,8 +23,8 @@ from quantlab.workbench.security_headers import (
 
 def test_live_blocked_and_version_f56() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.63.0"
-    assert PHASES_SUMMARY == "F19–F71 INTERNAL"
+    assert __version__ == "0.64.0"
+    assert PHASES_SUMMARY == "F19–F72 INTERNAL"
 
 
 def test_security_headers_constants() -> None:
