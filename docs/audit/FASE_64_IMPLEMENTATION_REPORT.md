@@ -4,6 +4,7 @@
 **Versión:** 0.56.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F63 Session Auto-Backup  
+**Impl SHA:** `5a7492d`  
 **Alcance:** Panel UI Backups + POST `/api/backups/run` + menú + palette — **sin flip LIVE**
 
 ---
