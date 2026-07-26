@@ -4,6 +4,7 @@
 **Versión:** 0.64.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F71 Health Extended · F70 Paper Kill · F41 Toasts  
+**Impl SHA:** `1b7df41`  
 **Alcance:** settings opt-in + Notification API en toast errors / kill engage — **sin flip LIVE**
 
 ---
