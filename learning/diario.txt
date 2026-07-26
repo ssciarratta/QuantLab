@@ -4,7 +4,8 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 32 — Validation / Walk-Forward Runner UI
 ---------------------------------------------------------
-- v0.24.0 · DEC-076.
+- v0.24.0 · impl SHA 8c1cf58 · DEC-076.
+- QA: mypy 164 · ruff · pytest 643 · smoke 18 PASS.
 - POST /api/lab/validation/run: train/val/OOS + walk-forward sintético;
   índices de segmentos + anti-leakage; persist session/validation/<run_id>.
 - GET /api/lab/validation lista/latest (+ preview si vacío); GET /{run_id}.
