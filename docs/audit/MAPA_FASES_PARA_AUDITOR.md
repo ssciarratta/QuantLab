@@ -3094,3 +3094,39 @@ estrictamente read-only y sin fallback.
 Versión código F89: **0.81.0** · LIVE: **BLOQUEADO** · sandbox real:
 **SKIPPED_NOT_REQUESTED** · flip: **NO**.
 
+---
+
+## Fase 90 — Paper Reconciliation Status Panel
+
+**Código:** 0.82.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-134
+**Qué es:** UI read-only en el workbench para el estado de reconciliación
+journal/book de F88; el rebuild sigue siendo exclusivamente CLI offline.
+
+**DoD auditor:**
+- [x] Panel consume solo `GET /api/paper/reconciliation`
+- [x] Sin verbos mutadores en el fuente del panel (test + smoke)
+- [x] Badge ok/status + record_count + checkpoint + issues + `rebuild_via`
+- [x] Auto-refresh opcional con limpieza de intervalo
+- [x] Command palette `open.reconciliation` + menú Inicio
+- [x] i18n es/en en json y fallbacks
+- [x] Sin `FASE_90_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F90; bump 0.82.0
+
+### Lista A F90
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Panel read-only | `src/quantlab/workbench/static/js/panes/reconciliation.js` |
+| A2 | API client getter | `static/js/api.js` |
+| A3 | Opener/menú/include | `static/js/shell.js` · `static/index.html` |
+| A4 | Command palette | `src/quantlab/workbench/commands.py` |
+| A5 | i18n | `static/i18n/es.json` · `en.json` · `static/js/i18n.js` |
+| A6 | Suite UI + read-only | `tests/unit/workbench/test_reconciliation_ui_f90.py` |
+| A7 | Spec | `docs/FASE_90_RECONCILIATION_UI.md` |
+| A8 | DEC-134 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A9 | Smoke F90 | `scripts/internal_audit_smoke.py` |
+| A10 | Bundle to-phase 90 | `scripts/build_internal_review_bundle.py` |
+
+Versión código F90: **0.82.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

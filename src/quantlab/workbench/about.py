@@ -14,7 +14,7 @@ from quantlab import __version__
 from quantlab.execution.live_gate import LIVE_BLOCKED
 
 # Arco workbench APROBADO_INTERNO tip (sin certificados externos F19+).
-PHASES_SUMMARY = "F19–F89 INTERNAL"
+PHASES_SUMMARY = "F19–F90 INTERNAL"
 
 DEFAULT_BIND_HOST = "127.0.0.1"
 BIND_POLICY_LOOPBACK = "loopback-default"

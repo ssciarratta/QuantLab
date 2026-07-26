@@ -24,7 +24,7 @@ def test_fake_lane_writes_pass_report(tmp_path: Path) -> None:
 
     assert exit_code == 0
     assert payload["phase"] == 89
-    assert payload["quantlab_version"] == "0.81.0"
+    assert payload["quantlab_version"] == "0.82.0"
     assert payload["live_blocked"] is True
     assert payload["lanes"][0]["status"] == "PASS"
     assert payload["lanes"][0]["write_calls"] == 0

@@ -198,6 +198,9 @@
     paperFills: function () {
       return request("GET", "/api/paper/fills");
     },
+    paperReconciliation: function () {
+      return request("GET", "/api/paper/reconciliation");
+    },
     paperFillsCsvUrl: function () {
       return "/api/paper/fills.csv";
     },

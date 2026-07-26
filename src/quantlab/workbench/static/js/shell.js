@@ -199,6 +199,17 @@
     pane.refresh().catch(function () {});
   }
 
+  function openReconciliation() {
+    const pane = QLPanes.createReconciliationPane();
+    wm.open(
+      "reconciliation",
+      tr("pane.reconciliation", "Reconciliación"),
+      pane,
+      mergeOpts("reconciliation", { x: 260, y: 70, w: 500, h: 440 })
+    );
+    pane.refresh();
+  }
+
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
@@ -380,6 +391,7 @@
     paper_session: openPaperSession,
     positions: openPositions,
     risk: openRisk,
+    reconciliation: openReconciliation,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

@@ -1,3 +1,7 @@
+[2026-07-26] F90 — Paper Reconciliation Status Panel (v0.82.0)
+  Panel SPA read-only para GET /api/paper/reconciliation: badge, checkpoint,
+  issues y rebuild_via CLI. Sin mutaciones HTTP. DEC-134.
+
 [2026-07-26] F88 — Paper Journal authoritative + reconciliation (v0.80.0)
   journal.jsonl source of truth; book v2 atómico/checkpoint; commit order
   journal→book→persist; drift bloquea; CLI rebuild con backup. DEC-132.

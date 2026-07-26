@@ -1138,6 +1138,19 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_89_APPROVED.md`
 
 
+## Fase 90 — Paper Reconciliation Status Panel
+
+**Versión:** 0.82.0 · **DEC-134** · implementada, auditoría INTERNAL en curso
+
+- Panel SPA `Reconciliación` read-only sobre `GET /api/paper/reconciliation`
+- Badge ok/status, record_count, checkpoint (count/last_fill_id/sha256), issues
+- Muestra `rebuild_via` (CLI offline F88); la UI no expone mutaciones HTTP
+- Auto-refresh opcional 10 s con limpieza al cerrar
+- Command palette `open.reconciliation` + menú Inicio + i18n es/en
+- Suite UI wiring + read-only estricto + smoke F90; bundle default F19–F90
+- `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_90_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

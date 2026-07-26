@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.80.0 (F88 Paper Journal authoritative + reconciliation)
+Versión código actual: 0.82.0 (F90 Paper Reconciliation Status Panel)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -71,20 +71,22 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F89: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert
+- F19–F89: APROBADO_INTERNO Zero-Trust; F90 implementada, auditoría INTERNAL en curso
+- Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F89 A3 MD Read-only Certification (0.81.0):
-- fake-contract CI/offline PASS con write_calls=0
-- sandbox opt-in sólo simulation, pyRofex strict y sin fallback
-- sandbox real SKIPPED_NOT_REQUESTED; no se afirma certificación real
-- DEC-133; FASE_89_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F90 Paper Reconciliation Status Panel (0.82.0):
+- Panel SPA read-only sobre GET /api/paper/reconciliation (F88)
+- Badge ok/status, checkpoint, issues y rebuild_via (CLI offline)
+- Sin mutaciones HTTP desde la UI (test + smoke lo verifican)
+- DEC-134; FASE_90_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+Además: fixes portabilidad Windows post-F88/F89 (sqlite locks, i18n guard,
+fsync backup, /tmp, env worker sandbox) — suite verde en Windows y Linux.
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F89 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F90 solo con APROBADO Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado
