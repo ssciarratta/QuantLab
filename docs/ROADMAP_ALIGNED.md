@@ -751,7 +751,7 @@
 - DEC-101; bump 0.49.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F57.md`, 2026-07-26) — certificado externo `FASE_57_APPROVED.md` **NO emitido**  
-**Versión:** 0.49.0 · implementación _(tip)_  
+**Versión:** 0.49.0 · implementación `fbb0355`  
 **Noche F19–F57:** `docs/audit/INTERNAL_AUDIT_F19_F57_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_57_CSP.md`  
 **Implementation report:** `docs/audit/FASE_57_IMPLEMENTATION_REPORT.md`
