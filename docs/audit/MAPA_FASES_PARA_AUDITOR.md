@@ -16,7 +16,7 @@
 
 ---
 
-## Tabla F0–F23 (verificar certificados)
+## Tabla F0–F24 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -44,6 +44,7 @@
 | **21** | **Lab Panels** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F21.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **22** | **Chat IA safe-by-default** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **23** | **Paper Book + Session + Risk** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F23.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **24** | **Venue plugins + MD read-only** | 📦 IMPL | `docs/FASE_24_VENUE_MD_PLUGINS.md` | **IMPLEMENTADO** v0.16.0 — audit pendiente |
 
 ---
 
@@ -293,10 +294,24 @@ Versión impl F23: **0.15.0** (`9b89274`) · LIVE: **BLOQUEADO** · remediación
 
 ---
 
+## Fase 24 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / DoD | `docs/FASE_24_VENUE_MD_PLUGINS.md` |
+| Ops plugins | `docs/ops/BROKER_PLUGINS.md` |
+| Implementation report | `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 24** |
+
+**Estado:** **IMPLEMENTADO** v0.16.0 (`c846e81`) — audit INTERNAL/externo pendiente.  
+**LIVE:** BLOQUEADO · DEC-067/068.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 tienen certificado formal externo; F19–F23 tienen **APROBADO_INTERNO** (externo pendiente).  
-2. QuantLab v0.15.0 (F23): PaperBook + sesión durable + risk paper sobre workbench F19–F22.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; short fail-closed; `session_id` path-safe.  
-4. Arco F19–F22: `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`; F23: `INTERNAL_AUDIT_F23.md`.  
+1. F0–F18 certificado formal externo; F19–F23 **APROBADO_INTERNO**; F24 **IMPLEMENTADO** v0.16.0.  
+2. QuantLab v0.16.0: venue plugins + A3 MD env opt-in + generics sobre F23 PaperBook.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; MD env no habilita submit venue.  
+4. Arco F19–F22 + F23 INTERNAL; F24 report `FASE_24_IMPLEMENTATION_REPORT.md`.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.
