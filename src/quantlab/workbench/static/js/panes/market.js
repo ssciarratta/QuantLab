@@ -17,6 +17,7 @@
       "</select></label>" +
       '<button type="button" class="btn" id="md-connect">Conectar</button>' +
       '<button type="button" class="btn secondary" id="md-reconnect">Reconectar</button>' +
+      '<button type="button" class="btn secondary" id="md-disconnect">Desconectar</button>' +
       "</div>" +
       '<p class="muted mono" id="md-conn">sin conectar</p>' +
       '<p class="muted mono" id="md-provider">provider: —</p>' +
@@ -105,6 +106,21 @@
         }
       } catch (err) {
         connEl.textContent = "Error reconnect: " + err.message;
+        connEl.classList.add("status-bad");
+      }
+    });
+
+    root.querySelector("#md-disconnect").addEventListener("click", async function () {
+      try {
+        const res = await QLApi.disconnect();
+        connEl.textContent =
+          "desconectado" +
+          (res.previous_venue ? " · was=" + res.previous_venue : "") +
+          (res.has_last_connect ? " · last_connect=ok" : " · last_connect=none");
+        providerEl.textContent = "provider: —";
+        connEl.classList.remove("status-bad");
+      } catch (err) {
+        connEl.textContent = "Error disconnect: " + err.message;
         connEl.classList.add("status-bad");
       }
     });

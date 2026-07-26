@@ -1,3 +1,8 @@
+[2026-07-26] F77 Broker Disconnect — v0.69.0
+  POST /api/broker/disconnect cierra broker, limpia connected state,
+  conserva last_connect; botón Market+Health; LIVE_BLOCKED intacto;
+  INTERNAL F77 + noche F19–F77; sin FASE_77_APPROVED; prep v0.70.
+
 [2026-07-26] F76 Broker Reconnect Button — v0.68.0
   POST /api/broker/reconnect re-run last_broker_connect meta;
   botón Market+Health; LIVE_BLOCKED intacto;

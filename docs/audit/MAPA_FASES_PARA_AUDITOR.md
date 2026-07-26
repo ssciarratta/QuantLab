@@ -2546,3 +2546,46 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F76: **0.68.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 77 — Broker Disconnect + Milestone prep
+
+**Código:** 0.69.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-121  
+**Qué es:** `POST /api/broker/disconnect` cierra el broker y limpia el estado conectado, conservando `last_broker_connect` para reconnect. Botón Desconectar en Market + Health. Prep milestone v0.70. Sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_77_DISCONNECT.md` |
+| Implementation report | `docs/audit/FASE_77_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F77.md` |
+| Review Package INTERNAL | `docs/audit/FASE_77_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F77.md` |
+| Noche F19–F77 | `docs/audit/INTERNAL_AUDIT_F19_F77_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 77** |
+
+**Certificado externo:** **NO** emitido (`FASE_77_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F77 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Disconnect module + API | `broker_disconnect.py` · `api.py` · `server.py` · `api_catalog.py` |
+| A2 | UI Market + Health | `market.js` · `health.js` · `api.js` |
+| A3 | Spec | `docs/FASE_77_DISCONNECT.md` |
+| A4 | Implementation report | `docs/audit/FASE_77_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-121 | `learning/decisiones.txt` |
+| A6 | Version 0.69.0 | `pyproject.toml` |
+| A7 | Suite + smoke F77 | `test_broker_disconnect_f77.py` · smoke |
+
+### Lista B F77 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F77: **0.69.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

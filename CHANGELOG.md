@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.69.0] — 2026-07-26
+
+### Fase 77 — Broker Disconnect + Milestone prep
+
+#### Added
+- `POST /api/broker/disconnect` — close broker, clear connected state, keep last_connect
+- UI botón **Desconectar** en Market Data + Health
+- Docs: `FASE_77_DISCONNECT.md` · implementation report · DEC-121
+- Suite `test_broker_disconnect_f77.py` + smoke F77
+
+#### Changed
+- `phases_summary` → `F19–F77 INTERNAL`
+- Bump **0.69.0** (prep milestone v0.70)
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_77_APPROVED.md`
+
 ## [0.68.0] — 2026-07-26
 
 ### Fase 76 — Broker Reconnect Button

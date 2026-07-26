@@ -1,3 +1,10 @@
+[2026-07-26] DEC-121 — Broker Disconnect + Milestone prep
+  Decisión: F77 = POST /api/broker/disconnect cierra broker y limpia
+  estado conectado; conserva last_broker_connect para reconnect;
+  botón Desconectar en Market + Health; bump 0.69.0; prep v0.70.
+  LIVE_BLOCKED=True; sin flip; sin FASE_77_APPROVED.
+  Fase: 77.
+
 [2026-07-26] DEC-120 — Broker Reconnect Button
   Decisión: F76 = POST /api/broker/reconnect re-run last connect
   params desde session meta (last_broker_connect); connect persiste

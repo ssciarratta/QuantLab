@@ -28,10 +28,11 @@
       '<div id="hp-checks"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>Broker reconnect</h3>" +
+      "<h3>Broker reconnect / disconnect</h3>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn" id="hp-reconnect">Reconectar</button>' +
-      '<span class="mono muted" id="hp-reconnect-info">usa last connect de sesión</span>' +
+      '<button type="button" class="btn secondary" id="hp-disconnect">Desconectar</button>' +
+      '<span class="mono muted" id="hp-reconnect-info">last connect de sesión</span>' +
       "</div>" +
       '<p class="muted mono" id="hp-reconnect-status">—</p>' +
       "</div>";
@@ -129,6 +130,21 @@
         await refreshHealth();
       } catch (err) {
         reconnectStatus.textContent = "Error: " + err.message;
+        reconnectStatus.classList.add("status-bad");
+      }
+    });
+
+    root.querySelector("#hp-disconnect").addEventListener("click", async function () {
+      try {
+        const res = await QLApi.disconnect();
+        reconnectStatus.textContent =
+          "disconnected" +
+          (res.previous_venue ? " · was=" + res.previous_venue : "") +
+          (res.has_last_connect ? " · last_connect=ok" : " · last_connect=none");
+        reconnectStatus.classList.remove("status-bad");
+        await refreshHealth();
+      } catch (err) {
+        reconnectStatus.textContent = "Error disconnect: " + err.message;
         reconnectStatus.classList.add("status-bad");
       }
     });

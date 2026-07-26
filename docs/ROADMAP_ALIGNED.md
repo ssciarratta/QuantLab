@@ -988,6 +988,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 77 — Broker Disconnect + Milestone prep
+
+**Versión:** 0.69.0 · **DEC-121** · **APROBADO_INTERNO** (sin `FASE_77_APPROVED.md`)
+
+- `POST /api/broker/disconnect` — close broker, clear connected state, keep last_connect
+- UI botón Desconectar en Market + Health
+- Smoke F77; bundle INTERNAL default F19–F77; prep v0.70
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

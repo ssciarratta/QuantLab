@@ -6,6 +6,7 @@
   const TOAST_LABELS = {
     "POST /api/broker/connect": "Connect",
     "POST /api/broker/reconnect": "Reconnect",
+    "POST /api/broker/disconnect": "Disconnect",
     "POST /api/paper/submit": "Submit",
     "POST /api/paper/kill": "Kill switch",
     "POST /api/lab/backtest": "Backtest",
@@ -111,6 +112,9 @@
     },
     reconnect: function () {
       return request("POST", "/api/broker/reconnect", {});
+    },
+    disconnect: function () {
+      return request("POST", "/api/broker/disconnect", {});
     },
     instruments: function () {
       return request("GET", "/api/broker/instruments");

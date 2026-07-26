@@ -35,6 +35,10 @@ from quantlab.workbench.auto_backup import (
     list_backups,
     run_auto_backup,
 )
+from quantlab.workbench.broker_disconnect import (
+    clear_broker_connection,
+    disconnect_status,
+)
 from quantlab.workbench.broker_reconnect import (
     last_connect_status,
     require_last_connect,
@@ -1474,6 +1478,38 @@ def handle_post_broker_reconnect(
         ok=True,
         message=f"reconnected {cfg.get('venue')}",
         detail={"venue": cfg.get("venue"), "mode": cfg.get("mode")},
+    )
+    return out
+
+
+def handle_post_broker_disconnect(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """POST /api/broker/disconnect — close broker, clear connected state (F77).
+
+    Conserva ``last_broker_connect`` en meta para reconnect. Idempotente si ya
+    estaba desconectado. Body opcional (ignorado).
+    """
+    del body  # reserved
+    session = state.ensure_session()
+    cleared = clear_broker_connection(state)
+    status = disconnect_status(session, cleared=cleared)
+    out: dict[str, Any] = {
+        "ok": True,
+        "disconnect": True,
+        **status,
+    }
+    venue_label = cleared.get("previous_venue") or "none"
+    _record_activity(
+        state,
+        "disconnect",
+        ok=True,
+        message=f"disconnected {venue_label}",
+        detail={
+            "was_connected": cleared.get("was_connected"),
+            "previous_venue": cleared.get("previous_venue"),
+            "has_last_connect": status["has_last_connect"],
+        },
     )
     return out
 
