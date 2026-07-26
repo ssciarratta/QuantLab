@@ -1153,7 +1153,7 @@
 
 ## Fase 91 — Paper Session Rehydrate post-rebuild
 
-**Versión:** 0.83.0 · **DEC-135** · implementada, auditoría INTERNAL en curso
+**Versión:** 0.83.0 · **DEC-135** · **APROBADO_INTERNO** (sin `FASE_91_APPROVED.md`)
 
 - `POST /api/paper/reconciliation/rehydrate`: teardown runtime + relectura disco
 - Reusa `switch_session` (path auditado F46/F88) sobre el session_id actual
