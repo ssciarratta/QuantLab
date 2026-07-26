@@ -1,6 +1,6 @@
 # Fase 87 — Broker Plugin Contract v1
 
-**Estado implementación:** completada · auditoría INTERNAL pendiente  
+**Estado:** ✅ **APROBADO_INTERNO** · certificado externo no emitido
 **Versión:** 0.79.0 · **Base:** v0.78.0  
 **DEC:** DEC-131 · **LIVE:** `LIVE_BLOCKED=True`
 

@@ -4,7 +4,7 @@
 **Versión:** 0.79.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F86 v0.78.0  
-**Impl SHA:** este commit  
+**Impl SHA:** `e0ff1d9`
 **Alcance:** contrato externo MD/account read-only — **sin flip LIVE**
 
 ## Entregas

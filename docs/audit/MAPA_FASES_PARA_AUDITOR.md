@@ -2969,3 +2969,51 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F86: **0.78.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 87 — Broker Plugin Contract v1
+
+**Código:** 0.79.0 · implementación `e0ff1d9` · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-131
+**Qué es:** contrato versionado para plugins externos MD/account read-only.
+Spec v1, wrapper obligatorio, factory one-shot sin retry de `TypeError`, compat
+legacy con warning y test kit cooperativo (no sandbox). Sin flip LIVE.
+
+**DoD auditor:**
+- [x] `BrokerPluginSpec` frozen y validado, API `"1"`
+- [x] Sólo `market_data` / `account_read`; ejecución rechazada
+- [x] Registry envuelve todo plugin con `ReadOnlyBrokerPort`
+- [x] Firma inspeccionada; opts inválidos antes de factory; una sola llamada
+- [x] LIVE rechazado antes de factory
+- [x] No shadow de builtins
+- [x] Test kit no llama ejecución del plugin; reporta DTO/Decimal/timestamp
+- [x] Legacy v0 emite warning y conserva wrapper
+- [x] Sin `FASE_87_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F87; bump 0.79.0
+
+### Lista A F87
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | Contrato v1 | `src/quantlab/brokers/contracts/v1.py` |
+| A2 | Wrapper read-only | `src/quantlab/brokers/read_only.py` |
+| A3 | Loader + registry | `src/quantlab/brokers/plugins.py` · `registry.py` |
+| A4 | Test kit | `src/quantlab/brokers/testing/contract_v1.py` |
+| A5 | Suite adversarial | `tests/unit/brokers/test_plugin_contract_v1.py` |
+| A6 | Ops/spec | `docs/ops/BROKER_PLUGIN_CONTRACT_V1.md` · `docs/FASE_87_PLUGIN_CONTRACT.md` |
+| A7 | DEC-131 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A8 | Smoke F87 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 87 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F87 (QA)
+
+```text
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F87: **0.79.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

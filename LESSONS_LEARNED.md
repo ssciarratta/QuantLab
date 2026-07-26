@@ -48,3 +48,18 @@
 ---
 
 *Actualizado PROMPT 007 — esperando auditoría GPT Fase 3.*
+
+---
+
+## Fase 87 — Broker Plugin Contract v1 (2026-07-26)
+
+1. Capturar `TypeError` alrededor de una factory y reintentar con otra firma
+   oculta bugs internos y puede duplicar efectos. Validar con
+   `inspect.signature().bind()` antes de una única invocación.
+2. Una política read-only documentada no es una frontera. El registry debe
+   retornar siempre un wrapper que no delegue submit/cancel.
+3. Un test kit de plugins puede validar contrato y fixtures offline, pero no
+   convierte código Python de terceros en seguro: no reemplaza sandbox ni
+   revisión de confianza.
+4. La metadata versionada y un allowlist de capabilities hacen explícita la
+   compatibilidad y rechazan ejecución por default.

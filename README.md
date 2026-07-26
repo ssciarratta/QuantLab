@@ -76,9 +76,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F84 | Cascade / Tile Windows · **APROBADO_INTERNO** · v0.76.0 |
 | F85 | Bring to Front / Send to Back · **APROBADO_INTERNO** · v0.77.0 |
 | F86 | Maximize / Restore Window · **APROBADO_INTERNO** · v0.78.0 |
+| F87 | Broker Plugin Contract v1 · **APROBADO_INTERNO** · v0.79.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Freeze v0.60](docs/audit/MILESTONE_V060_FREEZE.md) · [Freeze v0.70](docs/audit/MILESTONE_V070_FREEZE.md) · [Noche F19–F86](docs/audit/INTERNAL_AUDIT_F19_F86_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Freeze v0.60](docs/audit/MILESTONE_V060_FREEZE.md) · [Freeze v0.70](docs/audit/MILESTONE_V070_FREEZE.md) · [Noche F19–F87](docs/audit/INTERNAL_AUDIT_F19_F87_NIGHT.md)
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---
@@ -108,8 +109,8 @@ uv run python scripts/internal_audit_smoke.py   # invariantes LIVE + imports
 - Non-loopback requiere `--allow-non-loopback`; 1-click: [WORKBENCH_1CLICK](docs/ops/WORKBENCH_1CLICK.md)
 - Docker opt-in: [DOCKER_WORKBENCH](docs/ops/DOCKER_WORKBENCH.md) (`-p 127.0.0.1:8765:8765`)
 - Chat: FakeProvider por defecto; tools allowlist read-only (sin órdenes)
-- MD: venues `a3` / `generic_csv` / `generic_rest` + plugins entry-point; `md_source` fake|env
-- Specs: [F20](docs/FASE_20_WORKBENCH.md) · [F21](docs/FASE_21_LAB_PANELS.md) · [F22](docs/FASE_22_CHAT_IA.md) · [F23](docs/FASE_23_PAPER_BOOK.md) · [F24](docs/FASE_24_VENUE_MD_PLUGINS.md) · [F25](docs/FASE_25_OPS_DESK.md) · [F26](docs/FASE_26_PAPER_SESSION.md) · [F27](docs/FASE_27_STRATEGY_CATALOG.md) · [plugins](docs/ops/BROKER_PLUGINS.md)
+- MD: venues `a3` / `generic_csv` / `generic_rest` + plugins entry-point read-only; `md_source` fake|env
+- Specs: [F20](docs/FASE_20_WORKBENCH.md) · [F21](docs/FASE_21_LAB_PANELS.md) · [F22](docs/FASE_22_CHAT_IA.md) · [F23](docs/FASE_23_PAPER_BOOK.md) · [F24](docs/FASE_24_VENUE_MD_PLUGINS.md) · [F25](docs/FASE_25_OPS_DESK.md) · [F26](docs/FASE_26_PAPER_SESSION.md) · [F27](docs/FASE_27_STRATEGY_CATALOG.md) · [plugin contract v1](docs/ops/BROKER_PLUGIN_CONTRACT_V1.md)
 
 Market data / órdenes simulation offline usan Fake backend por defecto. API real:
 

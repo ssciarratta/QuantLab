@@ -1096,6 +1096,20 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 87 — Broker Plugin Contract v1
+
+**Versión:** 0.79.0 · **DEC-131** · **APROBADO_INTERNO** (sin `FASE_87_APPROVED.md`)
+
+- `BrokerPluginSpec` API `"1"` con venue y capabilities read-only validados
+- Capabilities permitidas: `market_data`, `account_read`; ejecución prohibida
+- `ReadOnlyBrokerPort` obligatorio para plugins externos
+- Registry valida firma y llama factory una sola vez, sin retry de `TypeError`
+- Entry point v1 + legacy v0 con warning; no shadow de builtins
+- Test kit cooperativo/offline; no es sandbox contra plugin malicioso
+- Suite adversarial + smoke F87; bundle INTERNAL default F19–F87
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):
