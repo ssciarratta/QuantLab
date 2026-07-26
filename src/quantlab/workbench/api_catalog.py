@@ -55,7 +55,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     # Mode / broker / paper (research-safe; REAL=PAPER ≠ LIVE)
     ApiRoute("/api/mode", "GET", "Operating mode + LIVE gate", ("mode",)),
     ApiRoute("/api/mode", "POST", "Set operating mode (PAPER/REAL alias)", ("mode",)),
-    ApiRoute("/api/venues", "GET", "List broker venues", ("broker",)),
+    ApiRoute(
+        "/api/venues",
+        "GET",
+        "Broker registry: venues, plugins (contract v1 read-only) and connection",
+        ("broker",),
+    ),
     ApiRoute("/api/broker/instruments", "GET", "List instruments", ("broker",)),
     ApiRoute("/api/broker/snapshot", "GET", "Market data snapshot", ("broker",)),
     ApiRoute("/api/broker/account", "GET", "Broker account (paper/real MD)", ("broker",)),

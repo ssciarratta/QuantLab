@@ -1,3 +1,7 @@
+[2026-07-26] F93 — Venues / Broker Registry Panel read-only (v0.85.0)
+  /api/venues enriquecido + pane venues.js (builtin vs plugin, contrato v1,
+  conexión). Sin mutaciones. DEC-137.
+
 [2026-07-26] F92 — Milestone Freeze Docs arco v0.71–v0.83 (v0.84.0)
   Freeze documental F79–F91 + CHANGELOG sync (0.81–0.84). Sin cambios de
   runtime. DEC-136.

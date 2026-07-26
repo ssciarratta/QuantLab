@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.85.0] — 2026-07-26
+
+### Fase 93 — Venues / Broker Registry Panel (read-only)
+
+#### Added
+- `/api/venues` enriquecido: `connected_venue`, `md_provider`, `mode`,
+  `live_blocked` y `plugin_contract` (api v1, capabilities, wrapper read-only)
+- Pane Workbench `venues.js`: venues builtin vs plugin, conexión y contrato v1
+- Comando paleta `open.venues`; i18n `pane.venues` (es/en)
+- Tests `test_venues_panel_f93.py` + smoke `check_f93_venues_panel`
+
+#### Notes
+- Panel estrictamente read-only; plugins siempre detrás de `ReadOnlyBrokerPort`;
+  `LIVE_BLOCKED=True`
+
+---
+
 ## [0.84.0] — 2026-07-26
 
 ### Fase 92 — Milestone Freeze Docs + CHANGELOG Sync (arco v0.71–v0.83)

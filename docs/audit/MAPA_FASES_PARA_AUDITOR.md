@@ -3196,3 +3196,34 @@ Versión código F91: **0.83.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 Versión código F92: **0.84.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 93 — Venues / Broker Registry Panel (read-only)
+
+**Código:** 0.85.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-137
+**Qué es:** visibilidad UI del registro de brokers: venues builtin vs plugins
+(contrato v1, `ReadOnlyBrokerPort`), venue conectado, MD provider. Sin rutas
+nuevas ni mutaciones.
+
+**DoD auditor:**
+- [x] `GET /api/venues` enriquecido (conexión + `plugin_contract` v1)
+- [x] Pane `venues.js` estrictamente read-only (única llamada `QLApi.venues()`)
+- [x] Comando `open.venues` + i18n `pane.venues` es/en
+- [x] Tests F93 + smoke `check_f93_venues_panel`
+- [x] Sin `FASE_93_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F93; bump 0.85.0
+
+### Lista A F93
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | API | `src/quantlab/workbench/api.py` (`handle_get_venues`) |
+| A2 | Pane | `src/quantlab/workbench/static/js/panes/venues.js` |
+| A3 | Wiring | `shell.js` · `index.html` · `commands.py` |
+| A4 | Tests | `tests/unit/workbench/test_venues_panel_f93.py` |
+| A5 | Smoke | `scripts/internal_audit_smoke.py` |
+| A6 | Spec | `docs/FASE_93_VENUES_PANEL.md` |
+
+Versión código F93: **0.85.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

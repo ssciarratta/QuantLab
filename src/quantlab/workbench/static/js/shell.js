@@ -210,6 +210,17 @@
     pane.refresh();
   }
 
+  function openVenues() {
+    const pane = QLPanes.createVenuesPane();
+    wm.open(
+      "venues",
+      tr("pane.venues", "Venues"),
+      pane,
+      mergeOpts("venues", { x: 280, y: 90, w: 480, h: 420 })
+    );
+    pane.refresh();
+  }
+
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
@@ -392,6 +403,7 @@
     positions: openPositions,
     risk: openRisk,
     reconciliation: openReconciliation,
+    venues: openVenues,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

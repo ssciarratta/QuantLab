@@ -1,3 +1,11 @@
+[2026-07-26] DEC-137 — Venues panel sin rutas nuevas
+  Decisión: F93 expone el registro de brokers en UI enriqueciendo el GET
+  /api/venues existente (connected_venue, md_provider, mode, live_blocked,
+  plugin_contract v1) en vez de crear una ruta nueva. Pane estrictamente
+  read-only: única llamada QLApi.venues(); sin connect/disconnect ni plugins
+  runtime. Bump 0.85.0. LIVE_BLOCKED=True; sin FASE_93_APPROVED.
+  Fase: 93.
+
 [2026-07-26] DEC-136 — Freeze documental del arco v0.71–v0.83
   Decisión: F92 congela docs del arco F79–F91 (el hito 0.80 quedó embebido:
   F88 tomó la versión 0.80.0). MILESTONE_V080_ARC_FREEZE.md + CHANGELOG sync

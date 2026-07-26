@@ -214,6 +214,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("reconciliation", "reconciliación", "journal", "book", "drift", "rebuild"),
     },
     {
+        "id": "open.venues",
+        "kind": "pane",
+        "label": "Abrir Venues / Brokers",
+        "pane_id": "venues",
+        "keywords": ("venues", "brokers", "plugins", "registry", "registro", "read-only"),
+    },
+    {
         "id": "open.backups",
         "kind": "pane",
         "label": "Abrir Backups",

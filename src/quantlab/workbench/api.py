@@ -1582,9 +1582,26 @@ def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, A
 
 
 def handle_get_venues(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/venues — registro de brokers (F93: enriquecido, read-only)."""
+    from quantlab.brokers.contracts.v1 import (
+        BROKER_PLUGIN_API_VERSION,
+        BROKER_PLUGIN_CAPABILITIES,
+    )
+
+    plugin_venues = state.registry.list_plugin_venues()
     return {
         "venues": state.registry.list_venues(),
-        "plugin_venues": state.registry.list_plugin_venues(),
+        "plugin_venues": plugin_venues,
+        "connected_venue": state.venue,
+        "md_provider": state.md_provider,
+        "mode": state.mode.value,
+        "live_blocked": LIVE_BLOCKED is True,
+        "plugin_contract": {
+            "api_version": BROKER_PLUGIN_API_VERSION,
+            "allowed_capabilities": sorted(BROKER_PLUGIN_CAPABILITIES),
+            "read_only_wrapper": "ReadOnlyBrokerPort",
+            "execution": "blocked",
+        },
     }
 
 
