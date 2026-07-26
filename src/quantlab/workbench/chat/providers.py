@@ -110,9 +110,7 @@ class FakeProvider:
             matches = docs.get("matches") or []
             if matches:
                 first = matches[0]
-                parts.append(
-                    f"Docs: {first.get('file')} — {first.get('snippet', '')[:200]}"
-                )
+                parts.append(f"Docs: {first.get('file')} — {first.get('snippet', '')[:200]}")
             else:
                 parts.append("No encontré coincidencias fuertes en docs/*.md.")
             feats = caps.get("features") or []

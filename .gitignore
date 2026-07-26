@@ -23,6 +23,9 @@ build/
 artifacts/
 !artifacts/.gitkeep
 
+# Workbench / paper session runtime
+data/runtime/
+
 # Feature store runtime
 feature_store/
 !feature_store/.gitkeep

@@ -49,8 +49,7 @@ def test_fake_provider_ayuda() -> None:
     turn = FakeProvider().complete("ayuda docs workbench", tools)
     assert turn.tools_used
     assert any(
-        t in turn.tools_used
-        for t in ("search_docs", "list_capabilities", "explain_live_policy")
+        t in turn.tools_used for t in ("search_docs", "list_capabilities", "explain_live_policy")
     )
 
 

@@ -21,7 +21,10 @@ from quantlab.workbench.api import (
     handle_get_lab_metrics,
     handle_get_lab_validation,
     handle_get_mode,
+    handle_get_paper_book,
     handle_get_paper_fills,
+    handle_get_positions,
+    handle_get_session,
     handle_get_snapshot,
     handle_get_venues,
     handle_post_broker_connect,
@@ -90,7 +93,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
     """Factory de handler con estado de sesión compartido."""
 
     class WorkbenchHandler(BaseHTTPRequestHandler):
-        server_version = "QuantLabWorkbench/0.14"
+        server_version = "QuantLabWorkbench/0.15"
 
         def log_message(self, fmt: str, *args: object) -> None:
             # Silencioso en tests; útil en CLI vía print override opcional.
@@ -134,8 +137,17 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/broker/account":
                     self._send_json(handle_get_account(state))
                     return
+                if path == "/api/broker/positions":
+                    self._send_json(handle_get_positions(state))
+                    return
+                if path == "/api/paper/book":
+                    self._send_json(handle_get_paper_book(state))
+                    return
                 if path == "/api/paper/fills":
                     self._send_json(handle_get_paper_fills(state))
+                    return
+                if path == "/api/session":
+                    self._send_json(handle_get_session(state))
                     return
                 if path == "/api/lab/capabilities":
                     self._send_json(handle_get_lab_capabilities(state))

@@ -7,6 +7,7 @@ from quantlab.brokers.mode import (
     default_mode,
     resolve_mode,
 )
+from quantlab.brokers.paper.book import PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.port import BrokerPort
@@ -20,6 +21,7 @@ __all__ = [
     "default_mode",
     "BrokerPort",
     "BrokerRegistry",
+    "PaperBook",
     "PaperBroker",
     "PaperFillJournal",
     "get_default_registry",

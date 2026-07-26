@@ -62,6 +62,15 @@
     account: function () {
       return request("GET", "/api/broker/account");
     },
+    positions: function () {
+      return request("GET", "/api/broker/positions");
+    },
+    paperBook: function () {
+      return request("GET", "/api/paper/book");
+    },
+    session: function () {
+      return request("GET", "/api/session");
+    },
     paperSubmit: function (intent) {
       return request("POST", "/api/paper/submit", intent);
     },

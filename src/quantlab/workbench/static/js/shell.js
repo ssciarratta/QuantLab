@@ -6,6 +6,7 @@
   const taskbarWindows = document.getElementById("taskbar-windows");
   const bannerMode = document.getElementById("banner-mode");
   const bannerLive = document.getElementById("banner-live");
+  const bannerSession = document.getElementById("banner-session");
   const clockEl = document.getElementById("taskbar-clock");
   const startBtn = document.getElementById("btn-start");
   const startMenu = document.getElementById("start-menu");
@@ -42,7 +43,13 @@
 
   function openBlotter() {
     const pane = QLPanes.createBlotterPane();
-    wm.open("blotter", "Paper Blotter", pane, { x: 120, y: 120, w: 520, h: 360 });
+    wm.open("blotter", "Paper Blotter", pane, { x: 120, y: 120, w: 520, h: 400 });
+    pane.refresh().catch(function () {});
+  }
+
+  function openPositions() {
+    const pane = QLPanes.createPositionsPane();
+    wm.open("positions", "Posiciones", pane, { x: 200, y: 80, w: 480, h: 360 });
     pane.refresh().catch(function () {});
   }
 
@@ -104,6 +111,7 @@
     health: openHealth,
     market: openMarket,
     blotter: openBlotter,
+    positions: openPositions,
     chat: openChat,
     backtest: openBacktest,
     scanner: openScanner,
@@ -162,6 +170,15 @@
     .then(updateBanner)
     .catch(function () {
       bannerMode.textContent = "modo ?";
+    });
+  QLApi.session()
+    .then(function (data) {
+      const sid =
+        (data.session && data.session.session_id) || data.session_id || "?";
+      if (bannerSession) bannerSession.textContent = "session " + sid;
+    })
+    .catch(function () {
+      if (bannerSession) bannerSession.textContent = "session ?";
     })
     .finally(function () {
       openHealth();

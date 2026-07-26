@@ -269,9 +269,7 @@ def run_lab_optimize(
         strategy = SimpleMomentumStrategy(
             {"lookback": int(params["lookback"]), "quantity": str(params["quantity"])}
         )
-        bt = BarBacktester(
-            BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000"))
-        )
+        bt = BarBacktester(BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000")))
         result = bt.run(strategy, bars)
         sharpe = result.metrics.metrics.get("sharpe", 0.0)
         return float(sharpe) if isinstance(sharpe, (int, float)) else 0.0
@@ -312,9 +310,7 @@ def run_lab_montecarlo(
     bars = make_synthetic_bars(n_bars)
 
     def runner(noisy: Any) -> SimulationResult:
-        bt = BarBacktester(
-            BarBacktestConfig(experiment_id="wb-mc", initial_cash=Decimal("50000"))
-        )
+        bt = BarBacktester(BarBacktestConfig(experiment_id="wb-mc", initial_cash=Decimal("50000")))
         return bt.run(BuyOnceStrategy({"quantity": "1"}), noisy).simulation
 
     mc = MonteCarloSimulator(seed=42)

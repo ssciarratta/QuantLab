@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import contextlib
-import tempfile
 import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -12,6 +11,7 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
 from quantlab.brokers.mode import REAL_ALIAS, OperatingMode, default_mode, resolve_mode
+from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH, PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.port import BrokerPort
@@ -23,6 +23,8 @@ from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.risk import PaperRiskLimits
+from quantlab.workbench.session import WorkbenchSession
 
 if TYPE_CHECKING:
     from quantlab.workbench.chat.orchestrator import ChatOrchestrator
@@ -30,36 +32,72 @@ if TYPE_CHECKING:
 
 @dataclass
 class WorkbenchState:
-    """Estado de sesión del workbench (un proceso)."""
+    """Estado de sesión del workbench (un proceso) con raíz durable."""
 
     mode: OperatingMode = field(default_factory=default_mode)
     registry: BrokerRegistry = field(default_factory=get_default_registry)
     broker: BrokerPort | None = None
     venue: str | None = None
     journal: PaperFillJournal | None = None
+    book: PaperBook | None = None
+    session: WorkbenchSession | None = None
+    risk: PaperRiskLimits = field(default_factory=PaperRiskLimits)
+    initial_cash: Decimal = field(default_factory=lambda: Decimal(DEFAULT_INITIAL_CASH))
     last_lab_result: dict[str, Any] | None = None
-    _journal_dir: Path | None = field(default=None, repr=False)
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
 
+    def ensure_session(self) -> WorkbenchSession:
+        if self.session is None:
+            self.session = WorkbenchSession.create_or_load(
+                None,
+                None,
+                initial_cash=self.initial_cash,
+            )
+            self._hydrate_from_session()
+        elif self.journal is None or self.book is None:
+            self._hydrate_from_session()
+        return self.session
+
+    def _hydrate_from_session(self) -> None:
+        if self.session is None:
+            raise ValidationError("sesión no inicializada")
+        self.session.ensure_layout()
+        self.journal = PaperFillJournal(self.session.journal_path)
+        self.book = self.session.load_book(default_cash=self.initial_cash)
+        self._lab_registry_path = self.session.experiments_dir / "experiments.sqlite"
+        self._lab_export_dir = self.session.exports_dir
+        lab_services.ensure_demo_experiment(self._lab_registry_path)
+
+    def persist_book(self) -> None:
+        session = self.ensure_session()
+        if self.book is None:
+            return
+        session.save_book(self.book)
+
     def ensure_journal(self) -> PaperFillJournal:
+        self.ensure_session()
         if self.journal is None:
-            if self._journal_dir is None:
-                self._journal_dir = Path(tempfile.mkdtemp(prefix="ql_wb_journal_"))
-            self.journal = PaperFillJournal(self._journal_dir / "paper_fills.jsonl")
+            raise ValidationError("journal no hidratado")
         return self.journal
 
+    def ensure_book(self) -> PaperBook:
+        self.ensure_session()
+        if self.book is None:
+            raise ValidationError("book no hidratado")
+        return self.book
+
     def ensure_lab_registry_path(self) -> Path:
+        self.ensure_session()
         if self._lab_registry_path is None:
-            root = Path(tempfile.mkdtemp(prefix="ql_wb_experiments_"))
-            self._lab_registry_path = root / "experiments.sqlite"
-            lab_services.ensure_demo_experiment(self._lab_registry_path)
+            raise ValidationError("lab registry path no hidratado")
         return self._lab_registry_path
 
     def ensure_lab_export_dir(self) -> Path:
+        self.ensure_session()
         if self._lab_export_dir is None:
-            self._lab_export_dir = Path(tempfile.mkdtemp(prefix="ql_wb_hb_export_"))
+            raise ValidationError("lab export dir no hidratado")
         return self._lab_export_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
@@ -67,11 +105,12 @@ class WorkbenchState:
         return payload
 
     def ensure_chat(self) -> ChatOrchestrator:
-        """Lazy ChatOrchestrator (FakeProvider por defecto)."""
+        """Lazy ChatOrchestrator (FakeProvider por defecto; audit en sesión)."""
         if self._chat is None:
             from quantlab.workbench.chat.orchestrator import build_orchestrator
 
-            self._chat = build_orchestrator(self)
+            session = self.ensure_session()
+            self._chat = build_orchestrator(self, audit_path=session.chat_audit_path)
         return self._chat
 
 
@@ -116,6 +155,17 @@ def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
         "mode": state.mode.value,
         "live_blocked": LIVE_BLOCKED is True,
         "real_alias": REAL_ALIAS.value,
+    }
+
+
+def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
+    session = state.ensure_session()
+    return {
+        "ok": True,
+        "session": session.to_dict(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "mode": state.mode.value,
+        "initial_cash": str(state.initial_cash),
     }
 
 
@@ -165,11 +215,22 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         with contextlib.suppress(Exception):
             state.broker.close()
 
-    # Siempre PaperBroker + journal de sesión: el workbench nunca llama
-    # place_order del venue (MD se unwrappea si el registry ya envolvió).
+    # Siempre PaperBroker + book/journal de sesión: nunca place_order venue.
+    state.ensure_session()
     journal = state.ensure_journal()
+    book = state.ensure_book()
     md: BrokerPort = created._md if isinstance(created, PaperBroker) else created  # noqa: SLF001
-    broker: BrokerPort = PaperBroker(md, journal=journal)
+
+    def _on_book_change(updated: PaperBook) -> None:
+        state.book = updated
+        state.persist_book()
+
+    broker: BrokerPort = PaperBroker(
+        md,
+        journal=journal,
+        book=book,
+        on_book_change=_on_book_change,
+    )
 
     connect_info = broker.connect()
     state.broker = broker
@@ -180,6 +241,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         "mode": mode.value,
         "broker_venue_id": broker.venue_id,
         "paper_broker": True,
+        "session_id": state.ensure_session().session_id,
         "connect": to_jsonable(connect_info),
     }
 
@@ -209,6 +271,26 @@ def handle_get_snapshot(state: WorkbenchState, query: str) -> dict[str, Any]:
 def handle_get_account(state: WorkbenchState) -> dict[str, Any]:
     broker = _require_broker(state)
     return {"account": dataclass_to_dict(broker.get_account())}
+
+
+def handle_get_positions(state: WorkbenchState) -> dict[str, Any]:
+    broker = _require_broker(state)
+    positions = [dataclass_to_dict(p) for p in broker.get_positions()]
+    return {"positions": positions}
+
+
+def handle_get_paper_book(state: WorkbenchState) -> dict[str, Any]:
+    book = state.ensure_book()
+    account: dict[str, Any] | None = None
+    if state.broker is not None:
+        account = dataclass_to_dict(state.broker.get_account())
+    else:
+        account = dataclass_to_dict(book.get_account())
+    return {
+        "book": book.to_dict(),
+        "account": account,
+        "session_id": state.ensure_session().session_id,
+    }
 
 
 def _parse_order_intent(body: dict[str, Any]) -> OrderIntent:
@@ -292,11 +374,22 @@ def handle_post_paper_submit(state: WorkbenchState, body: dict[str, Any]) -> dic
         )
 
     intent = _parse_order_intent(body)
+    if intent.intent_type is IntentType.PLACE_ORDER:
+        try:
+            snap = broker.get_snapshot(intent.instrument_id)
+            state.risk.check_intent(intent, snap)
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
     try:
         ack = broker.submit(intent)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
-    return {"ack": dataclass_to_dict(ack)}
+    account = dataclass_to_dict(broker.get_account())
+    return {
+        "ack": dataclass_to_dict(ack),
+        "account": account,
+        "positions": [dataclass_to_dict(p) for p in broker.get_positions()],
+    }
 
 
 def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:

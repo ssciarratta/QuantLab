@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH, PaperBook
 from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.port import BrokerPort
 from quantlab.brokers.types import (
@@ -37,24 +39,38 @@ def _mid_or_fallback(snapshot: BrokerSnapshot) -> Decimal:
 class PaperBroker:
     """Ejecución PAPER: nunca envía órdenes al venue subyacente.
 
-    MD/cuenta/posiciones delegan a ``md_port``. Fills locales + journal opcional.
-    Aunque ``md_port.venue_id`` sugiera live, este broker no llama submit/cancel
-    del venue (fail-closed por diseño de producto).
+    MD delega a ``md_port``. Posiciones/cuenta desde ``PaperBook``.
+    Fills locales + journal opcional. Nunca llama submit/cancel del MD
+    (fail-closed por diseño de producto).
     """
 
     def __init__(
         self,
         md_port: BrokerPort,
         journal: PaperFillJournal | None = None,
+        book: PaperBook | None = None,
+        *,
+        initial_cash: Decimal | None = None,
+        allow_short: bool = False,
+        on_book_change: Callable[[PaperBook], None] | None = None,
     ) -> None:
         self._md = md_port
         self._journal = journal
+        self._book = book or PaperBook(
+            initial_cash=initial_cash if initial_cash is not None else DEFAULT_INITIAL_CASH,
+            allow_short=allow_short,
+        )
+        self._on_book_change = on_book_change
         self._open_orders: dict[str, OrderIntent] = {}
         self._seq = 0
 
     @property
     def venue_id(self) -> str:
         return "paper"
+
+    @property
+    def book(self) -> PaperBook:
+        return self._book
 
     def connect(self) -> dict[str, object]:
         return dict(self._md.connect())
@@ -67,6 +83,7 @@ class PaperBroker:
         base["paper_broker"] = True
         base["md_venue"] = self._md.venue_id
         base["open_orders"] = len(self._open_orders)
+        base["cash"] = str(self._book.cash)
         return base
 
     def list_instruments(self) -> list[BrokerInstrument]:
@@ -76,10 +93,11 @@ class PaperBroker:
         return self._md.get_snapshot(symbol)
 
     def get_account(self) -> BrokerAccount:
-        return self._md.get_account()
+        marks = self._mark_prices()
+        return self._book.get_account(marks)
 
     def get_positions(self) -> list[BrokerPosition]:
-        return self._md.get_positions()
+        return self._book.get_positions()
 
     def submit(self, intent: OrderIntent) -> BrokerAck:
         if intent.intent_type is IntentType.NO_ACTION:
@@ -117,6 +135,17 @@ class PaperBroker:
             venue=self.venue_id,
         )
 
+    def _mark_prices(self) -> dict[str, Decimal]:
+        marks: dict[str, Decimal] = {}
+        for pos in self._book.get_positions():
+            try:
+                snap = self._md.get_snapshot(pos.symbol)
+                marks[pos.symbol] = _mid_or_fallback(snap)
+            except ValidationError:
+                if pos.avg_price is not None:
+                    marks[pos.symbol] = pos.avg_price
+        return marks
+
     def _fill_place(self, intent: OrderIntent) -> BrokerAck:
         if intent.quantity is None or intent.side is None:
             raise ValidationError("PLACE_ORDER requiere side y quantity")
@@ -134,8 +163,11 @@ class PaperBroker:
             ts=datetime.now(tz=UTC),
             source=PaperFillJournal.SOURCE_TAG,
         )
+        self._book.apply_fill(fill)
         if self._journal is not None:
             self._journal.append(fill)
+        if self._on_book_change is not None:
+            self._on_book_change(self._book)
         # Filled inmediato: no queda en open_orders
         return BrokerAck(
             order_id=order_id,

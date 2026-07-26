@@ -12,6 +12,7 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 |-------|--------|
 | F0–F18 | Certificados externos (`docs/audit/FASE_*_APPROVED.md`) · research-prod |
 | F19–F22 | **APROBADO_INTERNO** (modos TESTER/REAL, workbench, lab panels, chat IA) · v0.14.0 |
+| F23 | Paper Book + session durable + risk paper · **v0.15.0** |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
 > Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md)  

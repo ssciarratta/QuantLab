@@ -155,18 +155,31 @@ def test_paper_over_a3_does_not_hit_backend_place(tmp_path: Path) -> None:
     assert backend.placed == []
 
 
-def test_paper_delegates_md_reads() -> None:
+def test_paper_delegates_md_reads_and_book_account() -> None:
     md = A3BrokerPort()
     md.connect()
-    broker = PaperBroker(md)
+    broker = PaperBroker(md, initial_cash=Decimal("50000"))
     inst = broker.list_instruments()
     assert inst
     snap = broker.get_snapshot(inst[0].symbol)
     assert snap.bid > 0
     acct = broker.get_account()
-    assert acct.cash > 0
-    assert isinstance(broker.get_positions(), list)
+    assert acct.cash == Decimal("50000")
+    assert acct.equity == Decimal("50000")
+    assert broker.get_positions() == []
     assert broker.health()["paper_broker"] is True
+
+
+def test_paper_fill_updates_book(tmp_path: Path) -> None:
+    md = _RecordingMd()
+    broker = PaperBroker(md, journal=PaperFillJournal(tmp_path / "j.jsonl"))
+    broker.submit(_place())
+    pos = broker.get_positions()
+    assert len(pos) == 1
+    assert pos[0].quantity == Decimal("2")
+    assert pos[0].avg_price == Decimal("11")
+    acct = broker.get_account()
+    assert acct.cash == Decimal("100000") - Decimal("22")
 
 
 def test_a3_port_submit_still_blocked() -> None:

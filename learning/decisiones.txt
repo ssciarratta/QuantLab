@@ -1,3 +1,10 @@
+
+[2026-07-26] DEC-066 — PaperBook + sesión durable + risk paper
+  Decisión: F23 = PaperBook (cash/posiciones/avg/MTM, short fail-closed),
+  WorkbenchSession bajo data/runtime/workbench/<id>/, PaperRiskLimits en
+  paper submit, API positions/book/session, UI Posiciones; LIVE_BLOCKED=True.
+  Fase: 23.
+
 ================================================================================
 QUANTLAB — REGISTRO DE DECISIONES TÉCNICAS
 ================================================================================

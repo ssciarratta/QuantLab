@@ -19,6 +19,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.15.0] — 2026-07-26
+
+### Fase 23 — Paper Book + Session durable + Risk paper
+
+#### Added
+- `PaperBook`: posiciones, cash, avg ponderado, equity MTM; `to_dict`/`from_dict`
+- `PaperBroker` actualiza book en PLACE; `get_positions`/`get_account` desde book
+- `WorkbenchSession` durable bajo `data/runtime/workbench/<id>/`
+- `PaperRiskLimits` fail-closed en paper submit (max qty/notional/symbols)
+- API: `GET /api/broker/positions`, `GET /api/paper/book`, `GET /api/session`
+- UI panel Posiciones + banner `session_id` + equity en blotter
+- CLI: `--session-id`, `--session-root`, `--initial-cash`
+
+#### Security
+- Short rechazado por defecto (`allow_short=False`)
+- `LIVE_BLOCKED is True` (sin flip)
+
+---
+
 ## [0.14.0] — 2026-07-26
 
 ### Fase 22 — Chat IA safe-by-default (APROBADO_INTERNO)

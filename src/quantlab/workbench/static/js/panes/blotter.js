@@ -8,6 +8,10 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
+      "<h3>Cuenta</h3>" +
+      '<p class="mono" id="bl-equity">equity —</p>' +
+      "</div>" +
+      '<div class="pane-section">' +
       "<h3>Enviar orden paper</h3>" +
       '<p class="muted" style="margin-top:0">Solo paths TESTER/PAPER vía PaperBroker — nunca place_order live.</p>' +
       '<div class="pane-row">' +
@@ -33,6 +37,19 @@
 
     const ackEl = root.querySelector("#bl-ack");
     const fillsEl = root.querySelector("#bl-fills");
+    const equityEl = root.querySelector("#bl-equity");
+
+    async function refreshEquity() {
+      try {
+        const data = await QLApi.paperBook();
+        const acct = data.account || {};
+        const eq = acct.equity != null ? acct.equity : "—";
+        const cash = acct.cash != null ? acct.cash : "—";
+        equityEl.textContent = "cash " + cash + " · equity " + eq;
+      } catch (err) {
+        equityEl.textContent = "equity —";
+      }
+    }
 
     async function refreshFills() {
       const data = await QLApi.paperFills();
@@ -96,6 +113,12 @@
         ackEl.textContent =
           (ack.status || "?") + " · " + (ack.order_id || "") + " · " + (ack.message || "");
         ackEl.className = "mono status-ok";
+        if (res.account && res.account.equity != null) {
+          equityEl.textContent =
+            "cash " + res.account.cash + " · equity " + res.account.equity;
+        } else {
+          await refreshEquity();
+        }
         await refreshFills();
       } catch (err) {
         ackEl.textContent = "Error: " + err.message;
@@ -110,6 +133,7 @@
     });
 
     root.refresh = async function () {
+      await refreshEquity();
       await refreshFills();
     };
 
