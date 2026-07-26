@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 54 — Readiness / Liveness Probes
 -------------------------------------------------------
-- v0.46.0 · DEC-098 · LIVE_BLOCKED intacto · sin FASE_54_APPROVED.
+- v0.46.0 · impl SHA a34902c · DEC-098 · LIVE_BLOCKED intacto · sin FASE_54_APPROVED.
 - GET /api/livez (200) + GET /api/readyz (200/503 LIVE_BLOCKED + writable).
 - quantlab.workbench.probes; DOCKER_WORKBENCH.md HEALTHCHECK.
 - Suite test_probes_f54.py; smoke F54.

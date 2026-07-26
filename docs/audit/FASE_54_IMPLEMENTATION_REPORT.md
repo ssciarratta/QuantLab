@@ -4,7 +4,7 @@
 **Versión:** 0.46.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F53 APROBADO_INTERNO  
-**Impl SHA:** `(pending commit)`  
+**Impl SHA:** `a34902c`  
 **Alcance:** probes HTTP livez/readyz — **sin flip LIVE**
 
 ---
@@ -43,12 +43,11 @@
 
 ```text
 export PATH="$HOME/.local/bin:$PATH"
-uv sync --extra dev
-uv run ruff check src/quantlab tests scripts
 uv run mypy --strict src/quantlab
-uv run pytest -q
-uv run quantlab-health                     # 0.46.0 · live_blocked=true
-uv run python scripts/internal_audit_smoke.py
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q                      # 884 passed
+uv run quantlab-health                # 0.46.0 · live_blocked=true
+uv run python scripts/internal_audit_smoke.py  # 40/40 PASS
 ```
 
 ## Fuera de alcance (correcto)

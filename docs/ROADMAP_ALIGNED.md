@@ -712,7 +712,7 @@
 - DEC-098; bump 0.46.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F54.md`, 2026-07-26) — certificado externo `FASE_54_APPROVED.md` **NO emitido**  
-**Versión:** 0.46.0  
+**Versión:** 0.46.0 · implementación `a34902c`  
 **Noche F19–F54:** `docs/audit/INTERNAL_AUDIT_F19_F54_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_54_PROBES.md`  
 **Implementation report:** `docs/audit/FASE_54_IMPLEMENTATION_REPORT.md`

@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 **Versión código (impl F54):** 0.46.0  
-**Impl SHA:** `(pending commit)`  
+**Impl SHA:** `a34902c`  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Certificado externo:** **NO** (`FASE_54_APPROVED.md` no emitido)
 
