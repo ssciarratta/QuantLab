@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.57.0 (F65 Blotter CSV Server Export)
+Versión código actual: 0.58.0 (F66 Equity Curve Snapshot)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -22,6 +22,7 @@ Auditoría INTERNAL F62: código 0.54.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F63: código 0.55.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F64: código 0.56.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F65: código 0.57.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F66: código 0.58.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -42,26 +43,27 @@ Noche F19–F62: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F62_NIGHT.md)
 Noche F19–F63: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F63_NIGHT.md)
 Noche F19–F64: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F64_NIGHT.md)
 Noche F19–F65: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F65_NIGHT.md)
+Noche F19–F66: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F66_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F65: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61 access log + F62 access log UI + F63 auto-backup + F64 backups UI + F65 blotter CSV
+- F19–F66: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61 access log + F62 access log UI + F63 auto-backup + F64 backups UI + F65 blotter CSV + F66 equity curve
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F65 Blotter CSV Server Export (0.57.0) — APROBADO_INTERNO:
-- GET /api/paper/fills.csv; Descargar CSV en Blotter + Journal; DEC-109
-- Suite test_fills_csv_f65.py; smoke F65; bundle F19–F65
-- FASE_65_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F66 Equity Curve Snapshot (0.58.0) — APROBADO_INTERNO:
+- equity.jsonl (ts,equity,cash) en fills + paper session step; GET /api/paper/equity
+- Positions sparkline + lista; DEC-110; suite test_equity_curve_f66.py
+- FASE_66_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F65 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F66 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL

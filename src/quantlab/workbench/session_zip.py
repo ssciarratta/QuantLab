@@ -39,6 +39,7 @@ INCLUDE_FILES: frozenset[str] = frozenset(
         "watchlist.json",
         "chat_audit.jsonl",
         "activity.jsonl",
+        "equity.jsonl",
         "access.jsonl",
     }
 )

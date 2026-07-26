@@ -2068,3 +2068,41 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F65: **0.57.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 66 — Equity Curve Snapshot
+
+**Código:** 0.58.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Snapshot append-only `equity.jsonl` (`ts`,`equity`,`cash`) en fills paper y paper session step; `GET /api/paper/equity`; sparkline + lista en Positions.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_66_EQUITY.md` |
+| Implementation report | `docs/audit/FASE_66_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F66.md` |
+| Noche F19–F66 | `docs/audit/INTERNAL_AUDIT_F19_F66_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 66** |
+| DEC | DEC-110 |
+
+### Lista A F66 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | EquityCurveLog | `workbench/equity_curve.py` |
+| A2 | GET equity | `/api/paper/equity` |
+| A3 | UI Positions | `positions.js` · sparkline SVG |
+| A4 | Suite | `tests/unit/workbench/test_equity_curve_f66.py` |
+| A5 | Version 0.58.0 | `pyproject.toml` |
+
+### Lista B F66 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F66: **0.58.0** · LIVE: **BLOQUEADO** · flip: **NO**.

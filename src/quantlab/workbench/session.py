@@ -127,6 +127,10 @@ class WorkbenchSession:
         return self._root / "activity.jsonl"
 
     @property
+    def equity_path(self) -> Path:
+        return self._root / "equity.jsonl"
+
+    @property
     def access_path(self) -> Path:
         return self._root / "access.jsonl"
 
@@ -182,6 +186,8 @@ class WorkbenchSession:
             self.chat_audit_path.touch()
         if not self.activity_path.exists():
             self.activity_path.touch()
+        if not self.equity_path.exists():
+            self.equity_path.touch()
         if not self.access_path.exists():
             self.access_path.touch()
 
@@ -233,6 +239,7 @@ class WorkbenchSession:
             "montecarlo": str(self.montecarlo_dir),
             "chat_audit": str(self.chat_audit_path),
             "activity": str(self.activity_path),
+            "equity": str(self.equity_path),
             "access": str(self.access_path),
             "meta_payload": meta,
         }

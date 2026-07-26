@@ -111,6 +111,11 @@
     paperBook: function () {
       return request("GET", "/api/paper/book");
     },
+    paperEquity: function (limit) {
+      const q =
+        limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=200";
+      return request("GET", "/api/paper/equity" + q);
+    },
     session: function () {
       return request("GET", "/api/session");
     },

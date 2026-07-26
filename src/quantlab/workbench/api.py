@@ -38,6 +38,11 @@ from quantlab.workbench.auto_backup import (
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
+from quantlab.workbench.equity_curve import (
+    EquityCurveLog,
+    clamp_equity_limit,
+    list_equity,
+)
 from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.i18n import build_i18n_payload
@@ -326,6 +331,25 @@ def _record_activity(
         )
     except Exception:  # noqa: BLE001 — activity nunca debe tumbar la API
         return
+
+
+def _record_equity_point(state: WorkbenchState) -> dict[str, Any] | None:
+    """Append equity/cash a ``equity.jsonl`` (best-effort; F66)."""
+    try:
+        session = state.ensure_session()
+        session.ensure_layout()
+        book = state.ensure_book()
+        if state.broker is not None and isinstance(state.broker, PaperBroker):
+            account = state.broker.get_account()
+        else:
+            account = book.get_account()
+        equity = account.equity if account.equity is not None else account.cash
+        return EquityCurveLog(session.equity_path).append(
+            equity=equity,
+            cash=account.cash,
+        )
+    except Exception:  # noqa: BLE001 — equity curve nunca debe tumbar la API
+        return None
 
 
 def _activity_error(state: WorkbenchState, op: str, message: str) -> None:
@@ -1276,6 +1300,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         def _on_book_change(updated: PaperBook) -> None:
             state.book = updated
             state.persist_book()
+            _record_equity_point(state)
 
         broker: BrokerPort = PaperBroker(
             md,
@@ -1496,11 +1521,17 @@ def _ensure_paper_session_runner(state: WorkbenchState) -> PaperSessionRunner:
     book = state.ensure_book()
     if state.paper_session is not None:
         state.paper_session.stop()
+
+    def _on_step(_summary: dict[str, Any]) -> None:
+        state.persist_book()
+        _record_equity_point(state)
+
     state.paper_session = PaperSessionRunner(
         broker,
         state.risk,
         book,
         on_book_persist=state.persist_book,
+        on_step=_on_step,
     )
     return state.paper_session
 
@@ -1636,6 +1667,27 @@ def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:
     journal = state.ensure_journal()
     fills = [dataclass_to_dict(f) for f in journal.list_fills()]
     return {"fills": fills}
+
+
+def handle_get_paper_equity(state: WorkbenchState, query: str = "") -> dict[str, Any]:
+    """GET /api/paper/equity?limit=200 — últimos puntos equity.jsonl (F66)."""
+    session = state.ensure_session()
+    session.ensure_layout()
+    params = parse_qs(query, keep_blank_values=False)
+    limit: int | None = None
+    raw_limit = params.get("limit")
+    if raw_limit and raw_limit[0].strip():
+        try:
+            limit = int(raw_limit[0].strip())
+        except ValueError as exc:
+            raise ApiError(400, "limit debe ser int") from exc
+    try:
+        payload = list_equity(session.equity_path, limit=limit)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload["session_id"] = session.session_id
+    payload["limit"] = clamp_equity_limit(limit)
+    return payload
 
 
 def handle_get_paper_fills_csv(state: WorkbenchState) -> tuple[bytes, str]:

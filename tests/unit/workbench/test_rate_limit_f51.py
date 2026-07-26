@@ -27,8 +27,8 @@ def test_live_blocked_invariant_f51() -> None:
 
 
 def test_version_and_phases_f51() -> None:
-    assert __version__ == "0.57.0"
-    assert PHASES_SUMMARY == "F19–F65 INTERNAL"
+    assert __version__ == "0.58.0"
+    assert PHASES_SUMMARY == "F19–F66 INTERNAL"
 
 
 def test_default_rate_limit_is_high() -> None:

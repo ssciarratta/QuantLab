@@ -2,6 +2,15 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 66 — Equity Curve Snapshot
+-------------------------------------------------------
+- v0.58.0 · DEC-110 · LIVE_BLOCKED intacto · sin FASE_66_APPROVED.
+- equity.jsonl (ts,equity,cash) en fills + paper session step;
+  GET /api/paper/equity; Positions sparkline + lista;
+  suite test_equity_curve_f66.py.
+- Smoke F66; bundle F19–F66.
+- Noche F19–F66 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 65 — Blotter CSV Server Export
 -------------------------------------------------------
 - v0.57.0 · DEC-109 · LIVE_BLOCKED intacto · sin FASE_65_APPROVED.

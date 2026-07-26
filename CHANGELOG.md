@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.58.0] — 2026-07-26
+
+### Fase 66 — Equity Curve Snapshot
+
+#### Added
+- Session `equity.jsonl` append-only (`ts`, `equity`, `cash`) en fills + paper session step
+- `GET /api/paper/equity?limit=N` — últimos N puntos
+- Sección Equity curve en Positions (lista + sparkline SVG)
+- Suite `tests/unit/workbench/test_equity_curve_f66.py`
+- Docs: `FASE_66_EQUITY.md` · implementation report · DEC-110
+- Bundle INTERNAL default F19–F66
+
+#### Changed
+- `phases_summary` → `F19–F66 INTERNAL`
+- Bump **0.58.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_66_APPROVED.md`
+
+---
+
 ## [0.57.0] — 2026-07-26
 
 ### Fase 65 — Blotter CSV Server Export

@@ -135,6 +135,7 @@ class PaperSessionRunner:
         book: PaperBook,
         *,
         on_book_persist: Callable[[], None] | None = None,
+        on_step: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         if not LIVE_BLOCKED:
             raise ValidationError("LIVE_BLOCKED debe ser True; PaperSessionRunner aborta")
@@ -147,6 +148,7 @@ class PaperSessionRunner:
         self._risk = risk
         self._book = book
         self._on_book_persist = on_book_persist
+        self._on_step = on_step
         self._lock = threading.RLock()
         self._running = False
         self._steps = 0
@@ -300,7 +302,7 @@ class PaperSessionRunner:
             self._stop_event.set()
 
         book_snap = self._book.to_dict()
-        return {
+        summary: dict[str, Any] = {
             "ok": True,
             "step": self._steps,
             "symbol": cfg.symbol,
@@ -315,6 +317,9 @@ class PaperSessionRunner:
             "live_blocked": LIVE_BLOCKED is True,
             "live_routing": False,
         }
+        if self._on_step is not None:
+            self._on_step(summary)
+        return summary
 
     def _process_intent(self, intent: OrderIntent, snapshot: BrokerSnapshot) -> dict[str, Any]:
         base: dict[str, Any] = {

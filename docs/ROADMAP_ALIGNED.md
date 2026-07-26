@@ -859,6 +859,19 @@
 **Spec:** `docs/FASE_65_BLOTTER_CSV.md`  
 **Implementation report:** `docs/audit/FASE_65_IMPLEMENTATION_REPORT.md`
 
+### Fase 66 — Equity Curve Snapshot
+**Alcance:**
+- Session `equity.jsonl` append (`ts`, `equity`, `cash`) en fills + paper session step
+- `GET /api/paper/equity?limit=N` — últimos N puntos
+- Sección Equity curve en Positions (lista + sparkline SVG)
+- DEC-110; bump 0.58.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F66.md`, 2026-07-26) — certificado externo `FASE_66_APPROVED.md` **NO emitido**  
+**Versión:** 0.58.0  
+**Noche F19–F66:** `docs/audit/INTERNAL_AUDIT_F19_F66_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_66_EQUITY.md`  
+**Implementation report:** `docs/audit/FASE_66_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

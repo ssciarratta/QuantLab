@@ -845,6 +845,17 @@ body {
   font-weight: 600;
 }
 
+.equity-spark-wrap {
+  color: var(--accent, #6cb6ff);
+  margin: 0.35rem 0 0.5rem;
+  max-width: 320px;
+}
+
+.equity-spark {
+  display: block;
+  opacity: 0.95;
+}
+
 .pane-row {
   display: flex;
   flex-wrap: wrap;
