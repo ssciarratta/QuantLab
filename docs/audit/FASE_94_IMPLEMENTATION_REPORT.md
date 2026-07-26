@@ -3,7 +3,7 @@
 **Fase:** F94 API Explorer Panel (read-only)
 **Versión:** 0.86.0 · **DEC:** DEC-138 · **Fecha:** 2026-07-26
 **Branch:** `cursor/modo-real-workbench-aafd` · **LIVE_BLOCKED:** True
-**Estado:** implementada · cierre formal pendiente de auditoría (sin `FASE_94_APPROVED.md`)
+**Estado:** **APROBADO_INTERNO** (`INTERNAL_AUDIT_F94.md`) · cierre externo pendiente (sin `FASE_94_APPROVED.md`)
 
 ---
 

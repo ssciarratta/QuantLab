@@ -75,7 +75,7 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F93: APROBADO_INTERNO Zero-Trust; F94 (API Explorer) auditoría en curso
+- F19–F94: APROBADO_INTERNO Zero-Trust (noche F19–F94; sin certificados externos)
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado

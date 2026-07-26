@@ -1187,7 +1187,7 @@
 
 ## Fase 94 — API Explorer Panel (read-only)
 
-**Version:** 0.86.0 · **DEC-138** · implementada, auditoría INTERNAL en curso
+**Version:** 0.86.0 · **DEC-138** · **APROBADO_INTERNO** (noche F19–F94)
 
 - Pane `api_explorer.js` navega `/api/openapi.json` con filtro incremental
 - Cliente `QLApi.openapi()` + comando `open.api_explorer` + i18n es/en
