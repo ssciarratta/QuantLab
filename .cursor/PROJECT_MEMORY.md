@@ -71,7 +71,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 48 | Theme CSS Completion | 0.40.0 | `9227750` |
 | 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | `0ddbe67` |
 | 50 | Performance Baseline Workbench API | 0.42.0 | `d91f239` |
-| 51 | API Rate Limit (loopback soft) | 0.43.0 | *(post-commit)* |
+| 51 | API Rate Limit (loopback soft) | 0.43.0 | `2451802` |
 
 ---
 

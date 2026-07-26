@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 51 — API Rate Limit (loopback soft)
+-------------------------------------------------------
+- v0.43.0 · impl SHA 2451802 · DEC-095 · LIVE_BLOCKED intacto · sin FASE_51_APPROVED.
+- Soft rate limit token bucket IP/path; default 120 rps; 429 JSON + Retry-After;
+  inyección configure_rate_limit; suite test_rate_limit_f51.py.
+- QA: mypy 177 · ruff · pytest 856 · smoke 37 PASS.
+- Noche F19–F51 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 50 — Performance Baseline Workbench API
 -------------------------------------------------------
 - v0.42.0 · impl SHA d91f239 · DEC-094 · LIVE_BLOCKED intacto · sin FASE_50_APPROVED.

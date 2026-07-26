@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Código tip:** *(post-commit)* · **v0.43.0** · F51 Rate Limit  
+**Código tip:** `2451802` · **v0.43.0** · F51 Rate Limit  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado  
 **Certificado externo:** `FASE_51_APPROVED.md` **NO** emitido
 
@@ -31,7 +31,8 @@
 4. Suite `test_rate_limit_f51.py` (límite bajo → 2×200 + 429s).  
 5. DEC-095 · bump 0.43.0 · `phases_summary` F19–F51 INTERNAL.  
 6. QA: mypy strict 177 · ruff · pytest **856** · quantlab-health **0.43.0** · smoke **37/37 PASS**.  
-7. Sin `FASE_51_APPROVED.md`.
+7. Bundle `reports/QuantLab_Internal_Review_F19_F51_v0.43.0.zip`.  
+8. Sin `FASE_51_APPROVED.md`.
 
 ## Alcance verificado
 

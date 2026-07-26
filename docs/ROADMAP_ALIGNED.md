@@ -674,7 +674,7 @@
 - DEC-095; bump 0.43.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F51.md`, 2026-07-26) — certificado externo `FASE_51_APPROVED.md` **NO emitido**  
-**Versión:** 0.43.0 · implementación *(tip post-commit)*  
+**Versión:** 0.43.0 · implementación `2451802`  
 **Noche F19–F51:** `docs/audit/INTERNAL_AUDIT_F19_F51_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_51_RATE_LIMIT.md`  
 **Implementation report:** `docs/audit/FASE_51_IMPLEMENTATION_REPORT.md`

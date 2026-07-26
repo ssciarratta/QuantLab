@@ -4,7 +4,7 @@
 **Versión:** 0.43.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F50 APROBADO_INTERNO  
-**Impl SHA:** *(se completa post-commit)*  
+**Impl SHA:** `2451802`  
 **Alcance:** soft rate limit in-process IP/path — **sin flip LIVE**
 
 ---
