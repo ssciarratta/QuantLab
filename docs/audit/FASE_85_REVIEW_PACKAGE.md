@@ -1,7 +1,7 @@
 # FASE 85 — Review Package (INTERNAL)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.77.0 · tip PENDING  
+**Versión:** 0.77.0 · tip c1b6d43  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Veredicto INTERNAL:** APROBADO_INTERNO · **sin** `FASE_85_APPROVED.md`
 

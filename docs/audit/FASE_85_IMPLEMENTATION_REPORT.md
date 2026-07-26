@@ -4,7 +4,7 @@
 **Versión:** 0.77.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F84 Cascade / Tile Windows v0.76  
-**Impl SHA:** `PENDING`  
+**Impl SHA:** `c1b6d43`  
 **Alcance:** Bring to Front / Send to Back (z-order) — **sin flip LIVE**
 
 ---

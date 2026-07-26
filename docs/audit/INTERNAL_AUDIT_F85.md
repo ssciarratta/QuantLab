@@ -2,7 +2,7 @@
 
 **Veredicto:** `# APROBADO_INTERNO`  
 **Fecha:** 2026-07-26  
-**Código tip:** PENDING · **v0.77.0** · F85 Bring to Front / Send to Back  
+**Código tip:** c1b6d43 · **v0.77.0** · F85 Bring to Front / Send to Back  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión:** **0.77.0** · F85 Bring to Front / Send to Back  
 **LIVE_BLOCKED:** True  

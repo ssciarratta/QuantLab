@@ -115,7 +115,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 82 | Window Snap to Edges | 0.74.0 | `bb57bed` |
 | 83 | Minimize / Restore All | 0.75.0 | 4bfb18d |
 | 84 | Cascade / Tile Windows | 0.76.0 | e82ebef |
-| 85 | Bring to Front / Send to Back | 0.77.0 | TBD |
+| 85 | Bring to Front / Send to Back | 0.77.0 | c1b6d43 |
 
 ---
 
