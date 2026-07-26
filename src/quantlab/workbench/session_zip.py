@@ -210,7 +210,7 @@ def export_session(
             if is_secret_arcname(rel):
                 excluded.append(rel)
 
-    stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%S%fZ")
     archive = out_dir / f"session_{session.session_id}_{stamp}.zip"
     manifest: dict[str, Any] = {
         "format": "quantlab_session_zip",

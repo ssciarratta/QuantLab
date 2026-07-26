@@ -1952,3 +1952,42 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F62: **0.54.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 63 — Session Auto-Backup
+
+**Código:** 0.55.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Auto-backup opcional de sesión (ZIP research-safe) a `session/backups/` con rotación max 5; settings `auto_backup_minutes` (0=off); `GET /api/backups`.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_63_AUTO_BACKUP.md` |
+| Implementation report | `docs/audit/FASE_63_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F63.md` |
+| Noche F19–F63 | `docs/audit/INTERNAL_AUDIT_F19_F63_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 63** |
+| DEC | DEC-107 |
+
+### Lista A F63 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Auto-backup module | `workbench/auto_backup.py` |
+| A2 | Settings field | `auto_backup_minutes` |
+| A3 | API lista | `GET /api/backups` |
+| A4 | Scheduler + shutdown | `server.py` · `shutdown.py` |
+| A5 | Suite | `tests/unit/workbench/test_auto_backup_f63.py` |
+| A6 | Version 0.55.0 | `pyproject.toml` |
+
+### Lista B F63 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F63: **0.55.0** · LIVE: **BLOQUEADO** · flip: **NO**.

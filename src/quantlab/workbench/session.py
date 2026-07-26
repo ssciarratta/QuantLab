@@ -162,6 +162,10 @@ class WorkbenchSession:
     def montecarlo_dir(self) -> Path:
         return self._root / "montecarlo"
 
+    @property
+    def backups_dir(self) -> Path:
+        return self._root / "backups"
+
     def ensure_layout(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
@@ -171,6 +175,7 @@ class WorkbenchSession:
         self.validation_dir.mkdir(parents=True, exist_ok=True)
         self.optimizer_dir.mkdir(parents=True, exist_ok=True)
         self.montecarlo_dir.mkdir(parents=True, exist_ok=True)
+        self.backups_dir.mkdir(parents=True, exist_ok=True)
         if not self.journal_path.exists():
             self.journal_path.touch()
         if not self.chat_audit_path.exists():

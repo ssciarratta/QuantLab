@@ -124,6 +124,10 @@ def perform_graceful_shutdown(
         paper = stop_paper_session_if_running(state)
         flushed = flush_layout_settings(state)
 
+        from quantlab.workbench.auto_backup import stop_auto_backup_scheduler
+
+        stop_auto_backup_scheduler(state)
+
         server_stopped = False
         if stop_server and not already:
             server = getattr(state, "_http_server", None)

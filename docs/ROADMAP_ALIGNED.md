@@ -822,6 +822,18 @@
 **Spec:** `docs/FASE_62_ACCESS_LOG_UI.md`  
 **Implementation report:** `docs/audit/FASE_62_IMPLEMENTATION_REPORT.md`
 
+### Fase 63 — Session Auto-Backup
+**Alcance:**
+- Settings `auto_backup_minutes` (default 0=off); scheduler → `session/backups/` rotación max 5
+- `GET /api/backups`; reusa `session_zip` allowlist + zip-slip; `run_auto_backup` manual
+- DEC-107; bump 0.55.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F63.md`, 2026-07-26) — certificado externo `FASE_63_APPROVED.md` **NO emitido**  
+**Versión:** 0.55.0  
+**Noche F19–F63:** `docs/audit/INTERNAL_AUDIT_F19_F63_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_63_AUTO_BACKUP.md`  
+**Implementation report:** `docs/audit/FASE_63_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -866,6 +878,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F62 **APROBADO_INTERNO** (noche F19–F62; freeze v0.40 + v0.50).  
+1. F0–F18 certificados externos; F19–F63 **APROBADO_INTERNO** (noche F19–F63; freeze v0.40 + v0.50).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

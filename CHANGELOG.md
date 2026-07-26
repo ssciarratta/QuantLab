@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.55.0] — 2026-07-26
+
+### Fase 63 — Session Auto-Backup
+
+#### Added
+- `workbench/auto_backup.py` — `run_auto_backup` + scheduler daemon + rotación max 5
+- Settings `auto_backup_minutes` (default **0=off**); si >0, ZIP periódico a `session/backups/`
+- `GET /api/backups` — lista backups de la sesión activa
+- Reusa allowlist + zip-slip fail-closed de `session_zip.export_session`
+- Suite `tests/unit/workbench/test_auto_backup_f63.py`
+- Docs: `FASE_63_AUTO_BACKUP.md` · implementation report · DEC-107
+- Bundle INTERNAL default F19–F63
+
+#### Changed
+- `phases_summary` → `F19–F63 INTERNAL`
+- Bump **0.55.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_63_APPROVED.md`
+
+---
+
 ## [0.54.0] — 2026-07-26
 
 ### Fase 62 — Access Log Panel UI

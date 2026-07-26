@@ -18,6 +18,7 @@ from quantlab.workbench.api import (
     handle_get_access_log,
     handle_get_account,
     handle_get_activity,
+    handle_get_backups,
     handle_get_catalog,
     handle_get_chat_tools,
     handle_get_commands,
@@ -88,6 +89,7 @@ from quantlab.workbench.api import (
     handle_put_watchlist,
     record_http_access,
 )
+from quantlab.workbench.auto_backup import ensure_auto_backup_scheduler
 from quantlab.workbench.rate_limit import rate_limit_error_payload
 from quantlab.workbench.security_headers import (
     ACCESS_CONTROL_ALLOW_ORIGIN,
@@ -350,6 +352,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/access-log":
                     self._send_json(handle_get_access_log(state, parsed.query))
+                    return
+                if path == "/api/backups":
+                    self._send_json(handle_get_backups(state))
                     return
                 if path == "/api/ops/metrics":
                     self._send_json(handle_get_ops_metrics(state))
@@ -638,4 +643,6 @@ def create_server(
     # Exponer estado para tests + graceful shutdown (F52)
     server.workbench_state = app_state  # type: ignore[attr-defined]
     bind_http_server(app_state, server)
+    # F63: auto-backup scheduler (idle si auto_backup_minutes=0)
+    ensure_auto_backup_scheduler(app_state)
     return server

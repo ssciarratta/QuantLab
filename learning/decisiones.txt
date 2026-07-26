@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-107 — Session Auto-Backup
+  Decisión: F63 = auto-backup ZIP opcional vía settings.auto_backup_minutes
+  (default 0=off); si >0 thread daemon exporta a session/backups/ con
+  rotación max 5; GET /api/backups; reusa session_zip allowlist+zip-slip;
+  run_auto_backup trigger manual para tests; bump 0.55.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_63_APPROVED.
+  Fase: 63.
+
 [2026-07-26] DEC-106 — Access Log Panel UI
   Decisión: F62 = panel SPA Access Log consumiendo GET /api/access-log (F61);
   menú Inicio + command palette open.access_log; auto-refresh opcional 5s;

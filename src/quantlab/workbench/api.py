@@ -31,6 +31,9 @@ from quantlab.workbench.access_log import AccessLog, list_access_log
 from quantlab.workbench.access_log import clamp_limit as clamp_access_limit
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.api_catalog import openapi_payload
+from quantlab.workbench.auto_backup import (
+    list_backups,
+)
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
@@ -121,6 +124,7 @@ class WorkbenchState:
     shutdown_requested: bool = False
     shutdown_reason: str | None = None
     shutdown_done: bool = False
+    auto_backup_scheduler: Any = field(default=None, repr=False)
     _http_server: Any = field(default=None, repr=False)
     _shutdown_lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
     _lab_registry_path: Path | None = field(default=None, repr=False)
@@ -642,6 +646,15 @@ def handle_get_session_export(state: WorkbenchState) -> dict[str, Any]:
     return out
 
 
+def handle_get_backups(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/backups — lista ZIPs en session/backups/ (F63)."""
+    session = state.ensure_session()
+    try:
+        return list_backups(session)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
 def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/session/import — ZIP → sesión nueva o merge fail-closed."""
     session = state.ensure_session()
@@ -846,7 +859,7 @@ def handle_get_docs_content(state: WorkbenchState, query: str) -> dict[str, Any]
 
 
 def handle_get_settings(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/settings — preferencias (theme/venue/strategy/slip/locale/access_log)."""
+    """GET /api/settings — preferencias workbench (incl. access_log / auto_backup)."""
     session = state.ensure_session()
     try:
         settings = load_settings(session.settings_path)
@@ -897,6 +910,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "slippage_bps",
             "locale",
             "access_log",
+            "auto_backup_minutes",
             "version",
         )
     ):
@@ -915,6 +929,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "slippage_bps",
             "locale",
             "access_log",
+            "auto_backup_minutes",
         ):
             if key in payload:
                 merged[key] = payload[key]
@@ -925,6 +940,10 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
         state.slippage_bps = Decimal(str(saved["slippage_bps"]))
     except (InvalidOperation, KeyError, TypeError) as exc:
         raise ApiError(400, f"slippage_bps inválido tras save: {exc}") from exc
+    # Re-sincroniza scheduler F63 si ya está adjunto (create_server / launch).
+    sched = getattr(state, "auto_backup_scheduler", None)
+    if sched is not None and hasattr(sched, "notify_settings_changed"):
+        sched.notify_settings_changed()
     return {
         "ok": True,
         "kind": "settings",

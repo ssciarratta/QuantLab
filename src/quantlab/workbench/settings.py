@@ -1,6 +1,7 @@
-"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61.
+"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61/F63.
 
-Campos: theme, default_venue, default_strategy, slippage_bps, locale, access_log.
+Campos: theme, default_venue, default_strategy, slippage_bps, locale, access_log,
+auto_backup_minutes.
 Sin LIVE / auth WAN.
 """
 
@@ -24,13 +25,36 @@ DEFAULT_STRATEGY = "momentum"
 DEFAULT_SLIPPAGE_BPS = Decimal("0")
 DEFAULT_LOCALE = "es"
 DEFAULT_ACCESS_LOG = True
+DEFAULT_AUTO_BACKUP_MINUTES = 0
+MIN_AUTO_BACKUP_MINUTES = 0
+MAX_AUTO_BACKUP_MINUTES = 24 * 60  # 1 día
 
 _VENUE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,31}$")
 _MAX_SLIPPAGE_BPS = Decimal("9999.9999")
 
 
+def parse_auto_backup_minutes(raw: Any) -> int:
+    """Valida ``auto_backup_minutes`` (int 0..1440; default 0=off)."""
+    if raw is None:
+        return DEFAULT_AUTO_BACKUP_MINUTES
+    if isinstance(raw, bool):
+        raise ValidationError("settings.auto_backup_minutes inválido (bool)")
+    if isinstance(raw, float) and raw.is_integer():
+        raw = int(raw)
+    if not isinstance(raw, int):
+        raise ValidationError(
+            f"settings.auto_backup_minutes debe ser int (0=off): {raw!r}"
+        )
+    if raw < MIN_AUTO_BACKUP_MINUTES or raw > MAX_AUTO_BACKUP_MINUTES:
+        raise ValidationError(
+            f"settings.auto_backup_minutes fuera de rango "
+            f"({MIN_AUTO_BACKUP_MINUTES}..{MAX_AUTO_BACKUP_MINUTES}): {raw}"
+        )
+    return raw
+
+
 def default_settings() -> dict[str, Any]:
-    """Settings canónicos por defecto (locale es · access_log on)."""
+    """Settings canónicos por defecto (locale es · access_log on · auto_backup off)."""
     return {
         "version": SETTINGS_VERSION,
         "theme": DEFAULT_THEME,
@@ -39,6 +63,7 @@ def default_settings() -> dict[str, Any]:
         "slippage_bps": str(DEFAULT_SLIPPAGE_BPS),
         "locale": DEFAULT_LOCALE,
         "access_log": DEFAULT_ACCESS_LOG,
+        "auto_backup_minutes": DEFAULT_AUTO_BACKUP_MINUTES,
     }
 
 
@@ -118,6 +143,10 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(access_log_raw, bool):
         raise ValidationError("settings.access_log debe ser bool")
 
+    auto_backup_minutes = parse_auto_backup_minutes(
+        payload.get("auto_backup_minutes", DEFAULT_AUTO_BACKUP_MINUTES)
+    )
+
     venue = _validate_venue(payload.get("default_venue", DEFAULT_VENUE))
     strategy = _validate_strategy(payload.get("default_strategy", DEFAULT_STRATEGY))
     slip = _parse_slippage(payload.get("slippage_bps", DEFAULT_SLIPPAGE_BPS))
@@ -130,6 +159,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
         "slippage_bps": format(slip, "f"),
         "locale": locale,
         "access_log": access_log_raw,
+        "auto_backup_minutes": auto_backup_minutes,
     }
 
 

@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 63 — Session Auto-Backup
+-------------------------------------------------------
+- v0.55.0 · DEC-107 · LIVE_BLOCKED intacto · sin FASE_63_APPROVED.
+- settings.auto_backup_minutes (0=off); session/backups/ ZIP + rotación max 5;
+  GET /api/backups; run_auto_backup trigger manual; scheduler daemon.
+- Suite test_auto_backup_f63.py; smoke F63; bundle F19–F63.
+- Noche F19–F63 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 62 — Access Log Panel UI
 -------------------------------------------------------
 - v0.54.0 · DEC-106 · LIVE_BLOCKED intacto · sin FASE_62_APPROVED.
