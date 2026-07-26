@@ -91,9 +91,10 @@
     }
 
     function applyTheme(theme) {
+      /* F48: mirror shell — documentElement + body on load/PUT */
       const t = theme === "high-contrast" ? "high-contrast" : "slate";
       document.documentElement.setAttribute("data-theme", t);
-      document.body.setAttribute("data-theme", t);
+      if (document.body) document.body.setAttribute("data-theme", t);
     }
 
     function render(data) {

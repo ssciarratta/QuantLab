@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.40.0] — 2026-07-26
+
+### Fase 48 — Theme CSS Completion (slate + high-contrast)
+
+#### Added
+- Tokens CSS completos para themes `slate` | `high-contrast` (chrome + semantic)
+- `data-theme` en `documentElement` (+ body) al load settings y PUT `/api/settings`
+- Docs: `FASE_48_THEMES.md` · implementation report · DEC-092
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip)
+
+---
+
 ## [0.39.0] — 2026-07-26
 
 ### Fase 47 — Chat Context Awareness

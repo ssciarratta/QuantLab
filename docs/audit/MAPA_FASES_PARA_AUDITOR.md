@@ -1264,3 +1264,53 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F47: **0.39.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 48 — Theme CSS Completion (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.40.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** Completa tokens CSS para themes `slate` | `high-contrast` (chrome + semantic); `data-theme` en `documentElement` al load/PUT settings; settings roundtrip.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_48_THEMES.md` |
+| Implementation report | `docs/audit/FASE_48_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F48.md` |
+| Review Package INTERNAL | `docs/audit/FASE_48_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F48.md` |
+| Noche F19–F48 | `docs/audit/INTERNAL_AUDIT_F19_F48_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 48** |
+
+**Certificado externo:** **NO** emitido (`FASE_48_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F48 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Tokens CSS | `static/css/workbench.css` |
+| A2 | data-theme apply | `index.html` · `shell.js` · `settings.js` |
+| A3 | Spec | `docs/FASE_48_THEMES.md` |
+| A4 | Implementation report | `docs/audit/FASE_48_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-092 | `learning/decisiones.txt` |
+| A6 | Suite F48 | `tests/unit/workbench/test_themes_f48.py` |
+| A7 | Smoke F48 | `scripts/internal_audit_smoke.py` |
+| A8 | Version 0.40.0 | `pyproject.toml` |
+
+### Lista B F48 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F48: **0.40.0** · LIVE: **BLOQUEADO** · flip: **NO**.

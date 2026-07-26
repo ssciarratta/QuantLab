@@ -1,9 +1,23 @@
-/* QuantLab Workbench — terminal quant: deep slate + amber */
-:root {
+/* QuantLab Workbench — themes: slate (default) + high-contrast (F48) */
+:root,
+html[data-theme="slate"],
+body[data-theme="slate"] {
   --bg-deep: #0c1219;
   --bg-panel: #141c27;
   --bg-elevated: #1a2433;
   --bg-title: #1e2a3a;
+  --bg-title-end: #182232;
+  --bg-banner: #162032;
+  --bg-banner-end: #121a28;
+  --bg-status: #101820;
+  --bg-status-end: #0c141e;
+  --bg-taskbar: #152031;
+  --bg-taskbar-end: #0f1724;
+  --bg-desktop-a: #0a1018;
+  --bg-desktop-b: #0e1620;
+  --bg-desktop-c: #0c1219;
+  --desktop-glow-amber: rgba(232, 168, 56, 0.06);
+  --desktop-glow-cool: rgba(60, 100, 140, 0.08);
   --border: #2a3a4f;
   --border-soft: #243044;
   --text: #e6edf5;
@@ -11,8 +25,22 @@
   --amber: #e8a838;
   --amber-dim: #b07d28;
   --amber-glow: rgba(232, 168, 56, 0.22);
+  --amber-soft: rgba(232, 168, 56, 0.14);
+  --amber-hover: rgba(232, 168, 56, 0.32);
+  --amber-focus: rgba(232, 168, 56, 0.15);
   --danger: #d4544a;
   --ok: #3d9b6e;
+  --warn: #c4a35a;
+  --accent: #3d9cf0;
+  --muted: #9aa4b2;
+  --hover-surface: rgba(255, 255, 255, 0.06);
+  --hover-surface-soft: rgba(255, 255, 255, 0.04);
+  --overlay: rgba(6, 10, 16, 0.72);
+  --overlay-soft: rgba(8, 10, 14, 0.55);
+  --scrim: rgba(0, 0, 0, 0.25);
+  --ok-soft: rgba(61, 155, 110, 0.1);
+  --ok-border: rgba(61, 155, 110, 0.35);
+  --danger-soft: rgba(180, 40, 40, 0.12);
   --mono: "IBM Plex Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
   --sans: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", sans-serif;
   --taskbar-h: 40px;
@@ -20,6 +48,7 @@
   --banner-h: 36px;
   --radius: 2px;
   --shadow-win: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
+  --shadow-modal: 0 18px 48px rgba(0, 0, 0, 0.45);
 }
 
 html[data-theme="high-contrast"],
@@ -28,6 +57,18 @@ body[data-theme="high-contrast"] {
   --bg-panel: #0a0a0a;
   --bg-elevated: #121212;
   --bg-title: #1a1a1a;
+  --bg-title-end: #000000;
+  --bg-banner: #000000;
+  --bg-banner-end: #000000;
+  --bg-status: #000000;
+  --bg-status-end: #000000;
+  --bg-taskbar: #000000;
+  --bg-taskbar-end: #000000;
+  --bg-desktop-a: #000000;
+  --bg-desktop-b: #000000;
+  --bg-desktop-c: #000000;
+  --desktop-glow-amber: transparent;
+  --desktop-glow-cool: transparent;
   --border: #ffffff;
   --border-soft: #cccccc;
   --text: #ffffff;
@@ -35,8 +76,24 @@ body[data-theme="high-contrast"] {
   --amber: #ffff00;
   --amber-dim: #cccc00;
   --amber-glow: rgba(255, 255, 0, 0.18);
+  --amber-soft: rgba(255, 255, 0, 0.12);
+  --amber-hover: rgba(255, 255, 0, 0.28);
+  --amber-focus: rgba(255, 255, 0, 0.22);
   --danger: #ff4444;
   --ok: #00ff88;
+  --warn: #ffff66;
+  --accent: #66ccff;
+  --muted: #e0e0e0;
+  --hover-surface: rgba(255, 255, 255, 0.14);
+  --hover-surface-soft: rgba(255, 255, 255, 0.08);
+  --overlay: rgba(0, 0, 0, 0.88);
+  --overlay-soft: rgba(0, 0, 0, 0.7);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --ok-soft: rgba(0, 255, 136, 0.12);
+  --ok-border: rgba(0, 255, 136, 0.55);
+  --danger-soft: rgba(255, 68, 68, 0.18);
+  --shadow-win: 0 0 0 2px var(--border);
+  --shadow-modal: 0 0 0 2px var(--border);
 }
 
 *,
@@ -61,9 +118,9 @@ body {
   display: flex;
   flex-direction: column;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(232, 168, 56, 0.06), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(60, 100, 140, 0.08), transparent 50%),
-    linear-gradient(165deg, #0a1018 0%, #0e1620 40%, #0c1219 100%);
+    radial-gradient(ellipse 80% 50% at 20% 10%, var(--desktop-glow-amber), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, var(--desktop-glow-cool), transparent 50%),
+    linear-gradient(165deg, var(--bg-desktop-a) 0%, var(--bg-desktop-b) 40%, var(--bg-desktop-c) 100%);
 }
 
 .top-banner {
@@ -73,7 +130,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.85rem;
-  background: linear-gradient(180deg, #162032 0%, #121a28 100%);
+  background: linear-gradient(180deg, var(--bg-banner) 0%, var(--bg-banner-end) 100%);
   border-bottom: 1px solid var(--border);
   font-size: 0.8rem;
   letter-spacing: 0.02em;
@@ -145,7 +202,7 @@ body {
   border-color: var(--amber-dim);
   box-shadow:
     var(--shadow-win),
-    0 0 0 1px rgba(232, 168, 56, 0.15);
+    0 0 0 1px var(--amber-focus);
 }
 
 .win.minimized {
@@ -158,7 +215,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 0.35rem 0 0.65rem;
-  background: linear-gradient(180deg, var(--bg-title) 0%, #182232 100%);
+  background: linear-gradient(180deg, var(--bg-title) 0%, var(--bg-title-end) 100%);
   border-bottom: 1px solid var(--border-soft);
   cursor: move;
   user-select: none;
@@ -189,13 +246,13 @@ body {
 }
 
 .win-controls button:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--hover-surface);
   color: var(--text);
 }
 
 .win-controls .btn-close:hover {
   background: var(--danger);
-  color: #fff;
+  color: var(--text);
 }
 
 .win-body {
@@ -241,7 +298,7 @@ body {
   align-items: center;
   gap: 0.35rem;
   padding: 0 0.65rem;
-  background: linear-gradient(180deg, #101820 0%, #0c141e 100%);
+  background: linear-gradient(180deg, var(--bg-status) 0%, var(--bg-status-end) 100%);
   border-top: 1px solid var(--border);
   font-size: 0.68rem;
   overflow-x: auto;
@@ -290,7 +347,7 @@ body {
 
 .sb-version-btn:hover {
   border-color: var(--border);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--hover-surface-soft);
 }
 
 #sb-live.unlocked {
@@ -305,7 +362,7 @@ body {
   align-items: center;
   gap: 0.4rem;
   padding: 0 0.4rem;
-  background: linear-gradient(180deg, #152031 0%, #0f1724 100%);
+  background: linear-gradient(180deg, var(--bg-taskbar) 0%, var(--bg-taskbar-end) 100%);
   border-top: 1px solid var(--border);
 }
 
@@ -327,7 +384,7 @@ body {
 
 .start-btn:hover,
 .start-btn.active {
-  background: rgba(232, 168, 56, 0.32);
+  background: var(--amber-hover);
   box-shadow: 0 0 0 1px var(--amber-dim);
 }
 
@@ -356,12 +413,12 @@ body {
 }
 
 .task-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--hover-surface-soft);
   color: var(--text);
 }
 
 .task-btn.active {
-  background: rgba(232, 168, 56, 0.14);
+  background: var(--amber-soft);
   border-color: var(--amber-dim);
   color: var(--amber);
 }
@@ -372,10 +429,10 @@ body {
 
 @keyframes task-flash {
   0% {
-    background: rgba(232, 168, 56, 0.35);
+    background: var(--amber-hover);
   }
   100% {
-    background: rgba(232, 168, 56, 0.14);
+    background: var(--amber-soft);
   }
 }
 
@@ -384,21 +441,6 @@ body {
   font-size: 0.72rem;
   color: var(--text-muted);
   padding: 0 0.5rem;
-}
-
-html[data-theme="high-contrast"] .desktop,
-body[data-theme="high-contrast"] .desktop {
-  background: #000;
-}
-
-html[data-theme="high-contrast"] .status-bar,
-body[data-theme="high-contrast"] .status-bar,
-html[data-theme="high-contrast"] .taskbar,
-body[data-theme="high-contrast"] .taskbar,
-html[data-theme="high-contrast"] .top-banner,
-body[data-theme="high-contrast"] .top-banner {
-  background: #000;
-  border-color: #fff;
 }
 
 .start-menu {
@@ -455,7 +497,7 @@ body[data-theme="high-contrast"] .top-banner {
 }
 
 .start-menu button:hover {
-  background: rgba(232, 168, 56, 0.12);
+  background: var(--amber-soft);
   color: var(--amber);
 }
 
@@ -468,7 +510,7 @@ body[data-theme="high-contrast"] .top-banner {
   align-items: flex-start;
   justify-content: center;
   padding-top: min(18vh, 140px);
-  background: rgba(8, 10, 14, 0.55);
+  background: var(--overlay-soft);
   animation: palette-fade 140ms ease;
 }
 
@@ -534,7 +576,7 @@ body[data-theme="high-contrast"] .top-banner {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--scrim);
   color: var(--text);
   font-size: 0.95rem;
   outline: none;
@@ -542,7 +584,7 @@ body[data-theme="high-contrast"] .top-banner {
 
 .command-palette-input:focus {
   border-color: var(--amber);
-  box-shadow: 0 0 0 1px rgba(232, 168, 56, 0.25);
+  box-shadow: 0 0 0 1px var(--amber-focus);
 }
 
 .command-palette-list {
@@ -566,7 +608,7 @@ body[data-theme="high-contrast"] .top-banner {
 
 .command-palette-item:hover,
 .command-palette-item.active {
-  background: rgba(232, 168, 56, 0.14);
+  background: var(--amber-soft);
   color: var(--amber);
 }
 
@@ -618,7 +660,7 @@ body[data-theme="high-contrast"] .top-banner {
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
-  background: rgba(6, 10, 16, 0.72);
+  background: var(--overlay);
   animation: palette-fade 0.22s ease-out;
 }
 
@@ -633,7 +675,7 @@ body[data-theme="high-contrast"] .top-banner {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-modal);
   animation: ob-rise 0.28s ease-out;
 }
 
@@ -683,7 +725,7 @@ body[data-theme="high-contrast"] .top-banner {
   flex: 1;
   height: 3px;
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--hover-surface);
   transition: background 0.2s ease;
 }
 
@@ -823,7 +865,7 @@ select:focus {
 
 button.btn {
   border: 1px solid var(--amber-dim);
-  background: rgba(232, 168, 56, 0.12);
+  background: var(--amber-soft);
   color: var(--amber);
   padding: 0.35rem 0.7rem;
   cursor: pointer;
@@ -832,7 +874,7 @@ button.btn {
 }
 
 button.btn:hover {
-  background: rgba(232, 168, 56, 0.24);
+  background: var(--amber-hover);
 }
 
 button.btn.secondary {
@@ -882,7 +924,7 @@ button.btn.secondary:hover {
 }
 
 .status-warn {
-  color: var(--warn, #c4a35a);
+  color: var(--warn);
 }
 
 .universe-row {
@@ -961,7 +1003,7 @@ button.btn.secondary:hover {
 
 .report-row:hover,
 .report-row.active {
-  border-color: var(--accent, #3d9cf0);
+  border-color: var(--accent);
 }
 
 .report-preview-frame {
@@ -970,7 +1012,7 @@ button.btn.secondary:hover {
   height: 240px;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
-  background: #0f1419;
+  background: var(--bg-deep);
   margin-top: 0.4rem;
 }
 
@@ -1011,7 +1053,7 @@ button.btn.secondary:hover {
 
 .docs-row:hover,
 .docs-row.active {
-  border-color: var(--accent, #3d9cf0);
+  border-color: var(--accent);
 }
 
 .docs-row-title {
@@ -1028,7 +1070,7 @@ button.btn.secondary:hover {
   padding: 0.1rem 0.35rem;
   border: 1px solid var(--border-soft);
   border-radius: var(--radius);
-  color: var(--muted, #9aa4b2);
+  color: var(--muted);
 }
 
 .docs-preview {
@@ -1114,8 +1156,8 @@ button.btn.secondary:hover {
   gap: 0.45rem;
   padding: 0.4rem 0.5rem;
   margin-bottom: 0.5rem;
-  background: rgba(61, 155, 110, 0.1);
-  border: 1px solid rgba(61, 155, 110, 0.35);
+  background: var(--ok-soft);
+  border: 1px solid var(--ok-border);
   border-radius: var(--radius);
   font-size: 0.75rem;
   color: var(--ok);
@@ -1126,7 +1168,7 @@ button.btn.secondary:hover {
   font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  border: 1px solid rgba(61, 155, 110, 0.5);
+  border: 1px solid var(--ok-border);
   padding: 0.1rem 0.35rem;
   border-radius: var(--radius);
 }
@@ -1153,8 +1195,8 @@ button.btn.secondary:hover {
 
 .chat-user {
   align-self: flex-end;
-  background: rgba(232, 168, 56, 0.14);
-  border: 1px solid rgba(232, 168, 56, 0.35);
+  background: var(--amber-soft);
+  border: 1px solid var(--amber-dim);
 }
 
 .chat-assistant {
@@ -1210,7 +1252,7 @@ button.btn.secondary:hover {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-left: 3px solid var(--ok);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--shadow-modal);
   font-size: 0.78rem;
   opacity: 0;
   transform: translateY(8px);
@@ -1263,7 +1305,7 @@ button.btn.secondary:hover {
   padding: 0.45rem 0.55rem;
   border: 1px solid var(--border-soft);
   border-left: 3px solid var(--ok);
-  background: rgba(20, 28, 39, 0.55);
+  background: var(--overlay-soft);
 }
 
 .activity-item--err {
@@ -1294,7 +1336,7 @@ button.btn.secondary:hover {
 .session-item {
   padding: 0.5rem 0.6rem;
   border: 1px solid var(--border-soft);
-  background: rgba(20, 28, 39, 0.55);
+  background: var(--overlay-soft);
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
@@ -1349,7 +1391,7 @@ button.btn.secondary:hover {
 .ops-row--blocked td {
   color: var(--danger);
   font-weight: 600;
-  background: rgba(180, 40, 40, 0.12);
+  background: var(--danger-soft);
 }
 
 /* —— About dialog (F45) —— */
@@ -1361,7 +1403,7 @@ button.btn.secondary:hover {
   align-items: center;
   justify-content: center;
   padding: 1.25rem;
-  background: rgba(6, 10, 16, 0.72);
+  background: var(--overlay);
   animation: palette-fade 0.22s ease-out;
 }
 
@@ -1376,7 +1418,7 @@ button.btn.secondary:hover {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--shadow-modal);
   animation: ob-rise 0.28s ease-out;
 }
 
