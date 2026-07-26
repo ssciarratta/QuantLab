@@ -3,17 +3,17 @@
   "generator": "scripts/build_internal_review_bundle.py",
   "generator_version": "1.0.0",
   "quantlab_version": "0.39.0",
-  "git_tip_sha": "46a29c388c9cda9c80bbf32b7b8890ac5708e1bc",
+  "git_tip_sha": "afdf067af496a9e1b587b925cabb0fde4cd6f510",
   "from_phase": 19,
   "to_phase": 47,
-  "created_at_utc": "2026-07-26T06:06:45.018947+00:00",
+  "created_at_utc": "2026-07-26T06:07:07.021044+00:00",
   "zip_name": "QuantLab_Internal_Review_F19_F47_v0.39.0.zip",
   "notes": [
     "Evidencia INTERNAL only — NO sustituye Review Package oficial.",
     "NO incluye ni emite FASE_*_APPROVED.md.",
     "LIVE_BLOCKED permanece intacto."
   ],
-  "file_count": 173,
+  "file_count": 174,
   "files": [
     "RESUMEN_PROYECTO.txt",
     "docs/FASE_19_OPERATING_MODES.md",
@@ -157,6 +157,7 @@
     "docs/audit/INTERNAL_AUDIT_F19_F44_NIGHT.md",
     "docs/audit/INTERNAL_AUDIT_F19_F45_NIGHT.md",
     "docs/audit/INTERNAL_AUDIT_F19_F46_NIGHT.md",
+    "docs/audit/INTERNAL_AUDIT_F19_F47_NIGHT.md",
     "docs/audit/INTERNAL_AUDIT_F20.md",
     "docs/audit/INTERNAL_AUDIT_F21.md",
     "docs/audit/INTERNAL_AUDIT_F22.md",

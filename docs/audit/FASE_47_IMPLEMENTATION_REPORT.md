@@ -4,7 +4,7 @@
 **Versión:** 0.39.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F46 Multi-Session Switcher  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `afdf067`  
 **Alcance:** chat tools context read-only — **sin flip LIVE** · **sin trading tools**
 
 ---

@@ -620,7 +620,7 @@
 - DEC-091; bump 0.39.0; sin flip LIVE; chat sin trading tools
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F47.md`, 2026-07-26) — certificado externo `FASE_47_APPROVED.md` **NO emitido**  
-**Versión:** 0.39.0 · implementación _(tip)_  
+**Versión:** 0.39.0 · implementación `afdf067`  
 **Review Package INTERNAL:** `docs/audit/FASE_47_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F47.md`  
 **Noche F19–F47:** `docs/audit/INTERNAL_AUDIT_F19_F47_NIGHT.md` = **APROBADO_INTERNO**  
