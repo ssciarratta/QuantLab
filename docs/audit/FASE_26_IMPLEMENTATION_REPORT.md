@@ -33,9 +33,11 @@ Background opcional: `interval_ms` → thread daemon cancelable vía `stop()`.
 ## Invariantes
 
 - `LIVE_BLOCKED is True`
+- Constructor / API: **solo** `PaperBroker` (`isinstance` fail-closed — H1 audit)
 - Nunca `md_port.submit` / place_order venue
 - Risk reject → `RISK_REJECTED` en actions (sesión sigue)
 - Reconnect / cambio de modo invalida sesión paper
+- DEC-070
 
 ## QA
 

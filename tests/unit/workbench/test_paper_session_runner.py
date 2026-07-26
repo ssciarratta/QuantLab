@@ -105,6 +105,15 @@ def test_live_blocked_invariant() -> None:
     assert LIVE_BLOCKED is True
 
 
+def test_runner_rejects_non_paper_broker() -> None:
+    """H1 F26: constructor fail-closed si broker no es PaperBroker."""
+    md = _MdStub()
+    book = PaperBook()
+    risk = PaperRiskLimits()
+    with pytest.raises(ValidationError, match="PaperBroker"):
+        PaperSessionRunner(md, risk, book)  # type: ignore[arg-type]
+
+
 def test_happy_path_dummy() -> None:
     runner, md, broker, book = _runner()
     status = runner.start(PaperSessionConfig(strategy_id="dummy", symbol="TEST", max_steps=5))

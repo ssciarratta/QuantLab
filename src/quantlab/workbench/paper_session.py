@@ -1,7 +1,7 @@
 """Paper Session Runner — estrategia → intents → risk → PaperBroker (F26).
 
-Nunca envía órdenes a venue LIVE. Solo paths paper vía ``BrokerPort.submit``
-(típicamente ``PaperBroker``).
+Nunca envía órdenes a venue LIVE. Solo ``PaperBroker.submit`` (fills locales).
+Constructor fail-closed si el broker no es ``PaperBroker``.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from decimal import Decimal
 from typing import Any
 
 from quantlab.brokers.paper.book import PaperBook
-from quantlab.brokers.port import BrokerPort
+from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.types import BrokerAck, BrokerSnapshot
 from quantlab.core.contracts.strategy import StrategyContext
 from quantlab.core.exceptions import ValidationError
@@ -125,7 +125,7 @@ class PaperSessionRunner:
 
     def __init__(
         self,
-        broker: BrokerPort,
+        broker: PaperBroker,
         risk: PaperRiskLimits,
         book: PaperBook,
         *,
@@ -133,6 +133,12 @@ class PaperSessionRunner:
     ) -> None:
         if not LIVE_BLOCKED:
             raise ValidationError("LIVE_BLOCKED debe ser True; PaperSessionRunner aborta")
+        # Fail-closed: solo PaperBroker (nunca BrokerPort venue / MD-only con submit).
+        if not isinstance(broker, PaperBroker):
+            raise ValidationError(
+                "PaperSessionRunner requiere PaperBroker "
+                "(nunca place_order / submit venue)"
+            )
         self._broker = broker
         self._risk = risk
         self._book = book

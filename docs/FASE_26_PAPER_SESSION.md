@@ -1,8 +1,9 @@
 # Fase 26 — Paper Session Runner
 
-**Estado:** IMPLEMENTADO (v0.18.0) — audit externo pendiente  
+**Estado:** ✅ **APROBADO_INTERNO** (v0.18.0) — certificado externo `FASE_26_APPROVED.md` **NO** emitido  
 **Base:** v0.17.0 · F19–F25 APROBADO_INTERNO  
-**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)
+**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
+**INTERNAL:** `docs/audit/INTERNAL_AUDIT_F26.md` · noche `INTERNAL_AUDIT_F19_F26_NIGHT.md`
 
 ## Objetivo
 Sesión paper operativa en workbench: elegir estrategia → generar `OrderIntent` sobre MD del broker conectado → ejecutar vía PaperBroker (risk+slip+book) → ver blotter/posiciones en vivo.
@@ -15,6 +16,9 @@ Sesión paper operativa en workbench: elegir estrategia → generar `OrderIntent
 - [x] Nunca place_order venue
 - [x] Tests + LIVE_BLOCKED
 - [x] Bump **0.18.0**
+- [x] Constructor fail-closed: solo `PaperBroker` (H1 audit)
+- [x] Autauditoría + Review Package INTERNAL + INTERNAL_AUDIT_F26
+- [x] DEC-070
 
 ## API
 | Método | Path | Body / notas |

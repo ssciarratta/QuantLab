@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.17.0 (F25)
+Versión código actual: 0.18.0 (F26)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
@@ -11,32 +11,33 @@ Auditoría INTERNAL F22: código 0.14.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F23: código 0.15.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F24: código 0.16.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F25: código 0.17.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F26: código 0.18.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F25_NIGHT.md)
+Noche F19–F26: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F26_NIGHT.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F25: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench Ops Desk 1-click + Lab + Chat IA + PaperBook + venue plugins
+- F19–F26: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench Ops Desk + Paper Session Runner + Lab + Chat IA + PaperBook + venue plugins
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F25 Ops Desk (v0.17.0, impl 21fe144) — APROBADO_INTERNO:
-- scripts/launch_workbench.sh + packaging/*.desktop + WORKBENCH_1CLICK.md
-- --allow-non-loopback (exit 2 sin flag; WARNING con flag)
-- experiment_id charset ^[A-Za-z0-9_-]+$
-- PaperBroker slippage_bps adverso; panel Riesgo GET /api/risk; banner session_id
-- DEC-069; QA: mypy strict · ruff · 552 pytest · health 0.17.0 · smoke 11 PASS
-- Docs: AUTO_AUDIT_F25 · FASE_25_REVIEW_PACKAGE · INTERNAL_AUDIT_F25 · arco F23–F25 · noche F19–F25
-- FASE_25_APPROVED.md NO emitido
+F26 Paper Session Runner (v0.18.0, impl 46487a4) — APROBADO_INTERNO:
+- PaperSessionRunner start/stop/step; estrategias dummy/buy_once/momentum
+- API /api/paper/session/* + panel UI Sesión Paper
+- Solo PaperBroker (H1 isinstance fail-closed); risk en PLACE; md.submit_calls=0
+- DEC-070; QA: mypy strict · ruff · 563 pytest · health 0.18.0 · smoke 12 PASS
+- Docs: AUTO_AUDIT_F26 · FASE_26_REVIEW_PACKAGE · INTERNAL_AUDIT_F26 · noche F19–F26
+- FASE_26_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F25 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F26 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
 

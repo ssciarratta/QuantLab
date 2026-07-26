@@ -2,14 +2,16 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F25**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F26**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Arco nocturno F19–F22:** [`docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`](audit/INTERNAL_AUDIT_F19_F22_ARC.md) (**APROBADO_INTERNO**)  
 **Arco F23–F25:** [`docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md`](audit/INTERNAL_AUDIT_F23_F25_ARC.md) (**APROBADO_INTERNO**)  
 **Noche F19–F25:** [`docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F25_NIGHT.md) (**APROBADO_INTERNO**)  
+**Noche F19–F26:** [`docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F26_NIGHT.md) (**APROBADO_INTERNO**)  
 **F23 Paper Book:** [`docs/audit/INTERNAL_AUDIT_F23.md`](audit/INTERNAL_AUDIT_F23.md) (**APROBADO_INTERNO**)  
 **F24 Venue plugins:** [`docs/audit/INTERNAL_AUDIT_F24.md`](audit/INTERNAL_AUDIT_F24.md) (**APROBADO_INTERNO**)  
 **F25 Ops Desk:** [`docs/audit/INTERNAL_AUDIT_F25.md`](audit/INTERNAL_AUDIT_F25.md) (**APROBADO_INTERNO**)  
+**F26 Paper Session:** [`docs/audit/INTERNAL_AUDIT_F26.md`](audit/INTERNAL_AUDIT_F26.md) (**APROBADO_INTERNO**)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
@@ -293,6 +295,22 @@
 **Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` = **APROBADO_INTERNO**  
 **Noche F19–F25:** `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` = **APROBADO_INTERNO**  
 **Implementation report:** `docs/audit/FASE_25_IMPLEMENTATION_REPORT.md`
+
+### Fase 26 — Paper Session Runner
+**Módulos:**
+- `PaperSessionRunner` (start/stop/step; background `interval_ms` cancelable)
+- Estrategias research: dummy / buy_once / momentum sobre MD snapshot → barras sintéticas
+- Risk paper en cada PLACE; submit solo `PaperBroker` (fail-closed isinstance)
+- API `/api/paper/session/{start,stop,step,status}`; panel UI “Sesión Paper”
+- DEC-070; sin flip LIVE; sin place_order venue; sin WS exchange real
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F26.md`, 2026-07-26) — certificado externo `FASE_26_APPROVED.md` **NO emitido**  
+**Versión:** 0.18.0 · implementación `46487a4`  
+**Review Package INTERNAL:** `docs/audit/FASE_26_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F26.md`  
+**Noche F19–F26:** `docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md` = **APROBADO_INTERNO**  
+**Remediación audit:** H1 PaperBroker-only en constructor  
+**Implementation report:** `docs/audit/FASE_26_IMPLEMENTATION_REPORT.md`
 
 ---
 

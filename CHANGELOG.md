@@ -32,6 +32,9 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 #### Security
 - `LIVE_BLOCKED is True` (sin flip); nunca place_order venue
+- Audit INTERNAL: constructor fail-closed solo `PaperBroker` (H1); DEC-070
+- Docs: `AUTO_AUDIT_2026-07-26_F26` · `INTERNAL_AUDIT_F26` · noche F19–F26
+- `FASE_26_APPROVED.md` **no** emitido (reserva Meta-Auditor externo)
 
 ---
 

@@ -360,10 +360,51 @@ Versión código F25: **0.17.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 26 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / DoD | `docs/FASE_26_PAPER_SESSION.md` |
+| Implementation report | `docs/audit/FASE_26_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F26.md` |
+| Review Package INTERNAL | `docs/audit/FASE_26_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F26.md` |
+| Noche F19–F26 | `docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 26** |
+
+**Certificado externo:** **NO** emitido (`FASE_26_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F26 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | `PaperSessionRunner` | `workbench/paper_session.py` |
+| A2 | API `/api/paper/session/*` | `workbench/api.py` + `server.py` |
+| A3 | Panel Sesión Paper | `static/js/panes/paper_session.js` |
+| A4 | LIVE gate + PaperBroker-only | `execution/live_gate.py` · runner isinstance |
+| A5 | DEC-070 | `learning/decisiones.txt` |
+| A6 | Suite F26 | `tests/unit/workbench/test_paper_session_runner.py` |
+| A7 | Smoke F26 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F26 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F26: **0.18.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F25 **APROBADO_INTERNO**.  
-2. QuantLab v0.17.0: Ops Desk 1-click + gates sobre F23 PaperBook + F24 plugins.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; non-loopback gated; charset/slip/Risk.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F25 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F26 **APROBADO_INTERNO**.  
+2. QuantLab v0.18.0: Paper Session Runner sobre Ops Desk + PaperBook + plugins.  
+3. **LIVE sigue BLOQUEADO**; sesión paper = solo PaperBroker + risk; sin venue submit.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F26 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

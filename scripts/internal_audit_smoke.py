@@ -263,6 +263,20 @@ def check_f26_paper_session() -> None:
     assert st["running"] is False
     assert st["live_blocked"] is True
 
+    # Fail-closed: MD/venue stub no es PaperBroker
+    try:
+        PaperSessionRunner(_Md(), PaperRiskLimits(), book)  # type: ignore[arg-type]
+    except Exception as exc:
+        assert "PaperBroker" in str(exc)
+    else:
+        raise AssertionError("expected reject non-PaperBroker")
+
+    runner.start(PaperSessionConfig(strategy_id="buy_once", symbol="X", max_steps=2))
+    summary = runner.step()
+    assert summary.get("live_routing") is False
+    assert summary.get("live_blocked") is True
+    runner.stop()
+
 
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
