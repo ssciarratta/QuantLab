@@ -4,7 +4,7 @@ Fecha: 2026-07-26
 Versión: 0.81.0  
 Branch: `cursor/modo-real-workbench-aafd`  
 Prereq: F88 v0.80.0  
-Implementation SHA: pendiente de cierre  
+Implementation SHA: `a94b448`
 Alcance: certificación A3 market-data read-only; sin flip LIVE.
 
 ## Entregas
@@ -31,6 +31,13 @@ No se afirma certificación A3 real. La lane sandbox no tuvo ejecución de red.
 
 ## QA
 
-Los resultados full y post-audit se completan en el cierre INTERNAL.
+```text
+ruff check src/quantlab tests scripts       PASS
+mypy --strict src/quantlab                  PASS (199 source files)
+mypy --strict scripts/a3_md_certify.py      PASS
+pytest -q                                   PASS (1158 tests post-audit)
+quantlab-health                             PASS (0.81.0, live_blocked=true)
+internal_audit_smoke.py                     PASS (74/74)
+```
 
 No existe ni se debe crear `FASE_89_APPROVED.md`. `LIVE_BLOCKED=True`.

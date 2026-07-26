@@ -136,19 +136,39 @@ def test_sandbox_uses_strict_resolver_and_closes(monkeypatch: pytest.MonkeyPatch
             super().close()
 
     backend = TrackingBackend()
-    with patch(
-        "quantlab.brokers.a3.read_contract.resolve_a3_md_backend",
-        return_value=(
-            backend,
-            {"fallback": False, "md_source": "env", "md_provider": "a3-env-readonly"},
-        ),
-    ) as resolver:
+    with (
+        patch("quantlab.brokers.a3.read_contract.PyRofexBackend", TrackingBackend),
+        patch(
+            "quantlab.brokers.a3.read_contract.resolve_a3_md_backend",
+            return_value=(
+                backend,
+                {"fallback": False, "md_source": "env", "md_provider": "a3-env-readonly"},
+            ),
+        ) as resolver,
+    ):
         report = run_sandbox_read_contract_from_env()
 
     assert report.status is A3ReadContractStatus.PASS
     assert report.write_calls == 0
     assert backend.close_calls == 1
     resolver.assert_called_once_with(MD_SOURCE_ENV, allow_fallback=False)
+
+
+def test_sandbox_rejects_fake_even_if_metadata_claims_env(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _enable_sandbox(monkeypatch)
+    with patch(
+        "quantlab.brokers.a3.read_contract.resolve_a3_md_backend",
+        return_value=(
+            FakeA3Backend(),
+            {"fallback": False, "md_source": "env", "md_provider": "a3-env-readonly"},
+        ),
+    ):
+        report = run_sandbox_read_contract_from_env()
+
+    assert report.status is A3ReadContractStatus.FAIL
+    assert report.issues == ("strict_backend_violation",)
 
 
 def test_close_runs_after_read_failure_and_error_text_is_redacted() -> None:

@@ -81,7 +81,7 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F89 | A3 MD Read-only Certification · **APROBADO_INTERNO** · v0.81.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Project memory](PROJECT_MEMORY.md) · [F89 A3 cert](docs/FASE_89_A3_MD_CERTIFICATION.md) · Noche F19–F89 pendiente de cierre
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Project memory](PROJECT_MEMORY.md) · [F89 A3 cert](docs/FASE_89_A3_MD_CERTIFICATION.md) · [Noche F19–F89](docs/audit/INTERNAL_AUDIT_F19_F89_NIGHT.md)
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

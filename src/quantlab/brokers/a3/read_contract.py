@@ -15,6 +15,7 @@ from time import perf_counter
 from typing import Any, NoReturn
 
 from quantlab.brokers.a3.md_backend import MD_SOURCE_ENV, resolve_a3_md_backend
+from quantlab.data.exchanges.a3.client import PyRofexBackend
 from quantlab.data.exchanges.a3.exceptions import A3ConfigurationError
 from quantlab.data.exchanges.a3.fake_backend import FakeA3Backend
 from quantlab.data.exchanges.a3.models import (
@@ -372,7 +373,11 @@ def run_sandbox_read_contract_from_env(
             environment=environment,
             issue="strict_backend_unavailable",
         )
-    if detail.get("fallback") or detail.get("md_source") != MD_SOURCE_ENV:
+    if (
+        not isinstance(backend, PyRofexBackend)
+        or detail.get("fallback")
+        or detail.get("md_source") != MD_SOURCE_ENV
+    ):
         return _empty_report(
             status=A3ReadContractStatus.FAIL,
             lane="sandbox",
