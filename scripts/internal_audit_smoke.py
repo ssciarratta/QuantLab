@@ -191,6 +191,79 @@ def check_f25_ops_desk_invariants() -> None:
     assert "max_qty" in risk.get("limits", {})
 
 
+def check_f26_paper_session() -> None:
+    """F26: PaperSessionRunner import + LIVE_BLOCKED + status shape."""
+    from datetime import UTC, datetime
+    from decimal import Decimal
+
+    from quantlab.brokers.paper.book import PaperBook
+    from quantlab.brokers.paper.broker import PaperBroker
+    from quantlab.brokers.types import (
+        BrokerAccount,
+        BrokerAck,
+        BrokerInstrument,
+        BrokerPosition,
+        BrokerSnapshot,
+    )
+    from quantlab.core.types.orders import OrderIntent
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.paper_session import (
+        PaperSessionConfig,
+        PaperSessionRunner,
+        build_session_strategy,
+    )
+    from quantlab.workbench.risk import PaperRiskLimits
+
+    assert LIVE_BLOCKED is True
+    _ = build_session_strategy("dummy")
+    _ = PaperSessionConfig(strategy_id="buy_once", symbol="X", max_steps=2)
+
+    class _Md:
+        @property
+        def venue_id(self) -> str:
+            return "smoke-md"
+
+        def connect(self) -> dict[str, object]:
+            return {}
+
+        def close(self) -> dict[str, object]:
+            return {}
+
+        def health(self) -> dict[str, object]:
+            return {}
+
+        def list_instruments(self) -> list[BrokerInstrument]:
+            return []
+
+        def get_snapshot(self, symbol: str) -> BrokerSnapshot:
+            return BrokerSnapshot(
+                symbol=symbol,
+                bid=Decimal("9"),
+                ask=Decimal("11"),
+                last=Decimal("10"),
+                ts=datetime(2024, 1, 1, tzinfo=UTC),
+            )
+
+        def get_account(self) -> BrokerAccount:
+            return BrokerAccount(cash=Decimal("1"), currency="USD")
+
+        def get_positions(self) -> list[BrokerPosition]:
+            return []
+
+        def submit(self, intent: OrderIntent) -> BrokerAck:
+            raise AssertionError("no venue submit")
+
+        def cancel(self, order_id: str) -> BrokerAck:
+            raise AssertionError("no venue cancel")
+
+    book = PaperBook()
+    broker = PaperBroker(_Md(), book=book)
+    runner = PaperSessionRunner(broker, PaperRiskLimits(), book)
+    st = runner.status()
+    assert st["running"] is False
+    assert st["live_blocked"] is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -204,6 +277,7 @@ def main() -> int:
         ("F24 plugins + generics", check_f24_plugins),
         ("F25 launch --allow-non-loopback", check_f25_launch_parser),
         ("F25 ops desk slip/charset/risk", check_f25_ops_desk_invariants),
+        ("F26 paper session runner", check_f26_paper_session),
     ]
     ok = True
     for name, fn in checks:

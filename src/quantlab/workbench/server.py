@@ -23,6 +23,7 @@ from quantlab.workbench.api import (
     handle_get_mode,
     handle_get_paper_book,
     handle_get_paper_fills,
+    handle_get_paper_session_status,
     handle_get_positions,
     handle_get_risk,
     handle_get_session,
@@ -37,6 +38,9 @@ from quantlab.workbench.api import (
     handle_post_lab_optimize,
     handle_post_lab_scanner,
     handle_post_mode,
+    handle_post_paper_session_start,
+    handle_post_paper_session_step,
+    handle_post_paper_session_stop,
     handle_post_paper_submit,
 )
 
@@ -147,6 +151,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/paper/fills":
                     self._send_json(handle_get_paper_fills(state))
                     return
+                if path == "/api/paper/session/status":
+                    self._send_json(handle_get_paper_session_status(state))
+                    return
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
                     return
@@ -198,6 +205,15 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/submit":
                     self._send_json(handle_post_paper_submit(state, body))
+                    return
+                if path == "/api/paper/session/start":
+                    self._send_json(handle_post_paper_session_start(state, body))
+                    return
+                if path == "/api/paper/session/stop":
+                    self._send_json(handle_post_paper_session_stop(state))
+                    return
+                if path == "/api/paper/session/step":
+                    self._send_json(handle_post_paper_session_step(state))
                     return
                 if path == "/api/lab/backtest":
                     self._send_json(handle_post_lab_backtest(state, body))

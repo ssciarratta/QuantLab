@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.18.0] — 2026-07-26
+
+### Fase 26 — Paper Session Runner
+
+#### Added
+- `PaperSessionRunner` / `PaperSessionConfig` (`workbench/paper_session.py`)
+- API `/api/paper/session/{start,stop,step,status}`
+- UI panel «Sesión Paper» (Inicio → Sesión Paper)
+- Background opcional `interval_ms` (daemon cancelable)
+- Tests `test_paper_session_runner.py`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); nunca place_order venue
+
+---
+
 ## [0.17.0] — 2026-07-26
 
 ### Fase 25 — Ops Desk (1-click + hardening)

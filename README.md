@@ -15,6 +15,7 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F23 | Paper Book + session durable + risk paper · **APROBADO_INTERNO** · v0.15.0 |
 | F24 | Venue plugins + A3 MD read-only opt-in + generic CSV/REST · **APROBADO_INTERNO** · v0.16.0 |
 | F25 | Ops Desk 1-click + hardening (non-loopback, experiment_id, slip, Risk) · **APROBADO_INTERNO** · v0.17.0 |
+| F26 | Paper Session Runner (estrategia → risk → PaperBroker) · v0.18.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
 > Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F25](docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md)  

@@ -47,6 +47,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openPaperSession() {
+    const pane = QLPanes.createPaperSessionPane();
+    wm.open("paper_session", "Sesión Paper", pane, { x: 160, y: 90, w: 520, h: 440 });
+    pane.refresh().catch(function () {});
+  }
+
   function openPositions() {
     const pane = QLPanes.createPositionsPane();
     wm.open("positions", "Posiciones", pane, { x: 200, y: 80, w: 480, h: 360 });
@@ -117,6 +123,7 @@
     health: openHealth,
     market: openMarket,
     blotter: openBlotter,
+    paper_session: openPaperSession,
     positions: openPositions,
     risk: openRisk,
     chat: openChat,

@@ -90,6 +90,18 @@
     paperFills: function () {
       return request("GET", "/api/paper/fills");
     },
+    paperSessionStart: function (body) {
+      return request("POST", "/api/paper/session/start", body || {});
+    },
+    paperSessionStop: function () {
+      return request("POST", "/api/paper/session/stop", {});
+    },
+    paperSessionStep: function () {
+      return request("POST", "/api/paper/session/step", {});
+    },
+    paperSessionStatus: function () {
+      return request("GET", "/api/paper/session/status");
+    },
     labCapabilities: function () {
       return request("GET", "/api/lab/capabilities");
     },

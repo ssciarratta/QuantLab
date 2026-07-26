@@ -23,6 +23,7 @@ from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
 
@@ -47,6 +48,7 @@ class WorkbenchState:
     initial_cash: Decimal = field(default_factory=lambda: Decimal(DEFAULT_INITIAL_CASH))
     slippage_bps: Decimal = field(default_factory=lambda: Decimal("0"))
     last_lab_result: dict[str, Any] | None = None
+    paper_session: PaperSessionRunner | None = None
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
@@ -213,6 +215,9 @@ def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, A
     mode = _parse_mode(raw)
     state.mode = mode
     # Cambiar modo invalida broker conectado (evita mismatch mode/venue).
+    if state.paper_session is not None:
+        state.paper_session.stop()
+        state.paper_session = None
     if state.broker is not None:
         with contextlib.suppress(Exception):
             state.broker.close()
@@ -292,6 +297,9 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         raise ApiError(400, str(exc)) from exc
 
     # Cerrar anterior
+    if state.paper_session is not None:
+        state.paper_session.stop()
+        state.paper_session = None
     if state.broker is not None:
         with contextlib.suppress(Exception):
             state.broker.close()
@@ -481,6 +489,132 @@ def handle_post_paper_submit(state: WorkbenchState, body: dict[str, Any]) -> dic
         "account": account,
         "positions": [dataclass_to_dict(p) for p in broker.get_positions()],
     }
+
+
+def _require_paper_broker(state: WorkbenchState) -> PaperBroker:
+    broker = _require_broker(state)
+    if not isinstance(broker, PaperBroker):
+        raise ApiError(
+            400,
+            "paper/session requiere PaperBroker conectado (nunca place_order venue)",
+        )
+    return broker
+
+
+def _ensure_paper_session_runner(state: WorkbenchState) -> PaperSessionRunner:
+    broker = _require_paper_broker(state)
+    book = state.ensure_book()
+    if state.paper_session is not None:
+        state.paper_session.stop()
+    state.paper_session = PaperSessionRunner(
+        broker,
+        state.risk,
+        book,
+        on_book_persist=state.persist_book,
+    )
+    return state.paper_session
+
+
+def handle_post_paper_session_start(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/paper/session/start — inicia sesión paper (estrategia + símbolo)."""
+    if not LIVE_BLOCKED:
+        raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    _reject_live_mode(state.mode)
+    if state.mode not in (OperatingMode.TESTER, OperatingMode.PAPER):
+        raise ApiError(400, "paper/session solo en modos tester|paper")
+
+    strategy_id = body.get("strategy_id")
+    if not isinstance(strategy_id, str) or not strategy_id.strip():
+        raise ApiError(400, "campo 'strategy_id' requerido")
+    symbol = body.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        raise ApiError(400, "campo 'symbol' requerido")
+
+    max_steps = body.get("max_steps", 100)
+    if not isinstance(max_steps, int):
+        raise ApiError(400, "max_steps debe ser int")
+
+    interval_ms = body.get("interval_ms")
+    if interval_ms is not None and not isinstance(interval_ms, int):
+        raise ApiError(400, "interval_ms debe ser int o null")
+
+    params = body.get("params")
+    if params is None:
+        params_dict: dict[str, Any] = {}
+    elif isinstance(params, dict):
+        params_dict = params
+    else:
+        raise ApiError(400, "params debe ser objeto JSON")
+
+    runner = _ensure_paper_session_runner(state)
+    try:
+        config = PaperSessionConfig(
+            strategy_id=strategy_id.strip(),
+            symbol=symbol.strip(),
+            max_steps=max_steps,
+            interval_ms=interval_ms,
+            params=params_dict,
+        )
+        status = runner.start(config)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "status": status,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+    }
+
+
+def handle_post_paper_session_stop(state: WorkbenchState) -> dict[str, Any]:
+    """POST /api/paper/session/stop."""
+    if state.paper_session is None:
+        return {
+            "ok": True,
+            "status": {
+                "running": False,
+                "steps": 0,
+                "last_error": None,
+                "strategy_id": None,
+                "live_blocked": LIVE_BLOCKED is True,
+            },
+            "live_blocked": LIVE_BLOCKED is True,
+        }
+    status = state.paper_session.stop()
+    return {"ok": True, "status": status, "live_blocked": LIVE_BLOCKED is True}
+
+
+def handle_post_paper_session_step(state: WorkbenchState) -> dict[str, Any]:
+    """POST /api/paper/session/step — un tick manual."""
+    if not LIVE_BLOCKED:
+        raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    _require_paper_broker(state)
+    if state.paper_session is None:
+        raise ApiError(400, "sesión paper no iniciada; POST /api/paper/session/start")
+    try:
+        summary = state.paper_session.step()
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    state.persist_book()
+    return summary
+
+
+def handle_get_paper_session_status(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/paper/session/status."""
+    if state.paper_session is None:
+        return {
+            "ok": True,
+            "running": False,
+            "steps": 0,
+            "last_error": None,
+            "strategy_id": None,
+            "live_blocked": LIVE_BLOCKED is True,
+            "broker_connected": state.broker is not None,
+        }
+    status = state.paper_session.status()
+    status["ok"] = True
+    status["broker_connected"] = state.broker is not None
+    return status
 
 
 def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:
