@@ -588,6 +588,163 @@ body[data-theme="high-contrast"] .top-banner {
   color: var(--text-muted);
 }
 
+/* —— Onboarding wizard (F37) —— */
+.onboarding-wizard {
+  position: fixed;
+  inset: 0;
+  z-index: 220;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(6, 10, 16, 0.72);
+  animation: palette-fade 0.22s ease-out;
+}
+
+.onboarding-wizard.hidden {
+  display: none;
+}
+
+.onboarding-panel {
+  width: min(520px, 94vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+  animation: ob-rise 0.28s ease-out;
+}
+
+@keyframes ob-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.onboarding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.35rem;
+}
+
+.onboarding-brand {
+  font-family: var(--display, var(--sans));
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--amber);
+}
+
+.onboarding-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.onboarding-progress {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.35rem 1rem 0.55rem;
+}
+
+.ob-dot {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: background 0.2s ease;
+}
+
+.ob-dot.active {
+  background: var(--amber);
+}
+
+.onboarding-body {
+  padding: 0.35rem 1.1rem 0.85rem;
+  min-height: 11rem;
+}
+
+.onboarding-body h2 {
+  margin: 0 0 0.45rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.ob-lead {
+  margin: 0 0 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.ob-modes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.ob-modes li {
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.ob-mode-tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-right: 0.35rem;
+}
+
+.ob-mode-tag.live {
+  color: var(--danger, #d4544a);
+}
+
+.ob-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 0.55rem;
+}
+
+.ob-hint {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.onboarding-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
 /* —— Pane common —— */
 .pane-section {
   margin-bottom: 0.85rem;

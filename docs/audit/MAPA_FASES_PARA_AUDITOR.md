@@ -903,10 +903,61 @@ Versión código F36: **0.28.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 37 — First-run Onboarding Wizard (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.29.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** wizard modal first-run si `meta.onboarding_done` ausente; 4 pasos (TESTER/REAL/LIVE bloqueado → venue tester → Paper/Backtest → Chat IA safe); `GET /api/onboarding` + `POST /api/onboarding/complete`.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_37_ONBOARDING.md` |
+| Implementation report | `docs/audit/FASE_37_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F37.md` |
+| Review Package INTERNAL | `docs/audit/FASE_37_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F37.md` |
+| Noche F19–F37 | `docs/audit/INTERNAL_AUDIT_F19_F37_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 37** |
+
+**Certificado externo:** **NO** emitido (`FASE_37_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F37 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persistencia | `workbench/onboarding.py` |
+| A2 | API + server | `api.py` · `server.py` |
+| A3 | Wizard JS | `static/js/onboarding.js` |
+| A4 | Boot + CSS | `shell.js` · `api.js` · `index.html` · CSS |
+| A5 | Spec | `docs/FASE_37_ONBOARDING.md` |
+| A6 | Implementation report | `docs/audit/FASE_37_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-081 | `learning/decisiones.txt` |
+| A8 | Suite F37 | `tests/unit/workbench/test_onboarding_f37.py` |
+| A9 | Version 0.29.0 | `pyproject.toml` |
+
+### Lista B F37 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F37: **0.29.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F36 **APROBADO_INTERNO**.  
-2. QuantLab v0.28.0: Settings + Status Bar.  
-3. **LIVE sigue BLOQUEADO**; settings fail-closed (theme/locale/strategy).  
-4. Arcos F19–F22 + F23–F25 + noche F19–F36 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F37 **APROBADO_INTERNO**.  
+2. QuantLab v0.29.0: First-run Onboarding Wizard.  
+3. **LIVE sigue BLOQUEADO**; onboarding solo meta + UI orientativa.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F37 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

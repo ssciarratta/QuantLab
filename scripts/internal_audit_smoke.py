@@ -665,6 +665,47 @@ def check_f36_settings() -> None:
     assert saved["locale"] == "es"
 
 
+def check_f37_onboarding() -> None:
+    """F37: onboarding meta + GET/POST /api/onboarding + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_onboarding,
+        handle_post_onboarding_complete,
+    )
+    from quantlab.workbench.onboarding import ONBOARDING_STEPS, is_onboarding_done
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert len(ONBOARDING_STEPS) == 4
+
+    root = Path("/tmp/quantlab-smoke-f37-onboarding")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke37")
+    # Reset flag for idempotent smoke reruns
+    meta = session.load_meta()
+    meta.pop("onboarding_done", None)
+    meta.pop("onboarding_completed_at", None)
+    session.save_meta(meta)
+
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    got = handle_get_onboarding(state)
+    assert got["ok"] is True
+    assert got["kind"] == "onboarding"
+    assert got["onboarding_done"] is False
+    assert got["show_wizard"] is True
+    assert got["live_blocked"] is True
+    assert got["live_routing"] is False
+
+    done = handle_post_onboarding_complete(state, {})
+    assert done["onboarding_done"] is True
+    assert done["show_wizard"] is False
+    assert is_onboarding_done(session.load_meta()) is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -689,6 +730,7 @@ def main() -> int:
         ("F34 montecarlo history + HB export", check_f34_mc_export),
         ("F35 command palette + /api/commands", check_f35_commands),
         ("F36 settings + status bar", check_f36_settings),
+        ("F37 first-run onboarding wizard", check_f37_onboarding),
     ]
     ok = True
     for name, fn in checks:

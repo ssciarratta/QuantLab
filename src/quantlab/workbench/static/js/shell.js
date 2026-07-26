@@ -400,10 +400,16 @@
     QLApi.getSettings().catch(function () {
       return null;
     }),
+    QLApi.getOnboarding
+      ? QLApi.getOnboarding().catch(function () {
+          return null;
+        })
+      : Promise.resolve(null),
   ]).then(function (results) {
     const sessionData = results[0];
     const layoutData = results[1];
     const settingsData = results[2];
+    const onboardingData = results[3];
     if (sessionData) {
       const sid =
         (sessionData.session && sessionData.session.session_id) ||
@@ -431,5 +437,21 @@
     openHealth();
     openMarket();
     openBlotter();
+
+    // F37: first-run wizard si meta.onboarding_done ausente
+    if (
+      onboardingData &&
+      onboardingData.show_wizard &&
+      !onboardingData.onboarding_done &&
+      window.QLOnboarding
+    ) {
+      const wizard = window.QLOnboarding.create({
+        "open-market": openMarket,
+        "open-paper": openPaperSession,
+        "open-backtest": openBacktest,
+        "open-chat": openChat,
+      });
+      wizard.show();
+    }
   });
 })();

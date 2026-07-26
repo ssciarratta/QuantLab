@@ -35,6 +35,7 @@ from quantlab.workbench.montecarlo_runs import (
 from quantlab.workbench.montecarlo_runs import (
     validate_run_id as validate_montecarlo_run_id,
 )
+from quantlab.workbench.onboarding import mark_onboarding_complete, onboarding_status
 from quantlab.workbench.optimizer_runs import (
     get_optimizer_run,
     list_optimizer_runs,
@@ -282,6 +283,38 @@ def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, 
         "layout": saved,
         "session_id": session.session_id,
         "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_get_onboarding(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/onboarding — estado first-run wizard (meta.onboarding_done)."""
+    session = state.ensure_session()
+    status = onboarding_status(session)
+    return {
+        "ok": True,
+        "kind": "onboarding",
+        "session_id": session.session_id,
+        "mode": state.mode.value,
+        **status,
+    }
+
+
+def handle_post_onboarding_complete(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """POST /api/onboarding/complete — marca onboarding_done en meta.json."""
+    _ = body  # body opcional / ignorado (fail-closed: sin campos LIVE)
+    session = state.ensure_session()
+    try:
+        status = mark_onboarding_complete(session)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "kind": "onboarding",
+        "session_id": session.session_id,
+        "mode": state.mode.value,
+        **status,
     }
 
 

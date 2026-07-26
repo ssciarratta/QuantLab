@@ -35,6 +35,7 @@ from quantlab.workbench.api import (
     handle_get_lab_validation_run,
     handle_get_layout,
     handle_get_mode,
+    handle_get_onboarding,
     handle_get_paper_book,
     handle_get_paper_fills,
     handle_get_paper_session_status,
@@ -56,6 +57,7 @@ from quantlab.workbench.api import (
     handle_post_lab_scanner,
     handle_post_lab_validation_run,
     handle_post_mode,
+    handle_post_onboarding_complete,
     handle_post_paper_session_start,
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
@@ -186,6 +188,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/settings":
                     self._send_json(handle_get_settings(state))
+                    return
+                if path == "/api/onboarding":
+                    self._send_json(handle_get_onboarding(state))
                     return
                 if path == "/api/watchlist":
                     self._send_json(handle_get_watchlist(state))
@@ -330,6 +335,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/chat":
                     self._send_json(handle_post_chat(state, body))
+                    return
+                if path == "/api/onboarding/complete":
+                    self._send_json(handle_post_onboarding_complete(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

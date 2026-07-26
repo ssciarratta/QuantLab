@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.29.0] — 2026-07-26
+
+### Fase 37 — First-run Onboarding Wizard
+
+#### Added
+- `workbench/onboarding.py` — flag `onboarding_done` en session `meta.json`
+- API `GET /api/onboarding` + `POST /api/onboarding/complete`
+- Wizard modal 4 pasos (modos · venue tester · Paper/Backtest · Chat IA safe)
+- Tests `test_onboarding_f37.py` · DEC-081
+- Docs: `FASE_37_ONBOARDING.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); wizard explica LIVE bloqueado; sin place_order venue
+
+---
+
 ## [0.28.0] — 2026-07-26
 
 ### Fase 36 — Settings + Status Bar

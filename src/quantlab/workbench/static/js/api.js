@@ -207,5 +207,11 @@
     putSettings: function (body) {
       return request("PUT", "/api/settings", body || {});
     },
+    getOnboarding: function () {
+      return request("GET", "/api/onboarding");
+    },
+    completeOnboarding: function (body) {
+      return request("POST", "/api/onboarding/complete", body || {});
+    },
   };
 })(window);

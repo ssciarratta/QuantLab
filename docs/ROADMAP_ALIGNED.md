@@ -470,6 +470,21 @@
 **Spec:** `docs/FASE_36_SETTINGS.md`  
 **Implementation report:** `docs/audit/FASE_36_IMPLEMENTATION_REPORT.md`
 
+### Fase 37 — First-run Onboarding Wizard
+**Módulos:**
+- `workbench/onboarding.py` — `onboarding_done` en session `meta.json`
+- API `GET /api/onboarding` + `POST /api/onboarding/complete`
+- Wizard modal 4 pasos (modos · venue tester · Paper/Backtest · Chat IA)
+- DEC-081; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F37.md`, 2026-07-26) — certificado externo `FASE_37_APPROVED.md` **NO emitido**  
+**Versión:** 0.29.0 · implementación *(tip commit F37)*  
+**Review Package INTERNAL:** `docs/audit/FASE_37_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F37.md`  
+**Noche F19–F37:** `docs/audit/INTERNAL_AUDIT_F19_F37_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_37_ONBOARDING.md`  
+**Implementation report:** `docs/audit/FASE_37_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
