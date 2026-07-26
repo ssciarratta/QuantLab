@@ -54,6 +54,13 @@ REVIEW_PACKAGE_MANIFEST.json
 tree.txt
 PROJECT_STATUS.md
 
+# Internal Review Bundle (evidencia F19–F26; regenerable; no commitear ZIPs grandes)
+QuantLab_Internal_Review_*.zip
+QuantLab_Internal_Review_*.zip.sha256
+QuantLab_Internal_Review_*_MANIFEST.json
+reports/*.zip
+reports/*.zip.sha256
+
 # Reportes legacy en raíz
 coverage.xml
 coverage.txt
