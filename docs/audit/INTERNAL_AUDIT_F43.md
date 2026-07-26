@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Repo:** `/workspace` · branch `cursor/modo-real-workbench-aafd`  
-**Código implementación:** _(SHA tip post-commit)_ · **v0.35.0**  
+**Código implementación:** `2b90b1f` · **v0.35.0**  
 **Docs de trabajo:** `AUTO_AUDIT_2026-07-26_F43.md`, `FASE_43_IMPLEMENTATION_REPORT.md`, `FASE_43_REVIEW_PACKAGE.md`
 
 ---
@@ -27,8 +27,8 @@
 1. Criterios fail hard: todos **PASS**.  
 2. DoD F43 (`docs/FASE_43_REDTEAM.md`): cubierto; LIVE / auth WAN / browser E2E fuera de alcance (correcto).  
 3. DEC-087 alineada con código.  
-4. QA: mypy strict · ruff · pytest · quantlab-health **0.35.0** · smoke **29/29 PASS**.  
-5. Suite red-team `test_redteam_f43.py` verde.
+4. QA: mypy strict · ruff · pytest **806** · quantlab-health **0.35.0** · smoke **29/29 PASS**.  
+5. Suite red-team `test_redteam_f43.py` verde (54).
 
 ---
 

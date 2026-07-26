@@ -4,6 +4,7 @@
 **Versión:** 0.35.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F42 Ops Metrics Panel  
+**Impl SHA:** `2b90b1f`  
 **Alcance:** auditoría red-team + remediación fail-closed — **sin flip LIVE**
 
 ---

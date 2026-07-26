@@ -21,6 +21,7 @@
 | A6 | DEC-087 | `learning/decisiones.txt` |
 | A7 | Suite F43 | `tests/unit/workbench/test_redteam_f43.py` |
 | A8 | Version 0.35.0 | `pyproject.toml` |
+| A9 | Impl SHA | `2b90b1f` |
 
 ## QA esperado
 

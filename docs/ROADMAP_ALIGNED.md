@@ -564,7 +564,7 @@
 - Tests `test_redteam_f43.py`; DEC-087; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F43.md`, 2026-07-26) — certificado externo `FASE_43_APPROVED.md` **NO emitido**  
-**Versión:** 0.35.0  
+**Versión:** 0.35.0 · implementación `2b90b1f`  
 **Review Package INTERNAL:** `docs/audit/FASE_43_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F43.md`  
 **Noche F19–F43:** `docs/audit/INTERNAL_AUDIT_F19_F43_NIGHT.md` = **APROBADO_INTERNO**  

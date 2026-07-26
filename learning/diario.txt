@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 43 — Red-team Workbench Hardening
+-------------------------------------------------------
+- v0.35.0 · impl SHA 2b90b1f · DEC-087.
+- QA: mypy 174 · ruff · pytest 806 · smoke 29 PASS.
+- Remediaciones HIGH: zip_path sandbox, create_server loopback gate,
+  csv_path anti-traversal; body JSON default 2 MiB.
+- Tests test_redteam_f43.py (54); INTERNAL APROBADO_INTERNO;
+  FASE_43_APPROVED.md NO emitido.
+- Noche F19–F43 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 42 — Ops Metrics Panel
 -------------------------------------------------------
 - v0.34.0 · impl SHA 34bfac5 · DEC-086.

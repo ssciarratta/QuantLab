@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F43):** _(SHA tip)_ · **v0.35.0** (Red-team Workbench Hardening)  
+**Tip código (impl F43):** `2b90b1f` · **v0.35.0** (Red-team Workbench Hardening)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F42_NIGHT.md` con **F43**.  
@@ -22,7 +22,7 @@
 | Veredicto | **APROBADO_INTERNO** (todas las fases del arco) |
 | CRITICAL/HIGH abiertos | **Ninguno** (H1–H3 F43 remediados) |
 | Versión tip | **0.35.0** |
-| QA tip | mypy · ruff · pytest · health ok · smoke 29 PASS |
+| QA tip | mypy 174 · ruff · **806** pytest · health ok · smoke 29 PASS |
 
 ---
 
@@ -54,7 +54,7 @@
 | **40** | Workspace Presets | 0.32.0 | `8197f32` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F40.md` |
 | **41** | Activity Log + Toasts | 0.33.0 | `f1db945` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F41.md` |
 | **42** | Ops Metrics Panel | 0.34.0 | `34bfac5` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F42.md` |
-| **43** | Red-team Workbench Hardening | 0.35.0 | _(tip)_ | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F43.md` |
+| **43** | Red-team Workbench Hardening | 0.35.0 | `2b90b1f` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F43.md` |
 
 ### Arcos
 
@@ -103,7 +103,11 @@ uv run python scripts/internal_audit_smoke.py  # 29/29
 |----------|------------------------------------------------------|
 | Manifest | `reports/QuantLab_Internal_Review_F19_F43_v0.35.0_MANIFEST.json` |
 
-> Regenerar con `uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 43`.
+```text
+427fa1691f8e7748a1c0aedf93b8bf6cb3ab359fd8ccf9e50b14d5a22129dc20  QuantLab_Internal_Review_F19_F43_v0.35.0.zip
+```
+
+> Path: `reports/QuantLab_Internal_Review_F19_F43_v0.35.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 
