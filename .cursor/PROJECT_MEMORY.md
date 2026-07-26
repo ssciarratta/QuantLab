@@ -88,7 +88,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 65 | Blotter CSV Server Export | 0.57.0 | `d5aae45` |
 | 66 | Equity Curve Snapshot | 0.58.0 | `d10c1ce` |
 | 67 | Paper PnL Summary | 0.59.0 | `57b78fd` |
-| 68 | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | *(tip F68)* |
+| 68 | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | `140eb25` |
 
 ---
 

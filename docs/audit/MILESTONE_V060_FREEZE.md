@@ -65,7 +65,7 @@
 | **65** | Blotter CSV Server Export | 0.57.0 | `d5aae45` | APROBADO_INTERNO |
 | **66** | Equity Curve Snapshot | 0.58.0 | `d10c1ce` | APROBADO_INTERNO |
 | **67** | Paper PnL Summary | 0.59.0 | `57b78fd` | APROBADO_INTERNO |
-| **68** | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | *(tip F68)* | APROBADO_INTERNO |
+| **68** | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | `140eb25` | APROBADO_INTERNO |
 
 ### Arcos INTERNAL
 

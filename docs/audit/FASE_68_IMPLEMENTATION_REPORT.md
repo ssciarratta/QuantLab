@@ -4,7 +4,7 @@
 **Versión:** 0.60.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F67 Paper PnL Summary  
-**Impl SHA:** *(tip F68 post-commit)*  
+**Impl SHA:** `140eb25`  
 **Alcance:** docs/milestone freeze F19–F67/F68 + sync tip — **sin flip LIVE**
 
 ---

@@ -893,7 +893,7 @@
 - DEC-112; bump 0.60.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F68.md`, 2026-07-26) — certificado externo `FASE_68_APPROVED.md` **NO emitido**  
-**Versión:** 0.60.0  
+**Versión:** 0.60.0 · implementación `140eb25`  
 **Freeze:** `docs/audit/MILESTONE_V060_FREEZE.md`  
 **Noche F19–F68:** `docs/audit/INTERNAL_AUDIT_F19_F68_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_68_MILESTONE_V060.md`  
