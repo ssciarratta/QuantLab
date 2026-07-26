@@ -1177,7 +1177,7 @@
 
 ## Fase 93 — Venues / Broker Registry Panel (read-only)
 
-**Version:** 0.85.0 · **DEC-137** · implementada, auditoría INTERNAL en curso
+**Version:** 0.85.0 · **DEC-137** · **APROBADO_INTERNO** (noche F19–F93)
 
 - `GET /api/venues` enriquecido: conexión + `plugin_contract` v1
 - Pane `venues.js` read-only (builtin vs plugin · conectado)

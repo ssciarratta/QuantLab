@@ -3,7 +3,7 @@
 **Fase:** F93 Venues / Broker Registry Panel (read-only)
 **Versión:** 0.85.0 · **DEC:** DEC-137 · **Fecha:** 2026-07-26
 **Branch:** `cursor/modo-real-workbench-aafd` · **LIVE_BLOCKED:** True
-**Estado:** implementada · cierre formal pendiente de auditoría (sin `FASE_93_APPROVED.md`)
+**Estado:** **APROBADO_INTERNO** (`INTERNAL_AUDIT_F93.md`) · cierre externo pendiente (sin `FASE_93_APPROVED.md`)
 
 ---
 
