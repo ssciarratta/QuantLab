@@ -1042,6 +1042,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 82 — Window Snap to Edges
+
+**Versión:** 0.74.0 · **DEC-126** · **APROBADO_INTERNO** (sin `FASE_82_APPROVED.md`)
+
+- Al soltar drag: `snapPosition` a bordes/viewport si distancia < 12px
+- Persist layout (`scheduleSave`) post-snap
+- Espejo Python `snap_position` + suite/smoke F82
+- Bundle INTERNAL default F19–F82
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

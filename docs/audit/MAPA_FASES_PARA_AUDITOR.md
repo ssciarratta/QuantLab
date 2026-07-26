@@ -2757,3 +2757,44 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F81: **0.73.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 82 — Window Snap to Edges
+
+**Código:** 0.74.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-126  
+**Qué es:** Al soltar drag en `wm.js`, `snapPosition` alinea la ventana a bordes del viewport si distancia < 12px; `scheduleSave` persiste layout. Espejo Python para unit tests. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] `snapPosition` en `wm.js` + string contract en static
+- [ ] Persist layout after snap (`scheduleSave`)
+- [ ] Espejo `snap_position` Python testeable
+- [ ] Sin `FASE_82_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F82
+- [ ] Bump 0.74.0
+
+### Lista A F82
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | `snapPosition` + drag release | `static/js/wm.js` |
+| A2 | Espejo Python | `workbench/snap_position.py` |
+| A3 | Spec | `docs/FASE_82_WINDOW_SNAP.md` |
+| A4 | DEC-126 | `learning/decisiones.txt` |
+| A5 | Version 0.74.0 | `pyproject.toml` |
+| A6 | Smoke F82 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 82 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F82 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F82: **0.74.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

@@ -4,6 +4,36 @@
 
   let zCounter = 10;
   const SAVE_DEBOUNCE_MS = 400;
+  const SNAP_THRESHOLD_PX = 12;
+
+  /**
+   * Snap (x,y) to viewport edges when distance < threshold (F82).
+   * Pure geometry — mirrored by quantlab.workbench.snap_position.snap_position.
+   * @returns {{x: number, y: number}}
+   */
+  function snapPosition(x, y, w, h, vw, vh, threshold) {
+    let nx = x | 0;
+    let ny = y | 0;
+    const ww = w | 0;
+    const hh = h | 0;
+    const viewW = vw | 0;
+    const viewH = vh | 0;
+    const thr =
+      threshold == null || threshold === undefined
+        ? SNAP_THRESHOLD_PX
+        : Math.max(0, threshold | 0);
+    if (nx < thr) {
+      nx = 0;
+    } else if (viewW - (nx + ww) < thr) {
+      nx = viewW - ww;
+    }
+    if (ny < thr) {
+      ny = 0;
+    } else if (viewH - (ny + hh) < thr) {
+      ny = viewH - hh;
+    }
+    return { x: nx, y: ny };
+  }
 
   function WindowManager(workspaceEl, taskbarEl) {
     this.workspace = workspaceEl;
@@ -261,6 +291,19 @@
     function onUp() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      const curX = parseInt(win.style.left, 10) || 0;
+      const curY = parseInt(win.style.top, 10) || 0;
+      const snapped = snapPosition(
+        curX,
+        curY,
+        win.offsetWidth,
+        win.offsetHeight,
+        workspace.clientWidth,
+        workspace.clientHeight,
+        SNAP_THRESHOLD_PX
+      );
+      win.style.left = snapped.x + "px";
+      win.style.top = snapped.y + "px";
       self.scheduleSave();
     }
     document.addEventListener("mousemove", onMove);
@@ -291,5 +334,8 @@
     document.addEventListener("mouseup", onUp);
   };
 
+  WindowManager.snapPosition = snapPosition;
+  WindowManager.SNAP_THRESHOLD_PX = SNAP_THRESHOLD_PX;
+  global.QLSnapPosition = snapPosition;
   global.QLWindowManager = WindowManager;
 })(window);

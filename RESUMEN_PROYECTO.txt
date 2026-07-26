@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.73.0 (F81 Custom Preset Delete)
+Versión código actual: 0.74.0 (F82 Window Snap to Edges)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -38,6 +38,7 @@ Auditoría INTERNAL F78: código 0.70.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F79: código 0.71.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F80: código 0.72.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F81: código 0.73.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F82: código 0.74.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -47,6 +48,7 @@ Noche F19–F78: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F78_NIGHT.md)
 Noche F19–F79: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F79_NIGHT.md)
 Noche F19–F80: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F80_NIGHT.md)
 Noche F19–F81: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F81_NIGHT.md)
+Noche F19–F82: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F82_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
@@ -55,19 +57,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F81: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + ops/milestones F49–F58 + F59–F67 analytics + F68 freeze v0.60 + F69–F77 risk/kill/alerts/broker + F78 freeze v0.70 + F79 watchlist IO + F80 custom presets save + F81 custom preset delete
+- F19–F82: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + ops/milestones F49–F58 + F59–F67 analytics + F68 freeze v0.60 + F69–F77 risk/kill/alerts/broker + F78 freeze v0.70 + F79 watchlist IO + F80 custom presets save + F81 custom preset delete + F82 window snap
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F81 Custom Preset Delete (0.73.0) — APROBADO_INTERNO:
-- DELETE /api/presets/{name} → unlink session/presets/{name}.json (solo custom)
-- Built-ins research|trading_paper|ops protegidos (400)
-- UI × en lista custom; DEC-125; FASE_81_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F82 Window Snap to Edges (0.74.0) — APROBADO_INTERNO:
+- Al soltar drag: snapPosition a bordes/viewport si distancia < 12px
+- scheduleSave persiste layout; espejo Python snap_position
+- DEC-126; FASE_82_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F81 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F82 solo con APROBADO Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

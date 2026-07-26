@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.74.0] — 2026-07-26
+
+### Fase 82 — Window Snap to Edges
+
+#### Added
+- `snapPosition(x,y,w,h,vw,vh,threshold)` en `wm.js` — snap a bordes si distancia < 12px
+- Espejo Python `workbench/snap_position.py` para unit tests
+- Docs: `FASE_82_WINDOW_SNAP.md` · implementation report · DEC-126
+- Suite `test_window_snap_f82.py` + smoke F82
+
+#### Changed
+- Al soltar drag: aplica snap y `scheduleSave()` (persist layout)
+- `phases_summary` → `F19–F82 INTERNAL`
+- Bundle INTERNAL default F19–F82
+- Bump **0.74.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_82_APPROVED.md`
+
+---
+
 ## [0.73.0] — 2026-07-26
 
 ### Fase 81 — Custom Preset Delete
