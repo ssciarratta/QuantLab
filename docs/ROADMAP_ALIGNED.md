@@ -1207,7 +1207,7 @@
 
 ## Fase 96 — Diagnostics Download (support snapshot)
 
-**Version:** 0.88.0 · **DEC-140** · implementada, auditoría INTERNAL en curso
+**Version:** 0.88.0 · **DEC-140** · **APROBADO_INTERNO** (noche F19–F96)
 
 - `GET /api/diagnostics.json` descarga adjunta read-only (reutiliza F95)
 - Botón "Descargar" en pane Diagnostics + `QLApi.diagnosticsDownloadUrl()`
