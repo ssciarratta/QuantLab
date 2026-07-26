@@ -4,7 +4,7 @@
 **Versión:** 0.53.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F60 i18n Scaffold  
-**Impl SHA:** _(se completa post-commit)_  
+**Impl SHA:** `15e1707`  
 **Alcance:** access.jsonl + settings toggle + GET `/api/access-log` — **sin flip LIVE**
 
 ---
