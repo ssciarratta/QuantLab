@@ -48,6 +48,21 @@
     if (document.body) document.body.setAttribute("data-theme", t);
   }
 
+  function tr(key, fallback) {
+    if (window.QLi18n && typeof QLi18n.t === "function") {
+      return QLi18n.t(key, fallback);
+    }
+    return fallback != null ? fallback : key;
+  }
+
+  function applyLocale(locale) {
+    /* F60: settings.locale → QLi18n + DOM chrome (menú / aria / botones) */
+    if (!window.QLi18n) return;
+    const loc = QLi18n.setLocale(locale || QLi18n.DEFAULT_LOCALE || "es");
+    QLi18n.applyDom(document);
+    return loc;
+  }
+
   function updateStatusBar(payload) {
     if (!payload) return;
     if (payload.mode) {
@@ -118,7 +133,7 @@
 
   function openHealth() {
     const pane = QLPanes.createHealthPane(updateBanner);
-    wm.open("health", "Salud / Modo", pane, mergeOpts("health", { x: 24, y: 20, w: 440, h: 360 }));
+    wm.open("health", tr("pane.health", "Salud / Modo"), pane, mergeOpts("health", { x: 24, y: 20, w: 440, h: 360 }));
     pane.refresh().catch(function () {});
   }
 
@@ -126,31 +141,31 @@
     const pane = QLPanes.createMarketPane(function () {
       return sessionMode;
     });
-    wm.open("market", "Market Data", pane, mergeOpts("market", { x: 360, y: 40, w: 460, h: 400 }));
+    wm.open("market", tr("pane.market", "Market Data"), pane, mergeOpts("market", { x: 360, y: 40, w: 460, h: 400 }));
     pane.refresh().catch(function () {});
   }
 
   function openUniverse() {
     const pane = QLPanes.createUniversePane();
-    wm.open("universe", "Universe", pane, mergeOpts("universe", { x: 40, y: 60, w: 480, h: 420 }));
+    wm.open("universe", tr("pane.universe", "Universe"), pane, mergeOpts("universe", { x: 40, y: 60, w: 480, h: 420 }));
     pane.refresh().catch(function () {});
   }
 
   function openCatalog() {
     const pane = QLPanes.createCatalogPane();
-    wm.open("catalog", "Data Catalog", pane, mergeOpts("catalog", { x: 80, y: 80, w: 560, h: 400 }));
+    wm.open("catalog", tr("pane.catalog", "Data Catalog"), pane, mergeOpts("catalog", { x: 80, y: 80, w: 560, h: 400 }));
     pane.refresh().catch(function () {});
   }
 
   function openBlotter() {
     const pane = QLPanes.createBlotterPane();
-    wm.open("blotter", "Paper Blotter", pane, mergeOpts("blotter", { x: 120, y: 120, w: 520, h: 400 }));
+    wm.open("blotter", tr("pane.blotter", "Paper Blotter"), pane, mergeOpts("blotter", { x: 120, y: 120, w: 520, h: 400 }));
     pane.refresh().catch(function () {});
   }
 
   function openJournal() {
     const pane = QLPanes.createJournalPane();
-    wm.open("journal", "Journal", pane, mergeOpts("journal", { x: 180, y: 100, w: 560, h: 420 }));
+    wm.open("journal", tr("pane.journal", "Journal"), pane, mergeOpts("journal", { x: 180, y: 100, w: 560, h: 420 }));
     pane.refresh().catch(function () {});
   }
 
@@ -158,7 +173,7 @@
     const pane = QLPanes.createPaperSessionPane();
     wm.open(
       "paper_session",
-      "Sesión Paper",
+      tr("pane.paper_session", "Sesión Paper"),
       pane,
       mergeOpts("paper_session", { x: 160, y: 90, w: 520, h: 440 })
     );
@@ -167,35 +182,35 @@
 
   function openPositions() {
     const pane = QLPanes.createPositionsPane();
-    wm.open("positions", "Posiciones", pane, mergeOpts("positions", { x: 200, y: 80, w: 480, h: 360 }));
+    wm.open("positions", tr("pane.positions", "Posiciones"), pane, mergeOpts("positions", { x: 200, y: 80, w: 480, h: 360 }));
     pane.refresh().catch(function () {});
   }
 
   function openRisk() {
     const pane = QLPanes.createRiskPane();
-    wm.open("risk", "Riesgo", pane, mergeOpts("risk", { x: 240, y: 60, w: 460, h: 380 }));
+    wm.open("risk", tr("pane.risk", "Riesgo"), pane, mergeOpts("risk", { x: 240, y: 60, w: 460, h: 380 }));
     pane.refresh().catch(function () {});
   }
 
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
-    wm.open("backtest", "Backtest", pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
+    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
   }
 
   function openScanner() {
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", "Alpha Scanner", pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
   }
 
   function openMetrics() {
     const pane = QLPanes.createMetricsPane();
-    wm.open("metrics", "Metrics / Último", pane, mergeOpts("metrics", { x: 100, y: 80, w: 480, h: 400 }));
+    wm.open("metrics", tr("pane.metrics", "Metrics / Último"), pane, mergeOpts("metrics", { x: 100, y: 80, w: 480, h: 400 }));
     pane.refresh().catch(function () {});
   }
 
   function openReports() {
     const pane = QLPanes.createReportsPane();
-    wm.open("reports", "Reports", pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
+    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
     pane.refresh().catch(function () {});
   }
 
@@ -203,7 +218,7 @@
     const pane = QLPanes.createExperimentsPane();
     wm.open(
       "experiments",
-      "Experiments",
+      tr("pane.experiments", "Experiments"),
       pane,
       mergeOpts("experiments", { x: 120, y: 90, w: 480, h: 380 })
     );
@@ -212,14 +227,14 @@
 
   function openOptimize() {
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", "Optimizer", pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
+    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
   }
 
   function openMonteCarlo() {
     const pane = QLPanes.createMonteCarloPane();
     wm.open(
       "montecarlo",
-      "Monte Carlo",
+      tr("pane.montecarlo", "Monte Carlo"),
       pane,
       mergeOpts("montecarlo", { x: 160, y: 100, w: 460, h: 380 })
     );
@@ -227,14 +242,14 @@
 
   function openFeatures() {
     const pane = QLPanes.createFeaturesPane();
-    wm.open("features", "Features", pane, mergeOpts("features", { x: 180, y: 110, w: 520, h: 460 }));
+    wm.open("features", tr("pane.features", "Features"), pane, mergeOpts("features", { x: 180, y: 110, w: 520, h: 460 }));
   }
 
   function openExportHb() {
     const pane = QLPanes.createExportHbPane();
     wm.open(
       "export_hb",
-      "Hummingbot Export",
+      tr("pane.export_hb", "Hummingbot Export"),
       pane,
       mergeOpts("export_hb", { x: 200, y: 90, w: 460, h: 360 })
     );
@@ -244,7 +259,7 @@
     const pane = QLPanes.createValidationPane();
     wm.open(
       "validation",
-      "Validation Splits",
+      tr("pane.validation", "Validation Splits"),
       pane,
       mergeOpts("validation", { x: 220, y: 80, w: 480, h: 400 })
     );
@@ -253,22 +268,25 @@
 
   function openChat() {
     const pane = QLPanes.createChatPane();
-    wm.open("chat", "Chat IA", pane, mergeOpts("chat", { x: 260, y: 40, w: 440, h: 460 }));
+    wm.open("chat", tr("pane.chat", "Chat IA"), pane, mergeOpts("chat", { x: 260, y: 40, w: 440, h: 460 }));
     pane.refresh().catch(function () {});
   }
 
   function openSettings() {
     const pane = QLPanes.createSettingsPane(function (data) {
       updateStatusBar(data);
-      if (data && data.settings) applyTheme(data.settings.theme);
+      if (data && data.settings) {
+        applyTheme(data.settings.theme);
+        applyLocale(data.settings.locale);
+      }
     });
-    wm.open("settings", "Settings", pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
+    wm.open("settings", tr("pane.settings", "Settings"), pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
     pane.refresh().catch(function () {});
   }
 
   function openDocs() {
     const pane = QLPanes.createDocsPane();
-    wm.open("docs", "Help / Docs", pane, mergeOpts("docs", { x: 200, y: 50, w: 560, h: 480 }));
+    wm.open("docs", tr("pane.docs", "Help / Docs"), pane, mergeOpts("docs", { x: 200, y: 50, w: 560, h: 480 }));
     pane.refresh().catch(function () {});
   }
 
@@ -293,13 +311,13 @@
 
   function openSessions() {
     const pane = QLPanes.createSessionsPane(onSessionSwitched);
-    wm.open("sessions", "Sessions", pane, mergeOpts("sessions", { x: 200, y: 60, w: 480, h: 440 }));
+    wm.open("sessions", tr("pane.sessions", "Sessions"), pane, mergeOpts("sessions", { x: 200, y: 60, w: 480, h: 440 }));
     pane.refresh().catch(function () {});
   }
 
   function openActivity() {
     const pane = QLPanes.createActivityPane();
-    wm.open("activity", "Activity", pane, mergeOpts("activity", { x: 220, y: 70, w: 520, h: 440 }));
+    wm.open("activity", tr("pane.activity", "Activity"), pane, mergeOpts("activity", { x: 220, y: 70, w: 520, h: 440 }));
     pane.refresh().catch(function () {});
   }
 
@@ -307,7 +325,7 @@
     const pane = QLPanes.createOpsMetricsPane();
     wm.open(
       "ops_metrics",
-      "Ops Metrics",
+      tr("pane.ops_metrics", "Ops Metrics"),
       pane,
       mergeOpts("ops_metrics", { x: 240, y: 80, w: 480, h: 420 })
     );
@@ -494,7 +512,11 @@
   function tickClock() {
     if (!clockEl) return;
     const now = new Date();
-    clockEl.textContent = now.toLocaleTimeString("es-AR", {
+    const loc =
+      window.QLi18n && QLi18n.getLocale && QLi18n.getLocale() === "en"
+        ? "en-US"
+        : "es-AR";
+    clockEl.textContent = now.toLocaleTimeString(loc, {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
@@ -502,6 +524,9 @@
   }
   tickClock();
   setInterval(tickClock, 1000);
+
+  // F60: aplicar i18n default es antes del boot async
+  applyLocale("es");
 
   // Boot: banner + layout + settings + ventanas default
   QLApi.getMode()
@@ -554,7 +579,19 @@
     }
     if (settingsData && settingsData.settings) {
       applyTheme(settingsData.settings.theme);
+      applyLocale(settingsData.settings.locale || "es");
       updateStatusBar(settingsData);
+      // Opcional: hidratar mensajes desde API (parity static JSON)
+      if (QLApi.getI18n) {
+        QLApi.getI18n(settingsData.settings.locale || "es")
+          .then(function (payload) {
+            if (payload && payload.messages && window.QLi18n) {
+              QLi18n.mergeMessages(payload.locale || "es", payload.messages);
+              QLi18n.applyDom(document);
+            }
+          })
+          .catch(function () {});
+      }
     }
     openHealth();
     openMarket();

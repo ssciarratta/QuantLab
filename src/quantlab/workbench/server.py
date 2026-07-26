@@ -22,6 +22,7 @@ from quantlab.workbench.api import (
     handle_get_docs,
     handle_get_docs_content,
     handle_get_health,
+    handle_get_i18n,
     handle_get_instruments,
     handle_get_lab_capabilities,
     handle_get_lab_experiments,
@@ -350,6 +351,13 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/settings":
                     self._send_json(handle_get_settings(state))
+                    return
+                if path.startswith("/api/i18n/"):
+                    locale = unquote(path[len("/api/i18n/") :]).strip("/")
+                    if not locale or "/" in locale:
+                        self._send_error_json(400, "locale requerido en /api/i18n/{locale}")
+                        return
+                    self._send_json(handle_get_i18n(state, locale))
                     return
                 if path == "/api/onboarding":
                     self._send_json(handle_get_onboarding(state))

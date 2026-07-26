@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 60 — i18n Scaffold (es default)
+-------------------------------------------------------
+- v0.52.0 · DEC-104 · LIVE_BLOCKED intacto · sin FASE_60_APPROVED.
+- QLi18n es+en stub; shell applyLocale(settings.locale); GET /api/i18n/{locale};
+  data-i18n menú/chrome; ALLOWED_LOCALES es|en.
+- Suite test_i18n_f60.py; smoke F60; bundle F19–F60.
+- Noche F19–F60 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 59 — A11y Basics (focus + aria)
 -------------------------------------------------------
 - v0.51.0 · DEC-103 · LIVE_BLOCKED intacto · sin FASE_59_APPROVED.

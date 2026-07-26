@@ -1833,3 +1833,44 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F59: **0.51.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 60 — i18n Scaffold (es default)
+
+**Código:** 0.52.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Scaffold i18n UI: diccionario es (default) + stub en; `QLi18n` en shell al load desde settings.locale; `GET /api/i18n/{locale}` desde static JSON; data-i18n en menú/chrome.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_60_I18N.md` |
+| Implementation report | `docs/audit/FASE_60_IMPLEMENTATION_REPORT.md` |
+| Review package | `docs/audit/FASE_60_REVIEW_PACKAGE.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F60.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F60.md` |
+| Noche F19–F60 | `docs/audit/INTERNAL_AUDIT_F19_F60_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 60** |
+| DEC | DEC-104 |
+
+### Lista A F60 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | i18n.js + JSON | `static/js/i18n.js` · `static/i18n/` |
+| A2 | API i18n | `workbench/i18n.py` · `/api/i18n/{locale}` |
+| A3 | Shell applyLocale | `shell.js` · `index.html` |
+| A4 | Settings locale es\|en | `settings.py` |
+| A5 | Suite i18n | `tests/unit/workbench/test_i18n_f60.py` |
+| A6 | Version 0.52.0 | `pyproject.toml` |
+
+### Lista B F60 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F60: **0.52.0** · LIVE: **BLOQUEADO** · flip: **NO**.

@@ -19,6 +19,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.52.0] — 2026-07-26
+
+### Fase 60 — i18n Scaffold (es default)
+
+#### Added
+- `static/js/i18n.js` — `QLi18n` (es + stub en) · `t()` · `applyDom`
+- `static/i18n/es.json` · `en.json`
+- `GET /api/i18n/{locale}` (Python loader desde static JSON)
+- Shell aplica `settings.locale` al load; `data-i18n` en menú / chrome
+- Settings locale `es|en` (default es)
+- Suite `tests/unit/workbench/test_i18n_f60.py`
+- Docs: `FASE_60_I18N.md` · implementation report · DEC-104
+- Bundle INTERNAL default F19–F60
+
+#### Changed
+- `phases_summary` → `F19–F60 INTERNAL`
+- Bump **0.52.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_60_APPROVED.md`
+
+---
+
 ## [0.51.0] — 2026-07-26
 
 ### Fase 59 — A11y Basics (focus + aria)

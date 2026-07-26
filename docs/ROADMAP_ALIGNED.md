@@ -783,6 +783,19 @@
 **Spec:** `docs/FASE_59_A11Y.md`  
 **Implementation report:** `docs/audit/FASE_59_IMPLEMENTATION_REPORT.md`
 
+### Fase 60 — i18n Scaffold (es default)
+**Alcance:**
+- Diccionario UI es (default) + stub en (`static/js/i18n.js` · `static/i18n/*.json`)
+- Shell aplica `settings.locale` vía `QLi18n.t()` / `applyDom` al load
+- `GET /api/i18n/{locale}` opcional; OpenAPI catalog
+- DEC-104; bump 0.52.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F60.md`, 2026-07-26) — certificado externo `FASE_60_APPROVED.md` **NO emitido**  
+**Versión:** 0.52.0 · implementación _(pending)_  
+**Noche F19–F60:** `docs/audit/INTERNAL_AUDIT_F19_F60_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_60_I18N.md`  
+**Implementation report:** `docs/audit/FASE_60_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

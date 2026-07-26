@@ -110,7 +110,7 @@ def test_normalize_rejects_bad_theme() -> None:
 
 def test_normalize_rejects_bad_locale() -> None:
     with pytest.raises(ValidationError, match="locale"):
-        normalize_settings({"locale": "en"})
+        normalize_settings({"locale": "fr"})
 
 
 def test_normalize_rejects_bad_strategy() -> None:
@@ -161,7 +161,7 @@ def test_api_handlers_put_get(tmp_path: Path) -> None:
     assert got["ok"] is True
     assert got["settings"]["theme"] == "high-contrast"
     assert got["allowed_themes"] == ["slate", "high-contrast"]
-    assert got["allowed_locales"] == ["es"]
+    assert got["allowed_locales"] == ["en", "es"]
 
 
 def test_api_put_nested_settings_key(tmp_path: Path) -> None:

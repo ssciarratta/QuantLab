@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.51.0** (F59 A11y Basics — focus + aria)  
+**Versión tip:** **0.52.0** (F60 i18n Scaffold — es default)  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
@@ -33,10 +33,12 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F57 | Content-Security-Policy · **0.49.0** |
 | F58 | Milestone freeze docs + CHANGELOG sync (v0.50) · **0.50.0** |
 | F59 | A11y basics (focus + aria) · **0.51.0** |
+| F60 | i18n scaffold (es default) · **0.52.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
 | Noche F19–F58 | `docs/audit/INTERNAL_AUDIT_F19_F58_NIGHT.md` |
 | Noche F19–F59 | `docs/audit/INTERNAL_AUDIT_F19_F59_NIGHT.md` |
+| Noche F19–F60 | `docs/audit/INTERNAL_AUDIT_F19_F60_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 

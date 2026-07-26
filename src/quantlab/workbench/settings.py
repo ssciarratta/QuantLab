@@ -17,7 +17,7 @@ from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS, normaliz
 
 SETTINGS_VERSION = 1
 ALLOWED_THEMES: frozenset[str] = frozenset({"slate", "high-contrast"})
-ALLOWED_LOCALES: frozenset[str] = frozenset({"es"})
+ALLOWED_LOCALES: frozenset[str] = frozenset({"es", "en"})
 DEFAULT_THEME = "slate"
 DEFAULT_VENUE = "paper"
 DEFAULT_STRATEGY = "momentum"
@@ -108,7 +108,9 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
 
     locale = payload.get("locale", DEFAULT_LOCALE)
     if not isinstance(locale, str) or locale not in ALLOWED_LOCALES:
-        raise ValidationError(f"settings.locale inválido: {locale!r} (válido: es)")
+        raise ValidationError(
+            f"settings.locale inválido: {locale!r} (válidos: es|en; default es)"
+        )
 
     venue = _validate_venue(payload.get("default_venue", DEFAULT_VENUE))
     strategy = _validate_strategy(payload.get("default_strategy", DEFAULT_STRATEGY))

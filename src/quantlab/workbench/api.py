@@ -34,6 +34,7 @@ from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
 from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
+from quantlab.workbench.i18n import build_i18n_payload
 from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.montecarlo_runs import (
     get_montecarlo_run,
@@ -816,8 +817,20 @@ def handle_get_settings(state: WorkbenchState) -> dict[str, Any]:
         "live_routing": False,
         "research_safe": True,
         "allowed_themes": ["slate", "high-contrast"],
-        "allowed_locales": ["es"],
+        "allowed_locales": ["en", "es"],
     }
+
+
+def handle_get_i18n(state: WorkbenchState, locale: str) -> dict[str, Any]:
+    """GET /api/i18n/{locale} — diccionario UI (F60 scaffold; default es)."""
+    _ = state  # sesión no requerida; surface read-only research-safe
+    try:
+        payload = build_i18n_payload(locale)
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 404 if "no encontrado" in msg.lower() else 400
+        raise ApiError(status, msg) from exc
+    return payload
 
 
 def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:

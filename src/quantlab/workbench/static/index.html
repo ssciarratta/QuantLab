@@ -7,10 +7,10 @@
   <link rel="stylesheet" href="/static/css/workbench.css" />
 </head>
 <body data-theme="slate">
-  <a class="skip-link" href="#workspace">Ir al contenido</a>
+  <a class="skip-link" href="#workspace" data-i18n="skip_to_content">Ir al contenido</a>
   <div id="desktop" class="desktop">
     <header class="top-banner" id="mode-banner" role="status">
-      <span class="brand">QuantLab</span>
+      <span class="brand" data-i18n="app.name">QuantLab</span>
       <span class="banner-sep">·</span>
       <span id="banner-mode">modo —</span>
       <span class="banner-sep">·</span>
@@ -18,81 +18,82 @@
       <span class="banner-sep">·</span>
       <span id="banner-session" class="mono muted">session —</span>
       <span class="banner-sep">·</span>
-      <span id="banner-chat" class="chat-system-banner">Asistente research — no envía órdenes</span>
+      <span id="banner-chat" class="chat-system-banner" data-i18n="chat.banner">Asistente research — no envía órdenes</span>
     </header>
-    <div id="workspace" class="workspace" aria-label="Escritorio" tabindex="-1"></div>
+    <div id="workspace" class="workspace" aria-label="Escritorio" data-i18n-aria="aria.workspace" tabindex="-1"></div>
     <footer class="bottom-chrome" id="bottom-chrome">
-      <div class="status-bar" id="status-bar" role="status" aria-label="Status bar">
-        <span class="sb-item"><span class="sb-label">mode</span> <span id="sb-mode" class="mono">—</span></span>
+      <div class="status-bar" id="status-bar" role="status" aria-label="Status bar" data-i18n-aria="aria.status">
+        <span class="sb-item"><span class="sb-label" data-i18n="status.mode">mode</span> <span id="sb-mode" class="mono">—</span></span>
         <span class="sb-sep">·</span>
-        <span class="sb-item"><span class="sb-label">live</span> <span id="sb-live" class="mono live-badge">LIVE_BLOCKED</span></span>
+        <span class="sb-item"><span class="sb-label" data-i18n="status.live">live</span> <span id="sb-live" class="mono live-badge">LIVE_BLOCKED</span></span>
         <span class="sb-sep">·</span>
-        <span class="sb-item"><span class="sb-label">session</span> <span id="sb-session" class="mono muted">—</span></span>
+        <span class="sb-item"><span class="sb-label" data-i18n="status.session">session</span> <span id="sb-session" class="mono muted">—</span></span>
         <span class="sb-sep">·</span>
-        <span class="sb-item"><span class="sb-label">venue</span> <span id="sb-venue" class="mono">—</span></span>
+        <span class="sb-item"><span class="sb-label" data-i18n="status.venue">venue</span> <span id="sb-venue" class="mono">—</span></span>
         <span class="sb-sep">·</span>
-        <span class="sb-item"><span class="sb-label">md</span> <span id="sb-md" class="mono">—</span></span>
+        <span class="sb-item"><span class="sb-label" data-i18n="status.md">md</span> <span id="sb-md" class="mono">—</span></span>
         <span class="sb-sep">·</span>
-        <span class="sb-item sb-version" title="Acerca de">
-          <button type="button" class="sb-version-btn" id="sb-version" aria-label="Versión QuantLab">v—</button>
+        <span class="sb-item sb-version" title="Acerca de" data-i18n-title="pane.about">
+          <button type="button" class="sb-version-btn" id="sb-version" aria-label="Versión QuantLab" data-i18n-aria="aria.version">v—</button>
         </span>
         <span class="sb-sep">·</span>
         <span class="sb-item sb-clock" id="sb-clock" class="mono"></span>
       </div>
-      <div class="taskbar" id="taskbar" role="toolbar" aria-label="Barra de tareas">
-        <button type="button" class="start-btn" id="btn-start" title="Menú" aria-label="Menú inicio">QL</button>
-        <div class="taskbar-windows" id="taskbar-windows" role="group" aria-label="Ventanas abiertas"></div>
+      <div class="taskbar" id="taskbar" role="toolbar" aria-label="Barra de tareas" data-i18n-aria="aria.taskbar">
+        <button type="button" class="start-btn" id="btn-start" title="Menú" aria-label="Menú inicio" data-i18n-aria="menu.start">QL</button>
+        <div class="taskbar-windows" id="taskbar-windows" role="group" aria-label="Ventanas abiertas" data-i18n-aria="aria.windows"></div>
       </div>
     </footer>
   </div>
 
   <!-- F59 a11y: dialog shells (JS enriches inner content) -->
-  <div id="command-palette" class="command-palette hidden" hidden role="dialog" aria-modal="true" aria-label="Command Palette"></div>
-  <div id="about-dialog" class="about-dialog hidden" hidden role="dialog" aria-modal="true" aria-label="Acerca de QuantLab"></div>
-  <div id="onboarding-wizard" class="onboarding-wizard hidden" hidden role="dialog" aria-modal="true" aria-label="Onboarding QuantLab"></div>
+  <div id="command-palette" class="command-palette hidden" hidden role="dialog" aria-modal="true" aria-label="Command Palette" data-i18n-aria="aria.palette"></div>
+  <div id="about-dialog" class="about-dialog hidden" hidden role="dialog" aria-modal="true" aria-label="Acerca de QuantLab" data-i18n-aria="aria.about"></div>
+  <div id="onboarding-wizard" class="onboarding-wizard hidden" hidden role="dialog" aria-modal="true" aria-label="Onboarding QuantLab" data-i18n-aria="aria.onboarding"></div>
 
   <div id="start-menu" class="start-menu hidden" hidden>
-    <div class="start-group">Espacios de trabajo</div>
-    <button type="button" data-preset="research" title="Health + Backtest + Reports + Chat">
+    <div class="start-group" data-i18n="menu.workspaces">Espacios de trabajo</div>
+    <button type="button" data-preset="research" title="Health + Backtest + Reports + Chat" data-i18n="preset.research">
       Research
     </button>
-    <button type="button" data-preset="trading_paper" title="Market + Blotter + Positions + Session + Risk">
+    <button type="button" data-preset="trading_paper" title="Market + Blotter + Positions + Session + Risk" data-i18n="preset.trading_paper">
       Trading Paper
     </button>
-    <button type="button" data-preset="ops" title="Health + Settings + Docs + Catalog">
+    <button type="button" data-preset="ops" title="Health + Settings + Docs + Catalog" data-i18n="preset.ops">
       Ops
     </button>
-    <div class="start-group">Sesión</div>
-    <button type="button" data-open="health">Salud / Modo</button>
-    <button type="button" data-open="market">Market Data</button>
-    <button type="button" data-open="universe">Universe</button>
-    <button type="button" data-open="catalog">Data Catalog</button>
-    <button type="button" data-open="blotter">Paper Blotter</button>
-    <button type="button" data-open="journal">Journal</button>
-    <button type="button" data-open="paper_session">Sesión Paper</button>
-    <button type="button" data-open="positions">Posiciones</button>
-    <button type="button" data-open="risk">Riesgo</button>
-    <button type="button" data-open="chat">Chat IA</button>
-    <div class="start-group">Laboratorio</div>
-    <button type="button" data-open="backtest">Backtest</button>
-    <button type="button" data-open="scanner">Alpha Scanner</button>
-    <button type="button" data-open="metrics">Metrics / Último</button>
-    <button type="button" data-open="reports">Reports</button>
-    <button type="button" data-open="experiments">Experiments</button>
-    <button type="button" data-open="optimize">Optimizer</button>
-    <button type="button" data-open="montecarlo">Monte Carlo</button>
-    <button type="button" data-open="features">Features</button>
-    <button type="button" data-open="export_hb">Hummingbot Export</button>
-    <button type="button" data-open="validation">Validation Splits</button>
-    <div class="start-group">Sistema</div>
-    <button type="button" data-open="sessions">Sessions</button>
-    <button type="button" data-open="activity">Activity</button>
-    <button type="button" data-open="ops_metrics">Ops Metrics</button>
-    <button type="button" data-open="settings">Settings</button>
-    <button type="button" data-open="docs">Help / Docs</button>
-    <button type="button" data-open="about">Acerca de</button>
+    <div class="start-group" data-i18n="menu.session">Sesión</div>
+    <button type="button" data-open="health" data-i18n="pane.health">Salud / Modo</button>
+    <button type="button" data-open="market" data-i18n="pane.market">Market Data</button>
+    <button type="button" data-open="universe" data-i18n="pane.universe">Universe</button>
+    <button type="button" data-open="catalog" data-i18n="pane.catalog">Data Catalog</button>
+    <button type="button" data-open="blotter" data-i18n="pane.blotter">Paper Blotter</button>
+    <button type="button" data-open="journal" data-i18n="pane.journal">Journal</button>
+    <button type="button" data-open="paper_session" data-i18n="pane.paper_session">Sesión Paper</button>
+    <button type="button" data-open="positions" data-i18n="pane.positions">Posiciones</button>
+    <button type="button" data-open="risk" data-i18n="pane.risk">Riesgo</button>
+    <button type="button" data-open="chat" data-i18n="pane.chat">Chat IA</button>
+    <div class="start-group" data-i18n="menu.lab">Laboratorio</div>
+    <button type="button" data-open="backtest" data-i18n="pane.backtest">Backtest</button>
+    <button type="button" data-open="scanner" data-i18n="pane.scanner">Alpha Scanner</button>
+    <button type="button" data-open="metrics" data-i18n="pane.metrics">Metrics / Último</button>
+    <button type="button" data-open="reports" data-i18n="pane.reports">Reports</button>
+    <button type="button" data-open="experiments" data-i18n="pane.experiments">Experiments</button>
+    <button type="button" data-open="optimize" data-i18n="pane.optimize">Optimizer</button>
+    <button type="button" data-open="montecarlo" data-i18n="pane.montecarlo">Monte Carlo</button>
+    <button type="button" data-open="features" data-i18n="pane.features">Features</button>
+    <button type="button" data-open="export_hb" data-i18n="pane.export_hb">Hummingbot Export</button>
+    <button type="button" data-open="validation" data-i18n="pane.validation">Validation Splits</button>
+    <div class="start-group" data-i18n="menu.system">Sistema</div>
+    <button type="button" data-open="sessions" data-i18n="pane.sessions">Sessions</button>
+    <button type="button" data-open="activity" data-i18n="pane.activity">Activity</button>
+    <button type="button" data-open="ops_metrics" data-i18n="pane.ops_metrics">Ops Metrics</button>
+    <button type="button" data-open="settings" data-i18n="pane.settings">Settings</button>
+    <button type="button" data-open="docs" data-i18n="pane.docs">Help / Docs</button>
+    <button type="button" data-open="about" data-i18n="pane.about">Acerca de</button>
   </div>
 
+  <script src="/static/js/i18n.js"></script>
   <script src="/static/js/api.js"></script>
   <script src="/static/js/toasts.js"></script>
   <script src="/static/js/wm.js"></script>

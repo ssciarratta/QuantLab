@@ -260,6 +260,10 @@
     putSettings: function (body) {
       return request("PUT", "/api/settings", body || {});
     },
+    getI18n: function (locale) {
+      const loc = encodeURIComponent(locale || "es");
+      return request("GET", "/api/i18n/" + loc);
+    },
     getOnboarding: function () {
       return request("GET", "/api/onboarding");
     },

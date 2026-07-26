@@ -25,7 +25,7 @@ from pathlib import Path
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 59
+DEFAULT_TO_PHASE = 60
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")

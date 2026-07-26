@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.51.0 (F59 A11y Basics — focus + aria)
+Versión código actual: 0.52.0 (F60 i18n Scaffold — es default)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -16,6 +16,7 @@ Auditoría INTERNAL F56: código 0.48.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F57: código 0.49.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F58: código 0.50.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F59: código 0.51.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F60: código 0.52.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -30,26 +31,27 @@ Noche F19–F56: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F56_NIGHT.md)
 Noche F19–F57: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F57_NIGHT.md)
 Noche F19–F58: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F58_NIGHT.md)
 Noche F19–F59: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F59_NIGHT.md)
+Noche F19–F60: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F60_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F59: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49 freeze + F50–F57 ops/security + F58 milestone v0.50 + F59 a11y
+- F19–F60: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n scaffold
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F59 A11y Basics focus + aria (0.51.0) — APROBADO_INTERNO:
-- role=dialog + aria-modal palette/about/onboarding; aria taskbar; focus trap; skip link
-- Suite test_a11y_f59.py; smoke F59; bundle F19–F59; DEC-103
-- FASE_59_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F60 i18n Scaffold es default (0.52.0) — APROBADO_INTERNO:
+- QLi18n es+en stub; shell applyLocale; GET /api/i18n/{locale}; data-i18n menú
+- Suite test_i18n_f60.py; smoke F60; bundle F19–F60; DEC-104
+- FASE_60_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F59 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F60 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL

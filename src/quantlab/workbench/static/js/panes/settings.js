@@ -9,7 +9,7 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Preferencias</h3>" +
-      '<p class="muted" style="margin-top:0">Persistidas en session/settings.json · locale es · sin LIVE.</p>' +
+      '<p class="muted" style="margin-top:0">Persistidas en session/settings.json · locale es default · stub en · sin LIVE.</p>' +
       '<label class="field">Tema<select id="set-theme">' +
       '<option value="slate">slate</option>' +
       '<option value="high-contrast">high-contrast</option>' +
@@ -17,10 +17,13 @@
       '<label class="field">Venue por defecto<input id="set-venue" type="text" placeholder="paper" /></label>' +
       '<label class="field">Estrategia por defecto<select id="set-strategy"></select></label>' +
       '<label class="field">Slippage (bps)<input id="set-slip" type="text" inputmode="decimal" placeholder="0" /></label>' +
-      '<label class="field">Locale<input id="set-locale" type="text" value="es" readonly /></label>' +
+      '<label class="field">Locale<select id="set-locale">' +
+      '<option value="es">es</option>' +
+      '<option value="en">en</option>' +
+      "</select></label>" +
       '<div class="pane-row">' +
-      '<button type="button" class="btn" id="set-save">Guardar</button>' +
-      '<button type="button" class="btn secondary" id="set-refresh">Recargar</button>' +
+      '<button type="button" class="btn" id="set-save" data-i18n="btn.save">Guardar</button>' +
+      '<button type="button" class="btn secondary" id="set-refresh" data-i18n="btn.refresh">Recargar</button>' +
       '<span class="mono muted" id="set-status">—</span>' +
       "</div>" +
       "</div>" +
@@ -32,8 +35,8 @@
       "<h3>Export / Import ZIP</h3>" +
       '<p class="muted" style="margin-top:0">Research-safe · sin secretos · zip-slip fail-closed · LIVE bloqueado.</p>' +
       '<div class="pane-row">' +
-      '<button type="button" class="btn" id="set-export">Exportar sesión</button>' +
-      '<button type="button" class="btn secondary" id="set-export-dl">Descargar ZIP</button>' +
+      '<button type="button" class="btn" id="set-export" data-i18n="btn.export">Exportar sesión</button>' +
+      '<button type="button" class="btn secondary" id="set-export-dl" data-i18n="btn.download">Descargar ZIP</button>' +
       "</div>" +
       '<div class="pane-row" style="margin-top:0.5rem">' +
       '<label class="field" style="flex:1">Importar ZIP' +
@@ -45,7 +48,7 @@
       '<option value="new">nueva sesión</option>' +
       '<option value="merge">merge (fail-closed)</option>' +
       "</select></label>" +
-      '<button type="button" class="btn" id="set-import">Importar</button>' +
+      '<button type="button" class="btn" id="set-import" data-i18n="btn.import">Importar</button>' +
       "</div>" +
       '<p class="mono muted" id="set-zip-status">—</p>' +
       "</div>";
@@ -102,7 +105,7 @@
       themeEl.value = s.theme === "high-contrast" ? "high-contrast" : "slate";
       venueEl.value = s.default_venue || "paper";
       slipEl.value = s.slippage_bps != null ? String(s.slippage_bps) : "0";
-      localeEl.value = s.locale || "es";
+      localeEl.value = s.locale === "en" ? "en" : "es";
       fillStrategies(
         (data.strategy_ids || []).length
           ? data.strategy_ids
@@ -110,6 +113,11 @@
         s.default_strategy || "momentum"
       );
       applyTheme(s.theme);
+      if (window.QLi18n) {
+        QLi18n.setLocale(localeEl.value);
+        QLi18n.applyDom(root);
+        QLi18n.applyDom(document);
+      }
       metaEl.innerHTML =
         "<dt>session_id</dt><dd class=\"mono\">" +
         esc(data.session_id) +
@@ -152,7 +160,7 @@
         default_venue: venueEl.value.trim(),
         default_strategy: strategyEl.value,
         slippage_bps: slipEl.value.trim() || "0",
-        locale: "es",
+        locale: localeEl.value === "en" ? "en" : "es",
       };
       const data = await QLApi.putSettings(body);
       render(data);

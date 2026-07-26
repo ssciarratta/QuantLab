@@ -80,6 +80,7 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/layout", "PUT", "Save workspace layout", ("workspace",)),
     ApiRoute("/api/settings", "GET", "Workbench settings", ("workspace",)),
     ApiRoute("/api/settings", "PUT", "Save workbench settings", ("workspace",)),
+    ApiRoute("/api/i18n/{locale}", "GET", "UI i18n dictionary (es default, en stub)", ("meta",)),
     ApiRoute("/api/presets", "GET", "Workspace presets", ("workspace",)),
     ApiRoute("/api/presets/apply", "POST", "Apply workspace preset", ("workspace",)),
     ApiRoute("/api/onboarding", "GET", "Onboarding status", ("workspace",)),
