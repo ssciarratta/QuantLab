@@ -4,7 +4,7 @@
 **Versión:** 0.48.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F55 APROBADO_INTERNO  
-**Impl SHA:** _(pending commit)_  
+**Impl SHA:** `6246a74`  
 **Alcance:** Security headers + CORS fail-closed — **sin flip LIVE**
 
 ---
@@ -45,9 +45,9 @@
 export PATH="$HOME/.local/bin:$PATH"
 uv run mypy --strict src/quantlab
 uv run ruff check src/quantlab tests scripts
-uv run pytest -q
+uv run pytest -q                      # 900 passed
 uv run quantlab-health                # 0.48.0 · live_blocked=true
-uv run python scripts/internal_audit_smoke.py
+uv run python scripts/internal_audit_smoke.py  # 42/42 PASS
 ```
 
 ## Fuera de alcance (correcto)

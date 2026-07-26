@@ -738,7 +738,7 @@
 - DEC-100; bump 0.48.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F56.md`, 2026-07-26) — certificado externo `FASE_56_APPROVED.md` **NO emitido**  
-**Versión:** 0.48.0 · implementación _(pending)_  
+**Versión:** 0.48.0 · implementación `6246a74`  
 **Noche F19–F56:** `docs/audit/INTERNAL_AUDIT_F19_F56_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_56_SECURITY_HEADERS.md`  
 **Implementation report:** `docs/audit/FASE_56_IMPLEMENTATION_REPORT.md`
