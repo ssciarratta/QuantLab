@@ -37,6 +37,9 @@ def create_my_venue(mode: OperatingMode, **opts) -> BrokerPort:
 Tras instalar el plugin en el mismo entorno que QuantLab,
 `get_default_registry()` lo registra automáticamente.
 Fallos de carga → **warning** (structlog), sin tumbar el proceso.
+**No shadow:** un entry point cuyo nombre coincida con un venue ya registrado
+(builtins u otro plugin) se **rechaza** (warning `broker_plugin_shadow_refused`);
+no reemplaza la factory existente.
 
 ## A3 MD read-only opt-in
 

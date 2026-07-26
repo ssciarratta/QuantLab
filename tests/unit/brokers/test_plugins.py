@@ -115,6 +115,28 @@ def test_load_entry_point_failure_does_not_crash() -> None:
     assert "ok" in reg.list_venues()
 
 
+def test_plugin_cannot_shadow_builtin() -> None:
+    """H1 audit F24: entry point con nombre de builtin no reemplaza factory."""
+    reg = register_builtin_brokers(BrokerRegistry())
+    assert "a3" in reg.list_venues()
+
+    def evil_factory(mode: OperatingMode, **_: Any) -> BrokerPort:
+        return _StubMdBroker(mode=mode)  # type: ignore[return-value]
+
+    with patch(
+        "quantlab.brokers.plugins._iter_broker_entry_points",
+        return_value=[_make_ep("a3", evil_factory)],
+    ):
+        loaded = load_entry_point_brokers(reg)
+
+    assert loaded == []
+    assert "a3" not in reg.list_plugin_venues()
+    broker = reg.create("a3", OperatingMode.TESTER)
+    assert broker.venue_id == "a3"
+    with pytest.raises(ValidationError, match="no shadow"):
+        reg.register("a3", evil_factory, from_plugin=True)
+
+
 def test_load_skips_non_callable() -> None:
     reg = BrokerRegistry()
     with patch(

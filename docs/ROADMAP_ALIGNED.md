@@ -6,7 +6,7 @@
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Arco nocturno F19–F22:** [`docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`](audit/INTERNAL_AUDIT_F19_F22_ARC.md) (**APROBADO_INTERNO**)  
 **F23 Paper Book:** [`docs/audit/INTERNAL_AUDIT_F23.md`](audit/INTERNAL_AUDIT_F23.md) (**APROBADO_INTERNO**)  
-**F24 Venue plugins:** [`docs/FASE_24_VENUE_MD_PLUGINS.md`](FASE_24_VENUE_MD_PLUGINS.md) (**IMPLEMENTADO** v0.16.0)  
+**F24 Venue plugins:** [`docs/audit/INTERNAL_AUDIT_F24.md`](audit/INTERNAL_AUDIT_F24.md) (**APROBADO_INTERNO**)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
@@ -267,8 +267,11 @@
 - Workbench `md_provider` / `plugin_venues`; UI Market provider
 - DEC-067/068; docs `ops/BROKER_PLUGINS.md`; sin flip LIVE
 
-**Estado en repo:** 📦 **IMPLEMENTADO** (`docs/FASE_24_VENUE_MD_PLUGINS.md`, 2026-07-26) — audit INTERNAL/externo pendiente  
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F24.md`, 2026-07-26) — certificado externo `FASE_24_APPROVED.md` **NO emitido**  
 **Versión:** 0.16.0 · implementación `c846e81`  
+**Review Package INTERNAL:** `docs/audit/FASE_24_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F24.md`  
+**Remediación audit:** H1 plugins no sombrean builtins (`25f7ba1`)  
 **Implementation report:** `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md`
 
 ---
@@ -315,7 +318,7 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F23 **APROBADO_INTERNO**; F24 **IMPLEMENTADO** v0.16.0.  
+1. F0–F18 certificados externos; F19–F24 **APROBADO_INTERNO**.  
 2. Certificados externos F19–F24 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. Siguiente producto: F25 ops desk (sin flip LIVE).  
 4. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

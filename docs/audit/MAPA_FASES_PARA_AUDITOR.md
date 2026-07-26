@@ -2,11 +2,11 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.16.0 (F24 impl) · F23 audit INTERNAL 0.15.0  
+**Código actual:** 0.16.0 (F24) · F23 audit INTERNAL 0.15.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
 **F23:** `docs/audit/INTERNAL_AUDIT_F23.md` (**APROBADO_INTERNO**)  
-**F24:** `docs/FASE_24_VENUE_MD_PLUGINS.md` (**IMPLEMENTADO**)
+**F24:** `docs/audit/INTERNAL_AUDIT_F24.md` (**APROBADO_INTERNO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
 > **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
@@ -44,7 +44,7 @@
 | **21** | **Lab Panels** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F21.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **22** | **Chat IA safe-by-default** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **23** | **Paper Book + Session + Risk** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F23.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
-| **24** | **Venue plugins + MD read-only** | 📦 IMPL | `docs/FASE_24_VENUE_MD_PLUGINS.md` | **IMPLEMENTADO** v0.16.0 — audit pendiente |
+| **24** | **Venue plugins + MD read-only** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F24.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -301,17 +301,20 @@ Versión impl F23: **0.15.0** (`9b89274`) · LIVE: **BLOQUEADO** · remediación
 | Spec / DoD | `docs/FASE_24_VENUE_MD_PLUGINS.md` |
 | Ops plugins | `docs/ops/BROKER_PLUGINS.md` |
 | Implementation report | `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F24.md` |
+| Review Package INTERNAL | `docs/audit/FASE_24_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F24.md` |
 | Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 24** |
 
-**Estado:** **IMPLEMENTADO** v0.16.0 (`c846e81`) — audit INTERNAL/externo pendiente.  
-**LIVE:** BLOQUEADO · DEC-067/068.
+**Estado:** **APROBADO_INTERNO** v0.16.0 (`c846e81` + remediación H1 `25f7ba1`).  
+**LIVE:** BLOQUEADO · DEC-067/068 · `FASE_24_APPROVED.md` **NO** emitido.
 
 ---
 
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F23 **APROBADO_INTERNO**; F24 **IMPLEMENTADO** v0.16.0.  
+1. F0–F18 certificado formal externo; F19–F24 **APROBADO_INTERNO**.  
 2. QuantLab v0.16.0: venue plugins + A3 MD env opt-in + generics sobre F23 PaperBook.  
 3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; MD env no habilita submit venue.  
-4. Arco F19–F22 + F23 INTERNAL; F24 report `FASE_24_IMPLEMENTATION_REPORT.md`.  
+4. Arco F19–F22 + F23 + F24 INTERNAL; remediación F24 H1 (no plugin shadow).  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

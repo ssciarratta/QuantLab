@@ -29,6 +29,13 @@
 - A3 / generic_csv / generic_rest: `submit`/`cancel` → `assert_live_routing_blocked`
 - `md_source=env` sin flag/creds → FakeA3Backend + health fallback detail
 - Plugins fallidos: structlog warning, proceso no crashea
+- Plugins **no** sombrean venues ya registrados (audit H1)
+
+## Remediación audit INTERNAL
+
+| ID | Fix |
+|----|-----|
+| H1 | `has_venue` + refuse shadow en loader/`register(from_plugin=True)` + `test_plugin_cannot_shadow_builtin` |
 
 ## QA
 

@@ -55,6 +55,7 @@ def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
 
     for ep in eps:
         name = getattr(ep, "name", None) or ""
+        key = name.strip().lower()
         try:
             factory = ep.load()
             if not callable(factory):
@@ -64,9 +65,17 @@ def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
                     ep=str(ep),
                 )
                 continue
+            if key and registry.has_venue(key):
+                logger.warning(
+                    "broker_plugin_shadow_refused",
+                    venue=key,
+                    ep=str(ep),
+                    reason="venue already registered",
+                )
+                continue
             registry.register(name, factory, from_plugin=True)
-            loaded.append(name.strip().lower())
-            logger.info("broker_plugin_loaded", venue=name.strip().lower())
+            loaded.append(key)
+            logger.info("broker_plugin_loaded", venue=key)
         except Exception as exc:  # noqa: BLE001 — plugin externo
             logger.warning(
                 "broker_plugin_load_failed",

@@ -9,28 +9,28 @@ Auditoría INTERNAL F20: código 0.12.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F21: código 0.13.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F22: código 0.14.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F23: código 0.15.0 — APROBADO_INTERNO (externo pendiente)
-F24 impl: código 0.16.0 — venue plugins + MD read-only (audit externo pendiente)
+Auditoría INTERNAL F24: código 0.16.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F23: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- F24: IMPLEMENTADO v0.16.0 (plugins + A3 MD env opt-in + generics) — LIVE bloqueado
+- F19–F24: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
 - Workbench + Lab + Chat IA + PaperBook + venue plugins / md_provider
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F24 Venue plugins + MD (v0.16.0, impl c846e81):
-- Entry points quantlab.brokers; get_default_registry carga plugins
+F24 Venue plugins + MD (v0.16.0, impl c846e81) — APROBADO_INTERNO:
+- Entry points quantlab.brokers; get_default_registry carga plugins (fail-soft)
+- H1 remediado (25f7ba1): plugins no sombrean builtins
 - A3 md_source fake|env (QUANTLAB_A3_MD_READONLY=1 + creds; fallback fake)
 - Builtins generic_csv / generic_rest MD-only; submit/cancel gated
 - Workbench md_provider / plugin_venues; UI Market provider
-- QA: mypy strict · ruff · 515 pytest · health 0.16.0 · smoke PASS
-- Docs: FASE_24 · FASE_24_IMPLEMENTATION_REPORT · BROKER_PLUGINS · DEC-067/068
-- F23 audit INTERNAL docs alineados (APROBADO_INTERNO); remediación H1/H2 en árbol
+- QA: mypy strict · ruff · 516 pytest · health 0.16.0 · smoke PASS
+- Docs: AUTO_AUDIT_F24 · FASE_24_REVIEW_PACKAGE · INTERNAL_AUDIT_F24 · BROKER_PLUGINS · DEC-067/068
+- FASE_24_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------

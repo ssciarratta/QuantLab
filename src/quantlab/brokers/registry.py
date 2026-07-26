@@ -26,6 +26,9 @@ class BrokerRegistry:
         self._factories: dict[str, BrokerFactory] = {}
         self._plugin_venues: set[str] = set()
 
+    def has_venue(self, venue_id: str) -> bool:
+        return venue_id.strip().lower() in self._factories
+
     def register(
         self,
         venue_id: str,
@@ -36,6 +39,11 @@ class BrokerRegistry:
         key = venue_id.strip().lower()
         if not key:
             raise ValidationError("venue_id vacío")
+        # Plugins no pueden sombrear builtins / venues ya registrados (Zero-Trust F24).
+        if from_plugin and key in self._factories:
+            raise ValidationError(
+                f"plugin venue rechazado: '{key}' ya registrado (no shadow)"
+            )
         self._factories[key] = factory
         if from_plugin:
             self._plugin_venues.add(key)

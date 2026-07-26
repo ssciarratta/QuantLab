@@ -1,8 +1,9 @@
 # Fase 24 — Venue plugins + MD read-only multiplataforma
 
-**Estado:** IMPLEMENTADO (v0.16.0)  
+**Estado:** APROBADO_INTERNO (v0.16.0) — certificado externo pendiente  
 **Prerrequisito:** F23 (v0.15.0 Paper Book)  
-**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)
+**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
+**Audit INTERNAL:** `docs/audit/INTERNAL_AUDIT_F24.md`
 
 ## Objetivo
 - Entry-points `quantlab.brokers` para registrar cualquier venue sin tocar builtins
@@ -21,6 +22,9 @@
 - [x] Tests: plugins, a3 md fallback, generic, live blocked
 - [x] Docs: `docs/ops/BROKER_PLUGINS.md` + DEC-067..068
 - [x] Bump **0.16.0**; `LIVE_BLOCKED is True`
+- [x] Plugins no sombrean builtins (audit H1)
+- [x] Autauditoría + Review Package INTERNAL + `INTERNAL_AUDIT_F24.md` = APROBADO_INTERNO
+- [x] **No** emitir `FASE_24_APPROVED.md` desde INTERNAL
 
 ## Fuera de alcance
-Órdenes venue · flip LIVE · F25 Ops Desk
+Órdenes venue · flip LIVE · F25 Ops Desk · certificado externo
