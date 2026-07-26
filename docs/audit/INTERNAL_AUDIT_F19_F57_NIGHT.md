@@ -78,13 +78,13 @@ uv run python scripts/internal_audit_smoke.py  # 43/43 PASS
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F57_v0.49.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F57_v0.49.0_MANIFEST.json` |
-| SHA256 | `ef7dd0ce2c785db50dd1a2f4df940c8d6624329f8f4cf62e75177f48be869ecf` |
+| SHA256 | `87fddcbb9b2f2423cb6398154f51ca5d927473cacc899fbcbe1e7a5b8c323093` |
 
 ```text
-ef7dd0ce2c785db50dd1a2f4df940c8d6624329f8f4cf62e75177f48be869ecf  QuantLab_Internal_Review_F19_F57_v0.49.0.zip
+87fddcbb9b2f2423cb6398154f51ca5d927473cacc899fbcbe1e7a5b8c323093  QuantLab_Internal_Review_F19_F57_v0.49.0.zip
 ```
 
-> Path: `reports/QuantLab_Internal_Review_F19_F57_v0.49.0.zip` · tip docs audit `8630ffd`; re-generar puede cambiar SHA (`created_at_utc`).
+> Path: `reports/QuantLab_Internal_Review_F19_F57_v0.49.0.zip` · tip docs audit `953775d`; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 
