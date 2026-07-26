@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-093 — Milestone Freeze Docs + CHANGELOG Sync
+  Decisión: F49 = freeze documental F19–F48 (MILESTONE_V040_FREEZE.md:
+  inventario, invariantes, cómo operar, límites no LIVE); sync CHANGELOG
+  con resumen agrupado F19–F48 + RESUMEN/PROJECT_MEMORY/README; smoke
+  «about version matches __version__»; bundle default F19–F49; bump 0.41.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_49_APPROVED.
+  Fase: 49.
+
 [2026-07-26] DEC-092 — Theme CSS Completion (slate + high-contrast)
   Decisión: F48 = completar tokens CSS para themes slate | high-contrast
   (chrome: banner/status/taskbar/desktop/overlays); data-theme en

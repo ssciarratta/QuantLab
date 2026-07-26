@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 49 — Milestone Freeze Docs + CHANGELOG Sync
+-------------------------------------------------------
+- v0.41.0 · DEC-093 · LIVE_BLOCKED intacto · sin FASE_49_APPROVED.
+- MILESTONE_V040_FREEZE.md (inventario F19–F48); CHANGELOG resumen agrupado;
+  sync RESUMEN / PROJECT_MEMORY / README; smoke About≡__version__;
+  bundle F19–F49.
+- Noche F19–F49 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 48 — Theme CSS Completion (slate + high-contrast)
 -------------------------------------------------------
 - v0.40.0 · impl SHA 9227750 · DEC-092 · LIVE_BLOCKED intacto · sin FASE_48_APPROVED.

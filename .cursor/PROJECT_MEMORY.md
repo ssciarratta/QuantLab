@@ -2,7 +2,8 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.23.0**  
+**Versión tip:** **0.41.0** (F49 Milestone Freeze)  
+**Milestone congelado:** **v0.40.0** (F19–F48) · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
 ---
@@ -19,16 +20,18 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | Rango | Estado |
 |-------|--------|
 | F0–F18 | Certificados **externos** (`FASE_*_APPROVED.md`) |
-| F19–F31 | **APROBADO_INTERNO** Zero-Trust; externos **pendientes** |
-| Arco F19–F22 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
-| Arco F23–F25 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F31 | `docs/audit/INTERNAL_AUDIT_F19_F31_NIGHT.md` |
+| F19–F48 | **APROBADO_INTERNO** Zero-Trust; milestone v0.40.0 freeze |
+| F49 | Milestone freeze docs + CHANGELOG sync · **0.41.0** |
+| Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
+| Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
+| Noche F19–F48 | `docs/audit/INTERNAL_AUDIT_F19_F48_NIGHT.md` |
+| Noche F19–F49 | `docs/audit/INTERNAL_AUDIT_F19_F49_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F31 (SHAs impl)
+## Arco nocturno F19–F48 (SHAs impl) — freeze v0.40.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -44,7 +47,25 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 28 | Layout persistence + Journal | 0.20.0 | `86517cf` |
 | 29 | Report Viewer + Metrics History | 0.21.0 | `2f37bf7` |
 | 30 | Universe Watchlist + Data Catalog | 0.22.0 | `7d8bf88` |
-| 31 | Feature Store Browser + Pipeline Runner | 0.23.0 | `70a8ee2` |
+| 31 | Feature Store Browser + Pipeline | 0.23.0 | `70a8ee2` |
+| 32 | Validation / Walk-Forward Runner UI | 0.24.0 | `8c1cf58` |
+| 33 | Optimizer History + Pareto Panel | 0.25.0 | `c39a57f` |
+| 34 | Monte Carlo History + HB Export | 0.26.0 | `18cea7c` |
+| 35 | Command Palette + Keyboard Shortcuts | 0.27.0 | `314b2cd` |
+| 36 | Settings + Status Bar | 0.28.0 | `2c0cb11` |
+| 37 | First-run Onboarding Wizard | 0.29.0 | `81ff9b1` |
+| 38 | Docs / Help Browser | 0.30.0 | `becd116` |
+| 39 | Session Export/Import ZIP | 0.31.0 | `0cb9d7a` |
+| 40 | Workspace Presets | 0.32.0 | `8197f32` |
+| 41 | Activity Log + Toasts | 0.33.0 | `f1db945` |
+| 42 | Ops Metrics Panel | 0.34.0 | `34bfac5` |
+| 43 | Red-team Workbench Hardening | 0.35.0 | `2b90b1f` |
+| 44 | E2E Paper Workflow Integration | 0.36.0 | `df89295` |
+| 45 | About Dialog + Version Badge | 0.37.0 | `a103236` |
+| 46 | Multi-Session Switcher | 0.38.0 | `ce9cbdd` |
+| 47 | Chat Context Awareness | 0.39.0 | `afdf067` |
+| 48 | Theme CSS Completion | 0.40.0 | `9227750` |
+| 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | *(tip F49)* |
 
 ---
 
@@ -61,24 +82,20 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 9. Strategy Catalog: factory compartida paper+lab; MM bar-backtest sintético; sin LIVE
 10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
 11. Catalog / Feature Store: read-only list; persist features solo sandbox sesión
+12. About / health `version` ≡ `quantlab.__version__` (F49 smoke)
 
 ---
 
 ## Paths clave
 
+- Freeze milestone: `docs/audit/MILESTONE_V040_FREEZE.md`
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
 - Resumen: `RESUMEN_PROYECTO.txt`
-- DECs: `learning/decisiones.txt` (DEC-054…075)
+- DECs: `learning/decisiones.txt` (DEC-054…093)
 - Workbench: `src/quantlab/workbench/`
-- Feature store browser: `src/quantlab/workbench/feature_store_browser.py`
-- Layout: `src/quantlab/workbench/layout.py`
-- Strategy catalog: `src/quantlab/workbench/strategy_catalog.py`
-- Paper session: `src/quantlab/workbench/paper_session.py`
-- Launcher 1-click: `scripts/launch_workbench.sh` · `docs/ops/WORKBENCH_1CLICK.md`
-- Chat: `src/quantlab/workbench/chat/`
 - Smoke: `scripts/internal_audit_smoke.py`
-- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F31)
+- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F49)
 - Flip checklist (no ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
 
 ---
@@ -99,6 +116,6 @@ uv run python scripts/internal_audit_smoke.py
 ## Entry points útiles
 
 - `quantlab-health` — ops / LIVE gate
-- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F31
+- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F49
 - `quantlab-a3` — market data A3 (anticorrupción)
 - `quantlab-vertical-slice` — slice mínimo

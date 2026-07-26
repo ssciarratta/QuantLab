@@ -1314,3 +1314,55 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F48: **0.40.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 49 — Milestone Freeze Docs + CHANGELOG Sync
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.41.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** Freeze documental del milestone workbench F19–F48 (v0.40.0): inventario, invariantes, cómo operar, límites (no LIVE); sync CHANGELOG/RESUMEN/PROJECT_MEMORY/README; smoke About≡`__version__`; bundle F19–F49.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_49_MILESTONE.md` |
+| Implementation report | `docs/audit/FASE_49_IMPLEMENTATION_REPORT.md` |
+| Freeze | `docs/audit/MILESTONE_V040_FREEZE.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F49.md` |
+| Review Package INTERNAL | `docs/audit/FASE_49_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F49.md` |
+| Noche F19–F49 | `docs/audit/INTERNAL_AUDIT_F19_F49_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 49** |
+
+**Certificado externo:** **NO** emitido (`FASE_49_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F49 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Milestone freeze | `docs/audit/MILESTONE_V040_FREEZE.md` |
+| A2 | Spec | `docs/FASE_49_MILESTONE.md` |
+| A3 | Implementation report | `docs/audit/FASE_49_IMPLEMENTATION_REPORT.md` |
+| A4 | DEC-093 | `learning/decisiones.txt` |
+| A5 | CHANGELOG sync | `CHANGELOG.md` |
+| A6 | Tip sync | `RESUMEN_PROYECTO.txt` · `.cursor/PROJECT_MEMORY.md` · `README.md` |
+| A7 | Smoke About version | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 49 | `scripts/build_internal_review_bundle.py` |
+| A9 | Version 0.41.0 | `pyproject.toml` |
+
+### Lista B F49 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F49: **0.41.0** · LIVE: **BLOQUEADO** · flip: **NO**.

@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.40.0"
-    assert PHASES_SUMMARY == "F19–F48 INTERNAL"
+    assert __version__ == "0.41.0"
+    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -151,6 +151,37 @@ def check_health_dict() -> None:
     assert report.get("ok") is True
     assert report.get("live_blocked") is True
     assert report.get("version") == __version__
+
+
+def check_about_version_matches() -> None:
+    """F49: About / health version ≡ quantlab.__version__."""
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.infra.health import run_health_checks
+    from quantlab.workbench.about import PHASES_SUMMARY, build_about_payload
+    from quantlab.workbench.api import WorkbenchState, handle_get_about
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert __version__ == "0.41.0"
+    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+
+    about = build_about_payload()
+    assert about["version"] == __version__
+    assert about["phases_summary"] == PHASES_SUMMARY
+    assert about["live_blocked"] is True
+
+    health = run_health_checks().to_dict()
+    assert health.get("version") == __version__
+
+    root = Path("/tmp/quantlab-smoke-f49-about-ver")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke49")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    body = handle_get_about(state)
+    assert body["version"] == __version__
+    assert body["version"] == about["version"]
 
 
 def check_paper_book_session() -> None:
@@ -1268,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.40.0"
-    assert PHASES_SUMMARY == "F19–F48 INTERNAL"
+    assert __version__ == "0.41.0"
+    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1280,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.40.0"
+    assert about["version"] == "0.41.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1322,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.40.0"
-    assert PHASES_SUMMARY == "F19–F48 INTERNAL"
+    assert __version__ == "0.41.0"
+    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1385,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.40.0"
-    assert PHASES_SUMMARY == "F19–F48 INTERNAL"
+    assert __version__ == "0.41.0"
+    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1437,6 +1468,7 @@ def main() -> int:
         ("workbench imports", check_workbench_imports),
         ("chat allowlist + FakeProvider", check_chat_safe),
         ("quantlab-health live_blocked", check_health_dict),
+        ("about version matches __version__", check_about_version_matches),
         ("paper book + session_id fail-closed", check_paper_book_session),
         ("F23 paper book import", check_f23_book_import),
         ("F24 plugins + generics", check_f24_plugins),

@@ -19,6 +19,39 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.41.0] — 2026-07-26
+
+### Fase 49 — Milestone Freeze Docs + CHANGELOG Sync
+
+#### Added
+- Freeze documental `docs/audit/MILESTONE_V040_FREEZE.md` (inventario F19–F48)
+- Smoke check: About / health `version` ≡ `quantlab.__version__`
+- Docs: `FASE_49_MILESTONE.md` · implementation report · DEC-093
+- Bundle INTERNAL default F19–F49
+
+#### Changed
+- Sync tip: `CHANGELOG` · `RESUMEN_PROYECTO.txt` · `.cursor/PROJECT_MEMORY.md` · `README`
+- `phases_summary` → `F19–F49 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_49_APPROVED.md`
+
+### Resumen agrupado F19–F48 (milestone v0.40.0)
+
+| Grupo | Fases | Versiones | Qué entrega |
+|-------|-------|-----------|-------------|
+| **Núcleo modos + UI** | F19–F22 | 0.11–0.14 | OperatingMode (REAL=PAPER); workbench loopback; lab panels; chat FakeProvider |
+| **Paper + venues + ops** | F23–F25 | 0.15–0.17 | PaperBook/sesión/risk; plugins MD; Ops Desk 1-click + hardening |
+| **Sesión + catálogo + layout** | F26–F28 | 0.18–0.20 | Paper Session Runner; Strategy Catalog MM/AS; layout + journal |
+| **Lab research UI** | F29–F34 | 0.21–0.26 | Reports; universe/catalog; features; validation; optimizer; MC + HB export |
+| **UX workbench** | F35–F40 | 0.27–0.32 | Command palette; settings/status; onboarding; docs help; session ZIP; presets |
+| **Ops + hardening + E2E** | F41–F44 | 0.33–0.36 | Activity/toasts; ops metrics; red-team; E2E paper workflow |
+| **Meta + polish** | F45–F48 | 0.37–0.40 | About/badge; multi-session; chat context; theme CSS slate/high-contrast |
+
+Freeze: `docs/audit/MILESTONE_V040_FREEZE.md` · noche F19–F48 APROBADO_INTERNO · **LIVE bloqueado**.
+
+---
+
 ## [0.40.0] — 2026-07-26
 
 ### Fase 48 — Theme CSS Completion (slate + high-contrast)
