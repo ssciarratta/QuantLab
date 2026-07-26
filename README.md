@@ -16,10 +16,11 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F24 | Venue plugins + A3 MD read-only opt-in + generic CSV/REST · **APROBADO_INTERNO** · v0.16.0 |
 | F25 | Ops Desk 1-click + hardening (non-loopback, experiment_id, slip, Risk) · **APROBADO_INTERNO** · v0.17.0 |
 | F26 | Paper Session Runner (estrategia → risk → PaperBroker) · **APROBADO_INTERNO** · v0.18.0 |
-| F27 | Strategy Catalog (InventoryMM + Avellaneda–Stoikov en workbench) · v0.19.0 |
+| F27 | Strategy Catalog (InventoryMM + Avellaneda–Stoikov en workbench) · **APROBADO_INTERNO** · v0.19.0 |
+| F28 | Layout persistence + Journal viewer · v0.20.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F26](docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F27](docs/audit/INTERNAL_AUDIT_F19_F27_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---
@@ -34,9 +35,9 @@ uv run quantlab-vertical-slice
 uv run quantlab-a3 health
 ```
 
-### Workbench local (F20–F27)
+### Workbench local (F20–F28)
 
-UI loopback (stdlib) con paneles Health / MD / Blotter / Riesgo / **Sesión Paper**, Laboratorio y **Chat IA** safe-mode:
+UI loopback (stdlib) con paneles Health / MD / Blotter / **Journal** / Riesgo / **Sesión Paper**, Laboratorio y **Chat IA** safe-mode:
 
 ```bash
 ./scripts/launch_workbench.sh --no-browser

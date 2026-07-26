@@ -1,4 +1,11 @@
 
+[2026-07-26] DEC-072 — Workbench layout persistence + Journal viewer
+  Decisión: F28 = layout.json por sesión (save/load geometría MDI);
+  API GET/PUT /api/layout; wm.js debounce save en move/resize + restore
+  al boot; panel Journal (tabla fills + export CSV client-side sobre
+  GET /api/paper/fills). LIVE_BLOCKED=True; sin flip; sin venue submit.
+  Fase: 28.
+
 [2026-07-26] DEC-071 — Strategy Catalog workbench (paper + lab)
   Decisión: F27 = catálogo único `strategy_catalog` con metadata
   (id/nombre/defaults/tags mm|momentum); factory compartida para

@@ -23,6 +23,7 @@ from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
@@ -187,6 +188,43 @@ def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
     }
     out.update(_md_info(state))
     return out
+
+
+def handle_get_layout(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/layout — geometría MDI persistida en sesión."""
+    session = state.ensure_session()
+    try:
+        layout = load_layout(session.layout_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "layout": layout,
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """PUT /api/layout — guarda geometría de ventanas en ``layout.json``."""
+    session = state.ensure_session()
+    # Acepta body completo o { "layout": {...} }.
+    if "windows" in body or "version" in body:
+        payload = body
+    elif "layout" in body and isinstance(body["layout"], dict):
+        payload = body["layout"]
+    else:
+        raise ApiError(400, "body debe incluir layout (version/windows) o ser el layout")
+    try:
+        saved = save_layout(session.layout_path, payload)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "layout": saved,
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
 
 
 def handle_get_risk(state: WorkbenchState) -> dict[str, Any]:

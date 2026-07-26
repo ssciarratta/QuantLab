@@ -306,6 +306,37 @@ def check_f27_strategy_catalog() -> None:
     assert "inventory_mm" in body["ids"]
 
 
+def check_f28_layout_journal() -> None:
+    """F28: layout save/load + API handlers + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import WorkbenchState, handle_get_layout, handle_put_layout
+    from quantlab.workbench.layout import load_layout, save_layout
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f28-layout")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke28")
+    path = session.layout_path
+    saved = save_layout(
+        path,
+        {"version": 1, "windows": {"health": {"x": 1, "y": 2, "w": 300, "h": 200}}},
+    )
+    assert load_layout(path) == saved
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    put = handle_put_layout(
+        state,
+        {"layout": {"version": 1, "windows": {"journal": {"x": 5, "y": 6, "w": 400, "h": 300}}}},
+    )
+    assert put["ok"] is True
+    assert put["live_blocked"] is True
+    got = handle_get_layout(state)
+    assert got["layout"]["windows"]["journal"]["w"] == 400
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -321,6 +352,7 @@ def main() -> int:
         ("F25 ops desk slip/charset/risk", check_f25_ops_desk_invariants),
         ("F26 paper session runner", check_f26_paper_session),
         ("F27 strategy catalog", check_f27_strategy_catalog),
+        ("F28 layout + journal API", check_f28_layout_journal),
     ]
     ok = True
     for name, fn in checks:

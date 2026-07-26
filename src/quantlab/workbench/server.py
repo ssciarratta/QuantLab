@@ -21,6 +21,7 @@ from quantlab.workbench.api import (
     handle_get_lab_metrics,
     handle_get_lab_strategies,
     handle_get_lab_validation,
+    handle_get_layout,
     handle_get_mode,
     handle_get_paper_book,
     handle_get_paper_fills,
@@ -43,6 +44,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
     handle_post_paper_submit,
+    handle_put_layout,
 )
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -158,6 +160,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
                     return
+                if path == "/api/layout":
+                    self._send_json(handle_get_layout(state))
+                    return
                 if path == "/api/risk":
                     self._send_json(handle_get_risk(state))
                     return
@@ -239,6 +244,20 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/chat":
                     self._send_json(handle_post_chat(state, body))
+                    return
+                self._send_error_json(404, f"ruta no encontrada: {path}")
+            except ApiError as exc:
+                self._send_error_json(exc.status, exc.message)
+            except Exception as exc:  # noqa: BLE001
+                self._send_error_json(500, str(exc))
+
+        def do_PUT(self) -> None:  # noqa: N802
+            parsed = urlparse(self.path)
+            path = parsed.path
+            try:
+                body = _read_json(self)
+                if path == "/api/layout":
+                    self._send_json(handle_put_layout(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

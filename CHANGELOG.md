@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.20.0] — 2026-07-26
+
+### Fase 28 — Workbench Layout Persistence + Journal Viewer
+
+#### Added
+- `workbench/layout.py` — save/load `layout.json` por sesión (geometría MDI)
+- API `GET`/`PUT` `/api/layout`
+- `wm.js` debounce save en move/resize + restore al boot
+- Panel Journal (`panes/journal.js`): tabla fills + export CSV client-side
+- Tests `test_layout_f28.py` · DEC-072
+- Docs: `FASE_28_LAYOUT_JOURNAL.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); layout fail-closed (ids/rangos)
+
+---
+
 ## [0.19.0] — 2026-07-26
 
 ### Fase 27 — Strategy Catalog (workbench)

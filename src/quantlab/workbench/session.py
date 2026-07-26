@@ -71,6 +71,10 @@ class WorkbenchSession:
     def chat_audit_path(self) -> Path:
         return self._root / "chat_audit.jsonl"
 
+    @property
+    def layout_path(self) -> Path:
+        return self._root / "layout.json"
+
     def ensure_layout(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
@@ -116,6 +120,7 @@ class WorkbenchSession:
             "journal": str(self.journal_path),
             "book": str(self.book_path),
             "meta": str(self.meta_path),
+            "layout": str(self.layout_path),
             "experiments": str(self.experiments_dir),
             "exports": str(self.exports_dir),
             "chat_audit": str(self.chat_audit_path),

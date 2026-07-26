@@ -1,14 +1,51 @@
-/** Window manager MDI — ventanas arrastrables / redimensionables. */
+/** Window manager MDI — ventanas arrastrables / redimensionables + layout persist. */
 (function (global) {
   "use strict";
 
   let zCounter = 10;
+  const SAVE_DEBOUNCE_MS = 400;
 
   function WindowManager(workspaceEl, taskbarEl) {
     this.workspace = workspaceEl;
     this.taskbar = taskbarEl;
     this.windows = new Map();
+    this._onLayoutChange = null;
+    this._saveTimer = null;
   }
+
+  WindowManager.prototype.setLayoutChangeHandler = function (fn) {
+    this._onLayoutChange = typeof fn === "function" ? fn : null;
+  };
+
+  WindowManager.prototype.scheduleSave = function () {
+    const self = this;
+    if (!self._onLayoutChange) return;
+    if (self._saveTimer) clearTimeout(self._saveTimer);
+    self._saveTimer = setTimeout(function () {
+      self._saveTimer = null;
+      try {
+        self._onLayoutChange(self.snapshotLayout());
+      } catch (err) {
+        /* ignore save errors in UI */
+      }
+    }, SAVE_DEBOUNCE_MS);
+  };
+
+  WindowManager.prototype.snapshotLayout = function () {
+    const windows = {};
+    this.windows.forEach(function (rec) {
+      const el = rec.el;
+      windows[rec.id] = {
+        x: parseInt(el.style.left, 10) || 0,
+        y: parseInt(el.style.top, 10) || 0,
+        w: el.offsetWidth,
+        h: el.offsetHeight,
+        minimized: el.classList.contains("minimized"),
+        z: parseInt(el.style.zIndex, 10) || 0,
+      };
+    });
+    return { version: 1, windows: windows };
+  };
 
   WindowManager.prototype.open = function (id, title, contentEl, opts) {
     opts = opts || {};
@@ -94,10 +131,12 @@
     btnMin.addEventListener("click", function (ev) {
       ev.stopPropagation();
       self.minimize(id);
+      self.scheduleSave();
     });
     btnClose.addEventListener("click", function (ev) {
       ev.stopPropagation();
       self.close(id);
+      self.scheduleSave();
     });
     taskBtn.addEventListener("click", function () {
       if (win.classList.contains("minimized")) {
@@ -107,16 +146,21 @@
       } else {
         self.focus(id);
       }
+      self.scheduleSave();
     });
 
     requestAnimationFrame(function () {
       win.classList.add("open");
     });
     this.focus(id);
+    if (opts.minimized) {
+      this.minimize(id);
+    }
     taskBtn.classList.add("flash");
     setTimeout(function () {
       taskBtn.classList.remove("flash");
     }, 450);
+    this.scheduleSave();
     return record;
   };
 
@@ -163,6 +207,7 @@
     const origL = win.offsetLeft;
     const origT = win.offsetTop;
     const workspace = this.workspace;
+    const self = this;
 
     function onMove(e) {
       const dx = e.clientX - startX;
@@ -179,6 +224,7 @@
     function onUp() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      self.scheduleSave();
     }
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
@@ -191,6 +237,7 @@
     const startY = ev.clientY;
     const origW = win.offsetWidth;
     const origH = win.offsetHeight;
+    const self = this;
 
     function onMove(e) {
       const nw = Math.max(280, origW + (e.clientX - startX));
@@ -201,6 +248,7 @@
     function onUp() {
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
+      self.scheduleSave();
     }
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);

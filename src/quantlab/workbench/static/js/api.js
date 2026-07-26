@@ -38,6 +38,9 @@
     post: function (path, body) {
       return request("POST", path, body || {});
     },
+    put: function (path, body) {
+      return request("PUT", path, body || {});
+    },
     health: function () {
       return request("GET", "/api/health");
     },
@@ -89,6 +92,12 @@
     },
     paperFills: function () {
       return request("GET", "/api/paper/fills");
+    },
+    getLayout: function () {
+      return request("GET", "/api/layout");
+    },
+    putLayout: function (layout) {
+      return request("PUT", "/api/layout", layout || {});
     },
     paperSessionStart: function (body) {
       return request("POST", "/api/paper/session/start", body || {});
