@@ -77,8 +77,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     host_s = bound_host.decode() if isinstance(bound_host, bytes) else str(bound_host)
     url = f"http://{host_s}:{int(bound_port)}/"
 
-    print(f"QuantLab Workbench v0.12 — {url}")
+    print(f"QuantLab Workbench v0.14 — {url}")
     print(f"mode={mode.value}  LIVE_BLOCKED={LIVE_BLOCKED}  real_alias=paper")
+    print("Chat: asistente research (safe-mode) — no envía órdenes.")
     print("Ctrl+C para detener.")
 
     if not args.no_browser:

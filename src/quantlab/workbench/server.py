@@ -13,6 +13,7 @@ from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
     handle_get_account,
+    handle_get_chat_tools,
     handle_get_health,
     handle_get_instruments,
     handle_get_lab_capabilities,
@@ -24,6 +25,7 @@ from quantlab.workbench.api import (
     handle_get_snapshot,
     handle_get_venues,
     handle_post_broker_connect,
+    handle_post_chat,
     handle_post_lab_backtest,
     handle_post_lab_export_hb,
     handle_post_lab_features,
@@ -88,7 +90,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
     """Factory de handler con estado de sesión compartido."""
 
     class WorkbenchHandler(BaseHTTPRequestHandler):
-        server_version = "QuantLabWorkbench/0.13"
+        server_version = "QuantLabWorkbench/0.14"
 
         def log_message(self, fmt: str, *args: object) -> None:
             # Silencioso en tests; útil en CLI vía print override opcional.
@@ -147,6 +149,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/validation":
                     self._send_json(handle_get_lab_validation(state))
                     return
+                if path == "/api/chat/tools":
+                    self._send_json(handle_get_chat_tools(state))
+                    return
                 if path in ("/", "/index.html"):
                     index = STATIC_ROOT / "index.html"
                     data = index.read_bytes()
@@ -195,6 +200,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/export-hb":
                     self._send_json(handle_post_lab_export_hb(state, body))
+                    return
+                if path == "/api/chat":
+                    self._send_json(handle_post_chat(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

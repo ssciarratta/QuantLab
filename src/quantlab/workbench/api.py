@@ -8,7 +8,7 @@ import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
 from quantlab.brokers.mode import REAL_ALIAS, OperatingMode, default_mode, resolve_mode
@@ -24,6 +24,9 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 
+if TYPE_CHECKING:
+    from quantlab.workbench.chat.orchestrator import ChatOrchestrator
+
 
 @dataclass
 class WorkbenchState:
@@ -38,6 +41,7 @@ class WorkbenchState:
     _journal_dir: Path | None = field(default=None, repr=False)
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
+    _chat: ChatOrchestrator | None = field(default=None, repr=False)
 
     def ensure_journal(self) -> PaperFillJournal:
         if self.journal is None:
@@ -61,6 +65,14 @@ class WorkbenchState:
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
         return payload
+
+    def ensure_chat(self) -> ChatOrchestrator:
+        """Lazy ChatOrchestrator (FakeProvider por defecto)."""
+        if self._chat is None:
+            from quantlab.workbench.chat.orchestrator import build_orchestrator
+
+            self._chat = build_orchestrator(self)
+        return self._chat
 
 
 class ApiError(Exception):
@@ -444,3 +456,17 @@ def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> di
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
     return state.store_lab_result(result)
+
+
+def handle_get_chat_tools(state: WorkbenchState) -> dict[str, Any]:
+    return state.ensure_chat().list_tools()
+
+
+def handle_post_chat(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    message = body.get("message")
+    if not isinstance(message, str) or not message.strip():
+        raise ApiError(400, "campo 'message' requerido (string no vacío)")
+    try:
+        return state.ensure_chat().handle_message(message)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc

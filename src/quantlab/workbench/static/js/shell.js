@@ -94,10 +94,17 @@
     pane.refresh().catch(function () {});
   }
 
+  function openChat() {
+    const pane = QLPanes.createChatPane();
+    wm.open("chat", "Chat IA", pane, { x: 260, y: 40, w: 440, h: 460 });
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
     blotter: openBlotter,
+    chat: openChat,
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,

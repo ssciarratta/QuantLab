@@ -315,4 +315,22 @@ Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
   LIVE_BLOCKED permanece True; sin chat (F22); sin flip LIVE; sin credenciales.
   Fase: 21.
 
+[2026-07-26] DEC-063 — Chat IA safe-by-default en workbench
+  Decisión: F22 = ChatOrchestrator + ToolRegistry allowlist solo lectura/
+  explicación; PROHIBIDO submit/cancel/place_order/set_live/flip_live_blocked;
+  API POST /api/chat + GET /api/chat/tools; UI panel Chat + banner
+  "Asistente research — no envía órdenes"; LIVE_BLOCKED permanece True.
+  Fase: 22.
+
+[2026-07-26] DEC-064 — FakeProvider default; LLM opt-in vía env
+  Decisión: FakeProvider determinista (ES intents) es default CI/offline.
+  OptionalEnvProvider solo si QUANTLAB_LLM_API_KEY != DISABLED; placeholders
+  en .env.example sin secretos; tests CI no usan OptionalEnvProvider real.
+  Fase: 22.
+
+[2026-07-26] DEC-065 — chat_audit.jsonl append-only
+  Decisión: cada turno de chat se audita en JSONL append-only (tmp sesión);
+  incluye message, tools_used, mode, live_blocked; sin rewrite/delete.
+  Fase: 22.
+
 ================================================================================

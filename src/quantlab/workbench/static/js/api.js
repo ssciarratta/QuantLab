@@ -98,5 +98,11 @@
     labExportHb: function (body) {
       return request("POST", "/api/lab/export-hb", body || {});
     },
+    chat: function (message) {
+      return request("POST", "/api/chat", { message: message });
+    },
+    chatTools: function () {
+      return request("GET", "/api/chat/tools");
+    },
   };
 })(window);
