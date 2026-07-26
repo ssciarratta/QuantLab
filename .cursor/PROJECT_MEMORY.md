@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.72.0** (F80 Custom Preset Save)  
+**Versión tip:** **0.73.0** (F81 Custom Preset Delete)  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
@@ -32,15 +32,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F78 | Milestone freeze docs + CHANGELOG sync (v0.70) · **0.70.0** |
 | F79 | Watchlist import/export JSON · **0.71.0** |
 | F80 | Custom preset save · **0.72.0** |
+| F81 | Custom preset delete · **0.73.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F80 | `docs/audit/INTERNAL_AUDIT_F19_F80_NIGHT.md` |
+| Noche F19–F81 | `docs/audit/INTERNAL_AUDIT_F19_F81_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F80 (SHAs impl) — tip v0.72.0
+## Arco nocturno F19–F81 (SHAs impl) — tip v0.73.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -106,6 +107,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 78 | Milestone Freeze Docs + CHANGELOG (v0.70) | 0.70.0 | `77ea109` |
 | 79 | Watchlist Import/Export JSON | 0.71.0 | `7245ca4` |
 | 80 | Custom Preset Save | 0.72.0 | `67fd498` |
+| 81 | Custom Preset Delete | 0.73.0 | `2975729` |
 
 ---
 
@@ -118,11 +120,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 5. FakeProvider default CI; LLM opt-in vía env
 6. Session paths fail-closed (`validate_session_id`, zip-slip)
 7. PaperBroker / Paper Session: fills simulados; sin venue submit
-8. Sin emitir `FASE_19`…`FASE_80_APPROVED.md` desde INTERNAL
-9. `phases_summary` tip: `F19–F80 INTERNAL`
-10. About / health `version` ≡ `__version__` y startswith `0.72`
+8. Sin emitir `FASE_19`…`FASE_81_APPROVED.md` desde INTERNAL
+9. `phases_summary` tip: `F19–F81 INTERNAL`
+10. About / health `version` ≡ `__version__` y startswith `0.73`
 
 ## Próximo
 
-- Certificados externos F19–F80 solo con Meta-Auditor externo
+- Certificados externos F19–F81 solo con Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado
