@@ -2030,3 +2030,41 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F64: **0.56.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 65 — Blotter CSV Server Export
+
+**Código:** 0.57.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Export server-side `GET /api/paper/fills.csv` (text/csv del journal paper) + botones **Descargar CSV** en Blotter y Journal.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_65_BLOTTER_CSV.md` |
+| Implementation report | `docs/audit/FASE_65_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F65.md` |
+| Noche F19–F65 | `docs/audit/INTERNAL_AUDIT_F19_F65_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 65** |
+| DEC | DEC-109 |
+
+### Lista A F65 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | CSV builder | `brokers/paper/journal.py` · `fills_to_csv` |
+| A2 | GET fills.csv | `/api/paper/fills.csv` |
+| A3 | UI download | `blotter.js` · `journal.js` · `api.js` |
+| A4 | Suite | `tests/unit/workbench/test_fills_csv_f65.py` |
+| A5 | Version 0.57.0 | `pyproject.toml` |
+
+### Lista B F65 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F65: **0.57.0** · LIVE: **BLOQUEADO** · flip: **NO**.

@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 65 — Blotter CSV Server Export
+-------------------------------------------------------
+- v0.57.0 · DEC-109 · LIVE_BLOCKED intacto · sin FASE_65_APPROVED.
+- GET /api/paper/fills.csv (text/csv journal); Descargar CSV en Blotter +
+  Journal; fills_to_csv header+escape; suite test_fills_csv_f65.py.
+- Smoke F65; bundle F19–F65.
+- Noche F19–F65 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 64 — Backups Panel UI
 -------------------------------------------------------
 - v0.56.0 · DEC-108 · LIVE_BLOCKED intacto · sin FASE_64_APPROVED.

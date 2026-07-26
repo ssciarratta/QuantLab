@@ -1638,6 +1638,18 @@ def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:
     return {"fills": fills}
 
 
+def handle_get_paper_fills_csv(state: WorkbenchState) -> tuple[bytes, str]:
+    """GET /api/paper/fills.csv — body UTF-8 + filename attachment (F65)."""
+    journal = state.ensure_journal()
+    body = journal.export_csv().encode("utf-8")
+    session = state.ensure_session()
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in session.session_id)[
+        :64
+    ]
+    filename = f"quantlab-fills-{safe or 'session'}.csv"
+    return body, filename
+
+
 def _lab_validation_error(exc: ValidationError) -> ApiError:
     return ApiError(400, str(exc))
 

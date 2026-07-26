@@ -31,6 +31,7 @@
       "<h3>Fills</h3>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn secondary" id="bl-refresh">Actualizar fills</button>' +
+      '<button type="button" class="btn" id="bl-download">Descargar CSV</button>' +
       "</div>" +
       '<div id="bl-fills"></div>' +
       "</div>";
@@ -130,6 +131,15 @@
       refreshFills().catch(function (err) {
         fillsEl.innerHTML = '<p class="status-bad mono">' + err.message + "</p>";
       });
+    });
+
+    root.querySelector("#bl-download").addEventListener("click", function () {
+      const a = document.createElement("a");
+      a.href = QLApi.paperFillsCsvUrl();
+      a.download = "quantlab-fills.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
     });
 
     root.refresh = async function () {

@@ -12,6 +12,36 @@ from quantlab.brokers.types import PaperFill
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.serialization import dataclass_to_dict
 
+# Columnas estables para GET /api/paper/fills.csv (F65) — alineadas al export client F28.
+FILLS_CSV_COLUMNS: tuple[str, ...] = (
+    "ts",
+    "fill_id",
+    "order_id",
+    "symbol",
+    "side",
+    "quantity",
+    "price",
+    "source",
+)
+
+
+def _csv_escape(value: object) -> str:
+    s = "" if value is None else str(value)
+    if any(ch in s for ch in (",", '"', "\n", "\r")):
+        return '"' + s.replace('"', '""') + '"'
+    return s
+
+
+def fills_to_csv(fills: list[PaperFill]) -> str:
+    """Serializa fills paper a CSV (header + rows, trailing newline)."""
+    lines = [",".join(FILLS_CSV_COLUMNS)]
+    for fill in fills:
+        payload = dataclass_to_dict(fill)
+        lines.append(
+            ",".join(_csv_escape(payload.get(col, "")) for col in FILLS_CSV_COLUMNS)
+        )
+    return "\n".join(lines) + "\n"
+
 
 class PaperFillJournal:
     """Append-only JSONL de ``PaperFill`` (source=paper_broker).
@@ -64,3 +94,7 @@ class PaperFillJournal:
                 )
             )
         return fills
+
+    def export_csv(self) -> str:
+        """CSV text/csv del journal (header + rows)."""
+        return fills_to_csv(self.list_fills())

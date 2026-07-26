@@ -151,6 +151,9 @@
     paperFills: function () {
       return request("GET", "/api/paper/fills");
     },
+    paperFillsCsvUrl: function () {
+      return "/api/paper/fills.csv";
+    },
     getLayout: function () {
       return request("GET", "/api/layout");
     },

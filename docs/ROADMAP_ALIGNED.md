@@ -847,6 +847,18 @@
 **Spec:** `docs/FASE_64_BACKUPS_UI.md`  
 **Implementation report:** `docs/audit/FASE_64_IMPLEMENTATION_REPORT.md`
 
+### Fase 65 — Blotter CSV Server Export
+**Alcance:**
+- `GET /api/paper/fills.csv` — text/csv de fills del journal paper
+- Botón **Descargar CSV** en Blotter y Journal
+- DEC-109; bump 0.57.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F65.md`, 2026-07-26) — certificado externo `FASE_65_APPROVED.md` **NO emitido**  
+**Versión:** 0.57.0  
+**Noche F19–F65:** `docs/audit/INTERNAL_AUDIT_F19_F65_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_65_BLOTTER_CSV.md`  
+**Implementation report:** `docs/audit/FASE_65_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -891,6 +903,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F63 **APROBADO_INTERNO** (noche F19–F63; freeze v0.40 + v0.50).  
+1. F0–F18 certificados externos; F19–F65 **APROBADO_INTERNO** (noche F19–F65; freeze v0.40 + v0.50).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

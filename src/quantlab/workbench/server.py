@@ -51,6 +51,7 @@ from quantlab.workbench.api import (
     handle_get_ops_prometheus,
     handle_get_paper_book,
     handle_get_paper_fills,
+    handle_get_paper_fills_csv,
     handle_get_paper_session_status,
     handle_get_positions,
     handle_get_presets,
@@ -338,6 +339,14 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/fills":
                     self._send_json(handle_get_paper_fills(state))
+                    return
+                if path == "/api/paper/fills.csv":
+                    body, filename = handle_get_paper_fills_csv(state)
+                    self._send_download(
+                        body,
+                        filename=filename,
+                        content_type="text/csv; charset=utf-8",
+                    )
                     return
                 if path == "/api/paper/session/status":
                     self._send_json(handle_get_paper_session_status(state))

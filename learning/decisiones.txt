@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-109 — Blotter CSV Server Export
+  Decisión: F65 = GET /api/paper/fills.csv (text/csv del PaperFillJournal)
+  con Content-Disposition attachment; botones Descargar CSV en Blotter y
+  Journal; fills_to_csv header estable alineado a F28; suite
+  test_fills_csv_f65.py; bump 0.57.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_65_APPROVED.
+  Fase: 65.
+
 [2026-07-26] DEC-108 — Backups Panel UI
   Decisión: F64 = panel SPA Backups consumiendo GET /api/backups (F63) +
   POST /api/backups/run (trigger manual run_auto_backup); menú Inicio +

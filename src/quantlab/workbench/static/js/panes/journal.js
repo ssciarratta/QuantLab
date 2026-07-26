@@ -1,4 +1,4 @@
-/** Panel Journal — fills paper + export CSV (client-side). */
+/** Panel Journal — fills paper + export CSV (server F65 + local F28). */
 (function (global) {
   "use strict";
 
@@ -47,6 +47,15 @@
     }, 500);
   }
 
+  function downloadServerCsv() {
+    const a = document.createElement("a");
+    a.href = QLApi.paperFillsCsvUrl();
+    a.download = "quantlab-fills.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   function createJournalPane() {
     const root = document.createElement("div");
     root.className = "pane-journal";
@@ -54,10 +63,11 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Journal de fills</h3>" +
-      '<p class="muted" style="margin-top:0">Fuente: GET /api/paper/fills (sesión durable). Export CSV local — sin servidor.</p>' +
+      '<p class="muted" style="margin-top:0">Fuente: GET /api/paper/fills · descarga servidor GET /api/paper/fills.csv</p>' +
       '<div class="pane-row">' +
       '<button type="button" class="btn secondary" id="jn-refresh">Actualizar</button>' +
-      '<button type="button" class="btn" id="jn-export">Export CSV</button>' +
+      '<button type="button" class="btn" id="jn-download">Descargar CSV</button>' +
+      '<button type="button" class="btn secondary" id="jn-export">CSV local</button>' +
       '<span class="mono muted" id="jn-count">—</span>' +
       "</div>" +
       "</div>" +
@@ -122,6 +132,15 @@
       refresh().catch(function (err) {
         tableEl.innerHTML = '<p class="status-bad mono">' + err.message + "</p>";
       });
+    });
+
+    root.querySelector("#jn-download").addEventListener("click", function () {
+      try {
+        downloadServerCsv();
+        countEl.textContent = lastFills.length + " fills · descarga CSV iniciada";
+      } catch (err) {
+        countEl.textContent = err.message || String(err);
+      }
     });
 
     root.querySelector("#jn-export").addEventListener("click", function () {
