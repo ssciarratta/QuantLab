@@ -61,7 +61,7 @@ def test_live_blocked_still_true() -> None:
 
 
 def test_phases_summary_tip() -> None:
-    assert PHASES_SUMMARY == "F19–F99 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F100 INTERNAL"
 
 
 def test_list_sessions_filters_invalid(tmp_path: Path) -> None:

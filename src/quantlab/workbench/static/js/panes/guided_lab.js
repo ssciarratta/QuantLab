@@ -1,4 +1,4 @@
-/** Guided Lab — wizard amigable venue→scan→estrategia→simular (F99). PAPER only. */
+/** Guided Lab — wizard venue→scan→estrategia→simular + LIVE unlock (F99/F100). */
 (function (global) {
   "use strict";
 
@@ -9,23 +9,35 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Guided Lab</h3>" +
-      '<p class="muted" style="margin-top:0">Flujo amigable: venue → scan → estrategia → simular. ' +
-      "<strong>Solo paper/simulación.</strong> LIVE está bloqueado.</p>" +
-      '<div class="mono status-ok" id="gl-live">LIVE_BLOCKED = True</div>' +
+      '<p class="muted" style="margin-top:0">Flujo: venue → scan → estrategia → simular. ' +
+      "LIVE solo tras usuario/contraseña (corte humano). Sin unlock = bloqueado.</p>" +
+      '<div class="mono" id="gl-live">LIVE_BLOCKED = True</div>' +
+      "</div>" +
+      '<div class="pane-section">' +
+      "<h3>0. Unlock LIVE (opcional)</h3>" +
+      '<p class="muted" style="margin-top:0">Definí QUANTLAB_LIVE_USER / QUANTLAB_LIVE_PASSWORD en tu PC. ' +
+      "Nunca se guardan en git ni en disco de sesión.</p>" +
+      '<div class="pane-row">' +
+      '<input type="text" id="gl-user" placeholder="usuario" autocomplete="username">' +
+      '<input type="password" id="gl-pass" placeholder="contraseña" autocomplete="current-password">' +
+      '<button type="button" class="btn secondary" id="gl-unlock">Unlock</button>' +
+      '<button type="button" class="btn secondary" id="gl-lock">Lock</button>' +
+      "</div>" +
+      '<span class="mono muted" id="gl-unlock-status">—</span>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>1. Venue</h3>" +
       '<select id="gl-venue">' +
+      '<option value="binance">binance (MD público / demo)</option>' +
       '<option value="paper">paper (simulado)</option>' +
-      '<option value="binance">binance (MD fake / paper)</option>' +
       '<option value="a3">a3 (MD fake / paper)</option>' +
       "</select>" +
-      '<p class="muted" style="margin-bottom:0">Conectar broker es opcional para simular. El backtest lab usa barras sintéticas.</p>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>2. Escanear universo</h3>" +
+      "<h3>2. Escanear</h3>" +
       '<div class="pane-row">' +
-      '<button type="button" class="btn secondary" id="gl-scan">Escanear</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan">Scan lab sintético</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn">Scan Binance USDT</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
@@ -45,13 +57,15 @@
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
-      '<p class="muted">Próximo paso de producto: Binance MD real → paper → LIVE gated (requiere aprobación).</p>' +
+      '<p class="muted">Órdenes venue reales: solo después de unlock + fases Binance demo. Password nunca se loguea.</p>' +
       "</div>";
 
+    const liveEl = root.querySelector("#gl-live");
     const scanOut = root.querySelector("#gl-scan-out");
     const scanStatus = root.querySelector("#gl-scan-status");
     const runStatus = root.querySelector("#gl-run-status");
     const resultEl = root.querySelector("#gl-result");
+    const unlockStatus = root.querySelector("#gl-unlock-status");
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -61,25 +75,95 @@
         .replace(/"/g, "&quot;");
     }
 
+    function refreshLive() {
+      return QLApi.liveStatus()
+        .then(function (data) {
+          const unlocked = data.unlocked === true;
+          liveEl.textContent =
+            "LIVE_BLOCKED=" +
+            data.live_blocked +
+            " · unlocked=" +
+            unlocked +
+            " · configured=" +
+            data.credentials_configured;
+          liveEl.className = unlocked ? "mono status-ok" : "mono status-bad";
+          unlockStatus.textContent = unlocked
+            ? "unlock activo (" + esc(data.venue_scope) + ")"
+            : data.credentials_configured
+              ? "bloqueado — ingresá user/pass"
+              : "bloqueado — configurá env QUANTLAB_LIVE_USER/PASSWORD";
+        })
+        .catch(function (err) {
+          liveEl.textContent = "live status error: " + err.message;
+        });
+    }
+
+    root.querySelector("#gl-unlock").addEventListener("click", function () {
+      const user = root.querySelector("#gl-user").value;
+      const pass = root.querySelector("#gl-pass").value;
+      unlockStatus.textContent = "validando…";
+      QLApi.liveUnlock(user, pass, "binance_demo")
+        .then(function () {
+          root.querySelector("#gl-pass").value = "";
+          return refreshLive();
+        })
+        .catch(function (err) {
+          unlockStatus.textContent = "error: " + err.message;
+          unlockStatus.className = "mono status-bad";
+        });
+    });
+
+    root.querySelector("#gl-lock").addEventListener("click", function () {
+      QLApi.liveLock()
+        .then(function () {
+          return refreshLive();
+        })
+        .catch(function (err) {
+          unlockStatus.textContent = "error: " + err.message;
+        });
+    });
+
     root.querySelector("#gl-scan").addEventListener("click", function () {
-      scanStatus.textContent = "escaneando…";
+      scanStatus.textContent = "escaneando lab…";
       QLApi.labScanner({ top_n: 3 })
         .then(function (data) {
-          scanStatus.textContent = "ok";
+          scanStatus.textContent = "ok (lab)";
           scanStatus.className = "mono status-ok";
           const selected = data.selected || [];
           const scores = data.scores || [];
           scanOut.innerHTML = selected
             .map(function (id, i) {
               const sc = scores[i] || {};
-              return (
-                esc(id) +
-                ' <span class="muted">composite=' +
-                esc(sc.composite) +
-                "</span>"
-              );
+              return esc(id) + ' <span class="muted">composite=' + esc(sc.composite) + "</span>";
             })
             .join("<br>");
+        })
+        .catch(function (err) {
+          scanStatus.textContent = "error: " + err.message;
+          scanStatus.className = "mono status-bad";
+        });
+    });
+
+    root.querySelector("#gl-scan-bn").addEventListener("click", function () {
+      scanStatus.textContent = "escaneando Binance…";
+      QLApi.binanceScan(20)
+        .then(function (data) {
+          scanStatus.textContent = "ok (binance MD)";
+          scanStatus.className = "mono status-ok";
+          const symbols = data.symbols || [];
+          const tickers = data.tickers || [];
+          scanOut.innerHTML =
+            "símbolos=" +
+            esc(data.n_symbols) +
+            "<br>" +
+            tickers
+              .map(function (t) {
+                return esc(t.symbol) + " bid=" + esc(t.bid) + " ask=" + esc(t.ask);
+              })
+              .join("<br>") +
+            (symbols.length
+              ? "<br><span class=\"muted\">…" + esc(symbols.slice(0, 5).join(", ")) + "</span>"
+              : "");
         })
         .catch(function (err) {
           scanStatus.textContent = "error: " + err.message;
@@ -97,7 +181,7 @@
           runStatus.textContent = data.ok ? "simulación ok (paper)" : "falló";
           runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
           resultEl.innerHTML =
-            "<dt>venue elegido</dt><dd class=\"mono\">" +
+            "<dt>venue</dt><dd class=\"mono\">" +
             esc(root.querySelector("#gl-venue").value) +
             "</dd>" +
             "<dt>strategy</dt><dd class=\"mono\">" +
@@ -123,8 +207,9 @@
     });
 
     root.refresh = function () {
-      return Promise.resolve();
+      return refreshLive();
     };
+    refreshLive();
     return root;
   }
 

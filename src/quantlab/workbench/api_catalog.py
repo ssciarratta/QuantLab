@@ -74,6 +74,30 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/mode", "GET", "Operating mode + LIVE gate", ("mode",)),
     ApiRoute("/api/mode", "POST", "Set operating mode (PAPER/REAL alias)", ("mode",)),
     ApiRoute(
+        "/api/live/status",
+        "GET",
+        "LIVE gate status + credential unlock state (no secrets)",
+        ("live",),
+    ),
+    ApiRoute(
+        "/api/live/unlock",
+        "POST",
+        "Unlock LIVE session with username/password (ephemeral; not persisted)",
+        ("live",),
+    ),
+    ApiRoute(
+        "/api/live/lock",
+        "POST",
+        "Lock LIVE session (revoke unlock)",
+        ("live",),
+    ),
+    ApiRoute(
+        "/api/lab/binance/scan",
+        "POST",
+        "Binance public USDT scan (read-only market data)",
+        ("lab", "binance"),
+    ),
+    ApiRoute(
         "/api/venues",
         "GET",
         "Broker registry: venues, plugins (contract v1 read-only) and connection",
@@ -248,10 +272,22 @@ def catalog_routes() -> tuple[ApiRoute, ...]:
     return API_ROUTES
 
 
-def _is_live_trading_path(path: str) -> bool:
-    """True for LIVE trading paths (not liveness ``/api/livez``)."""
+# Credential gate F100 — no son place_order venue (permitidos en OpenAPI).
+LIVE_CREDENTIAL_GATE_PATHS: frozenset[str] = frozenset(
+    {
+        "/api/live/status",
+        "/api/live/unlock",
+        "/api/live/lock",
+    }
+)
+
+
+def is_live_trading_path(path: str) -> bool:
+    """True for LIVE *trading* paths (not liveness ni credential gate F100)."""
     p = path.lower().rstrip("/")
     if p == "/api/livez" or p.startswith("/api/livez/"):
+        return False
+    if p in LIVE_CREDENTIAL_GATE_PATHS:
         return False
     return p == "/api/live" or p.startswith("/api/live/")
 
@@ -260,7 +296,7 @@ def assert_no_live_trading_routes(routes: tuple[ApiRoute, ...] | None = None) ->
     """Fail-closed: catalog must not document LIVE trading endpoints."""
     items = routes if routes is not None else API_ROUTES
     for route in items:
-        if _is_live_trading_path(route.path):
+        if is_live_trading_path(route.path):
             raise AssertionError(
                 f"LIVE trading route forbidden in catalog: {route.method} {route.path}"
             )

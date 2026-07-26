@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.92.0] — 2026-07-26
+
+### Fase 100 — LIVE credential gate + Binance public MD
+
+#### Added
+- Unlock LIVE por usuario/contraseña (env `QUANTLAB_LIVE_*`, efímero en memoria)
+- API `/api/live/status|unlock|lock` + Guided Lab UI unlock
+- Binance public MD scan (`/api/lab/binance/scan`) read-only
+- Docs `docs/ops/LIVE_CREDENTIAL_GATE.md`
+
+#### Notes
+- Sin unlock, LIVE sigue bloqueado. Password nunca a git. Routing órdenes venue aún stub.
+
+---
+
 ## [0.91.0] — 2026-07-26
 
 ### Fase 99 — Guided Lab MVP (wizard paper-only)

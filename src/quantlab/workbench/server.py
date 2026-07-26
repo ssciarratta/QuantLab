@@ -47,6 +47,7 @@ from quantlab.workbench.api import (
     handle_get_lab_validation,
     handle_get_lab_validation_run,
     handle_get_layout,
+    handle_get_live_status,
     handle_get_livez,
     handle_get_mode,
     handle_get_onboarding,
@@ -77,6 +78,7 @@ from quantlab.workbench.api import (
     handle_get_watchlist,
     handle_get_watchlist_export,
     handle_post_backups_run,
+    handle_post_binance_scan,
     handle_post_broker_connect,
     handle_post_broker_disconnect,
     handle_post_broker_reconnect,
@@ -88,6 +90,8 @@ from quantlab.workbench.api import (
     handle_post_lab_optimize,
     handle_post_lab_scanner,
     handle_post_lab_validation_run,
+    handle_post_live_lock,
+    handle_post_live_unlock,
     handle_post_mode,
     handle_post_onboarding_complete,
     handle_post_paper_kill,
@@ -335,6 +339,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/mode":
                     self._send_json(handle_get_mode(state))
+                    return
+                if path == "/api/live/status":
+                    self._send_json(handle_get_live_status(state))
                     return
                 if path == "/api/diagnostics":
                     self._send_json(handle_get_diagnostics(state))
@@ -595,6 +602,15 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 body = _read_json(self, max_bytes=max_body)
                 if path == "/api/mode":
                     self._send_json(handle_post_mode(state, body))
+                    return
+                if path == "/api/live/unlock":
+                    self._send_json(handle_post_live_unlock(state, body))
+                    return
+                if path == "/api/live/lock":
+                    self._send_json(handle_post_live_lock(state, body))
+                    return
+                if path == "/api/lab/binance/scan":
+                    self._send_json(handle_post_binance_scan(state, body))
                     return
                 if path == "/api/broker/connect":
                     self._send_json(handle_post_broker_connect(state, body))

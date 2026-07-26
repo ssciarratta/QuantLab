@@ -35,8 +35,8 @@ def _static_root() -> Path:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.91.0"
-    assert PHASES_SUMMARY == "F19–F99 INTERNAL"
+    assert __version__ == "0.92.0"
+    assert PHASES_SUMMARY == "F19–F100 INTERNAL"
     assert not Path("docs/audit/FASE_79_APPROVED.md").exists()
 
 

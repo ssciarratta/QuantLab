@@ -24,6 +24,9 @@ ACTIVITY_EVENT_TYPES: frozenset[str] = frozenset(
         "error",
         # F91: rehydrate de sesión post-rebuild (auditable en el activity log).
         "rehydrate",
+        # F100: unlock/lock LIVE por credenciales (sin password en el log).
+        "live_unlock",
+        "live_lock",
     }
 )
 

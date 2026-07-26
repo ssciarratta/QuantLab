@@ -378,6 +378,22 @@
     supportBundleUrl: function () {
       return "/api/support-bundle.zip";
     },
+    liveStatus: function () {
+      return request("GET", "/api/live/status");
+    },
+    liveUnlock: function (username, password, venueScope) {
+      return request("POST", "/api/live/unlock", {
+        username: username,
+        password: password,
+        venue_scope: venueScope || "binance_demo",
+      });
+    },
+    liveLock: function () {
+      return request("POST", "/api/live/lock", {});
+    },
+    binanceScan: function (limit) {
+      return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
+    },
     about: function () {
       return request("GET", "/api/about");
     },

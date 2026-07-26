@@ -24,14 +24,19 @@ REAL_ALIAS: OperatingMode = OperatingMode.PAPER
 
 
 class ModeGuard:
-    """Fail-closed al boot: LIVE no arranca mientras LIVE_BLOCKED."""
+    """Fail-closed al boot: LIVE exige unlock por credenciales (F100)."""
 
     @staticmethod
     def validate_boot(mode: OperatingMode) -> None:
-        if mode is OperatingMode.LIVE and LIVE_BLOCKED:
+        if mode is not OperatingMode.LIVE:
+            return
+        from quantlab.execution.live_unlock import is_live_session_unlocked
+
+        if LIVE_BLOCKED and not is_live_session_unlocked():
             raise ValidationError(
-                "OperatingMode.LIVE bloqueado: LIVE_BLOCKED=True. "
-                "Usar TESTER o PAPER (alias REAL). Ver docs/ops/LIVE_FLIP_CHECKLIST.md"
+                "OperatingMode.LIVE bloqueado: LIVE_BLOCKED=True sin unlock. "
+                "Desbloqueá con usuario/contraseña (/api/live/unlock) o usá "
+                "TESTER/PAPER (alias REAL). Ver docs/ops/LIVE_CREDENTIAL_GATE.md"
             )
 
 

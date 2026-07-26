@@ -1,3 +1,10 @@
+[2026-07-26] DEC-144 — LIVE gated por usuario/contraseña (corte humano)
+  Decisión: el dueño autoriza desarrollar LIVE; el corte es unlock con
+  QUANTLAB_LIVE_USER/PASSWORD locales (nunca en git). LIVE_BLOCKED=True sin
+  unlock. Scope inicial binance_demo. MD público Binance read-only. Routing
+  órdenes venue queda para fase siguiente. Bump 0.92.0.
+  Fase: 100.
+
 [2026-07-26] DEC-143 — Guided Lab MVP reutiliza lab scanner/backtest
   Decisión: F99 agrega wizard UI amigable (venue→scan→estrategia→simular) sin
   rutas nuevas: reutiliza POST /api/lab/scanner y /api/lab/backtest. Solo paper.

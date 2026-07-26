@@ -2,13 +2,14 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.88.0** (F96 Diagnostics Download)
+**Versión tip:** **0.92.0** (F100 LIVE credential gate + Binance MD público)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
+**Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
 **Milestone congelado v0.70:** F19–F77/F78 · `docs/audit/MILESTONE_V070_FREEZE.md`  
-**LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
+**LIVE:** `LIVE_BLOCKED = True` sin unlock; con unlock efímero (user/pass) el gate de boot pasa — **routing venue aún stub** (DEC-144)
 
 ---
 
@@ -51,6 +52,10 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F94 | API Explorer Panel read-only · **0.86.0** |
 | F95 | Diagnostics Snapshot Panel read-only · **0.87.0** |
 | F96 | Diagnostics Download support snapshot · **0.88.0** |
+| F97 | Support Bundle ZIP · **0.89.0** |
+| F98 | Milestone freeze arco ops v0.90 · **0.90.0** |
+| F99 | Guided Lab MVP wizard paper · **0.91.0** |
+| F100 | LIVE credential gate + Binance public MD · **0.92.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -136,21 +141,26 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 
 ## Invariantes Zero-Trust (no negociar)
 
-1. `LIVE_BLOCKED is True` en `execution/live_gate.py`
-2. **REAL ≠ LIVE** — alias producto `REAL = PAPER` (MD/cuenta pueden ser reales; fills simulados)
-3. Workbench bind default `127.0.0.1`; non-loopback exige `--allow-non-loopback`
-4. Chat: solo tools allowlist read-only; mutaciones → `ValidationError`
-5. FakeProvider default CI; LLM opt-in vía env
-6. Session paths fail-closed (`validate_session_id`, zip-slip)
-7. PaperBroker / Paper Session: fills simulados; sin venue submit
-8. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-9. Sin emitir `FASE_19`…`FASE_96_APPROVED.md` desde INTERNAL
-10. `phases_summary` tip: `F19–F96 INTERNAL`
-11. About / health `version` ≡ `__version__` y startswith `0.88`
-12. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
+1. Sin unlock: `assert_live_routing_blocked()` falla; `LIVE_BLOCKED` documenta fail-closed
+2. Unlock LIVE solo con `QUANTLAB_LIVE_USER` / `QUANTLAB_LIVE_PASSWORD` (env local) + POST `/api/live/unlock`; password **nunca** en git ni disco de sesión
+3. Con unlock: ModeGuard permite boot LIVE; **LiveOrderRouter aún stub** (no place_order venue)
+4. **REAL ≠ LIVE** — alias producto `REAL = PAPER` (MD/cuenta pueden ser reales; fills simulados)
+5. Workbench bind default `127.0.0.1`; non-loopback exige `--allow-non-loopback`
+6. Chat: solo tools allowlist read-only; mutaciones → `ValidationError`
+7. FakeProvider default CI; LLM opt-in vía env
+8. Session paths fail-closed (`validate_session_id`, zip-slip)
+9. PaperBroker / Paper Session: fills simulados; sin venue submit
+10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
+11. Sin emitir `FASE_19`…`FASE_100_APPROVED.md` desde INTERNAL
+12. `phases_summary` tip: `F19–F100 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `0.92.0`)
+14. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
+15. OpenAPI: `/api/live/{status,unlock,lock}` = credential gate (permitido); paths trading `/api/live/*` prohibidos
 
 ## Próximo
 
-- Certificados externos F19–F96 solo con Meta-Auditor externo
-- Cierre INTERNAL F96 + bundle noche F19–F96; luego F97 según roadmap
-- Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado
+- F101: Binance **demo** order routing solo tras unlock (secrets solo en env del usuario)
+- Guided Lab: paper con MD Binance real → demo orders gated
+- A3 después del camino Binance
+- Certificados externos F19+ solo con Meta-Auditor
+- Flip LIVE real (no demo) solo con checklist + Meta-Auditor + dueño + commit dedicado

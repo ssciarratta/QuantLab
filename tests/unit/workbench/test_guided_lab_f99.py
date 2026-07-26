@@ -17,8 +17,8 @@ def _static_root() -> Path:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.91.0"
-    assert PHASES_SUMMARY == "F19–F99 INTERNAL"
+    assert __version__ == "0.92.0"
+    assert PHASES_SUMMARY == "F19–F100 INTERNAL"
     assert not Path("docs/audit/FASE_99_APPROVED.md").exists()
 
 
@@ -54,8 +54,16 @@ def test_pane_never_enables_live() -> None:
     js = (_static_root() / "js" / "panes" / "guided_lab.js").read_text(encoding="utf-8")
     for banned in ("setLive", "flip_live", "place_order", "QLApi.connect"):
         assert banned not in js
-    # Solo lab scanner + backtest (paper)
-    assert js.count("QLApi.") == js.count("QLApi.labScanner") + js.count("QLApi.labBacktest")
+    # Lab + live unlock/status + binance MD scan (sin submit venue)
+    allowed = (
+        js.count("QLApi.labScanner")
+        + js.count("QLApi.labBacktest")
+        + js.count("QLApi.liveStatus")
+        + js.count("QLApi.liveUnlock")
+        + js.count("QLApi.liveLock")
+        + js.count("QLApi.binanceScan")
+    )
+    assert js.count("QLApi.") == allowed
 
 
 def test_i18n_locales_have_pane_key() -> None:

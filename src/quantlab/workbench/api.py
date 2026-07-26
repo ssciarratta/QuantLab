@@ -801,11 +801,94 @@ def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
 
 
 def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
+    from quantlab.execution.live_unlock import live_unlock_status
+
     return {
         "mode": state.mode.value,
         "live_blocked": LIVE_BLOCKED is True,
+        "live_unlocked": live_unlock_status()["unlocked"],
         "real_alias": REAL_ALIAS.value,
     }
+
+
+def handle_get_live_status(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/live/status — estado del gate LIVE + unlock (F100)."""
+    from quantlab.execution.live_unlock import live_unlock_status
+
+    _ = state
+    status = live_unlock_status()
+    return {
+        "ok": True,
+        "kind": "live_status",
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        **status,
+    }
+
+
+def handle_post_live_unlock(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/live/unlock — pide usuario/contraseña; no persiste el password."""
+    from quantlab.execution.live_unlock import live_unlock_status, unlock_live_session
+
+    username = body.get("username")
+    password = body.get("password")
+    venue_scope = body.get("venue_scope", "binance_demo")
+    if not isinstance(username, str) or not isinstance(password, str):
+        raise ApiError(400, "username y password deben ser strings")
+    if not isinstance(venue_scope, str):
+        raise ApiError(400, "venue_scope debe ser string")
+    try:
+        session = unlock_live_session(
+            username=username,
+            password=password,
+            venue_scope=venue_scope,
+        )
+    except ValidationError as exc:
+        raise ApiError(401, str(exc)) from exc
+    _record_activity(
+        state,
+        "live_unlock",
+        ok=True,
+        message=f"LIVE unlock ok scope={session.venue_scope}",
+        detail={"username": session.username, "venue_scope": session.venue_scope},
+    )
+    status = live_unlock_status()
+    return {
+        "ok": True,
+        "kind": "live_unlock",
+        "live_blocked": LIVE_BLOCKED is True,
+        "token": session.token,
+        **status,
+    }
+
+
+def handle_post_live_lock(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/live/lock — cierra sesión LIVE desbloqueada."""
+    from quantlab.execution.live_unlock import live_unlock_status, lock_live_session
+
+    _ = body
+    lock_live_session()
+    _record_activity(state, "live_lock", ok=True, message="LIVE lock", detail={})
+    return {
+        "ok": True,
+        "kind": "live_lock",
+        "live_blocked": LIVE_BLOCKED is True,
+        **live_unlock_status(),
+    }
+
+
+def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/binance/scan — MD público Binance read-only (F100)."""
+    from quantlab.brokers.binance.public_md import scan_binance_usdt
+
+    _ = state
+    limit = body.get("limit", 20)
+    if not isinstance(limit, int):
+        raise ApiError(400, "limit debe ser int")
+    try:
+        return scan_binance_usdt(limit=limit)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
 
 
 def handle_get_diagnostics(state: WorkbenchState) -> dict[str, Any]:
