@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F33):** tip post-commit · **v0.25.0** (Optimizer History + Pareto)  
+**Tip código (impl F33):** `c39a57f` · **v0.25.0** (Optimizer History + Pareto)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F32_NIGHT.md` con **F33**.  
@@ -44,7 +44,7 @@
 | **30** | Universe Watchlist + Data Catalog | 0.22.0 | `7d8bf88` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F30.md` |
 | **31** | Feature Store Browser + Pipeline Runner | 0.23.0 | `70a8ee2` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F31.md` |
 | **32** | Validation / Walk-Forward Runner UI | 0.24.0 | `8c1cf58` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F32.md` |
-| **33** | Optimizer History + Pareto Panel | 0.25.0 | tip | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F33.md` |
+| **33** | Optimizer History + Pareto Panel | 0.25.0 | `c39a57f` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F33.md` |
 
 ### Arcos
 

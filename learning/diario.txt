@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 33 — Optimizer History + Pareto Panel
 -------------------------------------------------------
-- v0.25.0 · DEC-077 (SHA de impl se completa en commit).
+- v0.25.0 · impl SHA c39a57f · DEC-077.
 - POST /api/lab/optimize: grid + métricas + Pareto sharpe/MDD; persist
   session/optimizer/<run_id>.
 - GET /api/lab/optimize/history (+/{run_id}); panel Optimizer enriquecido.
