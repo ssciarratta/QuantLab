@@ -4,7 +4,7 @@
 **Versión:** 0.62.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F69 Risk Utilization · F26 Paper Session · F23 Risk  
-**Impl SHA:** TBD  
+**Impl SHA:** `2764637`  
 **Alcance:** paper kill switch — **sin flip LIVE**
 
 ---
