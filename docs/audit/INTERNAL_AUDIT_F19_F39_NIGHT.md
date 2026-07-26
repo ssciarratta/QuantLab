@@ -114,10 +114,10 @@ uv run python scripts/internal_audit_smoke.py  # 25/25 PASS
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F39_v0.31.0.zip` |
 | Generator | `scripts/build_internal_review_bundle.py` · `DEFAULT_TO_PHASE=39` |
-| SHA256 | `ef4b771f5078d48fad339e3d17a1c9ed0a37b45f353bf4851b9f6369b987449e` |
+| SHA256 | `a69d90514768b6627eb631c6ac834a3941b5b037758b2f88f23ad5f49dc7b0d9` |
 
 ```text
-4aef154cd7d5886db0c1945ec9f3f6016c4132caf8b0b8c92fbb40eb0692054a  QuantLab_Internal_Review_F19_F39_v0.31.0.zip
+a69d90514768b6627eb631c6ac834a3941b5b037758b2f88f23ad5f49dc7b0d9  QuantLab_Internal_Review_F19_F39_v0.31.0.zip
 ```
 
 > Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).  
