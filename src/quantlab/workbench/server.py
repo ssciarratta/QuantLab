@@ -15,11 +15,21 @@ from quantlab.workbench.api import (
     handle_get_account,
     handle_get_health,
     handle_get_instruments,
+    handle_get_lab_capabilities,
+    handle_get_lab_experiments,
+    handle_get_lab_metrics,
+    handle_get_lab_validation,
     handle_get_mode,
     handle_get_paper_fills,
     handle_get_snapshot,
     handle_get_venues,
     handle_post_broker_connect,
+    handle_post_lab_backtest,
+    handle_post_lab_export_hb,
+    handle_post_lab_features,
+    handle_post_lab_montecarlo,
+    handle_post_lab_optimize,
+    handle_post_lab_scanner,
     handle_post_mode,
     handle_post_paper_submit,
 )
@@ -78,7 +88,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
     """Factory de handler con estado de sesión compartido."""
 
     class WorkbenchHandler(BaseHTTPRequestHandler):
-        server_version = "QuantLabWorkbench/0.12"
+        server_version = "QuantLabWorkbench/0.13"
 
         def log_message(self, fmt: str, *args: object) -> None:
             # Silencioso en tests; útil en CLI vía print override opcional.
@@ -125,6 +135,18 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/paper/fills":
                     self._send_json(handle_get_paper_fills(state))
                     return
+                if path == "/api/lab/capabilities":
+                    self._send_json(handle_get_lab_capabilities(state))
+                    return
+                if path == "/api/lab/metrics":
+                    self._send_json(handle_get_lab_metrics(state))
+                    return
+                if path == "/api/lab/experiments":
+                    self._send_json(handle_get_lab_experiments(state))
+                    return
+                if path == "/api/lab/validation":
+                    self._send_json(handle_get_lab_validation(state))
+                    return
                 if path in ("/", "/index.html"):
                     index = STATIC_ROOT / "index.html"
                     data = index.read_bytes()
@@ -155,6 +177,24 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/submit":
                     self._send_json(handle_post_paper_submit(state, body))
+                    return
+                if path == "/api/lab/backtest":
+                    self._send_json(handle_post_lab_backtest(state, body))
+                    return
+                if path == "/api/lab/scanner":
+                    self._send_json(handle_post_lab_scanner(state, body))
+                    return
+                if path == "/api/lab/optimize":
+                    self._send_json(handle_post_lab_optimize(state, body))
+                    return
+                if path == "/api/lab/montecarlo":
+                    self._send_json(handle_post_lab_montecarlo(state, body))
+                    return
+                if path == "/api/lab/features":
+                    self._send_json(handle_post_lab_features(state, body))
+                    return
+                if path == "/api/lab/export-hb":
+                    self._send_json(handle_post_lab_export_hb(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

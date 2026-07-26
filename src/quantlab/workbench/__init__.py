@@ -1,1 +1,1 @@
-"""QuantLab Workbench — SPA local + window-manager (Fase 20 / DEC-061)."""
+"""QuantLab Workbench — SPA local + window-manager (Fase 20–21 / DEC-061)."""

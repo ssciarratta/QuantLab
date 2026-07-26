@@ -302,7 +302,9 @@ body {
   position: absolute;
   left: 0.4rem;
   bottom: calc(var(--taskbar-h) + 0.35rem);
-  min-width: 200px;
+  min-width: 220px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   background: var(--bg-elevated);
@@ -315,6 +317,16 @@ body {
 
 .start-menu.hidden {
   display: none;
+}
+
+.start-group {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.45rem 0.7rem 0.2rem;
+  opacity: 0.85;
 }
 
 @keyframes menu-in {
@@ -465,6 +477,20 @@ button.btn.secondary:hover {
 
 .muted {
   color: var(--text-muted);
+}
+
+.lab-json {
+  margin: 0.4rem 0 0;
+  padding: 0.55rem 0.65rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  font-size: 0.68rem;
+  line-height: 1.35;
+  overflow: auto;
+  max-height: 240px;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .kv {

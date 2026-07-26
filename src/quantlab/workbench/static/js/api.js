@@ -68,5 +68,35 @@
     paperFills: function () {
       return request("GET", "/api/paper/fills");
     },
+    labCapabilities: function () {
+      return request("GET", "/api/lab/capabilities");
+    },
+    labMetrics: function () {
+      return request("GET", "/api/lab/metrics");
+    },
+    labExperiments: function () {
+      return request("GET", "/api/lab/experiments");
+    },
+    labValidation: function () {
+      return request("GET", "/api/lab/validation");
+    },
+    labBacktest: function (body) {
+      return request("POST", "/api/lab/backtest", body || {});
+    },
+    labScanner: function (body) {
+      return request("POST", "/api/lab/scanner", body || {});
+    },
+    labOptimize: function (body) {
+      return request("POST", "/api/lab/optimize", body || {});
+    },
+    labMonteCarlo: function (body) {
+      return request("POST", "/api/lab/montecarlo", body || {});
+    },
+    labFeatures: function (body) {
+      return request("POST", "/api/lab/features", body || {});
+    },
+    labExportHb: function (body) {
+      return request("POST", "/api/lab/export-hb", body || {});
+    },
   };
 })(window);

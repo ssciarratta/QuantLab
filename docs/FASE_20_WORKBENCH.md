@@ -59,7 +59,7 @@ Bind default: `127.0.0.1`. Entry: `quantlab-workbench`.
 - [x] Docs DoD + implementation report
 - [x] Autauditoría + Review Package INTERNAL + INTERNAL_AUDIT (APROBADO_INTERNO)
 - [ ] Chat (F22) — fuera de alcance
-- [ ] Paneles backtest/optimizer (F21) — fuera de alcance
+- [x] Paneles backtest/optimizer (F21) — ver `docs/FASE_21_LAB_PANELS.md`
 - [ ] `FASE_20_APPROVED.md` formal externo — pendiente Meta-Auditor externo
 
 ## Fuera de alcance F20

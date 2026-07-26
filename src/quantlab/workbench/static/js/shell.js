@@ -46,10 +46,67 @@
     pane.refresh().catch(function () {});
   }
 
+  function openBacktest() {
+    const pane = QLPanes.createBacktestPane();
+    wm.open("backtest", "Backtest", pane, { x: 48, y: 48, w: 480, h: 420 });
+  }
+
+  function openScanner() {
+    const pane = QLPanes.createScannerPane();
+    wm.open("scanner", "Alpha Scanner", pane, { x: 80, y: 60, w: 460, h: 400 });
+  }
+
+  function openMetrics() {
+    const pane = QLPanes.createMetricsPane();
+    wm.open("metrics", "Metrics / Último", pane, { x: 100, y: 80, w: 480, h: 400 });
+    pane.refresh().catch(function () {});
+  }
+
+  function openExperiments() {
+    const pane = QLPanes.createExperimentsPane();
+    wm.open("experiments", "Experiments", pane, { x: 120, y: 90, w: 480, h: 380 });
+    pane.refresh().catch(function () {});
+  }
+
+  function openOptimize() {
+    const pane = QLPanes.createOptimizePane();
+    wm.open("optimize", "Optimizer", pane, { x: 140, y: 70, w: 460, h: 380 });
+  }
+
+  function openMonteCarlo() {
+    const pane = QLPanes.createMonteCarloPane();
+    wm.open("montecarlo", "Monte Carlo", pane, { x: 160, y: 100, w: 460, h: 380 });
+  }
+
+  function openFeatures() {
+    const pane = QLPanes.createFeaturesPane();
+    wm.open("features", "Features", pane, { x: 180, y: 110, w: 460, h: 380 });
+  }
+
+  function openExportHb() {
+    const pane = QLPanes.createExportHbPane();
+    wm.open("export_hb", "Hummingbot Export", pane, { x: 200, y: 90, w: 460, h: 360 });
+  }
+
+  function openValidation() {
+    const pane = QLPanes.createValidationPane();
+    wm.open("validation", "Validation Splits", pane, { x: 220, y: 80, w: 480, h: 400 });
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
     blotter: openBlotter,
+    backtest: openBacktest,
+    scanner: openScanner,
+    metrics: openMetrics,
+    experiments: openExperiments,
+    optimize: openOptimize,
+    montecarlo: openMonteCarlo,
+    features: openFeatures,
+    export_hb: openExportHb,
+    validation: openValidation,
   };
 
   startBtn.addEventListener("click", function (ev) {
@@ -93,7 +150,7 @@
   tickClock();
   setInterval(tickClock, 1000);
 
-  // Boot: banner + 3 ventanas
+  // Boot: banner + ventanas F20 (lab panes vía menú Inicio)
   QLApi.getMode()
     .then(updateBanner)
     .catch(function () {

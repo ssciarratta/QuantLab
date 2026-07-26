@@ -22,6 +22,7 @@ from quantlab.core.types.orders import OrderIntent
 from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
+from quantlab.workbench import lab_services
 
 
 @dataclass
@@ -33,7 +34,10 @@ class WorkbenchState:
     broker: BrokerPort | None = None
     venue: str | None = None
     journal: PaperFillJournal | None = None
+    last_lab_result: dict[str, Any] | None = None
     _journal_dir: Path | None = field(default=None, repr=False)
+    _lab_registry_path: Path | None = field(default=None, repr=False)
+    _lab_export_dir: Path | None = field(default=None, repr=False)
 
     def ensure_journal(self) -> PaperFillJournal:
         if self.journal is None:
@@ -41,6 +45,22 @@ class WorkbenchState:
                 self._journal_dir = Path(tempfile.mkdtemp(prefix="ql_wb_journal_"))
             self.journal = PaperFillJournal(self._journal_dir / "paper_fills.jsonl")
         return self.journal
+
+    def ensure_lab_registry_path(self) -> Path:
+        if self._lab_registry_path is None:
+            root = Path(tempfile.mkdtemp(prefix="ql_wb_experiments_"))
+            self._lab_registry_path = root / "experiments.sqlite"
+            lab_services.ensure_demo_experiment(self._lab_registry_path)
+        return self._lab_registry_path
+
+    def ensure_lab_export_dir(self) -> Path:
+        if self._lab_export_dir is None:
+            self._lab_export_dir = Path(tempfile.mkdtemp(prefix="ql_wb_hb_export_"))
+        return self._lab_export_dir
+
+    def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
+        self.last_lab_result = payload
+        return payload
 
 
 class ApiError(Exception):
@@ -271,3 +291,156 @@ def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:
     journal = state.ensure_journal()
     fills = [dataclass_to_dict(f) for f in journal.list_fills()]
     return {"fills": fills}
+
+
+def _lab_validation_error(exc: ValidationError) -> ApiError:
+    return ApiError(400, str(exc))
+
+
+def handle_get_lab_capabilities(_state: WorkbenchState) -> dict[str, Any]:
+    return lab_services.lab_capabilities()
+
+
+def handle_get_lab_metrics(state: WorkbenchState) -> dict[str, Any]:
+    if state.last_lab_result is None:
+        return {
+            "ok": True,
+            "kind": "metrics",
+            "has_result": False,
+            "result": None,
+            "message": "sin resultado aún; correr backtest/optimize/montecarlo/scanner",
+            "live_routing": False,
+        }
+    return {
+        "ok": True,
+        "kind": "metrics",
+        "has_result": True,
+        "result": state.last_lab_result,
+        "live_routing": False,
+    }
+
+
+def handle_get_lab_experiments(state: WorkbenchState) -> dict[str, Any]:
+    path = state.ensure_lab_registry_path()
+    return lab_services.list_lab_experiments(path)
+
+
+def handle_get_lab_validation(_state: WorkbenchState) -> dict[str, Any]:
+    try:
+        return lab_services.run_lab_validation()
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    strategy_id = body.get("strategy_id", "momentum")
+    if not isinstance(strategy_id, str) or not strategy_id.strip():
+        raise ApiError(400, "strategy_id debe ser string no vacío")
+    params = body.get("params")
+    if params is None:
+        params_dict: dict[str, Any] = {}
+    elif isinstance(params, dict):
+        params_dict = params
+    else:
+        raise ApiError(400, "params debe ser objeto JSON")
+    n_bars = body.get("n_bars", 24)
+    if not isinstance(n_bars, int):
+        raise ApiError(400, "n_bars debe ser int")
+    experiment_id = body.get("experiment_id", "wb-lab-backtest")
+    if not isinstance(experiment_id, str) or not experiment_id.strip():
+        raise ApiError(400, "experiment_id inválido")
+    try:
+        result = lab_services.run_lab_backtest(
+            strategy_id=strategy_id,
+            params=params_dict,
+            n_bars=n_bars,
+            experiment_id=experiment_id.strip(),
+        )
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    return state.store_lab_result(result)
+
+
+def handle_post_lab_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    top_n = body.get("top_n", 3)
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    try:
+        result = lab_services.run_lab_scanner(top_n=top_n)
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    return state.store_lab_result(result)
+
+
+def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    lookbacks_raw = body.get("lookbacks", [2, 3])
+    quantities_raw = body.get("quantities", ["1"])
+    n_bars = body.get("n_bars", 20)
+    if not isinstance(lookbacks_raw, list) or not lookbacks_raw:
+        raise ApiError(400, "lookbacks debe ser lista no vacía")
+    if not isinstance(quantities_raw, list) or not quantities_raw:
+        raise ApiError(400, "quantities debe ser lista no vacía")
+    if not isinstance(n_bars, int):
+        raise ApiError(400, "n_bars debe ser int")
+    try:
+        lookbacks = tuple(int(x) for x in lookbacks_raw)
+        quantities = tuple(str(x) for x in quantities_raw)
+        result = lab_services.run_lab_optimize(
+            lookbacks=lookbacks, quantities=quantities, n_bars=n_bars
+        )
+    except (ValidationError, TypeError, ValueError) as exc:
+        raise ApiError(400, str(exc)) from exc
+    return state.store_lab_result(result)
+
+
+def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    n_scenarios = body.get("n_scenarios", 5)
+    n_bars = body.get("n_bars", 16)
+    noise_bps = body.get("noise_bps", 10.0)
+    if not isinstance(n_scenarios, int):
+        raise ApiError(400, "n_scenarios debe ser int")
+    if not isinstance(n_bars, int):
+        raise ApiError(400, "n_bars debe ser int")
+    if not isinstance(noise_bps, (int, float)):
+        raise ApiError(400, "noise_bps debe ser número")
+    try:
+        result = lab_services.run_lab_montecarlo(
+            n_scenarios=n_scenarios,
+            n_bars=n_bars,
+            noise_bps=float(noise_bps),
+        )
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    return state.store_lab_result(result)
+
+
+def handle_post_lab_features(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    n_bars = body.get("n_bars", 20)
+    if not isinstance(n_bars, int):
+        raise ApiError(400, "n_bars debe ser int")
+    try:
+        result = lab_services.run_lab_features(n_bars=n_bars)
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    return state.store_lab_result(result)
+
+
+def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    experiment_id = body.get("experiment_id", "wb-hb-export")
+    strategy_version = body.get("strategy_version", "demo-1")
+    if not isinstance(experiment_id, str) or not experiment_id.strip():
+        raise ApiError(400, "experiment_id inválido")
+    if not isinstance(strategy_version, str) or not strategy_version.strip():
+        raise ApiError(400, "strategy_version inválido")
+    # Path-safe: solo sandbox de sesión; rechazar override externo.
+    if "path" in body or "target_path" in body:
+        raise ApiError(400, "path externo no permitido; export solo a sandbox de sesión")
+    try:
+        result = lab_services.run_lab_export_hb(
+            state.ensure_lab_export_dir(),
+            experiment_id=experiment_id.strip(),
+            strategy_version=strategy_version.strip(),
+        )
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    return state.store_lab_result(result)
