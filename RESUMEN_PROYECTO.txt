@@ -1,36 +1,37 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.41.0 (F49 Milestone Freeze)
+Versión código actual: 0.42.0 (F50 Performance Baseline Workbench API)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
 Auditoría INTERNAL F49: código 0.41.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F50: código 0.42.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
 Noche F19–F49: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F49_NIGHT.md)
+Noche F19–F50: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F50_NIGHT.md)
 Freeze: docs/audit/MILESTONE_V040_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F49: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench completo F19–F48 (modos, UI, paper, lab, ops, themes) + F49 freeze docs
+- F19–F50: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49 freeze docs + F50 perf baseline API
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F49 Milestone Freeze Docs + CHANGELOG Sync (v0.41.0) — APROBADO_INTERNO:
-- MILESTONE_V040_FREEZE.md (inventario F19–F48, invariantes, operar, límites no LIVE)
-- CHANGELOG resumen agrupado F19–F48; sync RESUMEN / PROJECT_MEMORY / README
-- Smoke: about version matches __version__; bundle F19–F49; DEC-093
-- FASE_49_APPROVED.md NO emitido
+F50 Performance Baseline Workbench API (v0.42.0) — APROBADO_INTERNO:
+- perf_baseline: health/mode/commands/about/lab/capabilities; p95/max < 500ms
+- test_perf_baseline_f50.py + scripts/workbench_perf_baseline.py; DEC-094
+- FASE_50_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F49 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F50 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
 

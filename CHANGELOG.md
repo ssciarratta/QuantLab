@@ -19,6 +19,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.42.0] — 2026-07-26
+
+### Fase 50 — Performance Baseline Workbench API
+
+#### Added
+- `quantlab.workbench.perf_baseline` — medición p50/p95/max de endpoints clave
+- Suite `tests/unit/workbench/test_perf_baseline_f50.py` (assert p95/max < 500ms)
+- CLI `scripts/workbench_perf_baseline.py`
+- Docs: `FASE_50_PERF_BASELINE.md` · implementation report · DEC-094
+- Bundle INTERNAL default F19–F50
+
+#### Changed
+- `phases_summary` → `F19–F50 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_50_APPROVED.md`
+
+---
+
 ## [0.41.0] — 2026-07-26
 
 ### Fase 49 — Milestone Freeze Docs + CHANGELOG Sync

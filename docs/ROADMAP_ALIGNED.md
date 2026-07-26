@@ -655,6 +655,18 @@
 **Spec:** `docs/FASE_49_MILESTONE.md`  
 **Implementation report:** `docs/audit/FASE_49_IMPLEMENTATION_REPORT.md`
 
+### Fase 50 — Performance Baseline Workbench API
+**Módulos:**
+- `quantlab.workbench.perf_baseline` — p50/p95/max loopback de endpoints clave
+- Suite + CLI: health, mode, commands, about, lab/capabilities (p95/max < 500ms)
+- DEC-094; bump 0.42.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F50.md`, 2026-07-26) — certificado externo `FASE_50_APPROVED.md` **NO emitido**  
+**Versión:** 0.42.0 · implementación *(tip post-commit)*  
+**Noche F19–F50:** `docs/audit/INTERNAL_AUDIT_F19_F50_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_50_PERF_BASELINE.md`  
+**Implementation report:** `docs/audit/FASE_50_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -699,6 +711,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F49 **APROBADO_INTERNO** (noche F19–F49; freeze F19–F48).  
+1. F0–F18 certificados externos; F19–F50 **APROBADO_INTERNO** (noche F19–F50; freeze F19–F48).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

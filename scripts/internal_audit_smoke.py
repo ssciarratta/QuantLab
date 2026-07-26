@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,8 +163,8 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -1299,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.41.0"
+    assert about["version"] == "0.42.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1353,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1416,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1460,6 +1460,56 @@ def check_f48_themes() -> None:
     assert load_settings(session.settings_path)["theme"] == "slate"
 
 
+def check_f50_perf_baseline() -> None:
+    """F50: workbench API latency baseline p95/max < 500ms (loopback)."""
+    import tempfile
+    import threading
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import WorkbenchState
+    from quantlab.workbench.perf_baseline import (
+        DEFAULT_MAX_THRESHOLD_MS,
+        DEFAULT_P95_THRESHOLD_MS,
+        PERF_ENDPOINTS,
+        assert_baseline_within_budget,
+        run_perf_baseline,
+    )
+    from quantlab.workbench.server import create_server
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
+    session = WorkbenchSession.create_or_load(root, "smoke50")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    server = create_server(host="127.0.0.1", port=0, state=state)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        report = run_perf_baseline(
+            server,
+            endpoints=PERF_ENDPOINTS,
+            samples=15,
+            warmup=2,
+            p95_threshold_ms=DEFAULT_P95_THRESHOLD_MS,
+            max_threshold_ms=DEFAULT_MAX_THRESHOLD_MS,
+            version=__version__,
+            live_blocked=True,
+        )
+        assert_baseline_within_budget(report)
+        assert len(report.endpoints) == 5
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2.0)
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -1497,6 +1547,7 @@ def main() -> int:
         ("F46 multi-session switcher", check_f46_sessions),
         ("F47 chat context awareness", check_f47_chat_context),
         ("F48 theme CSS slate + high-contrast", check_f48_themes),
+        ("F50 workbench API perf baseline", check_f50_perf_baseline),
     ]
     ok = True
     for name, fn in checks:

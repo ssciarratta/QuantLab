@@ -98,8 +98,8 @@ def test_live_blocked_f48() -> None:
 
 
 def test_version_and_phases_f48() -> None:
-    assert __version__ == "0.41.0"
-    assert PHASES_SUMMARY == "F19–F49 INTERNAL"
+    assert __version__ == "0.42.0"
+    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
 
 
 def test_css_theme_tokens_complete() -> None:

@@ -2,6 +2,13 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 50 — Performance Baseline Workbench API
+-------------------------------------------------------
+- v0.42.0 · DEC-094 · LIVE_BLOCKED intacto · sin FASE_50_APPROVED.
+- Baseline loopback: /api/health · /mode · /commands · /about ·
+  /lab/capabilities; p95/max < 500ms; módulo perf_baseline + test + script.
+- Noche F19–F50 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 49 — Milestone Freeze Docs + CHANGELOG Sync
 -------------------------------------------------------
 - v0.41.0 · DEC-093 · LIVE_BLOCKED intacto · sin FASE_49_APPROVED.

@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-094 — Performance Baseline Workbench API
+  Decisión: F50 = medir latencia loopback de endpoints clave (health, mode,
+  commands, about, lab/capabilities) sobre ThreadingHTTPServer en thread;
+  assert p95 y max < 500ms local; módulo quantlab.workbench.perf_baseline +
+  tests test_perf_baseline_f50.py + script workbench_perf_baseline.py;
+  bump 0.42.0. LIVE_BLOCKED=True; sin flip; sin FASE_50_APPROVED.
+  Fase: 50.
+
 [2026-07-26] DEC-093 — Milestone Freeze Docs + CHANGELOG Sync
   Decisión: F49 = freeze documental F19–F48 (MILESTONE_V040_FREEZE.md:
   inventario, invariantes, cómo operar, límites no LIVE); sync CHANGELOG

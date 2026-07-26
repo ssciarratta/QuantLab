@@ -1366,3 +1366,51 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F49: **0.41.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 50 — Performance Baseline Workbench API
+
+**Código:** 0.42.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-094  
+**Qué es:** Baseline de latencia loopback para endpoints clave del workbench API (health, mode, commands, about, lab/capabilities); assert p95/max < 500ms; CLI + suite; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_50_PERF_BASELINE.md` |
+| Implementation report | `docs/audit/FASE_50_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F50.md` |
+| Review Package INTERNAL | `docs/audit/FASE_50_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F50.md` |
+| Noche F19–F50 | `docs/audit/INTERNAL_AUDIT_F19_F50_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 50** |
+
+**Certificado externo:** **NO** emitido (`FASE_50_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F50 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Módulo perf_baseline | `src/quantlab/workbench/perf_baseline.py` |
+| A2 | Suite F50 | `tests/unit/workbench/test_perf_baseline_f50.py` |
+| A3 | CLI baseline | `scripts/workbench_perf_baseline.py` |
+| A4 | Spec | `docs/FASE_50_PERF_BASELINE.md` |
+| A5 | Implementation report | `docs/audit/FASE_50_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-094 | `learning/decisiones.txt` |
+| A7 | Smoke F50 | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 50 | `scripts/build_internal_review_bundle.py` |
+| A9 | Version 0.42.0 | `pyproject.toml` |
+
+### Lista B F50 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+uv run python scripts/workbench_perf_baseline.py
+```
+
+Versión código F50: **0.42.0** · LIVE: **BLOQUEADO** · flip: **NO**.

@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.41.0** (F49 Milestone Freeze)  
+**Versión tip:** **0.42.0** (F50 Performance Baseline Workbench API)  
 **Milestone congelado:** **v0.40.0** (F19–F48) · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
@@ -22,16 +22,18 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F0–F18 | Certificados **externos** (`FASE_*_APPROVED.md`) |
 | F19–F48 | **APROBADO_INTERNO** Zero-Trust; milestone v0.40.0 freeze |
 | F49 | Milestone freeze docs + CHANGELOG sync · **0.41.0** |
+| F50 | Performance baseline Workbench API · **0.42.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
 | Noche F19–F48 | `docs/audit/INTERNAL_AUDIT_F19_F48_NIGHT.md` |
 | Noche F19–F49 | `docs/audit/INTERNAL_AUDIT_F19_F49_NIGHT.md` |
+| Noche F19–F50 | `docs/audit/INTERNAL_AUDIT_F19_F50_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F48 (SHAs impl) — freeze v0.40.0
+## Arco nocturno F19–F50 (SHAs impl) — tip v0.42.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -66,6 +68,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 47 | Chat Context Awareness | 0.39.0 | `afdf067` |
 | 48 | Theme CSS Completion | 0.40.0 | `9227750` |
 | 49 | Milestone Freeze Docs + CHANGELOG | 0.41.0 | `0ddbe67` |
+| 50 | Performance Baseline Workbench API | 0.42.0 | *(tip)* |
 
 ---
 
@@ -83,6 +86,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
 11. Catalog / Feature Store: read-only list; persist features solo sandbox sesión
 12. About / health `version` ≡ `quantlab.__version__` (F49 smoke)
+13. Perf baseline F50: p95/max endpoints clave < 500ms loopback
 
 ---
 
@@ -92,10 +96,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
 - Resumen: `RESUMEN_PROYECTO.txt`
-- DECs: `learning/decisiones.txt` (DEC-054…093)
+- DECs: `learning/decisiones.txt` (DEC-054…094)
 - Workbench: `src/quantlab/workbench/`
+- Perf baseline: `src/quantlab/workbench/perf_baseline.py`
 - Smoke: `scripts/internal_audit_smoke.py`
-- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F49)
+- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F50)
 - Flip checklist (no ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
 
 ---
@@ -109,6 +114,7 @@ uv run ruff check src/quantlab tests scripts
 uv run pytest -q
 uv run quantlab-health
 uv run python scripts/internal_audit_smoke.py
+uv run python scripts/workbench_perf_baseline.py
 ```
 
 ---
@@ -116,6 +122,7 @@ uv run python scripts/internal_audit_smoke.py
 ## Entry points útiles
 
 - `quantlab-health` — ops / LIVE gate
-- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F49
+- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F50
+- `scripts/workbench_perf_baseline.py` — latencia API F50
 - `quantlab-a3` — market data A3 (anticorrupción)
 - `quantlab-vertical-slice` — slice mínimo
