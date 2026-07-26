@@ -19,6 +19,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.19.0] — 2026-07-26
+
+### Fase 27 — Strategy Catalog (workbench)
+
+#### Added
+- Catálogo compartido `workbench/strategy_catalog.py` (dummy, buy_once, momentum, inventory_mm, avellaneda_stoikov)
+- Wire `InventoryMMStrategy` + `AvellanedaStoikovStrategy` en paper session + lab backtest
+- `GET /api/lab/strategies` + `strategy_catalog` en capabilities
+- UI selectores + params básicos (Sesión Paper / Backtest)
+- Adapter bar-based para MM en lab (`BarSyntheticBookAdapter`)
+- Tests smoke por `strategy_id` · DEC-071
+- Docs: `FASE_27_STRATEGY_CATALOG.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin place_order venue
+
+---
+
 ## [0.18.0] — 2026-07-26
 
 ### Fase 26 — Paper Session Runner

@@ -631,6 +631,11 @@ def handle_get_lab_capabilities(_state: WorkbenchState) -> dict[str, Any]:
     return lab_services.lab_capabilities()
 
 
+def handle_get_lab_strategies(_state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/strategies — catálogo F27."""
+    return lab_services.lab_strategies()
+
+
 def handle_get_lab_metrics(state: WorkbenchState) -> dict[str, Any]:
     if state.last_lab_result is None:
         return {

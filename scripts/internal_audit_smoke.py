@@ -278,6 +278,34 @@ def check_f26_paper_session() -> None:
     runner.stop()
 
 
+def check_f27_strategy_catalog() -> None:
+    """F27: catálogo + MM wire + lab strategies sin LIVE."""
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.lab_services import lab_strategies, run_lab_backtest
+    from quantlab.workbench.strategy_catalog import (
+        CANONICAL_STRATEGY_IDS,
+        build_strategy,
+        list_strategy_catalog,
+        normalize_strategy_id,
+    )
+
+    assert LIVE_BLOCKED is True
+    assert "inventory_mm" in CANONICAL_STRATEGY_IDS
+    assert "avellaneda_stoikov" in CANONICAL_STRATEGY_IDS
+    assert normalize_strategy_id("as") == "avellaneda_stoikov"
+    cats = list_strategy_catalog()
+    assert len(cats) == len(CANONICAL_STRATEGY_IDS)
+    for sid in CANONICAL_STRATEGY_IDS:
+        build_strategy(sid).reset()
+        result = run_lab_backtest(strategy_id=sid, n_bars=8)
+        assert result["ok"] is True
+        assert result["live_blocked"] is True
+        assert result["live_routing"] is False
+    body = lab_strategies()
+    assert body["ok"] is True
+    assert "inventory_mm" in body["ids"]
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -292,6 +320,7 @@ def main() -> int:
         ("F25 launch --allow-non-loopback", check_f25_launch_parser),
         ("F25 ops desk slip/charset/risk", check_f25_ops_desk_invariants),
         ("F26 paper session runner", check_f26_paper_session),
+        ("F27 strategy catalog", check_f27_strategy_catalog),
     ]
     ok = True
     for name, fn in checks:

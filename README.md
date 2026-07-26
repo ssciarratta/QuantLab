@@ -16,6 +16,7 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F24 | Venue plugins + A3 MD read-only opt-in + generic CSV/REST · **APROBADO_INTERNO** · v0.16.0 |
 | F25 | Ops Desk 1-click + hardening (non-loopback, experiment_id, slip, Risk) · **APROBADO_INTERNO** · v0.17.0 |
 | F26 | Paper Session Runner (estrategia → risk → PaperBroker) · **APROBADO_INTERNO** · v0.18.0 |
+| F27 | Strategy Catalog (InventoryMM + Avellaneda–Stoikov en workbench) · v0.19.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
 > Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F26](docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md)  
@@ -33,7 +34,7 @@ uv run quantlab-vertical-slice
 uv run quantlab-a3 health
 ```
 
-### Workbench local (F20–F26)
+### Workbench local (F20–F27)
 
 UI loopback (stdlib) con paneles Health / MD / Blotter / Riesgo / **Sesión Paper**, Laboratorio y **Chat IA** safe-mode:
 
@@ -48,7 +49,7 @@ uv run python scripts/internal_audit_smoke.py   # invariantes LIVE + imports
 - Non-loopback requiere `--allow-non-loopback`; 1-click: [WORKBENCH_1CLICK](docs/ops/WORKBENCH_1CLICK.md)
 - Chat: FakeProvider por defecto; tools allowlist read-only (sin órdenes)
 - MD: venues `a3` / `generic_csv` / `generic_rest` + plugins entry-point; `md_source` fake|env
-- Specs: [F20](docs/FASE_20_WORKBENCH.md) · [F21](docs/FASE_21_LAB_PANELS.md) · [F22](docs/FASE_22_CHAT_IA.md) · [F23](docs/FASE_23_PAPER_BOOK.md) · [F24](docs/FASE_24_VENUE_MD_PLUGINS.md) · [F25](docs/FASE_25_OPS_DESK.md) · [F26](docs/FASE_26_PAPER_SESSION.md) · [plugins](docs/ops/BROKER_PLUGINS.md)
+- Specs: [F20](docs/FASE_20_WORKBENCH.md) · [F21](docs/FASE_21_LAB_PANELS.md) · [F22](docs/FASE_22_CHAT_IA.md) · [F23](docs/FASE_23_PAPER_BOOK.md) · [F24](docs/FASE_24_VENUE_MD_PLUGINS.md) · [F25](docs/FASE_25_OPS_DESK.md) · [F26](docs/FASE_26_PAPER_SESSION.md) · [F27](docs/FASE_27_STRATEGY_CATALOG.md) · [plugins](docs/ops/BROKER_PLUGINS.md)
 
 Market data / órdenes simulation offline usan Fake backend por defecto. API real:
 

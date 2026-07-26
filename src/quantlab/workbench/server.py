@@ -19,6 +19,7 @@ from quantlab.workbench.api import (
     handle_get_lab_capabilities,
     handle_get_lab_experiments,
     handle_get_lab_metrics,
+    handle_get_lab_strategies,
     handle_get_lab_validation,
     handle_get_mode,
     handle_get_paper_book,
@@ -162,6 +163,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/capabilities":
                     self._send_json(handle_get_lab_capabilities(state))
+                    return
+                if path == "/api/lab/strategies":
+                    self._send_json(handle_get_lab_strategies(state))
                     return
                 if path == "/api/lab/metrics":
                     self._send_json(handle_get_lab_metrics(state))

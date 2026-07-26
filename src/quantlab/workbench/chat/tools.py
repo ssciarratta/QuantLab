@@ -69,8 +69,9 @@ _TOOL_META: dict[str, dict[str, str]] = {
 
 _BACKTEST_GUIDE = (
     "Backtest en QuantLab Workbench: panel Backtest o POST /api/lab/backtest. "
-    "Estrategias demo: dummy, momentum, buy_once sobre barras sintéticas. "
-    "Parámetros típicos: strategy_id, n_bars, params (lookback/quantity). "
+    "Estrategias: GET /api/lab/strategies (dummy, buy_once, momentum, inventory_mm, "
+    "avellaneda_stoikov). Parámetros típicos: strategy_id, n_bars, params "
+    "(lookback/quantity/half_spread/gamma). "
     "Resultado queda en sesión (GET /api/lab/metrics). Nunca envía órdenes live."
 )
 

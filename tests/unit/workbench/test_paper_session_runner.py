@@ -198,6 +198,33 @@ def test_build_strategy_unknown() -> None:
         build_session_strategy("nope")
 
 
+def test_start_rejects_unknown_strategy() -> None:
+    runner, _, _, _ = _runner()
+    with pytest.raises(ValidationError, match="desconocido"):
+        runner.start(PaperSessionConfig(strategy_id="nope", symbol="TEST", max_steps=1))
+
+
+def test_paper_session_inventory_mm_quotes() -> None:
+    """MM recibe best_bid/ask del snapshot y emite PLACE bid (inv=0)."""
+    runner, _, _, _ = _runner()
+    runner.start(
+        PaperSessionConfig(
+            strategy_id="inventory_mm",
+            symbol="TEST",
+            max_steps=2,
+            params={"quantity": "1", "half_spread": "0.5", "max_pos": "10"},
+        )
+    )
+    summary = runner.step()
+    assert summary["ok"] is True
+    types = [a["intent_type"] for a in summary["actions"]]
+    assert "place_order" in types or "PLACE_ORDER" in types
+    assert any(
+        a.get("intent_type") in ("place_order", "PLACE_ORDER") for a in summary["actions"]
+    )
+    runner.stop()
+
+
 def test_max_steps_stops() -> None:
     runner, _md, _broker, _book = _runner()
     runner.start(PaperSessionConfig(strategy_id="buy_once", symbol="TEST", max_steps=1))

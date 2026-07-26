@@ -1,4 +1,4 @@
-"""Paper Session Runner — estrategia → intents → risk → PaperBroker (F26).
+"""Paper Session Runner — estrategia → intents → risk → PaperBroker (F26/F27).
 
 Nunca envía órdenes a venue LIVE. Solo ``PaperBroker.submit`` (fills locales).
 Constructor fail-closed si el broker no es ``PaperBroker``.
@@ -24,12 +24,14 @@ from quantlab.core.types.orders import OrderIntent
 from quantlab.core.types.portfolio import Balance, PortfolioState, Position, SimulationClock
 from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
-from quantlab.research.strategies.buy_once import BuyOnceStrategy
-from quantlab.research.strategies.dummy_strategy import DummyStrategy
-from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
 from quantlab.workbench.risk import PaperRiskLimits
+from quantlab.workbench.strategy_catalog import (
+    CANONICAL_STRATEGY_IDS,
+    build_strategy,
+    normalize_strategy_id,
+)
 
-SESSION_STRATEGY_IDS: tuple[str, ...] = ("dummy", "buy_once", "momentum", "simple_momentum")
+SESSION_STRATEGY_IDS: tuple[str, ...] = CANONICAL_STRATEGY_IDS
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,28 +57,8 @@ class PaperSessionConfig:
 
 
 def build_session_strategy(strategy_id: str, params: Mapping[str, Any] | None = None) -> Any:
-    """Factory de estrategias research para sesión paper."""
-    sid = strategy_id.strip().lower()
-    strategy_params = dict(params or {})
-    if sid == "dummy":
-        if "quantity" not in strategy_params:
-            strategy_params["quantity"] = "0.01"
-        if "price" not in strategy_params:
-            strategy_params["price"] = "100.0"
-        return DummyStrategy(strategy_params)
-    if sid == "buy_once":
-        if "quantity" not in strategy_params:
-            strategy_params["quantity"] = "1"
-        return BuyOnceStrategy(strategy_params)
-    if sid in ("momentum", "simple_momentum"):
-        if "quantity" not in strategy_params:
-            strategy_params["quantity"] = "1"
-        if "lookback" not in strategy_params:
-            strategy_params["lookback"] = 3
-        return SimpleMomentumStrategy(strategy_params)
-    raise ValidationError(
-        f"strategy_id desconocido: {strategy_id!r}; disponibles: dummy, buy_once, momentum"
-    )
+    """Factory de estrategias research para sesión paper (delegado al catálogo F27)."""
+    return build_strategy(strategy_id, params)
 
 
 def _mark_from_snapshot(snapshot: BrokerSnapshot) -> Decimal:
@@ -116,6 +98,29 @@ def snapshot_to_bar(
     )
 
 
+def _context_params_from_md(
+    strategy: Any,
+    snapshot: BrokerSnapshot,
+    book: PaperBook,
+    symbol: str,
+) -> dict[str, Any]:
+    """Parámetros de estrategia + book MD (best_bid/ask/inventory) para MM."""
+    params = dict(strategy.get_parameters())
+    if snapshot.bid > 0:
+        params["best_bid"] = str(snapshot.bid)
+    if snapshot.ask > 0:
+        params["best_ask"] = str(snapshot.ask)
+    inv = Decimal("0")
+    for bp in book.get_positions():
+        if bp.symbol == symbol:
+            inv = bp.quantity
+            break
+    params["inventory"] = str(inv)
+    max_pos = Decimal(str(params.get("max_pos", "10")))
+    params["inventory_skew"] = str((inv / max_pos) if max_pos > 0 else Decimal("0"))
+    return params
+
+
 class PaperSessionRunner:
     """Loop paper: MD snapshot → strategy → risk → broker.submit.
 
@@ -136,8 +141,7 @@ class PaperSessionRunner:
         # Fail-closed: solo PaperBroker (nunca BrokerPort venue / MD-only con submit).
         if not isinstance(broker, PaperBroker):
             raise ValidationError(
-                "PaperSessionRunner requiere PaperBroker "
-                "(nunca place_order / submit venue)"
+                "PaperSessionRunner requiere PaperBroker (nunca place_order / submit venue)"
             )
         self._broker = broker
         self._risk = risk
@@ -157,14 +161,9 @@ class PaperSessionRunner:
         """Inicia (o reinicia) la sesión; opcionalmente lanza background."""
         self.stop()
         with self._lock:
-            sid = config.strategy_id.strip().lower()
-            if sid not in ("dummy", "buy_once", "momentum", "simple_momentum"):
-                raise ValidationError(
-                    f"strategy_id desconocido: {config.strategy_id!r}; "
-                    f"disponibles: dummy, buy_once, momentum"
-                )
+            sid = normalize_strategy_id(config.strategy_id)
             normalized = PaperSessionConfig(
-                strategy_id="momentum" if sid == "simple_momentum" else sid,
+                strategy_id=sid,
                 symbol=config.symbol.strip(),
                 max_steps=config.max_steps,
                 interval_ms=config.interval_ms,
@@ -273,7 +272,7 @@ class PaperSessionRunner:
         ctx = StrategyContext(
             clock=clock,
             portfolio_state=portfolio,
-            parameters=self._strategy.get_parameters(),
+            parameters=_context_params_from_md(self._strategy, snapshot, self._book, cfg.symbol),
         )
 
         event = MarketEvent(

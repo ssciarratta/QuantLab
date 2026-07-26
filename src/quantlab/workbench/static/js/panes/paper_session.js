@@ -1,4 +1,4 @@
-/** Panel Sesión Paper — strategy start/step/stop + log (F26). */
+/** Panel Sesión Paper — strategy catalog + start/step/stop (F26/F27). */
 (function (global) {
   "use strict";
 
@@ -11,13 +11,10 @@
       "<h3>Sesión Paper</h3>" +
       '<p class="muted" style="margin-top:0">Estrategia → risk → PaperBroker. Nunca place_order LIVE.</p>' +
       '<div class="pane-row">' +
-      '<label class="field">Estrategia<select id="ps-strategy">' +
-      '<option value="dummy">dummy</option>' +
-      '<option value="buy_once">buy_once</option>' +
-      '<option value="momentum">momentum</option>' +
-      "</select></label>" +
+      '<label class="field">Estrategia<select id="ps-strategy"></select></label>' +
       '<label class="field">Símbolo<input id="ps-symbol" type="text" placeholder="símbolo MD" /></label>' +
       "</div>" +
+      '<div class="pane-row" id="ps-params-row"></div>' +
       '<div class="pane-row">' +
       '<label class="field">Max steps<input id="ps-max" type="number" min="1" max="10000" value="20" /></label>' +
       '<label class="field">Interval ms (opc)<input id="ps-interval" type="number" min="0" placeholder="manual" /></label>' +
@@ -37,7 +34,10 @@
 
     const statusEl = root.querySelector("#ps-status");
     const logEl = root.querySelector("#ps-log");
+    const selectEl = root.querySelector("#ps-strategy");
+    const paramsRow = root.querySelector("#ps-params-row");
     const lines = [];
+    let catalog = [];
 
     function appendLog(msg) {
       const ts = new Date().toLocaleTimeString("es-AR", {
@@ -50,6 +50,77 @@
       logEl.textContent = lines.join("\n");
       logEl.scrollTop = logEl.scrollHeight;
     }
+
+    function currentMeta() {
+      const id = selectEl.value;
+      for (let i = 0; i < catalog.length; i++) {
+        if (catalog[i].id === id) return catalog[i];
+      }
+      return null;
+    }
+
+    function renderParams() {
+      const meta = currentMeta();
+      paramsRow.innerHTML = "";
+      if (!meta || !meta.default_params) return;
+      const keys = Object.keys(meta.default_params);
+      keys.forEach(function (key) {
+        const val = meta.default_params[key];
+        const label = document.createElement("label");
+        label.className = "field";
+        label.textContent = key;
+        const input = document.createElement("input");
+        input.id = "ps-param-" + key;
+        input.dataset.paramKey = key;
+        input.type = typeof val === "number" ? "number" : "text";
+        input.value = val == null ? "" : String(val);
+        label.appendChild(input);
+        paramsRow.appendChild(label);
+      });
+    }
+
+    function collectParams() {
+      const params = {};
+      const inputs = paramsRow.querySelectorAll("input[data-param-key]");
+      inputs.forEach(function (input) {
+        const key = input.dataset.paramKey;
+        const raw = input.value.trim();
+        if (!raw) return;
+        if (input.type === "number") {
+          const n = Number(raw);
+          params[key] = Number.isFinite(n) ? n : raw;
+        } else {
+          params[key] = raw;
+        }
+      });
+      return params;
+    }
+
+    function fillStrategySelect(strategies) {
+      catalog = strategies || [];
+      selectEl.innerHTML = "";
+      if (!catalog.length) {
+        ["dummy", "buy_once", "momentum", "inventory_mm", "avellaneda_stoikov"].forEach(
+          function (id) {
+            const opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = id;
+            selectEl.appendChild(opt);
+          }
+        );
+        return;
+      }
+      catalog.forEach(function (s) {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        const tags = (s.tags || []).join(",");
+        opt.textContent = s.name ? s.name + " (" + s.id + ")" + (tags ? " [" + tags + "]" : "") : s.id;
+        selectEl.appendChild(opt);
+      });
+      renderParams();
+    }
+
+    selectEl.addEventListener("change", renderParams);
 
     function renderStatus(st) {
       if (!st) {
@@ -73,8 +144,18 @@
       return st;
     }
 
+    async function loadCatalog() {
+      try {
+        const res = await QLApi.labStrategies();
+        fillStrategySelect(res.strategies || []);
+      } catch (err) {
+        fillStrategySelect([]);
+        appendLog("CATALOG fallback: " + err.message);
+      }
+    }
+
     root.querySelector("#ps-start").addEventListener("click", async function () {
-      const strategy_id = root.querySelector("#ps-strategy").value;
+      const strategy_id = selectEl.value;
       const symbol = root.querySelector("#ps-symbol").value.trim();
       const maxRaw = root.querySelector("#ps-max").value;
       const intervalRaw = root.querySelector("#ps-interval").value.trim();
@@ -86,6 +167,7 @@
         strategy_id: strategy_id,
         symbol: symbol,
         max_steps: parseInt(maxRaw, 10) || 20,
+        params: collectParams(),
       };
       if (intervalRaw) {
         const iv = parseInt(intervalRaw, 10);
@@ -142,6 +224,7 @@
     });
 
     root.refresh = async function () {
+      await loadCatalog();
       try {
         await refreshStatus();
         const instruments = await QLApi.instruments();
@@ -155,6 +238,7 @@
       }
     };
 
+    loadCatalog();
     return root;
   }
 

@@ -105,6 +105,9 @@
     labCapabilities: function () {
       return request("GET", "/api/lab/capabilities");
     },
+    labStrategies: function () {
+      return request("GET", "/api/lab/strategies");
+    },
     labMetrics: function () {
       return request("GET", "/api/lab/metrics");
     },

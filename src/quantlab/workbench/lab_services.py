@@ -29,11 +29,19 @@ from quantlab.montecarlo.simulator import MonteCarloSimulator
 from quantlab.optimizer.grid import GridSearchOptimizer
 from quantlab.research.alpha import AlphaScanner
 from quantlab.research.strategies.buy_once import BuyOnceStrategy
-from quantlab.research.strategies.dummy_strategy import DummyStrategy
 from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
 from quantlab.validation.splits import train_val_oos_split, walk_forward
+from quantlab.workbench.strategy_catalog import (
+    CANONICAL_STRATEGY_IDS,
+    build_strategy,
+    list_strategy_catalog,
+    list_strategy_ids,
+    maybe_wrap_for_bar_backtest,
+    merge_default_params,
+    normalize_strategy_id,
+)
 
-STRATEGY_IDS: tuple[str, ...] = ("dummy", "momentum", "buy_once")
+STRATEGY_IDS: tuple[str, ...] = CANONICAL_STRATEGY_IDS
 
 # Fail-closed path segment / export filename (F25 M1).
 _EXPERIMENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
@@ -101,6 +109,12 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "method": "GET",
         "path": "/api/lab/validation",
     },
+    {
+        "id": "strategies",
+        "label": "Strategy catalog",
+        "method": "GET",
+        "path": "/api/lab/strategies",
+    },
     {"id": "health", "label": "Health / Mode", "method": "GET", "path": "/api/health"},
     {"id": "market", "label": "Market Data", "method": "GET", "path": "/api/broker/snapshot"},
     {"id": "blotter", "label": "Paper Blotter", "method": "POST", "path": "/api/paper/submit"},
@@ -148,16 +162,7 @@ def make_scanner_universe() -> dict[str, list[Bar]]:
 
 
 def _build_strategy(strategy_id: str, params: dict[str, Any]) -> Any:
-    sid = strategy_id.strip().lower()
-    if sid == "dummy":
-        return DummyStrategy(params)
-    if sid in ("momentum", "simple_momentum"):
-        return SimpleMomentumStrategy(params)
-    if sid == "buy_once":
-        return BuyOnceStrategy(params)
-    raise ValidationError(
-        f"strategy_id desconocido: {strategy_id!r}; disponibles: {', '.join(STRATEGY_IDS)}"
-    )
+    return build_strategy(strategy_id, params)
 
 
 def run_lab_backtest(
@@ -171,18 +176,15 @@ def run_lab_backtest(
     experiment_id = validate_experiment_id(experiment_id)
     if n_bars < 4 or n_bars > 120:
         raise ValidationError("n_bars debe estar entre 4 y 120")
-    strategy_params = dict(params or {})
-    if "quantity" not in strategy_params:
-        strategy_params["quantity"] = "1" if strategy_id != "dummy" else "0.01"
-    if strategy_id.strip().lower() == "dummy" and "price" not in strategy_params:
-        strategy_params["price"] = "100.0"
-    if strategy_id.strip().lower() in ("momentum", "simple_momentum") and "lookback" not in (
-        strategy_params
-    ):
-        strategy_params["lookback"] = 2
+    sid = normalize_strategy_id(strategy_id)
+    # Lab backtest: momentum default lookback=2 (histórico F21) si no viene en params.
+    caller = dict(params or {})
+    if sid == "momentum" and "lookback" not in caller:
+        caller["lookback"] = 2
+    strategy_params = merge_default_params(sid, caller)
 
     bars = make_synthetic_bars(n_bars)
-    strategy = _build_strategy(strategy_id, strategy_params)
+    strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
     bt = BarBacktester(
         BarBacktestConfig(experiment_id=experiment_id, initial_cash=Decimal("100000"))
     )
@@ -190,7 +192,7 @@ def run_lab_backtest(
     summary: dict[str, Any] = {
         "ok": True,
         "kind": "backtest",
-        "strategy_id": strategy_id.strip().lower(),
+        "strategy_id": sid,
         "params": strategy_params,
         "n_bars": n_bars,
         "n_fills": len(result.simulation.fills),
@@ -487,11 +489,24 @@ def lab_capabilities() -> dict[str, Any]:
         "ok": True,
         "kind": "capabilities",
         "version_module": "lab",
-        "strategies": list(STRATEGY_IDS),
+        "strategies": list_strategy_ids(),
+        "strategy_catalog": list_strategy_catalog(),
         "features": [dict(c) for c in CAPABILITIES],
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
         "research_safe": True,
+    }
+
+
+def lab_strategies() -> dict[str, Any]:
+    """GET /api/lab/strategies — catálogo con metadata (F27)."""
+    return {
+        "ok": True,
+        "kind": "strategies",
+        "strategies": list_strategy_catalog(),
+        "ids": list_strategy_ids(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
     }
 
 

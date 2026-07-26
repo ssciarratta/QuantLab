@@ -312,6 +312,19 @@
 **Remediación audit:** H1 PaperBroker-only en constructor  
 **Implementation report:** `docs/audit/FASE_26_IMPLEMENTATION_REPORT.md`
 
+### Fase 27 — Strategy Catalog (workbench)
+**Módulos:**
+- `workbench/strategy_catalog.py` — metadata + factory + `BarSyntheticBookAdapter` (MM en bar-backtest)
+- Wire `InventoryMMStrategy` + `AvellanedaStoikovStrategy` en paper session + lab backtest
+- `GET /api/lab/strategies` + `strategy_catalog` en capabilities
+- UI selectores + params básicos (Sesión Paper / Backtest)
+- DEC-071; sin flip LIVE
+
+**Estado en repo:** 📦 implementado (v0.19.0) — certificado externo `FASE_27_APPROVED.md` **NO emitido**  
+**Versión:** 0.19.0  
+**Spec:** `docs/FASE_27_STRATEGY_CATALOG.md`  
+**Implementation report:** `docs/audit/FASE_27_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -356,6 +369,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F25 **APROBADO_INTERNO** (noche + arcos F19–F22 / F23–F25).  
-2. Certificados externos F19–F25 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
+1. F0–F18 certificados externos; F19–F26 **APROBADO_INTERNO**; F27 strategy catalog (v0.19.0).  
+2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
