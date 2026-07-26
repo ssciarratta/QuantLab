@@ -92,7 +92,7 @@ uv run python scripts/internal_audit_smoke.py  # 44/44
 7a1de5dd9b4a7b0da24848dd2bf7db21dc86c2f631b5f7beb110c72385fa7516  QuantLab_Internal_Review_F19_F58_v0.50.0.zip
 ```
 
-> Path: `reports/QuantLab_Internal_Review_F19_F58_v0.50.0.zip` · tip docs audit `f279717`; re-generar puede cambiar SHA (`created_at_utc`).
+> Path: `reports/QuantLab_Internal_Review_F19_F58_v0.50.0.zip` · tip docs audit `b9d66b3`; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 
