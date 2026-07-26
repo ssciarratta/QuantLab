@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.83.0 (F91 Paper Session Rehydrate post-rebuild)
+Versión código actual: 0.84.0 (F92 Milestone Freeze Docs arco v0.71–v0.83)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,14 +75,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F91: APROBADO_INTERNO Zero-Trust (noche F19–F91; sin certificados externos)
+- F19–F91: APROBADO_INTERNO Zero-Trust; F92 (freeze docs) auditoría en curso
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F91 Paper Session Rehydrate post-rebuild (0.83.0):
+F92 Milestone Freeze Docs arco v0.71–v0.83 (0.84.0):
+- MILESTONE_V080_ARC_FREEZE.md (inventario F79–F91 + invariantes + operación)
+- CHANGELOG sync 0.81.0/0.82.0/0.83.0/0.84.0; smoke F92; sin cambios runtime
+- DEC-136; FASE_92_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+
+Previo — F91 Paper Session Rehydrate post-rebuild (0.83.0):
 - POST /api/paper/reconciliation/rehydrate: teardown + relectura desde disco
 - Sin auto-recovery: durable inválido queda bloqueado como al boot
 - Journal nunca mutado; broker desconectado (reconexión explícita)

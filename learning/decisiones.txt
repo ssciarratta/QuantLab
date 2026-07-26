@@ -1,3 +1,10 @@
+[2026-07-26] DEC-136 — Freeze documental del arco v0.71–v0.83
+  Decisión: F92 congela docs del arco F79–F91 (el hito 0.80 quedó embebido:
+  F88 tomó la versión 0.80.0). MILESTONE_V080_ARC_FREEZE.md + CHANGELOG sync
+  0.81/0.82/0.83/0.84. Sin cambios de runtime. Bump 0.84.0. LIVE_BLOCKED=True;
+  sin flip; sin FASE_92_APPROVED.
+  Fase: 92.
+
 [2026-07-26] DEC-135 — Rehydrate explícito post-rebuild; nunca auto-recovery
   Decisión: F91 agrega POST /api/paper/reconciliation/rehydrate que hace
   teardown del runtime y relee journal/book desde disco reusando

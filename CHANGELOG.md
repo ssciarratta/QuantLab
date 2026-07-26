@@ -19,6 +19,64 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.84.0] — 2026-07-26
+
+### Fase 92 — Milestone Freeze Docs + CHANGELOG Sync (arco v0.71–v0.83)
+
+#### Added
+- Freeze documental `docs/audit/MILESTONE_V080_ARC_FREEZE.md` (inventario F79–F91)
+- CHANGELOG sync 0.81.0 / 0.82.0 / 0.83.0 (F89/F90/F91)
+- Smoke: version starts with 0.84; bundle INTERNAL default F19–F92
+
+#### Notes
+- Freeze documental: sin cambios de runtime de trading; `LIVE_BLOCKED=True`
+
+---
+
+## [0.83.0] — 2026-07-26
+
+### Fase 91 — Paper Session Rehydrate post-rebuild
+
+#### Added
+- `POST /api/paper/reconciliation/rehydrate`: teardown runtime + relectura disco
+- `WorkbenchState.rehydrate_session()` reusa `switch_session` (sin auto-recovery)
+- Botón "Releer sesión (post-rebuild)" con confirm en panel Reconciliación
+- Evento `rehydrate` en allowlist del activity log
+- Suite e2e drift→rebuild→rehydrate + smoke F91
+
+#### Notes
+- El journal nunca se muta; broker queda desconectado (reconexión explícita)
+
+---
+
+## [0.82.0] — 2026-07-26
+
+### Fase 90 — Paper Reconciliation Status Panel
+
+#### Added
+- Panel workbench `Reconciliación` read-only sobre `GET /api/paper/reconciliation`
+- Badge ok/status, record_count, checkpoint, issues y `rebuild_via` CLI
+- `QLApi.paperReconciliation()`, command palette `open.reconciliation`, i18n es/en
+- Suite UI wiring + read-only estricto + smoke F90
+
+---
+
+## [0.81.0] — 2026-07-26
+
+### Fase 89 — A3 MD Read-only Certification
+
+#### Added
+- Lanes fake-contract (CI/offline) y sandbox-env (opt-in, solo simulation)
+- Spy/write-bomb: PASS exige cero `place_order`/`cancel_order`
+- CLI `scripts/a3_md_certify.py` con worker subprocess allowlisted + timeout
+- Reporte frozen saneado (sin secretos/account/raw payloads)
+
+#### Fixed
+- Portabilidad Windows: sqlite locks `ExperimentRegistry`, guard i18n por Path,
+  fsync `rb+`, `/tmp` portable, env worker sandbox (SYSTEMROOT)
+
+---
+
 ## [0.80.0] — 2026-07-26
 
 ### Fase 88 — Paper Journal authoritative + Book reconciliation

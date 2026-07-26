@@ -2,7 +2,8 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.80.0** (F88 Paper Journal authoritative + reconciliation)
+**Versión tip:** **0.84.0** (F92 Milestone Freeze Docs arco v0.71–v0.83)
+**Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
@@ -42,7 +43,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F88 | Paper Journal authoritative + reconciliation · **0.80.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F88 | `docs/audit/INTERNAL_AUDIT_F19_F88_NIGHT.md` |
+| F89 | A3 MD certification harness · **0.81.0** |
+| F90 | Paper Reconciliation Status Panel · **0.82.0** |
+| F91 | Paper Session Rehydrate post-rebuild · **0.83.0** |
+| F92 | Milestone Freeze Docs arco v0.71–v0.83 · **0.84.0** |
+| Noche F19–F91 | `docs/audit/INTERNAL_AUDIT_F19_F91_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
@@ -135,13 +140,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 6. Session paths fail-closed (`validate_session_id`, zip-slip)
 7. PaperBroker / Paper Session: fills simulados; sin venue submit
 8. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-9. Sin emitir `FASE_19`…`FASE_88_APPROVED.md` desde INTERNAL
-10. `phases_summary` tip: `F19–F88 INTERNAL`
-11. About / health `version` ≡ `__version__` y startswith `0.80`
+9. Sin emitir `FASE_19`…`FASE_92_APPROVED.md` desde INTERNAL
+10. `phases_summary` tip: `F19–F92 INTERNAL`
+11. About / health `version` ≡ `__version__` y startswith `0.84`
 12. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
 
 ## Próximo
 
-- Certificados externos F19–F88 solo con Meta-Auditor externo
-- F89: Milestone Freeze Docs v0.80 (0.81.0) → F90 Reconciliation UI (0.82.0)
+- Certificados externos F19–F92 solo con Meta-Auditor externo
+- Cierre INTERNAL F92 + bundle noche F19–F92; luego F93 según roadmap
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

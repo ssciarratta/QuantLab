@@ -1,3 +1,7 @@
+[2026-07-26] F92 — Milestone Freeze Docs arco v0.71–v0.83 (v0.84.0)
+  Freeze documental F79–F91 + CHANGELOG sync (0.81–0.84). Sin cambios de
+  runtime. DEC-136.
+
 [2026-07-26] F91 — Paper Session Rehydrate post-rebuild (v0.83.0)
   POST rehydrate: teardown + relectura desde disco tras rebuild CLI; sin
   auto-recovery ni mutación de archivos. Botón con confirm en panel F90.

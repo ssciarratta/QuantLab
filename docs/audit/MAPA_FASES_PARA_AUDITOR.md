@@ -3166,3 +3166,33 @@ F88, sin reiniciar el proceso y sin auto-recovery.
 
 Versión código F91: **0.83.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 92 — Milestone Freeze Docs + CHANGELOG Sync (arco v0.71–v0.83)
+
+**Código:** 0.84.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-136
+**Qué es:** freeze documental del arco F79–F91 + sincronización de CHANGELOG
+(0.81.0/0.82.0/0.83.0 faltaban) y docs tip. Sin cambios de runtime.
+
+**DoD auditor:**
+- [x] `MILESTONE_V080_ARC_FREEZE.md` con inventario F79–F91 + invariantes
+- [x] CHANGELOG entries 0.81.0 / 0.82.0 / 0.83.0 / 0.84.0
+- [x] RESUMEN / PROJECT_MEMORY / README / ROADMAP a tip
+- [x] Smoke version starts with 0.84 + check F92
+- [x] Sin `FASE_92_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F92; bump 0.84.0
+
+### Lista A F92
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Freeze doc | `docs/audit/MILESTONE_V080_ARC_FREEZE.md` |
+| A2 | CHANGELOG sync | `CHANGELOG.md` |
+| A3 | Spec | `docs/FASE_92_MILESTONE_V080_ARC.md` |
+| A4 | DEC-136 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A5 | Smoke F92 | `scripts/internal_audit_smoke.py` |
+| A6 | Bundle to-phase 92 | `scripts/build_internal_review_bundle.py` |
+
+Versión código F92: **0.84.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

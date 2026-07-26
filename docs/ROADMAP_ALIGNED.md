@@ -1164,6 +1164,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_91_APPROVED.md`
 
 
+## Fase 92 — Milestone Freeze Docs + CHANGELOG Sync (arco v0.71–v0.83)
+
+**Version:** 0.84.0 · **DEC-136** · implementada, auditoría INTERNAL en curso
+
+- Freeze documental `docs/audit/MILESTONE_V080_ARC_FREEZE.md` (inventario F79–F91)
+- CHANGELOG sync 0.81.0 / 0.82.0 / 0.83.0 / 0.84.0
+- Sync tip: RESUMEN · PROJECT_MEMORY · README · MAPA
+- Smoke: version starts with 0.84 + check F92; bundle INTERNAL default F19–F92
+- `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_92_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):
