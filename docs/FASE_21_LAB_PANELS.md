@@ -1,8 +1,10 @@
 # Fase 21 — Paneles lab del Workbench
 
-**Estado:** IMPLEMENTADO (v0.13.0)  
+**Estado:** IMPLEMENTADO (v0.13.0) · **APROBADO_INTERNO** Zero-Trust (2026-07-26)  
 **Prerrequisito:** F20 Workbench (v0.12.0)  
-**Alcance:** paneles + API `/api/lab/*` para funcionalidades principales del laboratorio.
+**Alcance:** paneles + API `/api/lab/*` para funcionalidades principales del laboratorio.  
+**Certificado externo:** NO emitido (`FASE_21_APPROVED.md` reserva Meta-Auditor externo).  
+**Evidencia INTERNAL:** `docs/audit/INTERNAL_AUDIT_F21.md` · `AUTO_AUDIT_2026-07-26_F21.md` · `FASE_21_REVIEW_PACKAGE.md`
 
 ## Objetivo
 
@@ -69,6 +71,7 @@ Cada pane llama a `QLApi.lab*` y muestra JSON tipado.
 - [x] Version 0.13.0
 - [x] Docs DoD + implementation report
 - [x] QA: ruff / mypy --strict / pytest workbench / quantlab-health
+- [x] Autauditoría INTERNAL + Review Package (sin `FASE_21_APPROVED.md` externo)
 
 ## Fuera de alcance
 

@@ -1,11 +1,12 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.12.0
+Versión código actual: 0.13.0
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F20: código 0.12.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F21: código 0.13.0 — APROBADO_INTERNO (externo pendiente)
 
 ESTADO
 ------
@@ -14,24 +15,25 @@ ESTADO
   · NO existe FASE_19_APPROVED.md (reserva Meta-Auditor externo)
 - F20: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F20.md, 2026-07-26)
   · NO existe FASE_20_APPROVED.md (reserva Meta-Auditor externo)
-- Workbench local loopback (quantlab-workbench) + SPA window-manager
+- F21: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F21.md, 2026-07-26)
+  · NO existe FASE_21_APPROVED.md (reserva Meta-Auditor externo)
+- Workbench local loopback + Lab Panels (`/api/lab/*`, 9 paneles)
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (a3, binance, paper)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F20 Workbench (v0.12.0, commit cacf8e6; audit INTERNAL 2026-07-26):
-- CLI quantlab-workbench; bind default 127.0.0.1; LIVE mode rechazado
-- Connect siempre PaperBroker + journal sesión; LIVE_BLOCKED is True
-- SPA WM (wm.js) + paneles Health / Market Data / Paper Blotter
-- QA INTERNAL: mypy strict · ruff · 11 workbench passed · quantlab-health ok
-- Docs: AUTO_AUDIT_2026-07-26_F20 · FASE_20_REVIEW_PACKAGE · INTERNAL_AUDIT_F20
-- DEC-061 en learning/decisiones.txt
+F21 Lab Panels (v0.13.0, impl c397ffc; tip 0de4211; audit INTERNAL 2026-07-26):
+- lab_services thin adapters + API /api/lab/* + paneles SPA Laboratorio
+- Export HB path-safe; live_routing false; datos sintéticos / tmp sesión
+- QA INTERNAL: mypy strict · ruff · 23 workbench passed · quantlab-health ok
+- Docs: AUTO_AUDIT_2026-07-26_F21 · FASE_21_REVIEW_PACKAGE · INTERNAL_AUDIT_F21
+- DEC-062 en learning/decisiones.txt
 
 PRÓXIMO PASO
 ------------
-- F21 paneles features (backtest/optimizer) sobre workbench F20
-- Certificados externos F19/F20 solo con APROBADO Meta-Auditor externo
+- F22 chat IA sobre workbench (diseño/implementación)
+- Certificados externos F19–F21 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 
 BLOQUEOS

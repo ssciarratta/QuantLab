@@ -162,9 +162,48 @@ Versión código F20: **0.12.0** · LIVE: **BLOQUEADO** · bind default: **127.0
 
 ---
 
+## Fase 21 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / alcance | `docs/FASE_21_LAB_PANELS.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 21** |
+| Review Package INTERNAL | `docs/audit/FASE_21_REVIEW_PACKAGE.md` |
+| Implementation report | `docs/audit/FASE_21_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F21.md` |
+| Veredicto INTERNAL | `docs/audit/INTERNAL_AUDIT_F21.md` |
+
+**Certificado externo:** **NO** emitido (`FASE_21_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F21 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Lab adapters | `workbench/lab_services.py` |
+| A2 | Handlers `/api/lab/*` | `workbench/api.py` |
+| A3 | Rutas HTTP lab | `workbench/server.py` |
+| A4 | Paneles lab + shell | `static/js/panes/*`, `shell.js` |
+| A5 | LIVE gate intacto | `execution/live_gate.py` |
+| A6 | DEC-062 | `learning/decisiones.txt` |
+| A7 | Suite lab API | `tests/unit/workbench/test_lab_api.py` |
+
+### Lista B F21 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab
+uv run pytest tests/unit/workbench -q
+uv run quantlab-health
+```
+
+Versión código F21: **0.13.0** · LIVE: **BLOQUEADO** · bind default: **127.0.0.1** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 tienen certificado formal externo; F19–F20 tienen **APROBADO_INTERNO** (pendiente externo).  
-2. QuantLab v0.12.0: Workbench SPA + API loopback sobre modos F19.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; órdenes workbench solo PaperBroker.  
-4. Siguiente: F21 paneles features / F22 chat (diseño).
+1. F0–F18 tienen certificado formal externo; F19–F21 tienen **APROBADO_INTERNO** (pendiente externo).  
+2. QuantLab v0.13.0: Workbench + Lab Panels (`/api/lab/*`) sobre modos F19.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; lab demos sintéticos; export HB path-safe.  
+4. Siguiente: F22 chat IA (diseño/implementación).

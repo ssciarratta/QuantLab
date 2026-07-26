@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F20**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F21**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
@@ -206,13 +206,26 @@
 - JSON API fail-closed ante `OperatingMode.LIVE`; connect siempre `PaperBroker`
 - SPA estática + window-manager MDI (drag/resize/minimize/close + taskbar)
 - Paneles shell: Health/Mode, Market Data, Paper Blotter (UI ES)
-- DEC-061; sin chat (F22), sin paneles F21, sin flip LIVE
+- DEC-061; sin chat (F22), sin paneles F21 (en F20), sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F20.md`, 2026-07-26) — certificado externo `FASE_20_APPROVED.md` **NO emitido**  
 **Versión:** 0.12.0 · implementación `cacf8e6`  
 **Review Package INTERNAL:** `docs/audit/FASE_20_REVIEW_PACKAGE.md`  
-**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F20.md`  
-**Siguiente:** F21 paneles features / F22 chat (diseño); LIVE sigue bloqueado
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F20.md`
+
+### Fase 21 — Lab Panels (workbench features)
+**Módulos:**
+- `lab_services.py` adapters thin → backtest / scanner / optimizer / MC / features / export-HB / validation / registry
+- JSON API `/api/lab/*` (capabilities, metrics, experiments, …)
+- 9 paneles SPA + menú Inicio **Laboratorio**
+- Export HB path-safe, `live_routing: false`; datos sintéticos / tmp sesión
+- DEC-062; sin chat (F22); sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F21.md`, 2026-07-26) — certificado externo `FASE_21_APPROVED.md` **NO emitido**  
+**Versión:** 0.13.0 · implementación `c397ffc` · tip `0de4211`  
+**Review Package INTERNAL:** `docs/audit/FASE_21_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F21.md`  
+**Siguiente:** F22 chat IA (diseño/implementación); LIVE sigue bloqueado
 
 ---
 
@@ -258,6 +271,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F20 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
-2. Diseñar/implementar **F21** paneles features (backtest/optimizer) sobre workbench F20.  
+1. F0–F18 certificados externos; F19–F21 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
+2. Diseñar/implementar **F22** chat IA sobre workbench (sin flip LIVE).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

@@ -4,7 +4,9 @@
 **Versión:** 0.13.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F20 Workbench v0.12.0  
-**Alcance:** paneles + API lab — **sin chat**, **sin flip LIVE**
+**Alcance:** paneles + API lab — **sin chat**, **sin flip LIVE**  
+**Audit INTERNAL:** `AUTO_AUDIT_2026-07-26_F21.md` · `FASE_21_REVIEW_PACKAGE.md` · `INTERNAL_AUDIT_F21.md` = **APROBADO_INTERNO**  
+**Certificado externo:** NO (`FASE_21_APPROVED.md` no emitido)
 
 ---
 
