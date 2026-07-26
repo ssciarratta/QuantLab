@@ -4,7 +4,7 @@
 **Versión:** 0.59.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F66 Equity Curve · F23 Paper Book · F19 PaperBroker  
-**Impl SHA:** _(post-commit)_  
+**Impl SHA:** `57b78fd`  
 **Alcance:** `GET /api/paper/pnl` + headers Positions/Blotter — **sin flip LIVE**
 
 ---
