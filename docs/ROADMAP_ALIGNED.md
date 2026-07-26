@@ -1140,7 +1140,7 @@
 
 ## Fase 90 — Paper Reconciliation Status Panel
 
-**Versión:** 0.82.0 · **DEC-134** · implementada, auditoría INTERNAL en curso
+**Versión:** 0.82.0 · **DEC-134** · **APROBADO_INTERNO** (sin `FASE_90_APPROVED.md`)
 
 - Panel SPA `Reconciliación` read-only sobre `GET /api/paper/reconciliation`
 - Badge ok/status, record_count, checkpoint (count/last_fill_id/sha256), issues
