@@ -2,6 +2,15 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 41 — Activity Log + Toasts
+-------------------------------------------------------
+- v0.33.0 · impl SHA f1db945 · DEC-085.
+- QA: mypy 174 · ruff · pytest 745 · smoke 27 PASS.
+- activity.jsonl append-only; GET /api/activity; hooks
+  connect/submit/backtest/optimize/export/error; toasts + panel Activity.
+- INTERNAL APROBADO_INTERNO; FASE_41_APPROVED.md NO emitido.
+- Noche F19–F41 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 38 — Docs / Help Browser
 -------------------------------------------------------
 - v0.30.0 · impl SHA becd116 · DEC-082.
