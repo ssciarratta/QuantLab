@@ -2925,3 +2925,47 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F85: **0.77.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 86 — Maximize / Restore Window
+
+**Código:** 0.78.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-130  
+**Qué es:** Maximize / Restore para la ventana enfocada. `wm.js` `maximize`/`restoreFromMaximize`/`toggleMaximize` + store `preMax` + titlebar btn/dblclick + command palette + menú Inicio; `maximized` persistido/restaurado en layout. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] Commands `action.maximize_window` + `action.restore_from_maximize` en `/api/commands`
+- [ ] `maximize`/`restoreFromMaximize` en `wm.js` + store `preMax` + persist `maximized`
+- [ ] Titlebar button + dblclick toggle + menú grupo Ventanas
+- [ ] Restore `maximized` vía `mergeOpts` / `open`
+- [ ] Sin `FASE_86_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F86
+- [ ] Bump 0.78.0
+
+### Lista A F86
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | maximize/restore + titlebar | `static/js/wm.js` |
+| A2 | Layout maximized | `workbench/layout.py` |
+| A3 | Commands | `workbench/commands.py` |
+| A4 | Palette + shell + i18n | `command_palette.js` · `shell.js` · `i18n.js` |
+| A5 | Spec | `docs/FASE_86_MAXIMIZE.md` |
+| A6 | DEC-130 | `learning/decisiones.txt` |
+| A7 | Version 0.78.0 | `pyproject.toml` |
+| A8 | Smoke F86 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 86 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F86 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F86: **0.78.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

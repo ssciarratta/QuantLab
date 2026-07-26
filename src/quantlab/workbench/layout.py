@@ -71,6 +71,10 @@ def normalize_window_geom(raw: dict[str, Any], *, window_id: str) -> dict[str, A
         if not isinstance(raw["minimized"], bool):
             raise ValidationError(f"layout.windows.{window_id}.minimized debe ser bool")
         out["minimized"] = raw["minimized"]
+    if "maximized" in raw:
+        if not isinstance(raw["maximized"], bool):
+            raise ValidationError(f"layout.windows.{window_id}.maximized debe ser bool")
+        out["maximized"] = raw["maximized"]
     if "z" in raw:
         z = _as_int(raw["z"], f"windows.{window_id}.z")
         if z < 0 or z > 100_000:

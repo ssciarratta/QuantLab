@@ -307,6 +307,18 @@
       }
       if (cmd.action === "send_to_back" && this.wm && this.wm.sendToBack) {
         this.wm.sendToBack();
+        return;
+      }
+      if (cmd.action === "maximize_window" && this.wm && this.wm.maximize) {
+        this.wm.maximize();
+        return;
+      }
+      if (
+        cmd.action === "restore_from_maximize" &&
+        this.wm &&
+        this.wm.restoreFromMaximize
+      ) {
+        this.wm.restoreFromMaximize();
       }
     }
   };

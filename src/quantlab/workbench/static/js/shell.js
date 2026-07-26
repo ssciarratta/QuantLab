@@ -42,6 +42,7 @@
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
       minimized: !!g.minimized,
+      maximized: !!g.maximized,
     };
     if (g.z != null) out.z = g.z;
     return out;
@@ -522,6 +523,10 @@
         wm.bringToFront();
       } else if (action === "send_to_back" && wm.sendToBack) {
         wm.sendToBack();
+      } else if (action === "maximize_window" && wm.maximize) {
+        wm.maximize();
+      } else if (action === "restore_from_maximize" && wm.restoreFromMaximize) {
+        wm.restoreFromMaximize();
       }
       startMenu.setAttribute("hidden", "");
       startMenu.classList.add("hidden");

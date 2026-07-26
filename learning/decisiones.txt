@@ -1,3 +1,11 @@
+[2026-07-26] DEC-130 — Maximize / Restore Window
+  Decisión: F86 = wm.js maximize/restoreFromMaximize/toggleMaximize;
+  store preMax geometry; titlebar btn + dblclick; command palette
+  action.maximize_window / action.restore_from_maximize; menú Inicio +
+  context menu; layout.maximized bool + pre-max as x/y/w/h; bump 0.78.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_86_APPROVED.
+  Fase: 86.
+
 [2026-07-26] DEC-129 — Bring to Front / Send to Back (z-order)
   Decisión: F85 = wm.js bringToFront/sendToBack; command palette
   action.bring_to_front / action.send_to_back; menú Inicio + context

@@ -1,3 +1,7 @@
+[2026-07-26] F86 — Maximize / Restore Window (v0.78.0)
+  wm.js maximize/restoreFromMaximize + titlebar btn/dblclick + palette/menú
+  + persist maximized. DEC-130 · APROBADO_INTERNO · sin FASE_86_APPROVED · LIVE_BLOCKED.
+
 [2026-07-26] F85 — Bring to Front / Send to Back (v0.77.0)
   wm.js bringToFront/sendToBack + context titlebar + palette/menú + persist z.
   DEC-129 · APROBADO_INTERNO · sin FASE_85_APPROVED · LIVE_BLOCKED.

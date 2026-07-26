@@ -19,6 +19,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.78.0] — 2026-07-26
+
+### Fase 86 — Maximize / Restore Window
+
+#### Added
+- `wm.js`: `maximize(id)` / `restoreFromMaximize(id)` / `toggleMaximize` + store `preMax`
+- Titlebar button □/❐ + dblclick toggle maximize
+- Command palette: `action.maximize_window` · `action.restore_from_maximize`
+- Menú Inicio: grupo **Ventanas** (maximize / restore)
+- Layout: persist/restore `maximized` bool (pre-max como x/y/w/h)
+- Docs: `FASE_86_MAXIMIZE.md` · implementation report · DEC-130
+- Suite `test_maximize_f86.py` + smoke F86
+
+#### Changed
+- `phases_summary` → `F19–F86 INTERNAL`
+- Bundle INTERNAL default F19–F86
+- Bump **0.78.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_86_APPROVED.md`
+
+---
+
 ## [0.77.0] — 2026-07-26
 
 ### Fase 85 — Bring to Front / Send to Back

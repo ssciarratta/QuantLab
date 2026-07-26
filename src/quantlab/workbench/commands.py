@@ -334,6 +334,38 @@ _ACTION_COMMANDS: tuple[dict[str, Any], ...] = (
             "lower",
         ),
     },
+    {
+        "id": "action.maximize_window",
+        "kind": "action",
+        "label": "Maximize window",
+        "action": "maximize_window",
+        "keywords": (
+            "maximize",
+            "maximizar",
+            "max",
+            "fullscreen",
+            "pantalla",
+            "windows",
+            "ventanas",
+            "expand",
+        ),
+    },
+    {
+        "id": "action.restore_from_maximize",
+        "kind": "action",
+        "label": "Restore from Maximize",
+        "action": "restore_from_maximize",
+        "keywords": (
+            "restore",
+            "restaurar",
+            "maximize",
+            "maximizar",
+            "unmaximize",
+            "windows",
+            "ventanas",
+            "normal",
+        ),
+    },
 )
 
 

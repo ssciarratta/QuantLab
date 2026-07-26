@@ -232,6 +232,14 @@ body {
   display: none;
 }
 
+.win.maximized {
+  border-radius: 0;
+}
+
+.win.maximized .win-resize {
+  display: none;
+}
+
 .win-titlebar {
   flex: 0 0 32px;
   display: flex;

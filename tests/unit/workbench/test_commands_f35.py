@@ -61,6 +61,8 @@ def test_list_commands_registry() -> None:
     assert "action.tile_windows" in ids
     assert "action.bring_to_front" in ids
     assert "action.send_to_back" in ids
+    assert "action.maximize_window" in ids
+    assert "action.restore_from_maximize" in ids
 
     for cmd in payload["commands"]:
         assert cmd["safe"] is True

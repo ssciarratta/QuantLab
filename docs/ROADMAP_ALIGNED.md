@@ -1085,6 +1085,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 86 — Maximize / Restore Window
+
+**Versión:** 0.78.0 · **DEC-130** · **APROBADO_INTERNO** (sin `FASE_86_APPROVED.md`)
+
+- Command palette + menú + titlebar btn/dblclick: Maximize / Restore
+- `wm.js` `maximize` / `restoreFromMaximize` / `toggleMaximize` + store `preMax`
+- Persist `maximized` in layout; restore on open via `mergeOpts`
+- Suite/smoke F86; bundle INTERNAL default F19–F86
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

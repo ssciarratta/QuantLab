@@ -166,12 +166,25 @@
     const windows = {};
     this.windows.forEach(function (rec) {
       const el = rec.el;
+      const maximized = el.classList.contains("maximized");
+      let x = parseInt(el.style.left, 10) || 0;
+      let y = parseInt(el.style.top, 10) || 0;
+      let w = el.offsetWidth;
+      let h = el.offsetHeight;
+      /* When maximized, persist pre-max geometry as x/y/w/h (F86). */
+      if (maximized && rec.preMax) {
+        x = rec.preMax.x | 0;
+        y = rec.preMax.y | 0;
+        w = rec.preMax.w | 0;
+        h = rec.preMax.h | 0;
+      }
       windows[rec.id] = {
-        x: parseInt(el.style.left, 10) || 0,
-        y: parseInt(el.style.top, 10) || 0,
-        w: el.offsetWidth,
-        h: el.offsetHeight,
+        x: x,
+        y: y,
+        w: w,
+        h: h,
         minimized: el.classList.contains("minimized"),
+        maximized: maximized,
         z: parseInt(el.style.zIndex, 10) || 0,
       };
     });
@@ -213,12 +226,19 @@
     btnMin.type = "button";
     btnMin.title = "Minimizar";
     btnMin.textContent = "—";
+    const btnMax = document.createElement("button");
+    btnMax.type = "button";
+    btnMax.className = "btn-max";
+    btnMax.title = "Maximizar";
+    btnMax.setAttribute("aria-label", "Maximizar");
+    btnMax.textContent = "□";
     const btnClose = document.createElement("button");
     btnClose.type = "button";
     btnClose.className = "btn-close";
     btnClose.title = "Cerrar";
     btnClose.textContent = "×";
     controls.appendChild(btnMin);
+    controls.appendChild(btnMax);
     controls.appendChild(btnClose);
     titlebar.appendChild(titleSpan);
     titlebar.appendChild(controls);
@@ -251,18 +271,21 @@
       el: win,
       body: body,
       taskBtn: taskBtn,
+      btnMax: btnMax,
+      preMax: null,
     };
     this.windows.set(id, record);
 
     const self = this;
     titlebar.addEventListener("mousedown", function (ev) {
       if (ev.target.closest(".win-controls")) return;
+      if (win.classList.contains("maximized")) return;
       self._startDrag(win, ev);
     });
-    /* F85: dblclick titlebar focuses (bring to front); context menu for z-order */
+    /* F86: dblclick titlebar toggles maximize; context menu for z-order + max */
     titlebar.addEventListener("dblclick", function (ev) {
       if (ev.target.closest(".win-controls")) return;
-      self.bringToFront(id);
+      self.toggleMaximize(id);
     });
     titlebar.addEventListener("contextmenu", function (ev) {
       if (ev.target.closest(".win-controls")) return;
@@ -271,6 +294,7 @@
       self._showWindowContextMenu(id, ev.clientX, ev.clientY);
     });
     resize.addEventListener("mousedown", function (ev) {
+      if (win.classList.contains("maximized")) return;
       self._startResize(win, ev);
     });
     win.addEventListener("mousedown", function () {
@@ -280,6 +304,10 @@
       ev.stopPropagation();
       self.minimize(id);
       self.scheduleSave();
+    });
+    btnMax.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      self.toggleMaximize(id);
     });
     btnClose.addEventListener("click", function (ev) {
       ev.stopPropagation();
@@ -314,6 +342,9 @@
       if (restoredZ > zCounter) zCounter = restoredZ;
     } else {
       this.focus(id);
+    }
+    if (opts.maximized) {
+      this.maximize(id, { silent: true });
     }
     if (opts.minimized) {
       this.minimize(id);
@@ -425,6 +456,11 @@
     addItem("Send to Back", function () {
       self.sendToBack(id);
     });
+    const rec = self.windows.get(id);
+    const isMax = rec && rec.el.classList.contains("maximized");
+    addItem(isMax ? "Restore" : "Maximize", function () {
+      self.toggleMaximize(id);
+    });
 
     document.body.appendChild(menu);
     self._ctxCloser = function (ev) {
@@ -450,6 +486,115 @@
     if (!rec) return;
     rec.el.classList.remove("minimized");
     this.focus(id);
+  };
+
+  /**
+   * Maximize window to fill workspace; store pre-max geometry (F86).
+   * Defaults to focused window when id omitted.
+   */
+  WindowManager.prototype.maximize = function (id, opts) {
+    opts = opts || {};
+    const target = id != null && id !== "" ? id : this.focusedId;
+    if (!target) return false;
+    const rec = this.windows.get(target);
+    if (!rec) return false;
+    if (rec.el.classList.contains("minimized")) {
+      this.restore(target);
+    }
+    if (rec.el.classList.contains("maximized")) {
+      this.focus(target);
+      if (!opts.silent) {
+        this.scheduleSave();
+      }
+      return true;
+    }
+    rec.preMax = {
+      x: parseInt(rec.el.style.left, 10) || 0,
+      y: parseInt(rec.el.style.top, 10) || 0,
+      w: rec.el.offsetWidth,
+      h: rec.el.offsetHeight,
+    };
+    rec.el.style.left = "0px";
+    rec.el.style.top = "0px";
+    rec.el.style.width = this.workspace.clientWidth + "px";
+    rec.el.style.height = this.workspace.clientHeight + "px";
+    rec.el.classList.add("maximized");
+    this._syncMaxButton(rec);
+    this.focus(target);
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+    return true;
+  };
+
+  /**
+   * Restore window from maximized state using stored pre-max geometry (F86).
+   * Defaults to focused window when id omitted.
+   */
+  WindowManager.prototype.restoreFromMaximize = function (id, opts) {
+    opts = opts || {};
+    const target = id != null && id !== "" ? id : this.focusedId;
+    if (!target) return false;
+    const rec = this.windows.get(target);
+    if (!rec) return false;
+    if (!rec.el.classList.contains("maximized")) {
+      return false;
+    }
+    const geo = rec.preMax || {
+      x: 40,
+      y: 40,
+      w: 420,
+      h: 320,
+    };
+    rec.el.style.left = (geo.x | 0) + "px";
+    rec.el.style.top = (geo.y | 0) + "px";
+    rec.el.style.width = (geo.w | 0) + "px";
+    rec.el.style.height = (geo.h | 0) + "px";
+    rec.el.classList.remove("maximized");
+    rec.preMax = null;
+    this._syncMaxButton(rec);
+    if (rec.el.classList.contains("minimized")) {
+      this.restore(target);
+    } else {
+      this.focus(target);
+    }
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+    return true;
+  };
+
+  /** Toggle maximize / restoreFromMaximize (F86). */
+  WindowManager.prototype.toggleMaximize = function (id, opts) {
+    opts = opts || {};
+    const target = id != null && id !== "" ? id : this.focusedId;
+    if (!target) return false;
+    const rec = this.windows.get(target);
+    if (!rec) return false;
+    if (rec.el.classList.contains("maximized")) {
+      return this.restoreFromMaximize(target, opts);
+    }
+    return this.maximize(target, opts);
+  };
+
+  WindowManager.prototype._syncMaxButton = function (rec) {
+    if (!rec || !rec.btnMax) return;
+    const isMax = rec.el.classList.contains("maximized");
+    rec.btnMax.textContent = isMax ? "❐" : "□";
+    rec.btnMax.title = isMax ? "Restaurar" : "Maximizar";
+    rec.btnMax.setAttribute(
+      "aria-label",
+      isMax ? "Restaurar" : "Maximizar"
+    );
+  };
+
+  /** Clear maximized state without scheduleSave (used by cascade/tile). */
+  WindowManager.prototype._clearMaximized = function (id) {
+    const rec = this.windows.get(id);
+    if (!rec || !rec.el.classList.contains("maximized")) return;
+    rec.el.classList.remove("maximized");
+    rec.preMax = null;
+    this._syncMaxButton(rec);
   };
 
   WindowManager.prototype.close = function (id) {
@@ -529,6 +674,7 @@
       if (rec && rec.el.classList.contains("minimized")) {
         this.restore(ids[i]);
       }
+      this._clearMaximized(ids[i]);
     }
     const rects = cascadeRects(
       ids.length,
@@ -565,6 +711,7 @@
       if (rec && rec.el.classList.contains("minimized")) {
         this.restore(ids[i]);
       }
+      this._clearMaximized(ids[i]);
     }
     const rects = tileRects(
       ids.length,

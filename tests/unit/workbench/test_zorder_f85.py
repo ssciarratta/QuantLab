@@ -26,8 +26,8 @@ _CSS = _STATIC / "css" / "workbench.css"
 
 def test_live_blocked_and_version_f85() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.77.0"
-    assert PHASES_SUMMARY == "F19–F85 INTERNAL"
+    assert __version__ == "0.78.0"
+    assert PHASES_SUMMARY == "F19–F86 INTERNAL"
     assert not Path("docs/audit/FASE_85_APPROVED.md").exists()
 
 
