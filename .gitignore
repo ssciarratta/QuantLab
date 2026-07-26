@@ -19,6 +19,12 @@ build/
 .env
 *.secret
 
+# Bases locales (SQLite/DuckDB runtime — no versionar)
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+
 # Artifacts de experimentos (runtime)
 artifacts/
 !artifacts/.gitkeep

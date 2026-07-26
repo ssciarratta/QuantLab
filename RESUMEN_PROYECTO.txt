@@ -1,30 +1,30 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-25
+Actualizado: 2026-07-26
 Versión código actual: 0.10.0
-Certificado F17: código 0.9.0 / Review v1.0
-Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
+Certificado F17: 0.9.0 / Review v1.0
+Certificado F18: 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 
 ESTADO
 ------
-- F0–F18: CERTIFICADOS (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO
-- Self-audit remediaciones C1–C3 / H1–H5 / M1 verificadas en certificado F18
+- F0–F18: CERTIFICADOS
+- Research-prod LISTO · CI ACTIVO · LIVE BLOQUEADO
+- Auditoría integral 2026-07-26: PASS (subagentes + remediación)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Certificado F18 APROBADO DEFINITIVO (Meta-Auditor GPT):
-- Remediaciones C1, C2/C3, H1–H5, M1, H3
-- Control Total research-ops (ledger, health, FeatureStore, LogReturn)
-- Suite tests/unit/fase18/test_audit_remediation.py
-- QA cierre: 392 passed · mypy strict · ruff · health ok
-- Review Package: QuantLab_Review_Fase_18_v1.0.zip
-  SHA256 bbdd5dd210c4fac8177723052341d04861014b6beff289d767af64f93cb94723
+Auditoría integral autónoma (subagentes LIVE/integrity/security):
+- FakeA3Backend fail-closed (live_gate)
+- Micro accounting fail-closed si fills sin snapshots
+- .gitignore: *.db / *.sqlite* / *.duckdb
+- Tests: test_integral_audit_2026_07_26.py
+- Doc: docs/audit/INTEGRAL_AUDIT_2026-07-26.md
+- QA: 396 passed · mypy strict · ruff · health ok
 
 PRÓXIMO PASO
 ------------
-- Avances post-F18 (trading-prod / LIVE / HA) solo con decisión explícita
-- LIVE bloqueado
+- Uso research (backtest / alpha scan) o UI si se pide
+- LIVE / trading-prod solo con decisión explícita
 
 BLOQUEOS
 --------

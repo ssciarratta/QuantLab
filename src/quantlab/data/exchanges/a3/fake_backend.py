@@ -115,6 +115,10 @@ class FakeA3Backend:
         price: str | None,
         client_order_id: str,
     ) -> A3OrderAckDTO:
+        # Defensa en profundidad: Fake tampoco bypasea el live_gate research-prod.
+        from quantlab.execution.live_gate import assert_live_routing_blocked
+
+        assert_live_routing_blocked()
         ack = A3OrderAckDTO(
             client_order_id=client_order_id,
             order_id=f"OID-{len(self.placed) + 1}",
@@ -132,6 +136,9 @@ class FakeA3Backend:
         return ack
 
     def cancel_order(self, order_id: str) -> A3OrderAckDTO:
+        from quantlab.execution.live_gate import assert_live_routing_blocked
+
+        assert_live_routing_blocked()
         prev = self.orders.get(order_id)
         ack = A3OrderAckDTO(
             client_order_id=prev.client_order_id if prev else order_id,

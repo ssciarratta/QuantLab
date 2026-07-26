@@ -69,10 +69,27 @@ class MicroBacktester:
         replay = MarketReplay(trades=trades, books=books)
         simulation = self._engine.run(strategy, replay)
         metrics = self._metrics.compute(simulation)
-        if self._config.enforce_accounting and simulation.portfolio_snapshots:
-            accounting = assert_accounting_balanced(
-                simulation, initial_cash=self._config.initial_cash
-            )
+        if self._config.enforce_accounting:
+            if simulation.portfolio_snapshots:
+                accounting = assert_accounting_balanced(
+                    simulation, initial_cash=self._config.initial_cash
+                )
+            elif simulation.fills:
+                # Fail-closed: no inventar ok=True con fills huérfanos de snapshot.
+                from quantlab.core.exceptions import ValidationError
+
+                raise ValidationError(
+                    "accounting: fills presentes sin portfolio_snapshots (fail-closed)"
+                )
+            else:
+                accounting = AccountingReport(
+                    ok=True,
+                    issues=("no_snapshots_no_fills",),
+                    reconstructed_cash=self._config.initial_cash,
+                    reported_cash=self._config.initial_cash,
+                    reported_equity=self._config.initial_cash,
+                    total_fees=Decimal("0"),
+                )
         else:
             accounting = AccountingReport(
                 ok=True,
