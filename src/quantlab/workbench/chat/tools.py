@@ -1,4 +1,4 @@
-"""ToolRegistry allowlist — solo lectura / explicación (Fase 22 / DEC-063)."""
+"""ToolRegistry allowlist — solo lectura / explicación (Fase 22 / F47 / DEC-063)."""
 
 from __future__ import annotations
 
@@ -10,8 +10,11 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.activity import clamp_limit, list_activity
 from quantlab.workbench.api import WorkbenchState
 from quantlab.workbench.docs_browser import default_docs_root, search_docs_files
+from quantlab.workbench.reports import list_lab_reports
+from quantlab.workbench.strategy_catalog import list_strategy_catalog
 
 ALLOWED_TOOLS: frozenset[str] = frozenset(
     {
@@ -23,8 +26,13 @@ ALLOWED_TOOLS: frozenset[str] = frozenset(
         "search_docs",
         "list_experiments",
         "explain_live_policy",
+        "get_session_summary",
+        "list_reports",
+        "list_strategies",
     }
 )
+
+DEFAULT_SESSION_ACTIVITY_LIMIT = 10
 
 FORBIDDEN_TOOLS: frozenset[str] = frozenset(
     {
@@ -64,6 +72,17 @@ _TOOL_META: dict[str, dict[str, str]] = {
     },
     "explain_live_policy": {
         "description": "Política LIVE: siempre bloqueado; REAL=PAPER",
+    },
+    "get_session_summary": {
+        "description": (
+            "Resumen de sesión: mode, venue, book equity, posiciones, activity last N (read-only)"
+        ),
+    },
+    "list_reports": {
+        "description": "Lista reports lab persistidos de la sesión",
+    },
+    "list_strategies": {
+        "description": "Catálogo de estrategias workbench (ids/tags/defaults)",
     },
 }
 
@@ -124,6 +143,9 @@ class ToolRegistry:
             "search_docs": self._search_docs,
             "list_experiments": self._list_experiments,
             "explain_live_policy": self._explain_live_policy,
+            "get_session_summary": self._get_session_summary,
+            "list_reports": self._list_reports,
+            "list_strategies": self._list_strategies,
         }[tool]
         return handler(params)
 
@@ -183,5 +205,66 @@ class ToolRegistry:
                 "fills simulados — nunca place_order al venue. "
                 "El chat NO puede set_live / flip_live_blocked / submit_order."
             ),
+            "chat_mutations": False,
+        }
+
+    def _get_session_summary(self, args: dict[str, Any]) -> dict[str, Any]:
+        raw_limit = args.get("limit")
+        if raw_limit is None:
+            raw_limit = args.get("n")
+        if raw_limit is None:
+            raw_limit = args.get("activity_limit")
+        if raw_limit is None:
+            limit = DEFAULT_SESSION_ACTIVITY_LIMIT
+        elif isinstance(raw_limit, bool) or not isinstance(raw_limit, int):
+            raise ValidationError("get_session_summary: limit debe ser int")
+        else:
+            limit = clamp_limit(raw_limit)
+
+        session = self._state.ensure_session()
+        book = self._state.ensure_book()
+        account = book.get_account()
+        positions = book.get_positions()
+        activity = list_activity(session.activity_path, limit=limit)
+        raw_events = activity.get("events")
+        events: list[Any] = raw_events if isinstance(raw_events, list) else []
+        return {
+            "ok": True,
+            "kind": "session_summary",
+            "session_id": session.session_id,
+            "mode": self._state.mode.value,
+            "venue": self._state.venue,
+            "md_provider": self._state.md_provider,
+            "book_equity": str(account.equity),
+            "cash": str(account.cash),
+            "currency": account.currency,
+            "positions_count": len(positions),
+            "activity_limit": limit,
+            "activity_count": len(events),
+            "activity": events,
+            "live_blocked": LIVE_BLOCKED is True,
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _list_reports(self, args: dict[str, Any]) -> dict[str, Any]:
+        raw_limit = args.get("limit")
+        limit = 50 if raw_limit is None else raw_limit
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ValidationError("list_reports: limit debe ser int")
+        reports_root = self._state.ensure_lab_reports_dir()
+        payload = list_lab_reports(reports_root, limit=limit)
+        payload["chat_mutations"] = False
+        return payload
+
+    def _list_strategies(self, _args: dict[str, Any]) -> dict[str, Any]:
+        strategies = list_strategy_catalog()
+        return {
+            "ok": True,
+            "kind": "strategies",
+            "count": len(strategies),
+            "strategies": strategies,
+            "live_blocked": LIVE_BLOCKED is True,
+            "live_routing": False,
             "chat_mutations": False,
         }

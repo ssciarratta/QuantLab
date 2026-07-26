@@ -48,13 +48,70 @@ class FakeProvider:
             tools_used.append(tool_name)
             return result
 
-        # Intents (orden importa: live antes que modo genérico)
+        # Intents (orden importa: live antes que modo; resumen antes que docs/cómo)
         if _match(lower, ("live", "orden", "órdenes", "ordenes", "flip", "routing")):
             data = use("explain_live_policy")
             parts.append(
                 "Política LIVE: "
                 + str(data.get("policy", ""))
                 + f" live_blocked={data.get('live_blocked')}."
+            )
+        elif _match(
+            lower,
+            (
+                "cómo estoy",
+                "como estoy",
+                "resumen sesión",
+                "resumen sesion",
+                "resumen de sesión",
+                "resumen de sesion",
+                "resumen de la sesión",
+                "resumen de la sesion",
+            ),
+        ):
+            data = use("get_session_summary")
+            parts.append(
+                "Resumen de sesión: "
+                f"mode={data.get('mode')}, venue={data.get('venue')}, "
+                f"equity={data.get('book_equity')} {data.get('currency')}, "
+                f"posiciones={data.get('positions_count')}, "
+                f"activity_last={data.get('activity_count')} "
+                f"(limit={data.get('activity_limit')}). "
+                f"live_blocked={data.get('live_blocked')}."
+            )
+        elif _match(lower, ("reportes", "qué reportes", "que reportes", "lista de reportes")):
+            data = use("list_reports")
+            reports = data.get("reports") or []
+            n = data.get("count", len(reports) if isinstance(reports, list) else 0)
+            ids: list[str] = []
+            if isinstance(reports, list):
+                for item in reports[:5]:
+                    if isinstance(item, dict) and item.get("report_id"):
+                        ids.append(str(item["report_id"]))
+            preview = ", ".join(ids) if ids else "(ninguno)"
+            parts.append(f"Reportes en sesión: {n}. Últimos: {preview}.")
+        elif _match(
+            lower,
+            (
+                "estrategias",
+                "qué estrategias",
+                "que estrategias",
+                "listar estrategias",
+                "catálogo de estrategias",
+                "catalogo de estrategias",
+            ),
+        ):
+            data = use("list_strategies")
+            strategies = data.get("strategies") or []
+            ids = [
+                str(s.get("id"))
+                for s in strategies
+                if isinstance(s, dict) and s.get("id") is not None
+            ]
+            parts.append(
+                f"Estrategias del catálogo ({data.get('count', len(ids))}): "
+                + (", ".join(ids) if ids else "(vacío)")
+                + "."
             )
         elif _match(lower, ("salud", "health", "estado", "checks")):
             data = use("get_health")
@@ -117,7 +174,8 @@ class FakeProvider:
             ids = [str(f.get("id")) for f in feats if isinstance(f, dict)]
             parts.append(
                 "Ayuda rápida: soy el asistente research (safe-mode). "
-                "Puedo explicar salud, modo, backtest, scanner y política LIVE. "
+                "Puedo explicar salud, modo, resumen de sesión, reportes, "
+                "estrategias, backtest, scanner y política LIVE. "
                 f"Paneles: {', '.join(ids[:8])}. No envío órdenes."
             )
             policy = use("explain_live_policy")
@@ -127,7 +185,8 @@ class FakeProvider:
             caps = use("list_capabilities")
             parts.append(
                 "Asistente QuantLab (FakeProvider). Preguntá por salud, modo, "
-                "backtest, scanner, venues, experimentos, docs o política LIVE. "
+                "resumen de sesión, reportes, estrategias, backtest, scanner, "
+                "venues, experimentos, docs o política LIVE. "
                 f"live_blocked={policy.get('live_blocked')}. "
                 f"features={len(caps.get('features') or [])}."
             )

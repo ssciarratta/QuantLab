@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 47 — Chat Context Awareness
+-------------------------------------------------------
+- v0.39.0 · DEC-091 · LIVE_BLOCKED intacto · chat sin trading tools.
+- Tools: get_session_summary · list_reports · list_strategies (read-only).
+- FakeProvider ES: «cómo estoy», «resumen sesión», «qué reportes hay»,
+  «estrategias»; illegal tools siguen rechazados.
+- Tests test_chat_context_f47.py; QA mypy 175 · ruff · pytest 839 ·
+  smoke 33 PASS; FASE_47_APPROVED.md NO emitido.
+- Noche F19–F47 APROBADO_INTERNO.
+
 [2026-07-26] FASE 46 — Multi-Session Switcher
 -------------------------------------------------------
 - v0.38.0 · impl SHA ce9cbdd · DEC-090 · LIVE_BLOCKED intacto.

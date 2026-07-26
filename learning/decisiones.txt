@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-091 — Chat Context Awareness
+  Decisión: F47 = extender ToolRegistry allowlist read-only con
+  get_session_summary (mode/venue/book equity/positions/activity last N),
+  list_reports (list_lab_reports sesión), list_strategies (strategy_catalog);
+  FakeProvider intents ES («cómo estoy», «resumen sesión», «qué reportes hay»,
+  «estrategias»); tests test_chat_context_f47.py. LIVE_BLOCKED=True; sin flip;
+  sin FASE_47_APPROVED; chat sin trading tools.
+  Fase: 47.
+
 [2026-07-26] DEC-090 — Multi-Session Switcher
   Decisión: F46 = GET /api/sessions (lista dirs bajo session root) +
   POST /api/sessions/switch {session_id} fail-closed validate_session_id

@@ -1109,10 +1109,10 @@ Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F46 **APROBADO_INTERNO**.  
-2. QuantLab v0.38.0: Multi-Session Switcher.  
-3. **LIVE sigue BLOQUEADO**; switch fail-closed `validate_session_id`.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F46 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F47 **APROBADO_INTERNO**.  
+2. QuantLab v0.39.0: Chat Context Awareness.  
+3. **LIVE sigue BLOQUEADO**; chat sin trading tools.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F47 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.
 
 ---
@@ -1123,7 +1123,7 @@ Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 **Código:** 0.37.0 · branch `cursor/modo-real-workbench-aafd`  
 **LIVE:** BLOQUEADO · flip **NO**
 
-**Qué es:** `GET /api/about` + badge de versión en status bar + diálogo Acerca de (menú Inicio / command palette); phases_summary tip actual `F19–F46 INTERNAL`; bind_policy loopback-default.
+**Qué es:** `GET /api/about` + badge de versión en status bar + diálogo Acerca de (menú Inicio / command palette); phases_summary tip actual `F19–F47 INTERNAL`; bind_policy loopback-default.
 
 **Docs de auditoría:**
 
@@ -1214,3 +1214,53 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F46: **0.38.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 47 — Chat Context Awareness (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.39.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** Extiende chat allowlist read-only con `get_session_summary` (mode/venue/equity/posiciones/activity), `list_reports`, `list_strategies`; FakeProvider intents ES; chat **sin** trading tools.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_47_CHAT_CONTEXT.md` |
+| Implementation report | `docs/audit/FASE_47_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F47.md` |
+| Review Package INTERNAL | `docs/audit/FASE_47_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F47.md` |
+| Noche F19–F47 | `docs/audit/INTERNAL_AUDIT_F19_F47_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 47** |
+
+**Certificado externo:** **NO** emitido (`FASE_47_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F47 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Allowlist + handlers | `workbench/chat/tools.py` |
+| A2 | FakeProvider ES | `workbench/chat/providers.py` |
+| A3 | Spec | `docs/FASE_47_CHAT_CONTEXT.md` |
+| A4 | Implementation report | `docs/audit/FASE_47_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-091 | `learning/decisiones.txt` |
+| A6 | Suite F47 | `tests/unit/workbench/test_chat_context_f47.py` |
+| A7 | Smoke F47 | `scripts/internal_audit_smoke.py` |
+| A8 | Version 0.39.0 | `pyproject.toml` |
+
+### Lista B F47 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F47: **0.39.0** · LIVE: **BLOQUEADO** · flip: **NO**.

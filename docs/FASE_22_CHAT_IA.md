@@ -32,6 +32,9 @@ src/quantlab/workbench/chat/
 | `search_docs` | Keywords en `docs/*.md` |
 | `list_experiments` | Registry sesión |
 | `explain_live_policy` | LIVE bloqueado; REAL=PAPER |
+| `get_session_summary` | Resumen sesión (F47): mode/venue/equity/posiciones/activity |
+| `list_reports` | Reports lab de sesión (F47) |
+| `list_strategies` | Catálogo de estrategias (F47) |
 
 ## Tools PROHIBIDOS
 

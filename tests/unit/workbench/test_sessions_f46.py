@@ -60,8 +60,8 @@ def test_live_blocked_still_true() -> None:
     assert LIVE_BLOCKED is True
 
 
-def test_phases_summary_f46() -> None:
-    assert PHASES_SUMMARY == "F19–F46 INTERNAL"
+def test_phases_summary_tip() -> None:
+    assert PHASES_SUMMARY == "F19–F47 INTERNAL"
 
 
 def test_list_sessions_filters_invalid(tmp_path: Path) -> None:

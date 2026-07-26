@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.39.0] — 2026-07-26
+
+### Fase 47 — Chat Context Awareness
+
+#### Added
+- Chat tools allowlist: `get_session_summary`, `list_reports`, `list_strategies` (read-only)
+- FakeProvider intents ES: «cómo estoy», «resumen sesión», «qué reportes hay», «estrategias»
+- Docs: `FASE_47_CHAT_CONTEXT.md` · implementation report · DEC-091
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); chat sin trading tools; ilegal tools rechazados
+
+---
+
 ## [0.38.0] — 2026-07-26
 
 ### Fase 46 — Multi-Session Switcher

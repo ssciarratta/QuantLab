@@ -74,6 +74,8 @@ def check_chat_safe() -> None:
     assert "place_order" in FORBIDDEN_TOOLS
     assert "set_live" in FORBIDDEN_TOOLS
     assert ALLOWED_TOOLS.isdisjoint(FORBIDDEN_TOOLS)
+    for name in ("get_session_summary", "list_reports", "list_strategies"):
+        assert name in ALLOWED_TOOLS
 
     reg = ToolRegistry(WorkbenchState())
     for bad in ("submit_order", "place_order", "set_live", "flip_live_blocked"):
@@ -82,6 +84,63 @@ def check_chat_safe() -> None:
         except ValidationError:
             continue
         raise AssertionError(f"expected reject for {bad}")
+
+
+def check_f47_chat_context() -> None:
+    """F47: chat context tools + FakeProvider ES + LIVE_BLOCKED."""
+    import tempfile
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import WorkbenchState
+    from quantlab.workbench.chat.providers import FakeProvider
+    from quantlab.workbench.chat.tools import ALLOWED_TOOLS, FORBIDDEN_TOOLS, ToolRegistry
+    from quantlab.workbench.session import WorkbenchSession
+    from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.39.0"
+    assert PHASES_SUMMARY == "F19–F47 INTERNAL"
+    assert "get_session_summary" in ALLOWED_TOOLS
+    assert "list_reports" in ALLOWED_TOOLS
+    assert "list_strategies" in ALLOWED_TOOLS
+    assert ALLOWED_TOOLS.isdisjoint(FORBIDDEN_TOOLS)
+
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f47-"))
+    session = WorkbenchSession.create_or_load(root, "smoke47")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    reg = ToolRegistry(state)
+
+    summary = reg.call("get_session_summary", {"limit": 5})
+    assert summary["ok"] is True
+    assert summary["mode"] in {"tester", "paper"}
+    assert "book_equity" in summary
+    assert summary["positions_count"] >= 0
+    assert summary["live_blocked"] is True
+
+    reports = reg.call("list_reports")
+    assert reports["ok"] is True
+    assert reports["kind"] == "reports"
+
+    strategies = reg.call("list_strategies")
+    assert strategies["ok"] is True
+    assert strategies["count"] == len(CANONICAL_STRATEGY_IDS)
+
+    for bad in ("submit_order", "place_order", "set_live", "paper_submit"):
+        try:
+            reg.call(bad)
+            raise AssertionError(f"expected reject for {bad}")
+        except Exception as exc:  # noqa: BLE001
+            assert "rechazada" in str(exc).lower()
+
+    fake = FakeProvider()
+    assert "get_session_summary" in fake.complete("¿cómo estoy?", reg).tools_used
+    assert "get_session_summary" in fake.complete("resumen sesión", reg).tools_used
+    assert "list_reports" in fake.complete("qué reportes hay", reg).tools_used
+    assert "list_strategies" in fake.complete("estrategias", reg).tools_used
 
 
 def check_health_dict() -> None:
@@ -1209,8 +1268,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.38.0"
-    assert PHASES_SUMMARY == "F19–F46 INTERNAL"
+    assert __version__ == "0.39.0"
+    assert PHASES_SUMMARY == "F19–F47 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1221,7 +1280,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.38.0"
+    assert about["version"] == "0.39.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1245,6 +1304,7 @@ def check_f45_about() -> None:
 
 def check_f46_sessions() -> None:
     """F46: multi-session list/switch/new + UI + LIVE_BLOCKED."""
+    import tempfile
     from pathlib import Path
 
     from quantlab import __version__
@@ -1262,10 +1322,10 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.38.0"
-    assert PHASES_SUMMARY == "F19–F46 INTERNAL"
+    assert __version__ == "0.39.0"
+    assert PHASES_SUMMARY == "F19–F47 INTERNAL"
 
-    root = Path("/tmp/quantlab-smoke-f46-sessions")
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
     parent.mkdir(parents=True, exist_ok=True)
     s1 = WorkbenchSession.create_or_load(parent, "smoke46a")
@@ -1345,6 +1405,7 @@ def main() -> int:
         ("F44 e2e paper workflow integration", check_f44_e2e_paper_workflow),
         ("F45 about dialog + version badge", check_f45_about),
         ("F46 multi-session switcher", check_f46_sessions),
+        ("F47 chat context awareness", check_f47_chat_context),
     ]
     ok = True
     for name, fn in checks:
