@@ -4,7 +4,7 @@
 **Versión:** 0.72.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F79 Watchlist Import/Export JSON v0.71  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `67fd498`  
 **Alcance:** save/list/apply presets custom de sesión + UI — **sin flip LIVE**
 
 ---

@@ -2674,3 +2674,45 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F79: **0.71.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 80 — Custom Preset Save
+
+**Código:** 0.72.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-124  
+**Qué es:** Guardar layout actual como preset custom de sesión (`POST /api/presets/save`), listarlo en `GET /api/presets`, apply custom, UI Guardar espacio actual. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] POST save → `presets/{name}.json`
+- [ ] GET incluye custom
+- [ ] Apply custom
+- [ ] UI `#btn-preset-save` / `#custom-presets`
+- [ ] Sin `FASE_80_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F80
+- [ ] Bump 0.72.0
+
+### Lista A F80
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | Custom preset helpers | `workbench/presets.py` |
+| A2 | POST save + list/apply | `api.py` + `server.py` |
+| A3 | UI Inicio | `static/index.html` · `shell.js` · `api.js` |
+| A4 | DEC-124 | `learning/decisiones.txt` |
+| A5 | Version 0.72.0 | `pyproject.toml` |
+| A6 | Smoke F80 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 80 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F80 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F80: **0.72.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

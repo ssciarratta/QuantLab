@@ -1019,6 +1019,18 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 80 — Custom Preset Save
+
+**Versión:** 0.72.0 · **DEC-124** · **APROBADO_INTERNO** (sin `FASE_80_APPROVED.md`)
+
+- `POST /api/presets/save` `{name}` — guarda layout actual en `session/presets/{name}.json`
+- `GET /api/presets` incluye custom (`custom: true`)
+- `POST /api/presets/apply` aplica también presets custom
+- UI Inicio: Guardar espacio actual… + lista custom
+- Smoke F80; bundle INTERNAL default F19–F80
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

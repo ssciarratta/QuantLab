@@ -1,7 +1,7 @@
 # FASE 80 — Review Package INTERNAL (Custom Preset Save)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.72.0 · tip PENDING  
+**Versión:** 0.72.0 · tip 67fd498  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Veredicto propuesto:** **APROBADO_INTERNO**  
 **Certificado externo:** `FASE_80_APPROVED.md` **NO** emitido

@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 
-**Código tip:** PENDING · **v0.72.0** · F80 Custom Preset Save  
+**Código tip:** 67fd498 · **v0.72.0** · F80 Custom Preset Save  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión:** **0.72.0** · F80 Custom Preset Save  
 **LIVE_BLOCKED:** True  
