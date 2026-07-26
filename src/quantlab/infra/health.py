@@ -1,4 +1,4 @@
-"""Health check research-prod — Fase 18. Sin probes LIVE."""
+"""Health check research-prod — Fase 18/19. Sin probes LIVE."""
 
 from __future__ import annotations
 
@@ -24,12 +24,14 @@ class HealthReport:
     checks: tuple[tuple[str, bool, str], ...]
     ops_counters: dict[str, int]
     checked_at: datetime
+    operating_mode: str = "tester"
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "ok": self.ok,
             "version": self.version,
             "live_blocked": self.live_blocked,
+            "operating_mode": self.operating_mode,
             "checks": [{"name": n, "ok": o, "detail": d} for n, o, d in self.checks],
             "ops_counters": self.ops_counters,
             "checked_at": self.checked_at.isoformat(),
@@ -39,6 +41,7 @@ class HealthReport:
 def run_health_checks() -> HealthReport:
     """Verifica invariantes research-prod locales."""
     checks: list[tuple[str, bool, str]] = []
+    operating_mode = "tester"
 
     live_ok = LIVE_BLOCKED is True
     checks.append(
@@ -79,6 +82,33 @@ def run_health_checks() -> HealthReport:
         if tmp_dir is not None:
             shutil.rmtree(tmp_dir, ignore_errors=True)  # Windows SQLite WAL lock
 
+    try:
+        from quantlab.brokers import (
+            BrokerRegistry,
+            ModeGuard,
+            OperatingMode,
+            default_mode,
+            get_default_registry,
+        )
+
+        mode = default_mode()
+        if mode is not OperatingMode.TESTER:
+            raise ValidationError(f"default_mode debe ser TESTER, got {mode}")
+        ModeGuard.validate_boot(mode)
+        registry = get_default_registry()
+        if not isinstance(registry, BrokerRegistry):
+            raise ValidationError("get_default_registry no devolvió BrokerRegistry")
+        operating_mode = mode.value
+        checks.append(
+            (
+                "brokers_mode_guard",
+                True,
+                f"mode={operating_mode}; venues={registry.list_venues()}",
+            )
+        )
+    except Exception as exc:  # noqa: BLE001
+        checks.append(("brokers_mode_guard", False, str(exc)))
+
     get_ops_metrics().inc("health.runs")
     ops = dict(get_ops_metrics().snapshot().counters)
     ok = all(c[1] for c in checks)
@@ -89,6 +119,7 @@ def run_health_checks() -> HealthReport:
         checks=tuple(checks),
         ops_counters=ops,
         checked_at=datetime.now(tz=UTC),
+        operating_mode=operating_mode,
     )
 
 

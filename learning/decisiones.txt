@@ -267,4 +267,39 @@ Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
   Decisión: store JSON versionado+checksum; SMA/EMA/RSI/ATR causales Decimal.
   Fase: 5 Oficial (Features).
 
+[2026-07-26] DEC-054 — OperatingMode TESTER / PAPER / LIVE
+  Decisión: tres modos formales en quantlab.brokers.mode; default_mode()=TESTER.
+  ModeGuard.validate_boot fail-closed si LIVE y LIVE_BLOCKED.
+  Fase: 19.
+
+[2026-07-26] DEC-055 — Alias producto REAL = PAPER
+  Decisión: REAL_ALIAS = OperatingMode.PAPER; resolve_mode("real")→PAPER.
+  REAL = MD/cuenta reales + fills simulados. REAL ≠ LIVE.
+  Fase: 19.
+
+[2026-07-26] DEC-056 — BrokerPort multiplataforma + registry
+  Decisión: Protocol BrokerPort + DTOs neutrales; BrokerRegistry con factories
+  built-in a3 / binance / paper. create() siempre ModeGuard.validate_boot.
+  Fase: 19.
+
+[2026-07-26] DEC-057 — PaperBroker fills sin envío venue
+  Decisión: PaperBroker envuelve md_port; PLACE→fill mid local + journal;
+  NUNCA llama submit/cancel del venue subyacente (aunque venue_id sugiera live).
+  Fase: 19.
+
+[2026-07-26] DEC-058 — PaperFillJournal ≠ LocalPaperLedger
+  Decisión: journal JSONL append-only source=paper_broker para fills PAPER;
+  LocalPaperLedger SQLite sigue siendo auditoría de sims research. No mezclar.
+  Fase: 19.
+
+[2026-07-26] DEC-059 — A3BrokerPort MD-only execution plane
+  Decisión: A3BrokerPort mapea FakeA3Backend→Broker*; submit/cancel SIEMPRE
+  assert_live_routing_blocked() (también en PAPER). PAPER usa PaperBroker wrapper.
+  Fase: 19.
+
+[2026-07-26] DEC-060 — LIVE flip checklist; flip NO ejecutado
+  Decisión: docs/ops/LIVE_FLIP_CHECKLIST.md; LIVE_BLOCKED permanece True.
+  Flip solo con Meta-Auditor + dueño + commit dedicado. F19 no lo ejecuta.
+  Fase: 19.
+
 ================================================================================
