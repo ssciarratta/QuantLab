@@ -1,6 +1,6 @@
-# Internal Review Bundle — evidencia F19–F26 (Meta-Auditor)
+# Internal Review Bundle — evidencia F19–F28 (Meta-Auditor)
 
-Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–26.
+Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–28.
 **No** emite `FASE_*_APPROVED.md`. **No** sustituye el Review Package oficial
 (`scripts/build_review_package.py`), que es más pesado (tests/coverage/calidad).
 
@@ -11,16 +11,16 @@ Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–26.
 ```bash
 uv run python scripts/build_internal_review_bundle.py
 # equivalente:
-uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 26
+uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 28
 ```
 
 Salida (fuera de `src/`, en `reports/`):
 
 | Artefacto | Descripción |
 |-----------|-------------|
-| `reports/QuantLab_Internal_Review_F19_F26_v{version}.zip` | Bundle documental |
-| `reports/QuantLab_Internal_Review_F19_F26_v{version}.zip.sha256` | Sidecar SHA-256 |
-| `reports/QuantLab_Internal_Review_F19_F26_v{version}_MANIFEST.json` | Manifest JSON |
+| `reports/QuantLab_Internal_Review_F19_F28_v{version}.zip` | Bundle documental |
+| `reports/QuantLab_Internal_Review_F19_F28_v{version}.zip.sha256` | Sidecar SHA-256 |
+| `reports/QuantLab_Internal_Review_F19_F28_v{version}_MANIFEST.json` | Manifest JSON |
 
 `{version}` se lee de `quantlab.__version__` (`src/quantlab/__init__.py`).
 

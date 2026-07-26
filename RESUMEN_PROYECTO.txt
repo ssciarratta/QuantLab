@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.19.0 (F27)
+Versión código actual: 0.20.0 (F28)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
@@ -13,32 +13,33 @@ Auditoría INTERNAL F24: código 0.16.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F25: código 0.17.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F26: código 0.18.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F27: código 0.19.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F28: código 0.20.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F25_NIGHT.md)
 Noche F19–F26: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F26_NIGHT.md)
 Noche F19–F27: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F27_NIGHT.md)
+Noche F19–F28: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F28_NIGHT.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F27: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench Ops Desk + Paper Session + Strategy Catalog + Lab + Chat IA + PaperBook + plugins
+- F19–F28: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench Ops Desk + Paper Session + Strategy Catalog + Layout/Journal + Lab + Chat IA
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F27 Strategy Catalog (v0.19.0) — APROBADO_INTERNO:
-- Catálogo strategy_catalog (dummy/buy_once/momentum/inventory_mm/avellaneda_stoikov)
-- Wire paper_session + lab backtest; GET /api/lab/strategies; UI params
-- BarSyntheticBookAdapter para MM en bar-backtest; DEC-071
-- Docs: FASE_27_STRATEGY_CATALOG · REVIEW_PACKAGE · INTERNAL_AUDIT_F27 · noche F19–F27
-- FASE_27_APPROVED.md NO emitido
+F28 Layout Persistence + Journal Viewer (v0.20.0) — APROBADO_INTERNO:
+- layout.json por sesión; GET/PUT /api/layout; wm.js debounce + restore boot
+- Panel Journal (fills table + CSV client-side); DEC-072
+- Docs: FASE_28_LAYOUT_JOURNAL · REVIEW_PACKAGE · INTERNAL_AUDIT_F28 · noche F19–F28
+- FASE_28_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F27 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F28 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
 

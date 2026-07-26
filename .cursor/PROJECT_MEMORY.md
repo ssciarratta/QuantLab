@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.19.0**  
+**Versión tip:** **0.20.0**  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
 ---
@@ -19,18 +19,19 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | Rango | Estado |
 |-------|--------|
 | F0–F18 | Certificados **externos** (`FASE_*_APPROVED.md`) |
-| F19–F27 | **APROBADO_INTERNO** Zero-Trust; externos **pendientes** |
+| F19–F28 | **APROBADO_INTERNO** Zero-Trust; externos **pendientes** |
 | Arco F19–F22 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
 | Noche F19–F25 | `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` |
 | Noche F19–F26 | `docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md` |
 | Noche F19–F27 | `docs/audit/INTERNAL_AUDIT_F19_F27_NIGHT.md` |
+| Noche F19–F28 | `docs/audit/INTERNAL_AUDIT_F19_F28_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F27 (SHAs impl)
+## Arco nocturno F19–F28 (SHAs impl)
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -43,6 +44,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 25 | Ops Desk 1-click + hardening | 0.17.0 | `21fe144` |
 | 26 | Paper Session Runner | 0.18.0 | `46487a4` |
 | 27 | Strategy Catalog (MM + AS) | 0.19.0 | `244a3fb` |
+| 28 | Layout persistence + Journal | 0.20.0 | `86517cf` |
 
 ---
 
@@ -57,6 +59,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 7. PaperBroker no llama venue submit; slip paper adverso opcional
 8. Paper Session Runner: **solo PaperBroker** + risk en PLACE; sin venue submit
 9. Strategy Catalog: factory compartida paper+lab; MM bar-backtest sintético; sin LIVE
+10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
 
 ---
 
@@ -65,14 +68,15 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
 - Resumen: `RESUMEN_PROYECTO.txt`
-- DECs: `learning/decisiones.txt` (DEC-054…071)
+- DECs: `learning/decisiones.txt` (DEC-054…072)
 - Workbench: `src/quantlab/workbench/`
+- Layout: `src/quantlab/workbench/layout.py`
 - Strategy catalog: `src/quantlab/workbench/strategy_catalog.py`
 - Paper session: `src/quantlab/workbench/paper_session.py`
 - Launcher 1-click: `scripts/launch_workbench.sh` · `docs/ops/WORKBENCH_1CLICK.md`
 - Chat: `src/quantlab/workbench/chat/`
 - Smoke: `scripts/internal_audit_smoke.py`
-- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F27)
+- Bundle INTERNAL: `scripts/build_internal_review_bundle.py` (default F19–F28)
 - Flip checklist (no ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
 
 ---
@@ -93,6 +97,6 @@ uv run python scripts/internal_audit_smoke.py
 ## Entry points útiles
 
 - `quantlab-health` — ops / LIVE gate
-- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F27
+- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F28
 - `quantlab-a3` — market data A3 (anticorrupción)
 - `quantlab-vertical-slice` — slice mínimo

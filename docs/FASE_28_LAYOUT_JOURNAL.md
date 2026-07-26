@@ -1,9 +1,10 @@
 # Fase 28 — Workbench Layout Persistence + Journal Viewer
 
-**Estado:** ⏳ implementación (v0.20.0) — certificado externo `FASE_28_APPROVED.md` **NO** emitido  
+**Estado:** ✅ **APROBADO_INTERNO** (v0.20.0) — certificado externo `FASE_28_APPROVED.md` **NO** emitido  
 **Base:** v0.19.0 · F27 APROBADO_INTERNO  
 **LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
 **DEC:** DEC-072  
+**INTERNAL:** `docs/audit/INTERNAL_AUDIT_F28.md` · noche `INTERNAL_AUDIT_F19_F28_NIGHT.md`
 
 ## Objetivo
 Persistir geometría del window manager MDI por sesión (`layout.json`) y exponer un panel Journal con tabla de fills paper + export CSV local.

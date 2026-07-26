@@ -328,6 +328,21 @@
 **Spec:** `docs/FASE_27_STRATEGY_CATALOG.md`  
 **Implementation report:** `docs/audit/FASE_27_IMPLEMENTATION_REPORT.md`
 
+### Fase 28 — Layout Persistence + Journal Viewer
+**Módulos:**
+- `workbench/layout.py` — save/load `layout.json` por sesión (geometría MDI fail-closed)
+- API `GET`/`PUT` `/api/layout`; `wm.js` debounce save + restore boot
+- Panel Journal (`panes/journal.js`): tabla fills + export CSV client-side
+- DEC-072; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F28.md`, 2026-07-26) — certificado externo `FASE_28_APPROVED.md` **NO emitido**  
+**Versión:** 0.20.0 · implementación `86517cf`  
+**Review Package INTERNAL:** `docs/audit/FASE_28_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F28.md`  
+**Noche F19–F28:** `docs/audit/INTERNAL_AUDIT_F19_F28_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_28_LAYOUT_JOURNAL.md`  
+**Implementation report:** `docs/audit/FASE_28_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -372,6 +387,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F27 **APROBADO_INTERNO** (noche F19–F27).  
+1. F0–F18 certificados externos; F19–F28 **APROBADO_INTERNO** (noche F19–F28).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
