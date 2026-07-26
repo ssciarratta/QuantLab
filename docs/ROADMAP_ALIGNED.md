@@ -493,7 +493,7 @@
 - Chat `search_docs` incluye ops/; DEC-082; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F38.md`, 2026-07-26) — certificado externo `FASE_38_APPROVED.md` **NO emitido**  
-**Versión:** 0.30.0 · implementación *(tip post-impl)*  
+**Versión:** 0.30.0 · implementación `becd116`  
 **Review Package INTERNAL:** `docs/audit/FASE_38_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F38.md`  
 **Noche F19–F38:** `docs/audit/INTERNAL_AUDIT_F19_F38_NIGHT.md` = **APROBADO_INTERNO**  
@@ -544,6 +544,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F31 **APROBADO_INTERNO** (noche F19–F31).  
+1. F0–F18 certificados externos; F19–F38 **APROBADO_INTERNO** (noche F19–F38).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

@@ -4,7 +4,8 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 38 — Docs / Help Browser
 -------------------------------------------------------
-- v0.30.0 · DEC-082.
+- v0.30.0 · impl SHA becd116 · DEC-082.
+- QA: mypy 171 · ruff · pytest 712 · smoke 24 PASS.
 - GET /api/docs lista docs/*.md + docs/ops/*.md; GET /api/docs/content?path=
   fail-closed ante traversal; panel Help/Docs buscar + preview HTML|pre;
   chat search_docs incluye ops/.
