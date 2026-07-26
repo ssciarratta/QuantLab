@@ -3,14 +3,14 @@
 **Fecha:** 2026-07-26  
 **Auditor:** Meta-Auditor INTERNO Zero-Trust  
 **Veredicto noche:** **APROBADO_INTERNO**  
-**Tip código:** `a34902c` · **v0.46.0** (Readiness / Liveness Probes F54)  
+**Tip código:** `4055238` · **v0.46.0** (Readiness / Liveness Probes F54)  
 **Certificados externos F19+:** **NO** emitidos
 
 ---
 
 ## Alcance
 
-Revisión INTERNAL acumulada del arco workbench F19–F54 sobre tip `a34902c` (v0.46.0 · docs audit F54).  
+Revisión INTERNAL acumulada del arco workbench F19–F54 sobre tip `4055238` (v0.46.0 · docs audit F54).  
 Sin flip LIVE. Sin `FASE_*_APPROVED.md` F19+.
 
 ## Checklist noche
@@ -73,13 +73,13 @@ uv run python scripts/internal_audit_smoke.py  # 40/40 PASS
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F54_v0.46.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F54_v0.46.0_MANIFEST.json` |
-| SHA256 | `bdbf708da9010e78f9fac27e0ea5692ac44ae3babf068e9486d6309da91c44ec` |
+| SHA256 | `b05195a23c21ab90d1edac1a4d451ff5ec429a263c188f89de588b57c5e80ca5` |
 
 ```text
-bdbf708da9010e78f9fac27e0ea5692ac44ae3babf068e9486d6309da91c44ec  QuantLab_Internal_Review_F19_F54_v0.46.0.zip
+b05195a23c21ab90d1edac1a4d451ff5ec429a263c188f89de588b57c5e80ca5  QuantLab_Internal_Review_F19_F54_v0.46.0.zip
 ```
 
-> Path: `reports/QuantLab_Internal_Review_F19_F54_v0.46.0.zip` · tip docs audit; re-generar puede cambiar SHA (`created_at_utc`).
+> Path: `reports/QuantLab_Internal_Review_F19_F54_v0.46.0.zip` · tip docs audit `4055238`; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 
