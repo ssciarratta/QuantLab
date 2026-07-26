@@ -232,6 +232,17 @@
     pane.refresh();
   }
 
+  function openGuidedLab() {
+    const pane = QLPanes.createGuidedLabPane();
+    wm.open(
+      "guided_lab",
+      tr("pane.guided_lab", "Guided Lab"),
+      pane,
+      mergeOpts("guided_lab", { x: 200, y: 60, w: 520, h: 560 })
+    );
+    if (pane.refresh) pane.refresh();
+  }
+
   function openDiagnostics() {
     const pane = QLPanes.createDiagnosticsPane();
     wm.open(
@@ -428,6 +439,7 @@
     venues: openVenues,
     api_explorer: openApiExplorer,
     diagnostics: openDiagnostics,
+    guided_lab: openGuidedLab,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

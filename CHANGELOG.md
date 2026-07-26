@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.91.0] — 2026-07-26
+
+### Fase 99 — Guided Lab MVP (wizard paper-only)
+
+#### Added
+- Pane `guided_lab.js`: venue → scan → estrategia → simular backtest
+- Comando `open.guided_lab`; i18n; banner LIVE_BLOCKED
+- Playground demos + pack ZIP para IA externa (backs only)
+- Tests `test_guided_lab_f99.py` + smoke
+
+#### Notes
+- Solo paper/simulación; sin connect/live; camino a Binance/A3
+
+---
+
 ## [0.90.0] — 2026-07-26
 
 ### Fase 98 — Milestone Freeze Docs (arco ops F93–F97)

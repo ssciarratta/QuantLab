@@ -21,8 +21,8 @@ _WM_JS = _STATIC / "js" / "wm.js"
 
 def test_live_blocked_and_version_f82() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.90.0"
-    assert PHASES_SUMMARY == "F19–F98 INTERNAL"
+    assert __version__ == "0.91.0"
+    assert PHASES_SUMMARY == "F19–F99 INTERNAL"
     assert not Path("docs/audit/FASE_82_APPROVED.md").exists()
 
 

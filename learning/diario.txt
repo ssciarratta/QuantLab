@@ -1,3 +1,7 @@
+[2026-07-26] F99 — Guided Lab MVP wizard paper-only (v0.91.0)
+  Pane guided_lab + playground pack para IA externa. DEC-143.
+  Meta dueño: Binance scan→estrategia→test→live gated; luego A3.
+
 [2026-07-26] F98 — Milestone Freeze arco ops F93–F97 (v0.90.0)
   Freeze documental + CHANGELOG. Sin runtime. DEC-142.
 

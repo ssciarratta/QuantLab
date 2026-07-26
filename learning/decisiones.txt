@@ -1,3 +1,9 @@
+[2026-07-26] DEC-143 — Guided Lab MVP reutiliza lab scanner/backtest
+  Decisión: F99 agrega wizard UI amigable (venue→scan→estrategia→simular) sin
+  rutas nuevas: reutiliza POST /api/lab/scanner y /api/lab/backtest. Solo paper.
+  LIVE_BLOCKED visible. Camino producto: Binance luego A3. Bump 0.91.0.
+  Fase: 99.
+
 [2026-07-26] DEC-142 — Freeze documental arco ops F93–F97 en v0.90
   Decisión: F98 congela docs del arco de visibilidad operativa (Venues, API
   Explorer, Diagnostics, Download, Support Bundle) en MILESTONE_V090_OPS_ARC_FREEZE.md.
