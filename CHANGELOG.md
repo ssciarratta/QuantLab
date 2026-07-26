@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.76.0] — 2026-07-26
+
+### Fase 84 — Cascade / Tile Windows
+
+#### Added
+- `wm.js`: `cascadeWindows()` / `tileWindows()` + pure `cascadeRects` / `tileRects`
+- Espejo Python `workbench/window_layout.py` para unit tests
+- Command palette: `action.cascade_windows` · `action.tile_windows`
+- Menú Inicio: grupo **Ventanas** (cascade / tile)
+- Docs: `FASE_84_CASCADE_TILE.md` · implementation report · DEC-128
+- Suite `test_cascade_tile_f84.py` + smoke F84
+
+#### Changed
+- `phases_summary` → `F19–F84 INTERNAL`
+- Bundle INTERNAL default F19–F84
+- Bump **0.76.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_84_APPROVED.md`
+
+---
+
 ## [0.75.0] — 2026-07-26
 
 ### Fase 83 — Minimize / Restore All

@@ -268,6 +268,37 @@ _ACTION_COMMANDS: tuple[dict[str, Any], ...] = (
             "show",
         ),
     },
+    {
+        "id": "action.cascade_windows",
+        "kind": "action",
+        "label": "Cascade windows",
+        "action": "cascade_windows",
+        "keywords": (
+            "cascade",
+            "cascada",
+            "windows",
+            "ventanas",
+            "stack",
+            "apilar",
+            "layout",
+        ),
+    },
+    {
+        "id": "action.tile_windows",
+        "kind": "action",
+        "label": "Tile windows",
+        "action": "tile_windows",
+        "keywords": (
+            "tile",
+            "mosaico",
+            "grid",
+            "windows",
+            "ventanas",
+            "arrange",
+            "organizar",
+            "layout",
+        ),
+    },
 )
 
 

@@ -24,8 +24,8 @@ _INDEX = _STATIC / "index.html"
 
 def test_live_blocked_and_version_f83() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.75.0"
-    assert PHASES_SUMMARY == "F19–F83 INTERNAL"
+    assert __version__ == "0.76.0"
+    assert PHASES_SUMMARY == "F19–F84 INTERNAL"
     assert not Path("docs/audit/FASE_83_APPROVED.md").exists()
 
 

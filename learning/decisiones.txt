@@ -1,3 +1,11 @@
+[2026-07-26] DEC-128 — Cascade / Tile Windows
+  Decisión: F84 = wm.js cascadeWindows/tileWindows; pure cascadeRects/
+  tileRects + espejo Python window_layout; command palette
+  action.cascade_windows / action.tile_windows; menú Inicio grupo
+  Ventanas; scheduleSave persiste x/y/w/h; bump 0.76.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_84_APPROVED.
+  Fase: 84.
+
 [2026-07-26] DEC-127 — Minimize / Restore All windows
   Decisión: F83 = wm.js minimizeAll/restoreAll; command palette
   action.minimize_all / action.restore_all; menú Inicio grupo Ventanas;

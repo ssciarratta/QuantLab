@@ -291,6 +291,14 @@
       }
       if (cmd.action === "restore_all" && this.wm && this.wm.restoreAll) {
         this.wm.restoreAll();
+        return;
+      }
+      if (cmd.action === "cascade_windows" && this.wm && this.wm.cascadeWindows) {
+        this.wm.cascadeWindows();
+        return;
+      }
+      if (cmd.action === "tile_windows" && this.wm && this.wm.tileWindows) {
+        this.wm.tileWindows();
       }
     }
   };

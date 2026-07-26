@@ -57,6 +57,8 @@ def test_list_commands_registry() -> None:
     assert "action.close_focused" in ids
     assert "action.minimize_all" in ids
     assert "action.restore_all" in ids
+    assert "action.cascade_windows" in ids
+    assert "action.tile_windows" in ids
 
     for cmd in payload["commands"]:
         assert cmd["safe"] is True

@@ -512,6 +512,10 @@
         wm.minimizeAll();
       } else if (action === "restore_all" && wm.restoreAll) {
         wm.restoreAll();
+      } else if (action === "cascade_windows" && wm.cascadeWindows) {
+        wm.cascadeWindows();
+      } else if (action === "tile_windows" && wm.tileWindows) {
+        wm.tileWindows();
       }
       startMenu.setAttribute("hidden", "");
       startMenu.classList.add("hidden");

@@ -5,6 +5,15 @@
   let zCounter = 10;
   const SAVE_DEBOUNCE_MS = 400;
   const SNAP_THRESHOLD_PX = 12;
+  const CASCADE_OFFSET_PX = 28;
+  const CASCADE_BASE_X = 24;
+  const CASCADE_BASE_Y = 24;
+  const CASCADE_WIN_W = 420;
+  const CASCADE_WIN_H = 320;
+  const TILE_GAP_PX = 4;
+  const TILE_MARGIN_PX = 4;
+  const MIN_WIN_W = 280;
+  const MIN_WIN_H = 180;
 
   /**
    * Snap (x,y) to viewport edges when distance < threshold (F82).
@@ -33,6 +42,97 @@
       ny = viewH - hh;
     }
     return { x: nx, y: ny };
+  }
+
+  /**
+   * Cascade rects for n windows (F84).
+   * Pure geometry — mirrored by quantlab.workbench.window_layout.cascade_rects.
+   * @returns {Array<{x:number,y:number,w:number,h:number}>}
+   */
+  function cascadeRects(n, vw, vh, opts) {
+    opts = opts || {};
+    const count = Math.max(0, n | 0);
+    if (count === 0) return [];
+    const viewW = Math.max(1, vw | 0);
+    const viewH = Math.max(1, vh | 0);
+    const step = Math.max(
+      1,
+      opts.offset != null ? opts.offset | 0 : CASCADE_OFFSET_PX
+    );
+    const originX = Math.max(
+      0,
+      opts.baseX != null ? opts.baseX | 0 : CASCADE_BASE_X
+    );
+    const originY = Math.max(
+      0,
+      opts.baseY != null ? opts.baseY | 0 : CASCADE_BASE_Y
+    );
+    const rawW = opts.winW != null ? opts.winW | 0 : CASCADE_WIN_W;
+    const rawH = opts.winH != null ? opts.winH | 0 : CASCADE_WIN_H;
+    const width = Math.max(MIN_WIN_W, Math.min(rawW, viewW));
+    const height = Math.max(MIN_WIN_H, Math.min(rawH, viewH));
+    const maxX = Math.max(0, viewW - width);
+    const maxY = Math.max(0, viewH - height);
+    const wrapX = Math.max(originX, maxX);
+    const wrapY = Math.max(originY, maxY);
+    const rects = [];
+    let cx = originX;
+    let cy = originY;
+    for (let i = 0; i < count; i++) {
+      if (cx > maxX || cy > maxY) {
+        cx = originX;
+        cy = originY;
+      }
+      rects.push({ x: cx, y: cy, w: width, h: height });
+      cx += step;
+      cy += step;
+      if (cx > wrapX && cy > wrapY) {
+        cx = originX;
+        cy = originY;
+      }
+    }
+    return rects;
+  }
+
+  /**
+   * Tile rects for n windows in a near-square grid (F84).
+   * Pure geometry — mirrored by quantlab.workbench.window_layout.tile_rects.
+   * @returns {Array<{x:number,y:number,w:number,h:number}>}
+   */
+  function tileRects(n, vw, vh, opts) {
+    opts = opts || {};
+    const count = Math.max(0, n | 0);
+    if (count === 0) return [];
+    const viewW = Math.max(1, vw | 0);
+    const viewH = Math.max(1, vh | 0);
+    const cellGap = Math.max(
+      0,
+      opts.gap != null ? opts.gap | 0 : TILE_GAP_PX
+    );
+    const outer = Math.max(
+      0,
+      opts.margin != null ? opts.margin | 0 : TILE_MARGIN_PX
+    );
+    let cols = Math.floor(Math.sqrt(count));
+    if (cols * cols < count) cols += 1;
+    if (cols < 1) cols = 1;
+    const rows = Math.ceil(count / cols);
+    const availW = Math.max(1, viewW - 2 * outer - (cols - 1) * cellGap);
+    const availH = Math.max(1, viewH - 2 * outer - (rows - 1) * cellGap);
+    const cellW = Math.max(1, Math.floor(availW / cols));
+    const cellH = Math.max(1, Math.floor(availH / rows));
+    const rects = [];
+    for (let i = 0; i < count; i++) {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      rects.push({
+        x: outer + col * (cellW + cellGap),
+        y: outer + row * (cellH + cellGap),
+        w: cellW,
+        h: cellH,
+      });
+    }
+    return rects;
   }
 
   function WindowManager(workspaceEl, taskbarEl) {
@@ -291,6 +391,78 @@
     }
   };
 
+  /**
+   * Cascade open windows diagonally and persist layout (F84).
+   * Restores minimized windows first so geometry is visible.
+   */
+  WindowManager.prototype.cascadeWindows = function (opts) {
+    opts = opts || {};
+    const ids = Array.from(this.windows.keys());
+    for (let i = 0; i < ids.length; i++) {
+      const rec = this.windows.get(ids[i]);
+      if (rec && rec.el.classList.contains("minimized")) {
+        this.restore(ids[i]);
+      }
+    }
+    const rects = cascadeRects(
+      ids.length,
+      this.workspace.clientWidth,
+      this.workspace.clientHeight,
+      opts
+    );
+    for (let i = 0; i < ids.length; i++) {
+      const rec = this.windows.get(ids[i]);
+      if (!rec || !rects[i]) continue;
+      const r = rects[i];
+      rec.el.style.left = r.x + "px";
+      rec.el.style.top = r.y + "px";
+      rec.el.style.width = r.w + "px";
+      rec.el.style.height = r.h + "px";
+    }
+    if (ids.length) {
+      this.focus(ids[ids.length - 1]);
+    }
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+  };
+
+  /**
+   * Tile open windows in a grid and persist layout (F84).
+   * Restores minimized windows first so geometry is visible.
+   */
+  WindowManager.prototype.tileWindows = function (opts) {
+    opts = opts || {};
+    const ids = Array.from(this.windows.keys());
+    for (let i = 0; i < ids.length; i++) {
+      const rec = this.windows.get(ids[i]);
+      if (rec && rec.el.classList.contains("minimized")) {
+        this.restore(ids[i]);
+      }
+    }
+    const rects = tileRects(
+      ids.length,
+      this.workspace.clientWidth,
+      this.workspace.clientHeight,
+      opts
+    );
+    for (let i = 0; i < ids.length; i++) {
+      const rec = this.windows.get(ids[i]);
+      if (!rec || !rects[i]) continue;
+      const r = rects[i];
+      rec.el.style.left = r.x + "px";
+      rec.el.style.top = r.y + "px";
+      rec.el.style.width = r.w + "px";
+      rec.el.style.height = r.h + "px";
+    }
+    if (ids.length) {
+      this.focus(ids[ids.length - 1]);
+    }
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+  };
+
   WindowManager.prototype.getFocusedId = function () {
     return this.focusedId;
   };
@@ -364,6 +536,12 @@
 
   WindowManager.snapPosition = snapPosition;
   WindowManager.SNAP_THRESHOLD_PX = SNAP_THRESHOLD_PX;
+  WindowManager.cascadeRects = cascadeRects;
+  WindowManager.tileRects = tileRects;
+  WindowManager.CASCADE_OFFSET_PX = CASCADE_OFFSET_PX;
+  WindowManager.TILE_GAP_PX = TILE_GAP_PX;
   global.QLSnapPosition = snapPosition;
+  global.QLCascadeRects = cascadeRects;
+  global.QLTileRects = tileRects;
   global.QLWindowManager = WindowManager;
 })(window);

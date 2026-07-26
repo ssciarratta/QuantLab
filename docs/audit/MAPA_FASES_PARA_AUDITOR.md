@@ -2839,3 +2839,46 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F83: **0.75.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 84 — Cascade / Tile Windows
+
+**Código:** 0.76.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-128  
+**Qué es:** Command palette + menú Inicio: Cascade / Tile windows. `wm.js` `cascadeWindows`/`tileWindows` + pure `cascadeRects`/`tileRects` (espejo Python) + `scheduleSave` persiste layout. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] Commands `action.cascade_windows` + `action.tile_windows` en `/api/commands`
+- [ ] `cascadeWindows`/`tileWindows` en `wm.js` + persist layout
+- [ ] Pure helpers JS + Python `window_layout`
+- [ ] Menú grupo Ventanas
+- [ ] Sin `FASE_84_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F84
+- [ ] Bump 0.76.0
+
+### Lista A F84
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | cascade/tile + rects | `static/js/wm.js` |
+| A2 | Python mirror | `workbench/window_layout.py` |
+| A3 | Commands | `workbench/commands.py` |
+| A4 | Spec | `docs/FASE_84_CASCADE_TILE.md` |
+| A5 | DEC-128 | `learning/decisiones.txt` |
+| A6 | Version 0.76.0 | `pyproject.toml` |
+| A7 | Smoke F84 | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 84 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F84 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F84: **0.76.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

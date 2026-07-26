@@ -1063,6 +1063,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 84 — Cascade / Tile Windows
+
+**Versión:** 0.76.0 · **DEC-128** · **APROBADO_INTERNO** (sin `FASE_84_APPROVED.md`)
+
+- Command palette + menú: Cascade windows / Tile windows
+- `wm.js` `cascadeWindows` / `tileWindows` + pure rects + `scheduleSave`
+- Espejo Python `window_layout` + suite/smoke F84
+- Bundle INTERNAL default F19–F84
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):
