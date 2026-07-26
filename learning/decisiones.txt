@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-099 — OpenAPI / API Catalog
+  Decisión: F55 = GET /api/openapi.json genera schema OpenAPI 3 mínimo
+  desde catálogo estático quantlab.workbench.api_catalog (sin FastAPI);
+  lista paths/methods/summary research-safe; sin rutas LIVE trading;
+  link About → /api/openapi.json; suite test_openapi_f55.py; bump 0.47.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_55_APPROVED.
+  Fase: 55.
+
 [2026-07-26] DEC-098 — Readiness / Liveness Probes
   Decisión: F54 = GET /api/livez (siempre 200 si proceso up) +
   GET /api/readyz (200 si LIVE_BLOCKED True y session root writable; 503 si no);

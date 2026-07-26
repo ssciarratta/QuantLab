@@ -19,6 +19,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.47.0] — 2026-07-26
+
+### Fase 55 — OpenAPI / API Catalog
+
+#### Added
+- `GET /api/openapi.json` — OpenAPI 3 mínimo desde catálogo estático
+- Módulo `quantlab.workbench.api_catalog` (paths/methods/summary; sin FastAPI)
+- Link About → API (OpenAPI)
+- Suite `tests/unit/workbench/test_openapi_f55.py`
+- Docs: `FASE_55_OPENAPI.md` · implementation report · DEC-099
+- Bundle INTERNAL default F19–F55
+
+#### Changed
+- `phases_summary` → `F19–F55 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_55_APPROVED.md`; sin rutas LIVE trading en catálogo
+
+---
+
 ## [0.46.0] — 2026-07-26
 
 ### Fase 54 — Readiness / Liveness Probes

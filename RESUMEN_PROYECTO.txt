@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.46.0 (F54 Readiness / Liveness Probes)
+Versión código actual: 0.47.0 (F55 OpenAPI / API Catalog)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -11,6 +11,7 @@ Auditoría INTERNAL F51: código 0.43.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F52: código 0.44.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F53: código 0.45.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F54: código 0.46.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F55: código 0.47.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -20,25 +21,26 @@ Noche F19–F51: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F51_NIGHT.md)
 Noche F19–F52: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F52_NIGHT.md)
 Noche F19–F53: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F53_NIGHT.md)
 Noche F19–F54: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F54_NIGHT.md)
+Noche F19–F55: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F55_NIGHT.md)
 Freeze: docs/audit/MILESTONE_V040_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F54: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49 freeze + F50 perf + F51 rate limit + F52 shutdown + F53 Docker + F54 probes
+- F19–F55: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49 freeze + F50 perf + F51 rate limit + F52 shutdown + F53 Docker + F54 probes + F55 OpenAPI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F54 Readiness / Liveness Probes (v0.46.0) — APROBADO_INTERNO:
-- GET /api/livez (200 si proceso up) + GET /api/readyz (200 LIVE_BLOCKED+writable / 503)
-- quantlab.workbench.probes; DOCKER_WORKBENCH.md HEALTHCHECK; DEC-098
-- test_probes_f54.py; FASE_54_APPROVED.md NO emitido
+F55 OpenAPI / API Catalog (v0.47.0) — APROBADO_INTERNO:
+- GET /api/openapi.json (OpenAPI 3 mínimo desde api_catalog; sin FastAPI)
+- Schema incluye /api/health + /api/livez; sin rutas LIVE trading
+- About link API; DEC-099; test_openapi_f55.py; FASE_55_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F54 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F55 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL

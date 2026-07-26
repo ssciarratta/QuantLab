@@ -275,6 +275,9 @@
         "/api/docs/content?path=" + encodeURIComponent(path || "")
       );
     },
+    openapi: function () {
+      return request("GET", "/api/openapi.json");
+    },
     about: function () {
       return request("GET", "/api/about");
     },

@@ -1490,6 +1490,17 @@ button.btn.secondary:hover {
   font-size: 0.72rem;
 }
 
+.about-api-link {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+}
+
+.about-api-link a {
+  color: var(--accent, #3d7ea6);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .about-footer {
   display: flex;
   justify-content: space-between;

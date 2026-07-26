@@ -42,6 +42,7 @@ from quantlab.workbench.api import (
     handle_get_livez,
     handle_get_mode,
     handle_get_onboarding,
+    handle_get_openapi,
     handle_get_ops_metrics,
     handle_get_ops_prometheus,
     handle_get_paper_book,
@@ -243,6 +244,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/health":
                     self._send_json(handle_get_health(state))
+                    return
+                if path == "/api/openapi.json":
+                    self._send_json(handle_get_openapi(state))
                     return
                 if path == "/api/about":
                     self._send_json(handle_get_about(state))

@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 55 — OpenAPI / API Catalog
+-------------------------------------------------------
+- v0.47.0 · DEC-099 · LIVE_BLOCKED intacto · sin FASE_55_APPROVED.
+- GET /api/openapi.json desde quantlab.workbench.api_catalog (sin FastAPI).
+- Schema con /api/health + /api/livez; sin live trading routes.
+- About link API; suite test_openapi_f55.py; smoke F55.
+- Noche F19–F55 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 54 — Readiness / Liveness Probes
 -------------------------------------------------------
 - v0.46.0 · impl SHA a34902c · DEC-098 · LIVE_BLOCKED intacto · sin FASE_54_APPROVED.

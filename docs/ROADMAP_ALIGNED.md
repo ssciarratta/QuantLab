@@ -717,6 +717,19 @@
 **Spec:** `docs/FASE_54_PROBES.md`  
 **Implementation report:** `docs/audit/FASE_54_IMPLEMENTATION_REPORT.md`
 
+### Fase 55 — OpenAPI / API Catalog
+**Módulos:**
+- `quantlab.workbench.api_catalog` — catálogo estático + OpenAPI 3 mínimo (sin FastAPI)
+- `GET /api/openapi.json` en server/api
+- Link About → API (OpenAPI)
+- DEC-099; bump 0.47.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F55.md`, 2026-07-26) — certificado externo `FASE_55_APPROVED.md` **NO emitido**  
+**Versión:** 0.47.0  
+**Noche F19–F55:** `docs/audit/INTERNAL_AUDIT_F19_F55_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_55_OPENAPI.md`  
+**Implementation report:** `docs/audit/FASE_55_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

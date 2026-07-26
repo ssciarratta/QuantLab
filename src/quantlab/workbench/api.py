@@ -28,6 +28,7 @@ from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.about import build_about_payload
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
+from quantlab.workbench.api_catalog import openapi_payload
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
@@ -436,6 +437,12 @@ def handle_get_readyz(state: WorkbenchState) -> dict[str, Any]:
     except Exception:  # noqa: BLE001 — not ready if session unavailable
         session_root = None
     return readyz_payload(session_root=session_root)
+
+
+def handle_get_openapi(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/openapi.json — OpenAPI 3 mínimo desde catálogo (F55)."""
+    _ = state
+    return openapi_payload()
 
 
 def handle_get_about(state: WorkbenchState) -> dict[str, Any]:

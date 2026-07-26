@@ -1604,3 +1604,51 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F54: **0.46.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 55 — OpenAPI / API Catalog
+
+**Código:** 0.47.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-099  
+**Qué es:** `GET /api/openapi.json` — schema OpenAPI 3 mínimo generado desde catálogo estático `api_catalog` (paths/methods/summary; sin FastAPI); sin rutas LIVE trading; link About opcional.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_55_OPENAPI.md` |
+| Implementation report | `docs/audit/FASE_55_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F55.md` |
+| Review Package INTERNAL | `docs/audit/FASE_55_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F55.md` |
+| Noche F19–F55 | `docs/audit/INTERNAL_AUDIT_F19_F55_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 55** |
+
+**Certificado externo:** **NO** emitido (`FASE_55_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F55 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | API catalog module | `src/quantlab/workbench/api_catalog.py` |
+| A2 | API handler | `handle_get_openapi` en `api.py` |
+| A3 | Server route | `GET /api/openapi.json` |
+| A4 | Suite F55 | `tests/unit/workbench/test_openapi_f55.py` |
+| A5 | Spec | `docs/FASE_55_OPENAPI.md` |
+| A6 | Implementation report | `docs/audit/FASE_55_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-099 | `learning/decisiones.txt` |
+| A8 | Smoke F55 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 55 | `scripts/build_internal_review_bundle.py` |
+| A10 | Version 0.47.0 | `pyproject.toml` |
+
+### Lista B F55 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F55: **0.47.0** · LIVE: **BLOQUEADO** · flip: **NO**.

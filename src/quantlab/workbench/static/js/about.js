@@ -65,7 +65,8 @@
       "</dl>" +
       '<p class="muted about-note">Research-safe · REAL ≠ LIVE · ' +
       (blocked ? "LIVE_BLOCKED" : "LIVE_UNLOCKED") +
-      "</p>"
+      '</p>' +
+      '<p class="about-api-link"><a href="/api/openapi.json" target="_blank" rel="noopener">API (OpenAPI)</a></p>'
     );
   }
 
