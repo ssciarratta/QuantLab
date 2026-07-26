@@ -3,10 +3,10 @@
   "generator": "scripts/build_internal_review_bundle.py",
   "generator_version": "1.0.0",
   "quantlab_version": "0.42.0",
-  "git_tip_sha": "d91f239582c35e3a65969e6d1d915b8496c55046",
+  "git_tip_sha": "6eb3f0678122655d8cdabf8a6b02cf7cb5a552b7",
   "from_phase": 19,
   "to_phase": 50,
-  "created_at_utc": "2026-07-26T06:21:56.934083+00:00",
+  "created_at_utc": "2026-07-26T06:22:09.331163+00:00",
   "zip_name": "QuantLab_Internal_Review_F19_F50_v0.42.0.zip",
   "notes": [
     "Evidencia INTERNAL only — NO sustituye Review Package oficial.",

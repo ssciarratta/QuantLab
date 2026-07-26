@@ -106,10 +106,10 @@ uv run python scripts/workbench_perf_baseline.py  # PASS
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F50_v0.42.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F50_v0.42.0_MANIFEST.json` |
-| Digest | `c849d81bdbb1979899ebd75590139e5d0d586402294a0e1fdbfd09d0274487ab` |
+| Digest | `e2d149857437dc01f181d62e6f49372d45c454d0b3d67df41d12e4f2824d0274` |
 
 ```text
-c849d81bdbb1979899ebd75590139e5d0d586402294a0e1fdbfd09d0274487ab  QuantLab_Internal_Review_F19_F50_v0.42.0.zip
+e2d149857437dc01f181d62e6f49372d45c454d0b3d67df41d12e4f2824d0274  QuantLab_Internal_Review_F19_F50_v0.42.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F50_v0.42.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
