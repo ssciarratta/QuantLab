@@ -115,19 +115,29 @@ uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase
 | Campo | Valor |
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F31_v0.23.0.zip` |
-| SHA256 | `954ab511a5b6b670981dd3e0d802fbce0d54a9e72fd7f97b8a871fc5f842e6a3` |
+| SHA256 | `5c30616806b78b92cfb9d05035321b317444fe87199bd4d4a495eb9b1dee52d9` |
 | Default script | `DEFAULT_TO_PHASE = 31` |
 | Incluye APPROVED | **NO** |
 
 ### Bundle SHA256
 
 ```
-954ab511a5b6b670981dd3e0d802fbce0d54a9e72fd7f97b8a871fc5f842e6a3  QuantLab_Internal_Review_F19_F31_v0.23.0.zip
+5c30616806b78b92cfb9d05035321b317444fe87199bd4d4a495eb9b1dee52d9  QuantLab_Internal_Review_F19_F31_v0.23.0.zip
 ```
 
-> Nota: el ZIP no se versiona en git (reports/); el SHA256 se documenta aquí para trazabilidad.
+> Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).  
+> Path: `reports/QuantLab_Internal_Review_F19_F31_v0.23.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
+
 ---
 
-## Firma INTERNAL noche
+## Límites
+
+- Cierra la **noche F19–F31** a nivel INTERNAL.  
+- **No** autoriza certificados externos ni flip LIVE.  
+- Meta-Auditor externo debe revisar por fase (o lote) antes de `FASE_*_APPROVED.md`.
+
+---
+
+## Firma INTERNAL (noche)
 
 Meta-Auditor INTERNO Zero-Trust · 2026-07-26 · QuantLab noche F19–F31 · **APROBADO_INTERNO**
