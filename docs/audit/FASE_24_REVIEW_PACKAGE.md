@@ -4,7 +4,7 @@
 **Versión código (impl F24):** 0.16.0  
 **Tipo:** Review Package **INTERNAL** (Meta-Auditor INTERNO Zero-Trust)  
 **Implementación:** commit `c846e81`  
-**Remediación H1:** commit `25f7ba1`  
+**Remediación H1:** commit `f8267e3`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F24.md`  
 **Veredicto INTERNAL:** `docs/audit/INTERNAL_AUDIT_F24.md`  
 **Implementation report:** `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md`

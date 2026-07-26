@@ -271,7 +271,7 @@
 **Versión:** 0.16.0 · implementación `c846e81`  
 **Review Package INTERNAL:** `docs/audit/FASE_24_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F24.md`  
-**Remediación audit:** H1 plugins no sombrean builtins (`25f7ba1`)  
+**Remediación audit:** H1 plugins no sombrean builtins (`f8267e3`)  
 **Implementation report:** `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md`
 
 ---

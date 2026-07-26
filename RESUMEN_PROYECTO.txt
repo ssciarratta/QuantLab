@@ -24,7 +24,7 @@ ESTADO
 ---------------------------------
 F24 Venue plugins + MD (v0.16.0, impl c846e81) — APROBADO_INTERNO:
 - Entry points quantlab.brokers; get_default_registry carga plugins (fail-soft)
-- H1 remediado (25f7ba1): plugins no sombrean builtins
+- H1 remediado (f8267e3): plugins no sombrean builtins
 - A3 md_source fake|env (QUANTLAB_A3_MD_READONLY=1 + creds; fallback fake)
 - Builtins generic_csv / generic_rest MD-only; submit/cancel gated
 - Workbench md_provider / plugin_venues; UI Market provider

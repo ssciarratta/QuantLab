@@ -306,7 +306,7 @@ Versión impl F23: **0.15.0** (`9b89274`) · LIVE: **BLOQUEADO** · remediación
 | INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F24.md` |
 | Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 24** |
 
-**Estado:** **APROBADO_INTERNO** v0.16.0 (`c846e81` + remediación H1 `25f7ba1`).  
+**Estado:** **APROBADO_INTERNO** v0.16.0 (`c846e81` + remediación H1 `f8267e3`).  
 **LIVE:** BLOQUEADO · DEC-067/068 · `FASE_24_APPROVED.md` **NO** emitido.
 
 ---
