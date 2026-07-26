@@ -4,6 +4,7 @@
 **Versión:** 0.42.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F49 Milestone Freeze Docs  
+**Impl SHA:** `d91f239`  
 **Alcance:** baseline latencia loopback endpoints clave — **sin flip LIVE**
 
 ---
