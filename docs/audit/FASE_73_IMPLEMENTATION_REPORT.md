@@ -4,7 +4,7 @@
 **Versión:** 0.65.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F72 Desktop Notifications · F70 Paper Kill · F41 Toasts  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `e3257b7`  
 **Alcance:** settings opt-in + WebAudio beep en toast errors / kill engage — **sin flip LIVE**
 
 ---
