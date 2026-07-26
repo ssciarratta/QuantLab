@@ -4,6 +4,7 @@
 **Versión:** 0.51.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F58 Milestone Freeze Docs v0.50  
+**Impl SHA:** `6a1823a`  
 **Alcance:** a11y mínima static HTML/JS — **sin flip LIVE**
 
 ---

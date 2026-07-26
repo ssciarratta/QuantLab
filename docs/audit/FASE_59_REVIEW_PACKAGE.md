@@ -2,6 +2,7 @@
 
 **Fecha:** 2026-07-26  
 **Versión código (impl F59):** 0.51.0  
+**Impl SHA:** `6a1823a`  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Veredicto INTERNAL:** **APROBADO_INTERNO**  
 **Certificado externo:** **NO** (`FASE_59_APPROVED.md` no emitido)
