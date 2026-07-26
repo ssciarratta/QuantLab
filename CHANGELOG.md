@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.71.0] — 2026-07-26
+
+### Fase 79 — Watchlist Import/Export JSON
+
+#### Added
+- `GET /api/watchlist/export` — JSON download (`application/json` + Content-Disposition)
+- `POST /api/watchlist/import` — `{symbols:[...], mode: merge|replace}`
+- UI Universe: botones **Export JSON** / **Import JSON** (`#un-export`, `#un-import`)
+- Docs: `FASE_79_WATCHLIST_IO.md` · implementation report · DEC-123
+- Suite `test_watchlist_io_f79.py` + smoke F79
+
+#### Changed
+- `phases_summary` → `F19–F79 INTERNAL`
+- Bundle INTERNAL default F19–F79
+- Bump **0.71.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_79_APPROVED.md`
+
+---
+
 ## [0.70.0] — 2026-07-26
 
 

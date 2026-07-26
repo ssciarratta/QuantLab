@@ -116,7 +116,10 @@ from quantlab.workbench.validation_runs import (
 )
 from quantlab.workbench.watchlist import (
     add_symbols,
+    export_watchlist_json,
+    import_symbols,
     load_watchlist,
+    parse_import_mode,
     remove_symbols,
     save_watchlist,
 )
@@ -1160,6 +1163,63 @@ def handle_put_watchlist(state: WorkbenchState, body: dict[str, Any]) -> dict[st
         "ok": True,
         "watchlist": saved,
         "symbols": list(saved["symbols"]),
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_get_watchlist_export(state: WorkbenchState) -> tuple[bytes, str]:
+    """GET /api/watchlist/export — JSON download de la watchlist (F79)."""
+    session = state.ensure_session()
+    try:
+        watchlist = load_watchlist(session.watchlist_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    text = export_watchlist_json(watchlist)
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in session.session_id)[
+        :64
+    ]
+    filename = f"quantlab-watchlist-{safe or 'session'}.json"
+    return text.encode("utf-8"), filename
+
+
+def handle_post_watchlist_import(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/watchlist/import — merge/replace símbolos desde JSON (F79).
+
+    Body:
+    - ``{"symbols": [...], "mode": "merge"|"replace"}``
+    - ``{"watchlist": {"symbols": [...]}, "mode": ...}``
+    """
+    session = state.ensure_session()
+    try:
+        mode = parse_import_mode(body.get("mode", "merge"))
+        if "symbols" in body:
+            raw_symbols = body["symbols"]
+            if not isinstance(raw_symbols, list):
+                raise ValidationError("watchlist.import symbols debe ser lista")
+            symbols = [str(x) for x in raw_symbols]
+        elif "watchlist" in body and isinstance(body["watchlist"], dict):
+            wl_raw = body["watchlist"].get("symbols", [])
+            if not isinstance(wl_raw, list):
+                raise ValidationError("watchlist.import watchlist.symbols debe ser lista")
+            symbols = [str(x) for x in wl_raw]
+        else:
+            raise ValidationError("body debe incluir symbols o watchlist")
+        current = load_watchlist(session.watchlist_path)
+        before = list(current["symbols"])
+        next_wl = import_symbols(current, symbols, mode=mode)
+        saved = save_watchlist(session.watchlist_path, next_wl)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "import": True,
+        "mode": mode,
+        "watchlist": saved,
+        "symbols": list(saved["symbols"]),
+        "before_count": len(before),
+        "after_count": len(saved["symbols"]),
+        "imported_count": len(symbols),
         "session_id": session.session_id,
         "live_blocked": LIVE_BLOCKED is True,
     }

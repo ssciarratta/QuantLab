@@ -111,3 +111,36 @@ def remove_symbols(current: dict[str, Any], to_remove: list[str]) -> dict[str, A
     drop = {validate_symbol(s) for s in to_remove}
     kept = [s for s in normalize_watchlist(current)["symbols"] if s not in drop]
     return {"version": WATCHLIST_VERSION, "symbols": kept}
+
+
+def export_watchlist_json(payload: dict[str, Any] | None = None) -> str:
+    """Serializa watchlist canónica a JSON (F79 export download)."""
+    normalized = normalize_watchlist(payload)
+    return json.dumps(normalized, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+
+
+def parse_import_mode(raw: object) -> str:
+    """Valida mode de import: ``merge`` | ``replace`` (default merge)."""
+    if raw is None or raw == "":
+        return "merge"
+    if not isinstance(raw, str):
+        raise ValidationError("watchlist.import mode debe ser string")
+    mode = raw.strip().lower()
+    if mode not in {"merge", "replace"}:
+        raise ValidationError("watchlist.import mode debe ser 'merge' o 'replace'")
+    return mode
+
+
+def import_symbols(
+    current: dict[str, Any],
+    symbols: list[str],
+    *,
+    mode: str = "merge",
+) -> dict[str, Any]:
+    """Aplica import de símbolos con merge (add/dedupe) o replace (F79)."""
+    resolved = parse_import_mode(mode)
+    if not isinstance(symbols, list):
+        raise ValidationError("watchlist.import symbols debe ser lista")
+    if resolved == "replace":
+        return normalize_watchlist({"version": WATCHLIST_VERSION, "symbols": symbols})
+    return add_symbols(current, [str(x) for x in symbols])

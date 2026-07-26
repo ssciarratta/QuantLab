@@ -2633,3 +2633,44 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F78: **0.70.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 79 — Watchlist Import/Export JSON
+
+**Código:** 0.71.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-123  
+**Qué es:** Export JSON server-side de watchlist (`GET /api/watchlist/export`) e import merge/replace (`POST /api/watchlist/import`). Botones Export/Import en Universe. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] GET export → application/json + Content-Disposition
+- [ ] POST import mode merge|replace
+- [ ] UI `#un-export` / `#un-import`
+- [ ] Sin `FASE_79_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F79
+- [ ] Bump 0.71.0
+
+### Lista A F79
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | Export helpers | `workbench/watchlist.py` |
+| A2 | GET/POST watchlist IO | `api.py` + `server.py` |
+| A3 | UI Universe | `static/js/panes/universe.js` |
+| A4 | DEC-123 | `learning/decisiones.txt` |
+| A5 | Version 0.71.0 | `pyproject.toml` |
+| A6 | Smoke F79 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 79 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F79 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F79: **0.71.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

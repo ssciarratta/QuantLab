@@ -135,6 +135,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/docs/content", "GET", "Read docs markdown content", ("docs",)),
     ApiRoute("/api/watchlist", "GET", "Universe watchlist", ("universe",)),
     ApiRoute("/api/watchlist", "PUT", "Update watchlist", ("universe",)),
+    ApiRoute(
+        "/api/watchlist/export",
+        "GET",
+        "Export watchlist JSON download",
+        ("universe",),
+    ),
+    ApiRoute(
+        "/api/watchlist/import",
+        "POST",
+        "Import watchlist symbols merge/replace",
+        ("universe",),
+    ),
     ApiRoute("/api/universe", "GET", "Universe symbols", ("universe",)),
     ApiRoute("/api/catalog", "GET", "Data catalog datasets", ("universe",)),
     ApiRoute("/api/risk", "GET", "Paper risk limits", ("risk",)),

@@ -1008,6 +1008,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE · **hito 0.70**
 
 
+## Fase 79 — Watchlist Import/Export JSON
+
+**Versión:** 0.71.0 · **DEC-123** · **APROBADO_INTERNO** (sin `FASE_79_APPROVED.md`)
+
+- `GET /api/watchlist/export` — JSON download (Content-Disposition)
+- `POST /api/watchlist/import` — `{symbols, mode: merge|replace}`
+- UI Universe: Export JSON / Import JSON
+- Smoke F79; bundle INTERNAL default F19–F79
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

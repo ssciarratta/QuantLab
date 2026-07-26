@@ -1,3 +1,10 @@
+[2026-07-26] DEC-123 — Watchlist Import/Export JSON
+  Decisión: F79 = GET /api/watchlist/export (JSON download) +
+  POST /api/watchlist/import {symbols, mode=merge|replace};
+  botones Export/Import en panel Universe; bump 0.71.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_79_APPROVED.
+  Fase: 79.
+
 [2026-07-26] DEC-122 — Milestone Freeze Docs + CHANGELOG Sync (v0.70)
   Decisión: F78 = freeze documental hito v0.70.0 (MILESTONE_V070_FREEZE);
   inventario F19–F77/F78; sync CHANGELOG/RESUMEN/MEMORY/README;

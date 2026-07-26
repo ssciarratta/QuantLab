@@ -1,4 +1,4 @@
-/** Panel Universe — broker symbols + watchlist (F30). */
+/** Panel Universe — broker symbols + watchlist (F30) + import/export JSON (F79). */
 (function (global) {
   "use strict";
 
@@ -32,6 +32,15 @@
       '<button type="button" class="btn" id="un-add-btn">Add</button>' +
       '<button type="button" class="btn secondary" id="un-refresh">Actualizar</button>' +
       "</div>" +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn secondary" id="un-export">Export JSON</button>' +
+      '<input id="un-import-file" type="file" accept=".json,application/json" />' +
+      '<label class="field">Modo<select id="un-import-mode">' +
+      '<option value="merge" selected>merge</option>' +
+      '<option value="replace">replace</option>' +
+      "</select></label>" +
+      '<button type="button" class="btn secondary" id="un-import">Import JSON</button>' +
+      "</div>" +
       '<p class="muted mono" id="un-status">—</p>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -41,6 +50,8 @@
     const listEl = root.querySelector("#un-list");
     const statusEl = root.querySelector("#un-status");
     const addInput = root.querySelector("#un-add");
+    const importFileEl = root.querySelector("#un-import-file");
+    const importModeEl = root.querySelector("#un-import-mode");
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -138,6 +149,56 @@
 
     root.querySelector("#un-refresh").addEventListener("click", function () {
       root.refresh().catch(function () {});
+    });
+
+    root.querySelector("#un-export").addEventListener("click", function () {
+      statusEl.classList.remove("status-bad");
+      const a = document.createElement("a");
+      a.href = QLApi.watchlistExportUrl();
+      a.download = "quantlab-watchlist.json";
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      statusEl.textContent = "export JSON…";
+    });
+
+    root.querySelector("#un-import").addEventListener("click", async function () {
+      const file = importFileEl.files && importFileEl.files[0];
+      if (!file) {
+        statusEl.textContent = "seleccioná un JSON para importar";
+        statusEl.classList.add("status-bad");
+        return;
+      }
+      statusEl.classList.remove("status-bad");
+      statusEl.textContent = "importando…";
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const symbols = Array.isArray(parsed)
+          ? parsed
+          : parsed && Array.isArray(parsed.symbols)
+            ? parsed.symbols
+            : null;
+        if (!symbols) {
+          throw new Error("JSON debe ser {symbols:[...]} o una lista");
+        }
+        const mode = importModeEl.value === "replace" ? "replace" : "merge";
+        const out = await QLApi.importWatchlist({ symbols: symbols, mode: mode });
+        importFileEl.value = "";
+        statusEl.textContent =
+          "import " +
+          mode +
+          " · " +
+          (out.before_count || 0) +
+          " → " +
+          (out.after_count || 0) +
+          " símbolos";
+        await root.refresh();
+      } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+        statusEl.classList.add("status-bad");
+      }
     });
 
     root.refresh = async function () {

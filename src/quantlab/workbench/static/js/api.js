@@ -13,6 +13,7 @@
     "POST /api/lab/optimize": "Optimize",
     "GET /api/session/export": "Export",
     "POST /api/session/import": "Import",
+    "POST /api/watchlist/import": "Watchlist import",
   };
 
   function toastKey(method, path) {
@@ -211,6 +212,12 @@
     },
     putWatchlist: function (body) {
       return request("PUT", "/api/watchlist", body || {});
+    },
+    watchlistExportUrl: function () {
+      return "/api/watchlist/export";
+    },
+    importWatchlist: function (body) {
+      return request("POST", "/api/watchlist/import", body || {});
     },
     universe: function () {
       return request("GET", "/api/universe");

@@ -70,6 +70,7 @@ from quantlab.workbench.api import (
     handle_get_universe,
     handle_get_venues,
     handle_get_watchlist,
+    handle_get_watchlist_export,
     handle_post_backups_run,
     handle_post_broker_connect,
     handle_post_broker_disconnect,
@@ -94,6 +95,7 @@ from quantlab.workbench.api import (
     handle_post_sessions_new,
     handle_post_sessions_switch,
     handle_post_shutdown,
+    handle_post_watchlist_import,
     handle_put_layout,
     handle_put_settings,
     handle_put_watchlist,
@@ -440,6 +442,14 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/watchlist":
                     self._send_json(handle_get_watchlist(state))
                     return
+                if path == "/api/watchlist/export":
+                    body, filename = handle_get_watchlist_export(state)
+                    self._send_download(
+                        body,
+                        filename=filename,
+                        content_type="application/json; charset=utf-8",
+                    )
+                    return
                 if path == "/api/universe":
                     self._send_json(handle_get_universe(state))
                     return
@@ -608,6 +618,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session/import":
                     self._send_json(handle_post_session_import(state, body))
+                    return
+                if path == "/api/watchlist/import":
+                    self._send_json(handle_post_watchlist_import(state, body))
                     return
                 if path == "/api/sessions/switch":
                     self._send_json(handle_post_sessions_switch(state, body))
