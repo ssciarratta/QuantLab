@@ -2,6 +2,13 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 68 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
+-------------------------------------------------------
+- v0.60.0 · DEC-112 · LIVE_BLOCKED intacto · sin FASE_68_APPROVED.
+- MILESTONE_V060_FREEZE.md (inventario F19–F67/F68); smoke starts with 0.60;
+  sync CHANGELOG / RESUMEN / PROJECT_MEMORY / README; bundle F19–F68.
+- Noche F19–F68 APROBADO_INTERNO (post-QA) · hito 0.60.
+
 [2026-07-26] FASE 67 — Paper PnL Summary
 -------------------------------------------------------
 - v0.59.0 · DEC-111 · LIVE_BLOCKED intacto · sin FASE_67_APPROVED.

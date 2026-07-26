@@ -2144,3 +2144,49 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F67: **0.59.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 68 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
+
+**Código:** 0.60.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-112  
+**Qué es:** Freeze documental del hito workbench F19–F67/F68 (v0.60.0): inventario, invariantes, cómo operar, límites (no LIVE); sync CHANGELOG/RESUMEN/PROJECT_MEMORY/README; smoke version starts with 0.60; bundle F19–F68.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_68_MILESTONE_V060.md` |
+| Implementation report | `docs/audit/FASE_68_IMPLEMENTATION_REPORT.md` |
+| Freeze | `docs/audit/MILESTONE_V060_FREEZE.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F68.md` |
+| Review Package INTERNAL | `docs/audit/FASE_68_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F68.md` |
+| Noche F19–F68 | `docs/audit/INTERNAL_AUDIT_F19_F68_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 68** |
+
+**Certificado externo:** **NO** emitido (`FASE_68_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F68 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Milestone freeze | `docs/audit/MILESTONE_V060_FREEZE.md` |
+| A2 | Spec | `docs/FASE_68_MILESTONE_V060.md` |
+| A3 | Implementation report | `docs/audit/FASE_68_IMPLEMENTATION_REPORT.md` |
+| A4 | DEC-112 | `learning/decisiones.txt` |
+| A5 | Version 0.60.0 | `pyproject.toml` |
+| A6 | Smoke version starts with 0.60 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 68 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F68 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F68: **0.60.0** · LIVE: **BLOQUEADO** · flip: **NO**.

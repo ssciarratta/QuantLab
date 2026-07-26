@@ -885,6 +885,20 @@
 **Spec:** `docs/FASE_67_PNL.md`  
 **Implementation report:** `docs/audit/FASE_67_IMPLEMENTATION_REPORT.md`
 
+### Fase 68 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
+**Alcance:**
+- Freeze documental F19–F67/F68 (`MILESTONE_V060_FREEZE.md`): inventario, invariantes, operar, límites no LIVE
+- Sync CHANGELOG (resumen agrupado F19–F67) · RESUMEN · PROJECT_MEMORY · README
+- Smoke tip version **starts with 0.60**; bundle default F19–F68
+- DEC-112; bump 0.60.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F68.md`, 2026-07-26) — certificado externo `FASE_68_APPROVED.md` **NO emitido**  
+**Versión:** 0.60.0  
+**Freeze:** `docs/audit/MILESTONE_V060_FREEZE.md`  
+**Noche F19–F68:** `docs/audit/INTERNAL_AUDIT_F19_F68_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_68_MILESTONE_V060.md`  
+**Implementation report:** `docs/audit/FASE_68_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -929,6 +943,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F67 **APROBADO_INTERNO** (noche F19–F67; freeze v0.40 + v0.50).  
+1. F0–F18 certificados externos; F19–F68 **APROBADO_INTERNO** (noche F19–F68; freeze v0.40 + v0.50 + v0.60).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
