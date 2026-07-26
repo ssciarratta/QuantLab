@@ -67,6 +67,19 @@
       "<dt>Bind detail</dt><dd class=\"muted about-bind\">" +
       escapeHtml(bp.summary || "—") +
       "</dd>" +
+      "<dt>Paper kill</dt><dd class=\"mono\">" +
+      escapeHtml(String(data && data.paper_kill_engaged === true)) +
+      "</dd>" +
+      "<dt>Auto-backup (min)</dt><dd class=\"mono\">" +
+      escapeHtml(
+        String(
+          data && data.auto_backup_minutes != null ? data.auto_backup_minutes : 0
+        )
+      ) +
+      "</dd>" +
+      "<dt>Access log</dt><dd class=\"mono\">" +
+      escapeHtml(String(!(data && data.access_log === false))) +
+      "</dd>" +
       "</dl>" +
       '<p class="muted about-note">Research-safe · REAL ≠ LIVE · ' +
       (blocked ? "LIVE_BLOCKED" : "LIVE_UNLOCKED") +

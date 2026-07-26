@@ -926,6 +926,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 71 — Health Extended + 1000 Tests Milestone
+
+**Versión:** 0.63.0 · **DEC-115** · **APROBADO_INTERNO** (sin `FASE_71_APPROVED.md`)
+
+- Extiende `GET /api/health` + `GET /api/about` con flags: `paper_kill_engaged`, `auto_backup_minutes`, `access_log`
+- Suite `test_health_extended_f71.py` (edge cases útiles) → **≥1000 pytest passed**
+- Health pane + About UI surface ops flags
+- Smoke F71; bundle INTERNAL default F19–F71
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

@@ -525,9 +525,35 @@ def _md_info(state: WorkbenchState) -> dict[str, Any]:
     }
 
 
+def _workbench_ops_flags(state: WorkbenchState) -> dict[str, Any]:
+    """Flags operativos de sesión para health/about (F71).
+
+    ``paper_kill_engaged`` · ``auto_backup_minutes`` · ``access_log``.
+    Fail-closed a defaults canónicos si settings ilegibles.
+    """
+    session = state.ensure_session()
+    try:
+        settings = load_settings(session.settings_path)
+    except ValidationError:
+        settings = {
+            "access_log": True,
+            "auto_backup_minutes": 0,
+        }
+    minutes_raw = settings.get("auto_backup_minutes", 0)
+    minutes = int(minutes_raw) if isinstance(minutes_raw, int) else 0
+    access_raw = settings.get("access_log", True)
+    return {
+        "paper_kill_engaged": state.paper_kill_engaged is True,
+        "auto_backup_minutes": minutes,
+        "access_log": access_raw is True,
+    }
+
+
 def handle_get_health(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/health — checks + md + flags ops sesión (F71)."""
     report = run_health_checks().to_dict()
     report.update(_md_info(state))
+    report.update(_workbench_ops_flags(state))
     return report
 
 
@@ -558,12 +584,14 @@ def handle_get_openapi(state: WorkbenchState) -> dict[str, Any]:
 
 
 def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/about — version, phases INTERNAL, Python, bind policy (F45)."""
+    """GET /api/about — version, phases INTERNAL, Python, bind + flags (F45/F71)."""
     state.ensure_session()
-    return build_about_payload(
+    payload = build_about_payload(
         bind_host=state.bind_host,
         allow_non_loopback=state.allow_non_loopback,
     )
+    payload.update(_workbench_ops_flags(state))
+    return payload
 
 
 def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:

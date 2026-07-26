@@ -67,6 +67,13 @@
           );
         })
         .join("");
+      const flags =
+        "kill=" +
+        String(h.paper_kill_engaged === true) +
+        " · backup_min=" +
+        String(h.auto_backup_minutes != null ? h.auto_backup_minutes : 0) +
+        " · access_log=" +
+        String(h.access_log !== false);
       checksEl.innerHTML =
         '<table class="data-table"><thead><tr><th></th><th>Check</th><th>Detalle</th></tr></thead><tbody>' +
         rows +
@@ -75,6 +82,9 @@
         (h.version || "?") +
         " · " +
         (h.checked_at || "") +
+        "</p>" +
+        '<p class="muted mono" id="hp-ops-flags">' +
+        flags +
         "</p>";
     }
 

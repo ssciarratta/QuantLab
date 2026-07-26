@@ -19,6 +19,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.63.0] — 2026-07-26
+
+### Fase 71 — Health Extended + 1000 Tests Milestone
+
+#### Added
+- `GET /api/health` + `GET /api/about` flags: `paper_kill_engaged`, `auto_backup_minutes`, `access_log`
+- Health pane + About dialog surface ops flags
+- Suite `test_health_extended_f71.py` (edge kill/pnl/equity/risk/backups/fills vacíos)
+- Docs: `FASE_71_HEALTH_1K.md` · implementation report · DEC-115
+- Smoke F71 · bundle INTERNAL default F19–F71
+- Milestone **≥1000 pytest passed**
+
+#### Changed
+- `phases_summary` → `F19–F71 INTERNAL`
+- Bump **0.63.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_71_APPROVED.md`
+
 ## [0.62.0] — 2026-07-26
 
 ### Fase 70 — Paper Kill Switch

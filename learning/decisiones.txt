@@ -1,3 +1,11 @@
+[2026-07-26] DEC-115 — Health Extended + 1000 Tests Milestone
+  Decisión: F71 = extender GET /api/health y /api/about con flags
+  paper_kill_engaged, auto_backup_minutes, access_log; suite útil
+  test_health_extended_f71.py (edge kill/pnl/equity/risk/backups/fills
+  vacíos) para cruzar ≥1000 pytest passed; bump 0.63.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_71_APPROVED.
+  Fase: 71.
+
 [2026-07-26] DEC-114 — Paper Kill Switch
   Decisión: F70 = paper kill switch (meta.paper_kill_engaged);
   when engaged reject paper submit + session step with ValidationError;

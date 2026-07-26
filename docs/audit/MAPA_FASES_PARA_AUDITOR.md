@@ -2284,3 +2284,47 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F70: **0.62.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 71 — Health Extended + 1000 Tests Milestone
+
+**Código:** 0.63.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-115  
+**Qué es:** Extiende `GET /api/health` + `GET /api/about` con flags ops (`paper_kill_engaged`, `auto_backup_minutes`, `access_log`); suite edge cases útiles; hito **≥1000 pytest passed**; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_71_HEALTH_1K.md` |
+| Implementation report | `docs/audit/FASE_71_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F71.md` |
+| Review Package INTERNAL | `docs/audit/FASE_71_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F71.md` |
+| Noche F19–F71 | `docs/audit/INTERNAL_AUDIT_F19_F71_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 71** |
+
+**Certificado externo:** **NO** emitido (`FASE_71_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F71 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Ops flags helper | `api.py` `_workbench_ops_flags` |
+| A2 | Health + About payload | `api.py` · `about.py` |
+| A3 | Health pane + About UI | `health.js` · `about.js` |
+| A4 | Spec | `docs/FASE_71_HEALTH_1K.md` |
+| A5 | Implementation report | `docs/audit/FASE_71_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-115 | `learning/decisiones.txt` |
+| A7 | Version 0.63.0 | `pyproject.toml` |
+| A8 | Suite + smoke F71 | `test_health_extended_f71.py` · smoke |
+
+### Lista B F71 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F71: **0.63.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

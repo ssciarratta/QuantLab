@@ -14,7 +14,7 @@ from quantlab import __version__
 from quantlab.execution.live_gate import LIVE_BLOCKED
 
 # Arco workbench APROBADO_INTERNO tip (sin certificados externos F19+).
-PHASES_SUMMARY = "F19–F70 INTERNAL"
+PHASES_SUMMARY = "F19–F71 INTERNAL"
 
 DEFAULT_BIND_HOST = "127.0.0.1"
 BIND_POLICY_LOOPBACK = "loopback-default"
@@ -63,8 +63,11 @@ def build_about_payload(
     *,
     bind_host: str = DEFAULT_BIND_HOST,
     allow_non_loopback: bool = False,
+    paper_kill_engaged: bool = False,
+    auto_backup_minutes: int = 0,
+    access_log: bool = True,
 ) -> dict[str, Any]:
-    """Payload JSON de GET /api/about."""
+    """Payload JSON de GET /api/about (flags ops opcionales F71)."""
     py_version = platform.python_version()
     return {
         "ok": True,
@@ -85,4 +88,7 @@ def build_about_payload(
             bind_host=bind_host,
             allow_non_loopback=allow_non_loopback,
         ),
+        "paper_kill_engaged": paper_kill_engaged is True,
+        "auto_backup_minutes": int(auto_backup_minutes),
+        "access_log": access_log is True,
     }

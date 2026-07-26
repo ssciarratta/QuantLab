@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.62.0 (F70 Paper Kill Switch)
+Versión código actual: 0.63.0 (F71 Health Extended + 1000 Tests)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -27,6 +27,7 @@ Auditoría INTERNAL F67: código 0.59.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F68: código 0.60.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.60.0
 Auditoría INTERNAL F69: código 0.61.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F70: código 0.62.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F71: código 0.63.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -51,6 +52,7 @@ Noche F19–F66: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F66_NIGHT.md)
 Noche F19–F67: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F67_NIGHT.md)
 Noche F19–F68: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F68_NIGHT.md)
 Noche F19–F70: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F70_NIGHT.md)
+Noche F19–F71: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F71_NIGHT.md)
 Noche F19–F69: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F69_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
