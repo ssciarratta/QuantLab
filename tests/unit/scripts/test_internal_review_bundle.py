@@ -1,4 +1,4 @@
-"""Tests mínimos del bundle INTERNAL de evidencia F19–F31."""
+"""Tests mínimos del bundle INTERNAL de evidencia F19–F32."""
 
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ def _seed_project(tmp: Path) -> Path:
     (tmp / "reports").mkdir(parents=True)
     (tmp / "data").mkdir(parents=True)
     (tmp / "src" / "quantlab" / "__init__.py").write_text(
-        '__version__ = "0.23.0"\n',
+        '__version__ = "0.24.0"\n',
         encoding="utf-8",
     )
 
@@ -44,6 +44,7 @@ def _seed_project(tmp: Path) -> Path:
         (29, "REPORTS"),
         (30, "UNIVERSE_CATALOG"),
         (31, "FEATURES_UI"),
+        (32, "VALIDATION_UI"),
     ):
         (tmp / "docs" / f"FASE_{phase:02d}_{slug}.md").write_text(f"# F{phase}\n", encoding="utf-8")
 
@@ -56,6 +57,7 @@ def _seed_project(tmp: Path) -> Path:
         ("AUTO_AUDIT_2026-07-26_F29.md", "# auto F29\n"),
         ("AUTO_AUDIT_2026-07-26_F30.md", "# auto F30\n"),
         ("AUTO_AUDIT_2026-07-26_F31.md", "# auto F31\n"),
+        ("AUTO_AUDIT_2026-07-26_F32.md", "# auto F32\n"),
         ("INTERNAL_AUDIT_F19.md", "# internal F19\n"),
         ("INTERNAL_AUDIT_F26.md", "# internal F26\n"),
         ("INTERNAL_AUDIT_F27.md", "# internal F27\n"),
@@ -63,12 +65,14 @@ def _seed_project(tmp: Path) -> Path:
         ("INTERNAL_AUDIT_F29.md", "# internal F29\n"),
         ("INTERNAL_AUDIT_F30.md", "# internal F30\n"),
         ("INTERNAL_AUDIT_F31.md", "# internal F31\n"),
+        ("INTERNAL_AUDIT_F32.md", "# internal F32\n"),
         ("INTERNAL_AUDIT_F19_F26_NIGHT.md", "# night 26\n"),
         ("INTERNAL_AUDIT_F19_F27_NIGHT.md", "# night 27\n"),
         ("INTERNAL_AUDIT_F19_F28_NIGHT.md", "# night 28\n"),
         ("INTERNAL_AUDIT_F19_F29_NIGHT.md", "# night 29\n"),
         ("INTERNAL_AUDIT_F19_F30_NIGHT.md", "# night 30\n"),
         ("INTERNAL_AUDIT_F19_F31_NIGHT.md", "# night 31\n"),
+        ("INTERNAL_AUDIT_F19_F32_NIGHT.md", "# night 32\n"),
         ("INTERNAL_AUDIT_F23_F25_ARC.md", "# arc\n"),
         ("FASE_19_REVIEW_PACKAGE.md", "# review pkg\n"),
         ("FASE_19_IMPLEMENTATION_REPORT.md", "# impl\n"),
@@ -84,6 +88,8 @@ def _seed_project(tmp: Path) -> Path:
         ("FASE_30_IMPLEMENTATION_REPORT.md", "# impl 30\n"),
         ("FASE_31_REVIEW_PACKAGE.md", "# review pkg 31\n"),
         ("FASE_31_IMPLEMENTATION_REPORT.md", "# impl 31\n"),
+        ("FASE_32_REVIEW_PACKAGE.md", "# review pkg 32\n"),
+        ("FASE_32_IMPLEMENTATION_REPORT.md", "# impl 32\n"),
         ("MAPA_FASES_PARA_AUDITOR.md", "# mapa\n"),
         # Must NEVER be included
         ("FASE_19_APPROVED.md", "# SHOULD NOT SHIP\n"),
@@ -93,6 +99,7 @@ def _seed_project(tmp: Path) -> Path:
         ("FASE_29_APPROVED.md", "# SHOULD NOT SHIP\n"),
         ("FASE_30_APPROVED.md", "# SHOULD NOT SHIP\n"),
         ("FASE_31_APPROVED.md", "# SHOULD NOT SHIP\n"),
+        ("FASE_32_APPROVED.md", "# SHOULD NOT SHIP\n"),
         # Outside range
         ("AUTO_AUDIT_2026-07-26_F18.md", "# F18 out\n"),
         ("INTERNAL_AUDIT_F18.md", "# F18 out\n"),
@@ -115,13 +122,13 @@ def _seed_project(tmp: Path) -> Path:
     return tmp
 
 
-def test_default_to_phase_is_31() -> None:
-    assert DEFAULT_TO_PHASE == 31
+def test_default_to_phase_is_32() -> None:
+    assert DEFAULT_TO_PHASE == 32
 
 
 def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
-    files = collect_bundle_files(root, from_phase=19, to_phase=31)
+    files = collect_bundle_files(root, from_phase=19, to_phase=32)
     names = {relative_arcname(p, root) for p in files}
 
     assert "docs/FASE_19_OPERATING_MODES.md" in names
@@ -131,14 +138,15 @@ def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None
     assert "docs/FASE_29_REPORTS.md" in names
     assert "docs/FASE_30_UNIVERSE_CATALOG.md" in names
     assert "docs/FASE_31_FEATURES_UI.md" in names
+    assert "docs/FASE_32_VALIDATION_UI.md" in names
     assert "docs/audit/AUTO_AUDIT_2026-07-26_F19.md" in names
-    assert "docs/audit/AUTO_AUDIT_2026-07-26_F30.md" in names
     assert "docs/audit/AUTO_AUDIT_2026-07-26_F31.md" in names
+    assert "docs/audit/AUTO_AUDIT_2026-07-26_F32.md" in names
+    assert "docs/audit/INTERNAL_AUDIT_F19_F32_NIGHT.md" in names
     assert "docs/audit/INTERNAL_AUDIT_F19_F31_NIGHT.md" in names
-    assert "docs/audit/INTERNAL_AUDIT_F19_F30_NIGHT.md" in names
     assert "docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md" in names
     assert "docs/audit/FASE_19_IMPLEMENTATION_REPORT.md" in names
-    assert "docs/audit/FASE_31_REVIEW_PACKAGE.md" in names
+    assert "docs/audit/FASE_32_REVIEW_PACKAGE.md" in names
     assert "docs/ops/LIVE_FLIP_CHECKLIST.md" in names
     assert "RESUMEN_PROYECTO.txt" in names
     assert "docs/ROADMAP_ALIGNED.md" in names
@@ -146,7 +154,7 @@ def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None
 
     # Exclusions
     assert "docs/audit/FASE_19_APPROVED.md" not in names
-    assert "docs/audit/FASE_31_APPROVED.md" not in names
+    assert "docs/audit/FASE_32_APPROVED.md" not in names
     assert "docs/audit/AUTO_AUDIT_2026-07-26_F18.md" not in names
     assert ".env" not in names
     assert "data/secret.bin" not in names
@@ -155,13 +163,13 @@ def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None
 
 def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
-    result = build_bundle(root, from_phase=19, to_phase=31)
+    result = build_bundle(root, from_phase=19, to_phase=32)
 
-    assert result.version == "0.23.0"
+    assert result.version == "0.24.0"
     assert result.zip_path.exists()
     assert result.sha256_path.exists()
     assert result.manifest_path.exists()
-    assert result.zip_path.name == "QuantLab_Internal_Review_F19_F31_v0.23.0.zip"
+    assert result.zip_path.name == "QuantLab_Internal_Review_F19_F32_v0.24.0.zip"
 
     digest_line = result.sha256_path.read_text(encoding="utf-8").strip()
     assert digest_line.endswith(result.zip_path.name)
@@ -170,10 +178,10 @@ def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
 
     manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
     assert manifest["bundle_kind"] == "INTERNAL_REVIEW"
-    assert manifest["quantlab_version"] == "0.23.0"
+    assert manifest["quantlab_version"] == "0.24.0"
     assert "git_tip_sha" in manifest
     assert manifest["from_phase"] == 19
-    assert manifest["to_phase"] == 31
+    assert manifest["to_phase"] == 32
     assert isinstance(manifest["files"], list)
     assert all("APPROVED" not in Path(f).name for f in manifest["files"])
 
@@ -181,6 +189,7 @@ def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
         members = zf.namelist()
     assert "docs/FASE_19_OPERATING_MODES.md" in members
     assert "docs/FASE_31_FEATURES_UI.md" in members
+    assert "docs/FASE_32_VALIDATION_UI.md" in members
     assert "docs/ops/LIVE_FLIP_CHECKLIST.md" in members
     assert any(m.endswith("_MANIFEST.json") for m in members)
     assert not any("APPROVED" in m for m in members)
@@ -191,4 +200,4 @@ def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
 def test_build_bundle_rejects_inverted_range(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
     with pytest.raises(InternalBundleError, match="from-phase"):
-        build_bundle(root, from_phase=31, to_phase=19)
+        build_bundle(root, from_phase=32, to_phase=19)

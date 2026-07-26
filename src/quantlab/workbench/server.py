@@ -25,6 +25,7 @@ from quantlab.workbench.api import (
     handle_get_lab_reports,
     handle_get_lab_strategies,
     handle_get_lab_validation,
+    handle_get_lab_validation_run,
     handle_get_layout,
     handle_get_mode,
     handle_get_paper_book,
@@ -45,6 +46,7 @@ from quantlab.workbench.api import (
     handle_post_lab_montecarlo,
     handle_post_lab_optimize,
     handle_post_lab_scanner,
+    handle_post_lab_validation_run,
     handle_post_mode,
     handle_post_paper_session_start,
     handle_post_paper_session_step,
@@ -197,6 +199,13 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/validation":
                     self._send_json(handle_get_lab_validation(state))
                     return
+                if path.startswith("/api/lab/validation/"):
+                    run_id = unquote(path[len("/api/lab/validation/") :]).strip("/")
+                    if not run_id or "/" in run_id or run_id == "run":
+                        self._send_error_json(400, "run_id inválido")
+                        return
+                    self._send_json(handle_get_lab_validation_run(state, run_id))
+                    return
                 if path == "/api/lab/reports":
                     self._send_json(handle_get_lab_reports(state))
                     return
@@ -267,6 +276,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path in ("/api/lab/features", "/api/lab/features/run"):
                     self._send_json(handle_post_lab_features(state, body))
+                    return
+                if path == "/api/lab/validation/run":
+                    self._send_json(handle_post_lab_validation_run(state, body))
                     return
                 if path == "/api/lab/export-hb":
                     self._send_json(handle_post_lab_export_hb(state, body))

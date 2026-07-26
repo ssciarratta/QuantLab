@@ -2,7 +2,7 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.23.0 (F31) · F30 INTERNAL 0.22.0 · F29 INTERNAL 0.21.0  
+**Código actual:** 0.24.0 (F32) · F31 INTERNAL 0.23.0 · F30 INTERNAL 0.22.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
 **Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` (**APROBADO_INTERNO**)  
@@ -645,10 +645,55 @@ Versión código F31: **0.23.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 32 — Validation / Walk-Forward Runner UI
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_32_VALIDATION_UI.md` |
+| Implementation report | `docs/audit/FASE_32_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F32.md` |
+| Review Package INTERNAL | `docs/audit/FASE_32_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F32.md` |
+| Noche F19–F32 | `docs/audit/INTERNAL_AUDIT_F19_F32_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 32** |
+
+**Certificado externo:** **NO** emitido (`FASE_32_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F32 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persist validation runs | `workbench/validation_runs.py` |
+| A2 | Session `validation_dir` | `workbench/session.py` |
+| A3 | Lab runner índices + leakage | `workbench/lab_services.py` |
+| A4 | `POST` run + `GET` list/get | `api.py` + `server.py` |
+| A5 | Panel Validation enriquecido | `static/js/panes/validation.js` |
+| A6 | LIVE gate | `execution/live_gate.py` |
+| A7 | DEC-076 | `learning/decisiones.txt` |
+| A8 | Suite F32 | `tests/unit/workbench/test_validation_f32.py` |
+| A9 | Smoke F32 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F32 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F32: **0.24.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F31 **APROBADO_INTERNO**.  
-2. QuantLab v0.23.0: Feature Store Browser + Pipeline Runner (session + API + UI).  
-3. **LIVE sigue BLOQUEADO**; feature store persist path-safe / empty-ok.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F31 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F32 **APROBADO_INTERNO**.  
+2. QuantLab v0.24.0: Validation / Walk-Forward Runner (session + API + UI).  
+3. **LIVE sigue BLOQUEADO**; validation persist path-safe / empty-ok.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F32 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

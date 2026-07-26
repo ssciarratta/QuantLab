@@ -390,6 +390,22 @@
 **Spec:** `docs/FASE_31_FEATURES_UI.md`  
 **Implementation report:** `docs/audit/FASE_31_IMPLEMENTATION_REPORT.md`
 
+### Fase 32 — Validation / Walk-Forward Runner UI
+**Módulos:**
+- `workbench/validation_runs.py` — persist session `validation/`
+- `lab_services.run_lab_validation` — índices + anti-leakage + persist
+- API `POST /api/lab/validation/run`, `GET /api/lab/validation` (+ `/{id}`)
+- Panel Validation: splits + leakage + historial
+- DEC-076; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F32.md`, 2026-07-26) — certificado externo `FASE_32_APPROVED.md` **NO emitido**  
+**Versión:** 0.24.0 · implementación *(tip post-commit)*  
+**Review Package INTERNAL:** `docs/audit/FASE_32_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F32.md`  
+**Noche F19–F32:** `docs/audit/INTERNAL_AUDIT_F19_F32_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_32_VALIDATION_UI.md`  
+**Implementation report:** `docs/audit/FASE_32_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

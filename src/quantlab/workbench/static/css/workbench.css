@@ -498,6 +498,11 @@ button.btn.secondary:hover {
   font-size: 0.72rem;
 }
 
+.validation-table {
+  width: 100%;
+  font-size: 0.72rem;
+}
+
 .mono {
   font-family: var(--mono);
 }

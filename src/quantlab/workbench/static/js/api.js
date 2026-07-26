@@ -138,6 +138,12 @@
     labValidation: function () {
       return request("GET", "/api/lab/validation");
     },
+    labValidationRun: function (body) {
+      return request("POST", "/api/lab/validation/run", body || {});
+    },
+    labValidationGet: function (runId) {
+      return request("GET", "/api/lab/validation/" + encodeURIComponent(runId));
+    },
     labBacktest: function (body) {
       return request("POST", "/api/lab/backtest", body || {});
     },

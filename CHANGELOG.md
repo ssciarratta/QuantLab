@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.24.0] — 2026-07-26
+
+### Fase 32 — Validation / Walk-Forward Runner UI
+
+#### Added
+- `workbench/validation_runs.py` — persist session `validation/<run_id>/summary.json`
+- API `POST /api/lab/validation/run` · `GET /api/lab/validation` (+ `/{run_id}`)
+- Índices de segmentos + anti-leakage (`check_temporal_leakage`); panel Validation enriquecido
+- Tests `test_validation_f32.py` · DEC-076
+- Docs: `FASE_32_VALIDATION_UI.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); path externo de validation rechazado
+
+---
+
 ## [0.23.0] — 2026-07-26
 
 ### Fase 31 — Feature Store Browser + Pipeline Runner UI

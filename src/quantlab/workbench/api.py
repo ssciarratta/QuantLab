@@ -30,6 +30,13 @@ from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRun
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
+from quantlab.workbench.validation_runs import (
+    get_validation_run,
+    list_validation_runs,
+)
+from quantlab.workbench.validation_runs import (
+    validate_run_id as validate_validation_run_id,
+)
 from quantlab.workbench.watchlist import (
     add_symbols,
     load_watchlist,
@@ -124,6 +131,11 @@ class WorkbenchState:
         session = self.ensure_session()
         session.features_dir.mkdir(parents=True, exist_ok=True)
         return session.features_dir
+
+    def ensure_lab_validation_dir(self) -> Path:
+        session = self.ensure_session()
+        session.validation_dir.mkdir(parents=True, exist_ok=True)
+        return session.validation_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
@@ -853,11 +865,93 @@ def handle_get_lab_experiments(state: WorkbenchState) -> dict[str, Any]:
     return lab_services.list_lab_experiments(path)
 
 
-def handle_get_lab_validation(_state: WorkbenchState) -> dict[str, Any]:
+def handle_get_lab_validation(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/validation — lista corridas + latest; si vacío, preview efímero (F32)."""
     try:
-        return lab_services.run_lab_validation()
+        listed = list_validation_runs(state.ensure_lab_validation_dir())
+        listed["session_id"] = state.ensure_session().session_id
+        latest = listed.get("latest")
+        if isinstance(latest, dict):
+            listed["kind"] = "validation"
+            listed["ok"] = bool(latest.get("ok", True))
+            listed["n_bars"] = latest.get("n_bars")
+            listed["train_val_oos"] = latest.get("train_val_oos")
+            listed["walk_forward"] = latest.get("walk_forward")
+            listed["anti_leakage"] = latest.get("anti_leakage")
+            listed["multiple_testing"] = latest.get("multiple_testing")
+            listed["persisted"] = True
+            listed["run_id"] = latest.get("run_id")
+            return listed
+        # Empty-ok: preview sintético sin persistir (compat F21 + UI).
+        preview = lab_services.run_lab_validation(persist=False)
+        listed["preview"] = preview
+        listed["kind"] = "validation"
+        listed["ok"] = bool(preview.get("ok", True))
+        listed["n_bars"] = preview["n_bars"]
+        listed["train_val_oos"] = preview["train_val_oos"]
+        listed["walk_forward"] = preview["walk_forward"]
+        listed["anti_leakage"] = preview["anti_leakage"]
+        listed["multiple_testing"] = preview["multiple_testing"]
+        listed["persisted"] = False
+        return listed
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
+
+
+def handle_get_lab_validation_run(state: WorkbenchState, run_id: str) -> dict[str, Any]:
+    """GET /api/lab/validation/{run_id} — summary persistido."""
+    try:
+        rid = validate_validation_run_id(run_id)
+        payload = get_validation_run(state.ensure_lab_validation_dir(), rid)
+        payload["session_id"] = state.ensure_session().session_id
+        return payload
+    except ValidationError as exc:
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_post_lab_validation_run(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/validation/run — splits + leakage + persist session/validation (F32)."""
+    n_bars = body.get("n_bars", 40)
+    if not isinstance(n_bars, int):
+        raise ApiError(400, "n_bars debe ser int")
+    train_frac = body.get("train_frac", 0.6)
+    val_frac = body.get("val_frac", 0.2)
+    train_size = body.get("train_size", 10)
+    test_size = body.get("test_size", 5)
+    step = body.get("step", test_size)
+    persist = body.get("persist", True)
+    for name, val, typ in (
+        ("train_frac", train_frac, (int, float)),
+        ("val_frac", val_frac, (int, float)),
+        ("train_size", train_size, int),
+        ("test_size", test_size, int),
+        ("step", step, int),
+    ):
+        if not isinstance(val, typ):
+            raise ApiError(400, f"{name} tipo inválido")
+    if not isinstance(persist, bool):
+        raise ApiError(400, "persist debe ser bool")
+    # Path-safe: solo sandbox de sesión.
+    if "path" in body or "validation_root" in body or "target_path" in body:
+        raise ApiError(400, "path externo no permitido; validation solo a sandbox de sesión")
+    try:
+        result = lab_services.run_lab_validation(
+            n_bars=n_bars,
+            train_frac=float(train_frac),
+            val_frac=float(val_frac),
+            train_size=int(train_size),
+            test_size=int(test_size),
+            step=int(step),
+            persist=persist,
+            validation_root=state.ensure_lab_validation_dir() if persist else None,
+        )
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+    result["session_id"] = state.ensure_session().session_id
+    return state.store_lab_result(result)
 
 
 def handle_get_lab_reports(state: WorkbenchState) -> dict[str, Any]:

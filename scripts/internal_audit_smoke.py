@@ -456,6 +456,44 @@ def check_f31_features_store() -> None:
     assert listed["live_blocked"] is True
 
 
+def check_f32_validation_runner() -> None:
+    """F32: validation run + persist + anti-leakage + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_lab_validation,
+        handle_post_lab_validation_run,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f32-validation")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke32")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    preview = handle_get_lab_validation(state)
+    assert preview["ok"] is True
+    assert "anti_leakage" in preview
+    assert preview["walk_forward"]["n_folds"] >= 1
+
+    run = handle_post_lab_validation_run(state, {"n_bars": 40})
+    assert run["ok"] is True
+    assert run["persisted"] is True
+    assert run["live_routing"] is False
+    assert run["anti_leakage"]["ok"] is True
+    assert Path(run["path"]).is_file()
+    assert run["train_val_oos"]["segments"]["train"]["start_idx"] == 0
+
+    listed = handle_get_lab_validation(state)
+    assert listed["count"] >= 1
+    assert listed["persisted"] is True
+    assert listed["live_blocked"] is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -475,6 +513,7 @@ def main() -> int:
         ("F29 reports + metrics history", check_f29_reports),
         ("F30 universe watchlist + catalog", check_f30_universe_catalog),
         ("F31 features store + pipeline", check_f31_features_store),
+        ("F32 validation walk-forward runner", check_f32_validation_runner),
     ]
     ok = True
     for name, fn in checks:

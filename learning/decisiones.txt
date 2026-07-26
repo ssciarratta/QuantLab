@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-076 — Validation / Walk-Forward Runner UI
+  Decisión: F32 = POST /api/lab/validation/run genera train/val/OOS +
+  walk-forward sobre barras sintéticas; reporta índices de segmentos +
+  anti-leakage (check_temporal_leakage) por pares y folds; persiste
+  summary en session/validation/<run_id>/; GET lista/latest (+ preview
+  efímero si vacío); panel Validation enriquecido. LIVE_BLOCKED=True;
+  sin flip; sin venue submit; sin path externo.
+  Fase: 32.
+
 [2026-07-26] DEC-075 — Feature Store Browser + Pipeline Runner UI
   Decisión: F31 = browser read-only FeatureStore (session/features o
   data/features / QUANTLAB_FEATURE_STORE_PATH); GET /api/lab/features/store;

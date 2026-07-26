@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 import tempfile
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -35,6 +36,7 @@ from quantlab.optimizer.grid import GridSearchOptimizer
 from quantlab.research.alpha import AlphaScanner
 from quantlab.research.strategies.buy_once import BuyOnceStrategy
 from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
+from quantlab.validation.leakage import check_temporal_leakage
 from quantlab.validation.splits import train_val_oos_split, walk_forward
 from quantlab.workbench.strategy_catalog import (
     CANONICAL_STRATEGY_IDS,
@@ -45,6 +47,7 @@ from quantlab.workbench.strategy_catalog import (
     merge_default_params,
     normalize_strategy_id,
 )
+from quantlab.workbench.validation_runs import persist_validation_run
 
 STRATEGY_IDS: tuple[str, ...] = CANONICAL_STRATEGY_IDS
 
@@ -116,7 +119,13 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
     },
     {
         "id": "validation",
-        "label": "Validation splits",
+        "label": "Validation / Walk-Forward runner",
+        "method": "POST",
+        "path": "/api/lab/validation/run",
+    },
+    {
+        "id": "validation_list",
+        "label": "Validation runs (session)",
         "method": "GET",
         "path": "/api/lab/validation",
     },
@@ -523,42 +532,172 @@ def run_lab_export_hb(
     }
 
 
-def run_lab_validation(*, n_bars: int = 40) -> dict[str, Any]:
-    """Info de splits train/val/OOS + walk-forward (sin leakage check fallido)."""
+def _segment_indices(
+    bars: Sequence[Bar],
+    segment: Sequence[Bar],
+    *,
+    offset: int = 0,
+) -> dict[str, Any]:
+    """Índices inclusivos del segmento respecto a ``bars`` (o offset absoluto)."""
+    count = len(segment)
+    if count == 0:
+        return {
+            "count": 0,
+            "start_idx": None,
+            "end_idx": None,
+            "start_ts": None,
+            "end_ts": None,
+        }
+    # Match por identidad de timestamps (serie sintética ordenada).
+    start_ts = segment[0].timestamp_open
+    end_ts = segment[-1].timestamp_close
+    start_idx: int | None = None
+    for i, bar in enumerate(bars):
+        if bar.timestamp_open == start_ts:
+            start_idx = offset + i
+            break
+    if start_idx is None:
+        start_idx = offset
+    end_idx = start_idx + count - 1
+    return {
+        "count": count,
+        "start_idx": start_idx,
+        "end_idx": end_idx,
+        "start_ts": start_ts.isoformat(),
+        "end_ts": end_ts.isoformat(),
+    }
+
+
+def _leakage_entry(pair: str, left: Sequence[Bar], right: Sequence[Bar]) -> dict[str, Any]:
+    report = check_temporal_leakage(left, right)
+    return {"pair": pair, "ok": report.ok, "issues": list(report.issues)}
+
+
+def run_lab_validation(
+    *,
+    n_bars: int = 40,
+    train_frac: float = 0.6,
+    val_frac: float = 0.2,
+    train_size: int = 10,
+    test_size: int = 5,
+    step: int | None = None,
+    persist: bool = False,
+    validation_root: Path | None = None,
+) -> dict[str, Any]:
+    """Walk-forward + train/val/OOS sobre barras sintéticas + anti-leakage (F32).
+
+    Si ``persist`` y ``validation_root``: escribe summary en session ``validation/``.
+    """
     if n_bars < 20 or n_bars > 200:
         raise ValidationError("n_bars debe estar entre 20 y 200")
+    if train_size < 1 or test_size < 1:
+        raise ValidationError("train_size/test_size inválidos")
+    wf_step = step if step is not None else test_size
+    if wf_step < 1:
+        raise ValidationError("step inválido")
+
     bars = make_synthetic_bars(n_bars)
-    split = train_val_oos_split(bars, train_frac=0.6, val_frac=0.2)
-    folds = walk_forward(bars, train_size=10, test_size=5, step=5)
-    return {
-        "ok": True,
+    split = train_val_oos_split(bars, train_frac=train_frac, val_frac=val_frac)
+    folds = walk_forward(bars, train_size=train_size, test_size=test_size, step=wf_step)
+
+    train_n = len(split.train)
+    val_n = len(split.validation)
+    train_seg = _segment_indices(bars, split.train)
+    val_seg = _segment_indices(bars[train_n:], split.validation, offset=train_n)
+    oos_seg = _segment_indices(bars[train_n + val_n :], split.oos, offset=train_n + val_n)
+
+    # Walk-forward: índices absolutos vía start del fold.
+    wf_folds: list[dict[str, Any]] = []
+    start = 0
+    for f in folds:
+        tr = _segment_indices(bars[start:], f.train, offset=start)
+        te = _segment_indices(bars[start + train_size :], f.test, offset=start + train_size)
+        wf_folds.append(
+            {
+                "fold": f.fold,
+                "train": len(f.train),
+                "test": len(f.test),
+                "train_idx": tr,
+                "test_idx": te,
+                "train_end": f.train[-1].timestamp_close.isoformat(),
+                "test_start": f.test[0].timestamp_open.isoformat(),
+            }
+        )
+        start += wf_step
+
+    leakage_checks = [
+        _leakage_entry("train_vs_validation", split.train, split.validation),
+        _leakage_entry("validation_vs_oos", split.validation, split.oos),
+        _leakage_entry("train_vs_oos", split.train, split.oos),
+    ]
+    for f in folds:
+        leakage_checks.append(_leakage_entry(f"wf_fold_{f.fold}", f.train, f.test))
+    n_failed = sum(1 for c in leakage_checks if not c["ok"])
+    anti = {
+        "ok": n_failed == 0,
+        "n_checks": len(leakage_checks),
+        "n_failed": n_failed,
+        "checks": leakage_checks,
+    }
+
+    result: dict[str, Any] = {
+        "ok": anti["ok"],
         "kind": "validation",
         "n_bars": n_bars,
+        "source": "synthetic",
+        "instrument_id": bars[0].instrument_id if bars else None,
+        "params": {
+            "train_frac": train_frac,
+            "val_frac": val_frac,
+            "train_size": train_size,
+            "test_size": test_size,
+            "step": wf_step,
+        },
         "train_val_oos": {
-            "train": len(split.train),
-            "validation": len(split.validation),
+            # Compat F21: counts planos
+            "train": train_n,
+            "validation": val_n,
             "oos": len(split.oos),
             "train_end": split.train[-1].timestamp_close.isoformat() if split.train else None,
             "val_start": (
                 split.validation[0].timestamp_open.isoformat() if split.validation else None
             ),
             "oos_start": split.oos[0].timestamp_open.isoformat() if split.oos else None,
+            "segments": {
+                "train": train_seg,
+                "validation": val_seg,
+                "oos": oos_seg,
+            },
         },
         "walk_forward": {
             "n_folds": len(folds),
-            "folds": [
-                {
-                    "fold": f.fold,
-                    "train": len(f.train),
-                    "test": len(f.test),
-                    "train_end": f.train[-1].timestamp_close.isoformat(),
-                    "test_start": f.test[0].timestamp_open.isoformat(),
-                }
-                for f in folds
-            ],
+            "train_size": train_size,
+            "test_size": test_size,
+            "step": wf_step,
+            "folds": wf_folds,
         },
+        "anti_leakage": anti,
+        "multiple_testing": {
+            "available_methods": ["bonferroni", "holm", "fdr_bh"],
+            "note": (
+                "APIs quantlab.validation.multiple_testing disponibles; "
+                "este runner reporta splits + leakage, no p-values de estrategia"
+            ),
+        },
+        "persisted": False,
+        "run_id": None,
+        "path": None,
         "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
     }
+
+    if persist:
+        if validation_root is None:
+            raise ValidationError("validation_root requerido para persist=True")
+        if not LIVE_BLOCKED:
+            raise ValidationError("LIVE_BLOCKED debe ser True; abortando validation persist")
+        result = persist_validation_run(Path(validation_root), result)
+    return result
 
 
 def lab_capabilities() -> dict[str, Any]:
