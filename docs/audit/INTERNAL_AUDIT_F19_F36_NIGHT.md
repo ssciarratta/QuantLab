@@ -108,12 +108,13 @@ uv run python scripts/internal_audit_smoke.py  # 22/22 PASS
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F36_v0.28.0.zip` |
 | Generator | `scripts/build_internal_review_bundle.py` · `DEFAULT_TO_PHASE=36` |
-| SHA256 | `56b04f315d28e0e90a37cb7395b91febebbc2fb8156a005000f6a109fe0a80c6` |
+| SHA256 | `792953241db3777564196653dd8c96f61d60e6c4e7671364958eaa5465f8ca71` |
 
 ```text
-56b04f315d28e0e90a37cb7395b91febebbc2fb8156a005000f6a109fe0a80c6  QuantLab_Internal_Review_F19_F36_v0.28.0.zip
+792953241db3777564196653dd8c96f61d60e6c4e7671364958eaa5465f8ca71  QuantLab_Internal_Review_F19_F36_v0.28.0.zip
 ```
 
+> Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).
 > Path: `reports/QuantLab_Internal_Review_F19_F36_v0.28.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
