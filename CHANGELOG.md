@@ -19,6 +19,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.90.0] — 2026-07-26
+
+### Fase 98 — Milestone Freeze Docs (arco ops F93–F97)
+
+#### Added
+- Freeze documental `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`
+- Smoke `check_f98_milestone_v090`; bundle INTERNAL default F19–F98
+
+#### Notes
+- Freeze documental: sin cambios de runtime; `LIVE_BLOCKED=True`
+
+---
+
 ## [0.89.0] — 2026-07-26
 
 ### Fase 97 — Support Bundle ZIP (read-only)

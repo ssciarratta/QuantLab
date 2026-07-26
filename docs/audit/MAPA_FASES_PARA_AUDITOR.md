@@ -3349,3 +3349,19 @@ para soporte. Sin journal/book.
 
 Versión código F97: **0.89.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 98 — Milestone Freeze Docs (arco ops F93–F97)
+
+**Código:** 0.90.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-142
+**Qué es:** freeze documental del arco ops F93–F97 en v0.90.0. Sin runtime.
+
+**DoD auditor:**
+- [x] `MILESTONE_V090_OPS_ARC_FREEZE.md`
+- [x] CHANGELOG 0.90.0 + smoke F98
+- [x] Sin `FASE_98_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F98; bump 0.90.0
+
+Versión código F98: **0.90.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

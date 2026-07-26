@@ -1,3 +1,9 @@
+[2026-07-26] DEC-142 — Freeze documental arco ops F93–F97 en v0.90
+  Decisión: F98 congela docs del arco de visibilidad operativa (Venues, API
+  Explorer, Diagnostics, Download, Support Bundle) en MILESTONE_V090_OPS_ARC_FREEZE.md.
+  Sin cambios de runtime. Bump 0.90.0. LIVE_BLOCKED=True; sin FASE_98_APPROVED.
+  Fase: 98.
+
 [2026-07-26] DEC-141 — Support Bundle ZIP sin journal/book
   Decisión: F97 empaqueta snapshots read-only (diagnostics/about/openapi/venues/
   reconciliation) en un ZIP en memoria para reportes de incidente. Explícitamente

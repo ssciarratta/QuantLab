@@ -1,6 +1,6 @@
 # QuantLab Project Memory
 
-Actualizado: 2026-07-26 · tip funcional F97 · versión 0.89.0.
+Actualizado: 2026-07-26 · tip funcional F98 · versión 0.90.0.
 
 - TESTER/PAPER operativos; REAL es alias de PAPER; LIVE routing sigue bloqueado.
 - `LIVE_BLOCKED=True`. F97 Support Bundle ZIP; F96 diagnostics.json; F95
@@ -13,6 +13,6 @@ Actualizado: 2026-07-26 · tip funcional F97 · versión 0.89.0.
   (F88) → rehydrate con confirm (F91) → reconectar broker.
 - Portabilidad Windows verificada (sqlite closing, guard i18n, fsync `rb+`,
   `/tmp` portable, env worker sandbox con SYSTEMROOT).
-- DEC vigente: DEC-141.
-- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F97_NIGHT.md`.
-- No crear `FASE_97_APPROVED.md`; requiere Meta-Auditor externo.
+- DEC vigente: DEC-142.
+- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F97_NIGHT.md` (F98 pendiente).
+- No crear `FASE_98_APPROVED.md`; requiere Meta-Auditor externo.

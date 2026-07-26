@@ -1224,6 +1224,15 @@
 - Tests F97 + smoke; `LIVE_BLOCKED=True`; sin `FASE_97_APPROVED.md`
 
 
+## Fase 98 — Milestone Freeze Docs (arco ops F93–F97)
+
+**Version:** 0.90.0 · **DEC-142** · implementada, auditoría INTERNAL en curso
+
+- `MILESTONE_V090_OPS_ARC_FREEZE.md` (inventario F93–F97)
+- CHANGELOG 0.90.0; smoke F98; bundle default F19–F98
+- `LIVE_BLOCKED=True`; sin flip; sin `FASE_98_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

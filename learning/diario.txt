@@ -1,3 +1,6 @@
+[2026-07-26] F98 — Milestone Freeze arco ops F93–F97 (v0.90.0)
+  Freeze documental + CHANGELOG. Sin runtime. DEC-142.
+
 [2026-07-26] F97 — Support Bundle ZIP read-only (v0.89.0)
   GET /api/support-bundle.zip + botón en Diagnostics. DEC-141.
   Limpieza previa: temporales /tmp (vscode/pytest/Diagnostics/Outlook).
