@@ -4,7 +4,7 @@
 **Versión:** 0.66.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F73 Optional Sound Alerts · F36 Settings + Status Bar  
-**Impl SHA:** *(post-commit tip)*  
+**Impl SHA:** `ce0d5d1`  
 **Alcance:** settings `timezone` UTC|local + status bar clock — **sin flip LIVE**
 
 ---
