@@ -2,18 +2,21 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.14.0  
+**Código actual:** 0.16.0 (F24 impl) · F23 audit INTERNAL 0.15.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
-**Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)
+**Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
+**F23:** `docs/audit/INTERNAL_AUDIT_F23.md` (**APROBADO_INTERNO**)  
+**F24:** `docs/FASE_24_VENUE_MD_PLUGINS.md` (**IMPLEMENTADO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
 > **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
-> **F21** = Lab Panels; **F22** = Chat IA safe-by-default (extensiones post-MVP).  
+> **F21** = Lab Panels; **F22** = Chat IA; **F23** = Paper Book + sesión + risk;  
+> **F24** = venue plugins + MD read-only.  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
 
-## Tabla F0–F22 (verificar certificados)
+## Tabla F0–F23 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -40,6 +43,7 @@
 | **20** | **Workbench (1-click / WM)** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F20.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **21** | **Lab Panels** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F21.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **22** | **Chat IA safe-by-default** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **23** | **Paper Book + Session + Risk** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F23.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -247,10 +251,52 @@ Versión código F22: **0.14.0** · LIVE: **BLOQUEADO** · FakeProvider default 
 
 ---
 
+## Fase 23 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / alcance | `docs/FASE_23_PAPER_BOOK.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 23** |
+| Review Package INTERNAL | `docs/audit/FASE_23_REVIEW_PACKAGE.md` |
+| Implementation report | `docs/audit/FASE_23_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F23.md` |
+| Veredicto INTERNAL | `docs/audit/INTERNAL_AUDIT_F23.md` |
+
+**Certificado externo:** **NO** emitido (`FASE_23_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F23 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | `PaperBook` | `brokers/paper/book.py` |
+| A2 | `PaperBroker` + book | `brokers/paper/broker.py` |
+| A3 | `WorkbenchSession` | `workbench/session.py` |
+| A4 | `PaperRiskLimits` | `workbench/risk.py` |
+| A5 | API positions/book/session | `workbench/api.py` + `server.py` |
+| A6 | Panel Posiciones | `static/js/panes/positions.js` |
+| A7 | LIVE gate intacto | `execution/live_gate.py` |
+| A8 | DEC-066 | `learning/decisiones.txt` |
+| A9 | Suite paper/session/risk/API | `tests/unit/brokers/test_paper_book.py`, `tests/unit/workbench/test_*` |
+
+### Lista B F23 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión impl F23: **0.15.0** (`9b89274`) · LIVE: **BLOQUEADO** · remediación H1/H2 · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 tienen certificado formal externo; F19–F22 tienen **APROBADO_INTERNO** (arco cerrado; externo pendiente).  
-2. QuantLab v0.14.0: Workbench + Lab Panels + Chat IA safe sobre modos F19.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; chat allowlist-only; FakeProvider CI.  
-4. Cierre arco: `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`.  
+1. F0–F18 tienen certificado formal externo; F19–F23 tienen **APROBADO_INTERNO** (externo pendiente).  
+2. QuantLab v0.15.0 (F23): PaperBook + sesión durable + risk paper sobre workbench F19–F22.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; short fail-closed; `session_id` path-safe.  
+4. Arco F19–F22: `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`; F23: `INTERNAL_AUDIT_F23.md`.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

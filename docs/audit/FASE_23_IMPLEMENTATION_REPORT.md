@@ -48,3 +48,11 @@ uv run quantlab-health
 - Flip `LIVE_BLOCKED`
 - MD real A3 (F24)
 - Launcher .desktop (F25)
+
+## Audit INTERNAL (post-impl)
+
+- Autauditoría: `docs/audit/AUTO_AUDIT_2026-07-26_F23.md`
+- Review Package INTERNAL: `docs/audit/FASE_23_REVIEW_PACKAGE.md`
+- Veredicto: `docs/audit/INTERNAL_AUDIT_F23.md` = **APROBADO_INTERNO**
+- Remediación: H1 `validate_session_id` · H2 cash/shorts fail-closed en load
+- **No** emitir `FASE_23_APPROVED.md` desde INTERNAL

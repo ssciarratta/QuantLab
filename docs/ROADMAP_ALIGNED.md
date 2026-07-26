@@ -2,9 +2,11 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F22**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F24**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Arco nocturno F19–F22:** [`docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`](audit/INTERNAL_AUDIT_F19_F22_ARC.md) (**APROBADO_INTERNO**)  
+**F23 Paper Book:** [`docs/audit/INTERNAL_AUDIT_F23.md`](audit/INTERNAL_AUDIT_F23.md) (**APROBADO_INTERNO**)  
+**F24 Venue plugins:** [`docs/FASE_24_VENUE_MD_PLUGINS.md`](FASE_24_VENUE_MD_PLUGINS.md) (**IMPLEMENTADO** v0.16.0)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
@@ -242,6 +244,33 @@
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F22.md`  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` = **APROBADO_INTERNO**
 
+### Fase 23 — Paper Book + Session durable + Risk paper
+**Módulos:**
+- `PaperBook` (cash/posiciones/avg ponderado/MTM; short fail-closed)
+- `PaperBroker` actualiza book; `get_positions` / `get_account` desde book
+- `WorkbenchSession` durable bajo `data/runtime/workbench/<id>/` (`validate_session_id`)
+- `PaperRiskLimits` (max qty/notional/symbols) en paper submit
+- API `GET /api/broker/positions`, `/api/paper/book`, `/api/session`
+- Panel Posiciones; DEC-066; sin flip LIVE; sin `md_port.submit`
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F23.md`, 2026-07-26) — certificado externo `FASE_23_APPROVED.md` **NO emitido**  
+**Versión:** 0.15.0 · implementación `9b89274`  
+**Review Package INTERNAL:** `docs/audit/FASE_23_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F23.md`  
+**Remediación audit:** H1 session_id anti-traversal · H2 cash/shorts fail-closed en load
+
+### Fase 24 — Venue plugins + MD read-only multiplataforma
+**Módulos:**
+- Entry points `quantlab.brokers` (`brokers/plugins.py`); builtins + plugins en registry
+- A3 `md_source` fake|env (`QUANTLAB_A3_MD_READONLY=1` + creds; fallback fake)
+- `generic_csv` / `generic_rest` MD-only; submit/cancel gated
+- Workbench `md_provider` / `plugin_venues`; UI Market provider
+- DEC-067/068; docs `ops/BROKER_PLUGINS.md`; sin flip LIVE
+
+**Estado en repo:** 📦 **IMPLEMENTADO** (`docs/FASE_24_VENUE_MD_PLUGINS.md`, 2026-07-26) — audit INTERNAL/externo pendiente  
+**Versión:** 0.16.0 · implementación `c846e81`  
+**Implementation report:** `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -286,6 +315,7 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F22 **APROBADO_INTERNO** (arco cerrado; pendiente Meta-Auditor externo por fase).  
-2. Certificados externos F19–F22 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
-3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
+1. F0–F18 certificados externos; F19–F23 **APROBADO_INTERNO**; F24 **IMPLEMENTADO** v0.16.0.  
+2. Certificados externos F19–F24 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
+3. Siguiente producto: F25 ops desk (sin flip LIVE).  
+4. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

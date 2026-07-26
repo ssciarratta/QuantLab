@@ -1,46 +1,41 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.14.0
+Versión código actual: 0.16.0 (F24)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F20: código 0.12.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F21: código 0.13.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F22: código 0.14.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F23: código 0.15.0 — APROBADO_INTERNO (externo pendiente)
+F24 impl: código 0.16.0 — venue plugins + MD read-only (audit externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F19.md, 2026-07-26)
-  · NO existe FASE_19_APPROVED.md (reserva Meta-Auditor externo)
-- F20: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F20.md, 2026-07-26)
-  · NO existe FASE_20_APPROVED.md (reserva Meta-Auditor externo)
-- F21: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F21.md, 2026-07-26)
-  · NO existe FASE_21_APPROVED.md (reserva Meta-Auditor externo)
-- F22: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F22.md, 2026-07-26)
-  · NO existe FASE_22_APPROVED.md (reserva Meta-Auditor externo)
-- Arco nocturno F19–F22 CERRADO a nivel INTERNAL
-- Workbench local loopback + Lab Panels + Chat IA safe-by-default
-- Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (a3, binance, paper)
+- F19–F23: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- F24: IMPLEMENTADO v0.16.0 (plugins + A3 MD env opt-in + generics) — LIVE bloqueado
+- Workbench + Lab + Chat IA + PaperBook + venue plugins / md_provider
+- Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F22 Chat IA (v0.14.0, impl 5ef9866; audit INTERNAL 2026-07-26):
-- ToolRegistry allowlist read-only; illegal tools rejected
-- FakeProvider default CI; OptionalEnv opt-in (QUANTLAB_LLM_*=DISABLED)
-- POST /api/chat + GET /api/chat/tools; panel Chat IA + banner safe-mode
-- Audit JSONL append-only; LIVE_BLOCKED is True; sin flip vía chat
-- QA INTERNAL: mypy strict (148) · ruff · 463 pytest · 40 workbench · health ok
-- Docs: AUTO_AUDIT_2026-07-26_F22 · FASE_22_REVIEW_PACKAGE · INTERNAL_AUDIT_F22
-- Arco: INTERNAL_AUDIT_F19_F22_ARC · smoke scripts/internal_audit_smoke.py
-- DEC-063..065 en learning/decisiones.txt
+F24 Venue plugins + MD (v0.16.0, impl c846e81):
+- Entry points quantlab.brokers; get_default_registry carga plugins
+- A3 md_source fake|env (QUANTLAB_A3_MD_READONLY=1 + creds; fallback fake)
+- Builtins generic_csv / generic_rest MD-only; submit/cancel gated
+- Workbench md_provider / plugin_venues; UI Market provider
+- QA: mypy strict · ruff · 515 pytest · health 0.16.0 · smoke PASS
+- Docs: FASE_24 · FASE_24_IMPLEMENTATION_REPORT · BROKER_PLUGINS · DEC-067/068
+- F23 audit INTERNAL docs alineados (APROBADO_INTERNO); remediación H1/H2 en árbol
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F22 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F24 solo con APROBADO Meta-Auditor externo
+- F25 ops desk (planificado; NO en este commit)
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
 
