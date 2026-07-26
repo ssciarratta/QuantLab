@@ -133,6 +133,12 @@
         limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";
       return request("GET", "/api/access-log" + q);
     },
+    getBackups: function () {
+      return request("GET", "/api/backups");
+    },
+    runBackup: function () {
+      return request("POST", "/api/backups/run", {});
+    },
     getOpsMetrics: function () {
       return request("GET", "/api/ops/metrics");
     },

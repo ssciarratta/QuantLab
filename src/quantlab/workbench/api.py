@@ -33,6 +33,7 @@ from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.api_catalog import openapi_payload
 from quantlab.workbench.auto_backup import (
     list_backups,
+    run_auto_backup,
 )
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
@@ -653,6 +654,49 @@ def handle_get_backups(state: WorkbenchState) -> dict[str, Any]:
         return list_backups(session)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+
+
+def handle_post_backups_run(state: WorkbenchState) -> dict[str, Any]:
+    """POST /api/backups/run — trigger manual run_auto_backup (F64)."""
+    session = state.ensure_session()
+    try:
+        result = run_auto_backup(session)
+        write_export_sidecar_sha(result)
+    except ValidationError as exc:
+        _activity_error(state, "backup", str(exc))
+        raise ApiError(400, str(exc)) from exc
+    export_meta = export_result_to_dict(result)
+    listed = list_backups(session)
+    _record_activity(
+        state,
+        "backup",
+        ok=True,
+        message="manual session backup",
+        detail={
+            "filename": export_meta.get("filename"),
+            "bytes": export_meta.get("bytes"),
+            "count": listed.get("count"),
+        },
+    )
+    return {
+        "ok": True,
+        "kind": "backup_run",
+        "session_id": session.session_id,
+        "filename": export_meta.get("filename"),
+        "path": export_meta.get("path"),
+        "bytes": export_meta.get("bytes"),
+        "sha256": export_meta.get("sha256"),
+        "files_count": export_meta.get("files_count"),
+        "backups": listed.get("backups", []),
+        "count": listed.get("count", 0),
+        "max_keep": listed.get("max_keep"),
+        "auto_backup_minutes": listed.get("auto_backup_minutes"),
+        "auto_backup_enabled": listed.get("auto_backup_enabled"),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+        "banner": "manual backup research-safe — ZIP allowlist · rotación max 5 · sin LIVE",
+    }
 
 
 def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:

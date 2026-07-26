@@ -64,6 +64,7 @@ from quantlab.workbench.api import (
     handle_get_universe,
     handle_get_venues,
     handle_get_watchlist,
+    handle_post_backups_run,
     handle_post_broker_connect,
     handle_post_chat,
     handle_post_lab_backtest,
@@ -572,6 +573,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/sessions/new":
                     self._send_json(handle_post_sessions_new(state, body))
+                    return
+                if path == "/api/backups/run":
+                    self._send_json(handle_post_backups_run(state))
                     return
                 if path == "/api/presets/apply":
                     self._send_json(handle_post_presets_apply(state, body))

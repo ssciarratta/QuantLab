@@ -1991,3 +1991,42 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F63: **0.55.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 64 — Backups Panel UI
+
+**Código:** 0.56.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Panel SPA Backups que lista `GET /api/backups` y dispara `POST /api/backups/run` (manual `run_auto_backup`); menú Inicio + command palette `open.backups`.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_64_BACKUPS_UI.md` |
+| Implementation report | `docs/audit/FASE_64_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F64.md` |
+| Noche F19–F64 | `docs/audit/INTERNAL_AUDIT_F19_F64_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 64** |
+| DEC | DEC-108 |
+
+### Lista A F64 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Panel Backups | `static/js/panes/backups.js` |
+| A2 | POST run API | `/api/backups/run` |
+| A3 | Menú + palette | `index.html` · `shell.js` · `open.backups` |
+| A4 | i18n + CSS | `pane.backups` · `workbench.css` |
+| A5 | Suite UI | `tests/unit/workbench/test_backups_ui_f64.py` |
+| A6 | Version 0.56.0 | `pyproject.toml` |
+
+### Lista B F64 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F64: **0.56.0** · LIVE: **BLOQUEADO** · flip: **NO**.

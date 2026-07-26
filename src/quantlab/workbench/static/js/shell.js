@@ -332,6 +332,17 @@
     pane.refresh().catch(function () {});
   }
 
+  function openBackups() {
+    const pane = QLPanes.createBackupsPane();
+    wm.open(
+      "backups",
+      tr("pane.backups", "Backups"),
+      pane,
+      mergeOpts("backups", { x: 240, y: 80, w: 560, h: 460 })
+    );
+    pane.refresh().catch(function () {});
+  }
+
   function openOpsMetrics() {
     const pane = QLPanes.createOpsMetricsPane();
     wm.open(
@@ -360,6 +371,7 @@
     sessions: openSessions,
     activity: openActivity,
     access_log: openAccessLog,
+    backups: openBackups,
     ops_metrics: openOpsMetrics,
     backtest: openBacktest,
     scanner: openScanner,

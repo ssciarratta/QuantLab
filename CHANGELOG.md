@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.56.0] — 2026-07-26
+
+### Fase 64 — Backups Panel UI
+
+#### Added
+- Panel SPA Backups (`backups.js`) — lista `GET /api/backups` + botón **Backup ahora**
+- `POST /api/backups/run` — trigger manual `run_auto_backup` + sidecar sha
+- Menú Inicio → Sistema → Backups · command palette `open.backups`
+- Suite `tests/unit/workbench/test_backups_ui_f64.py`
+- Docs: `FASE_64_BACKUPS_UI.md` · implementation report · DEC-108
+- Bundle INTERNAL default F19–F64
+
+#### Changed
+- `phases_summary` → `F19–F64 INTERNAL`
+- Bump **0.56.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_64_APPROVED.md`
+
+---
+
 ## [0.55.0] — 2026-07-26
 
 ### Fase 63 — Session Auto-Backup

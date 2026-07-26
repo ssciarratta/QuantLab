@@ -78,6 +78,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/activity", "GET", "Activity log", ("session",)),
     ApiRoute("/api/access-log", "GET", "HTTP access log (method/path/status/ms)", ("session",)),
     ApiRoute("/api/backups", "GET", "List session auto-backup ZIPs", ("session",)),
+    ApiRoute(
+        "/api/backups/run",
+        "POST",
+        "Trigger manual session auto-backup",
+        ("session",),
+    ),
     ApiRoute("/api/layout", "GET", "Workspace layout", ("workspace",)),
     ApiRoute("/api/layout", "PUT", "Save workspace layout", ("workspace",)),
     ApiRoute("/api/settings", "GET", "Workbench settings", ("workspace",)),

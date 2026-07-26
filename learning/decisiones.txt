@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-108 — Backups Panel UI
+  Decisión: F64 = panel SPA Backups consumiendo GET /api/backups (F63) +
+  POST /api/backups/run (trigger manual run_auto_backup); menú Inicio +
+  command palette open.backups; botón Backup ahora; suite test_backups_ui_f64.py;
+  bump 0.56.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_64_APPROVED.
+  Fase: 64.
+
 [2026-07-26] DEC-107 — Session Auto-Backup
   Decisión: F63 = auto-backup ZIP opcional vía settings.auto_backup_minutes
   (default 0=off); si >0 thread daemon exporta a session/backups/ con

@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 64 — Backups Panel UI
+-------------------------------------------------------
+- v0.56.0 · DEC-108 · LIVE_BLOCKED intacto · sin FASE_64_APPROVED.
+- Panel Backups (GET /api/backups + POST /api/backups/run); menú Inicio +
+  open.backups; botón Backup ahora; lista + meta auto_backup_minutes.
+- Suite test_backups_ui_f64.py; smoke F64; bundle F19–F64.
+- Noche F19–F64 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 63 — Session Auto-Backup
 -------------------------------------------------------
 - v0.55.0 · DEC-107 · LIVE_BLOCKED intacto · sin FASE_63_APPROVED.

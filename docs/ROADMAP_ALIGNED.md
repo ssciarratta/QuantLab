@@ -834,6 +834,19 @@
 **Spec:** `docs/FASE_63_AUTO_BACKUP.md`  
 **Implementation report:** `docs/audit/FASE_63_IMPLEMENTATION_REPORT.md`
 
+### Fase 64 — Backups Panel UI
+**Alcance:**
+- Panel SPA Backups consumiendo `GET /api/backups` + `POST /api/backups/run`
+- Menú Inicio → Sistema → Backups · command palette `open.backups`
+- Botón **Backup ahora** (trigger manual `run_auto_backup`)
+- DEC-108; bump 0.56.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F64.md`, 2026-07-26) — certificado externo `FASE_64_APPROVED.md` **NO emitido**  
+**Versión:** 0.56.0  
+**Noche F19–F64:** `docs/audit/INTERNAL_AUDIT_F19_F64_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_64_BACKUPS_UI.md`  
+**Implementation report:** `docs/audit/FASE_64_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

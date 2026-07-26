@@ -1417,6 +1417,37 @@ button.btn.secondary:hover {
   background: var(--danger-soft);
 }
 
+/* F64 — backups panel */
+.backup-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 320px;
+  overflow: auto;
+}
+
+.backup-item {
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--border-subtle, rgba(127, 127, 127, 0.25));
+}
+
+.backup-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: baseline;
+  margin-bottom: 0.15rem;
+}
+
+.backup-name {
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.backup-sha {
+  font-size: 0.82rem;
+}
+
 /* F62 — access log */
 .access-auto-label {
   display: inline-flex;

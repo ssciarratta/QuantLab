@@ -207,6 +207,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("access", "access-log", "http", "requests", "jsonl", "auditoría"),
     },
     {
+        "id": "open.backups",
+        "kind": "pane",
+        "label": "Abrir Backups",
+        "pane_id": "backups",
+        "keywords": ("backups", "backup", "zip", "auto-backup", "respaldo", "sesión"),
+    },
+    {
         "id": "open.ops_metrics",
         "kind": "pane",
         "label": "Abrir Ops Metrics",

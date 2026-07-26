@@ -43,8 +43,8 @@ from quantlab.workbench.settings import (
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.55.0"
-    assert PHASES_SUMMARY == "F19–F63 INTERNAL"
+    assert __version__ == "0.56.0"
+    assert PHASES_SUMMARY == "F19–F64 INTERNAL"
     assert not Path("docs/audit/FASE_63_APPROVED.md").exists()
 
 
