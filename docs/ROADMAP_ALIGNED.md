@@ -998,6 +998,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 78 — Milestone Freeze Docs + CHANGELOG Sync (v0.70)
+
+**Versión:** 0.70.0 · **DEC-122** · **APROBADO_INTERNO** (sin `FASE_78_APPROVED.md`)
+
+- Freeze documental `docs/audit/MILESTONE_V070_FREEZE.md` (inventario F19–F77/F78)
+- Sync tip: CHANGELOG (resumen F19–F77) · RESUMEN · PROJECT_MEMORY · README
+- Smoke: version **starts with 0.70**; bundle INTERNAL default F19–F78
+- `LIVE_BLOCKED=True`; sin flip LIVE · **hito 0.70**
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

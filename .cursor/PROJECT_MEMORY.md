@@ -2,10 +2,11 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.62.0** (F70 Paper Kill Switch)  
+**Versión tip:** **0.70.0** (F78 Milestone Freeze Docs — hito v0.70)  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
+**Milestone congelado v0.70:** F19–F77/F78 · `docs/audit/MILESTONE_V070_FREEZE.md`  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
 ---
@@ -27,17 +28,17 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F58 | Milestone freeze docs + CHANGELOG sync (v0.50) · **0.50.0** |
 | F59–F67 | A11y / i18n / access / backups / paper analytics · **0.51–0.59** |
 | F68 | Milestone freeze docs + CHANGELOG sync (v0.60) · **0.60.0** |
-| F69 | Risk Utilization Report · **0.61.0** |
-| F70 | Paper Kill Switch · **0.62.0** |
+| F69–F77 | Risk / kill / health / alerts / clock / broker ops · **0.61–0.69** |
+| F78 | Milestone freeze docs + CHANGELOG sync (v0.70) · **0.70.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F70 | `docs/audit/INTERNAL_AUDIT_F19_F70_NIGHT.md` |
+| Noche F19–F78 | `docs/audit/INTERNAL_AUDIT_F19_F78_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F70 (SHAs impl) — tip v0.62.0
+## Arco nocturno F19–F78 (SHAs impl) — tip v0.70.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -92,6 +93,15 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 67 | Paper PnL Summary | 0.59.0 | `57b78fd` |
 | 68 | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | `140eb25` |
 | 69 | Risk Utilization Report | 0.61.0 | `0d9d7c7` |
+| 70 | Paper Kill Switch | 0.62.0 | `2764637` |
+| 71 | Health Extended + 1000 Tests | 0.63.0 | `c81a49c` |
+| 72 | Desktop Notifications Hook | 0.64.0 | `1b7df41` |
+| 73 | Optional Sound Alerts | 0.65.0 | `e3257b7` |
+| 74 | Status Bar Clock Timezone | 0.66.0 | `ce0d5d1` |
+| 75 | Broker Heartbeat Status | 0.67.0 | `c506ab6` |
+| 76 | Broker Reconnect Button | 0.68.0 | `30ff7ec` |
+| 77 | Broker Disconnect + Milestone prep | 0.69.0 | `f782981` |
+| 78 | Milestone Freeze Docs + CHANGELOG (v0.70) | 0.70.0 | *(tip F78)* |
 
 ---
 
@@ -101,30 +111,14 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 2. **REAL ≠ LIVE** — alias producto `REAL = PAPER` (MD/cuenta pueden ser reales; fills simulados)
 3. Workbench bind default `127.0.0.1`; non-loopback exige `--allow-non-loopback`
 4. Chat: solo tools allowlist read-only; mutaciones → `ValidationError`
-5. FakeProvider = default CI; LLM solo opt-in vía env (`DISABLED` por defecto)
-6. Lab demos sintéticos; export HB path-safe; `experiment_id` charset `^[A-Za-z0-9_-]+$`
-7. PaperBroker no llama venue submit; slip paper adverso opcional
-8. Paper Session Runner: **solo PaperBroker** + risk en PLACE; sin venue submit
-9. Strategy Catalog: factory compartida paper+lab; MM bar-backtest sintético; sin LIVE
-10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
-11. Catalog / Feature Store: read-only list; persist features solo sandbox sesión
-12. About / health `version` ≡ `quantlab.__version__` (F49); tip **startswith 0.61** (F69)
-13. Perf baseline F50: p95/max endpoints clave < 500ms loopback
-14. Soft rate limit F51: token bucket IP/path; default 120 rps; 429 JSON
-15. CSP F57 + security headers F56 + probes F54 intactos
-16. A11y F59: dialog roles + aria taskbar + focus trap palette + skip link
-17. i18n F60 es default; access log F61–F62; backups F63–F64
-18. Paper analytics F65–F67: fills CSV · equity curve · PnL summary
-19. Risk utilization F69: `%` max_qty/notional vs book en panel Risk
+5. FakeProvider default CI; LLM opt-in vía env
+6. Session paths fail-closed (`validate_session_id`, zip-slip)
+7. PaperBroker / Paper Session: fills simulados; sin venue submit
+8. Sin emitir `FASE_19`…`FASE_78_APPROVED.md` desde INTERNAL
+9. `phases_summary` tip: `F19–F78 INTERNAL`
+10. About / health `version` ≡ `__version__` y startswith `0.70`
 
----
+## Próximo
 
-## Paths clave
-
-- Freeze milestone v0.40: `docs/audit/MILESTONE_V040_FREEZE.md`
-- Freeze milestone v0.50: `docs/audit/MILESTONE_V050_FREEZE.md`
-- Freeze milestone v0.60: `docs/audit/MILESTONE_V060_FREEZE.md`
-- Roadmap: `docs/ROADMAP_ALIGNED.md`
-- Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
-- Noche tip: `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md`
-- LIVE flip (NO ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
+- Certificados externos F19–F78 solo con Meta-Auditor externo
+- Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

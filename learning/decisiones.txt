@@ -1,3 +1,10 @@
+[2026-07-26] DEC-122 — Milestone Freeze Docs + CHANGELOG Sync (v0.70)
+  Decisión: F78 = freeze documental hito v0.70.0 (MILESTONE_V070_FREEZE);
+  inventario F19–F77/F78; sync CHANGELOG/RESUMEN/MEMORY/README;
+  smoke version starts with 0.70; bundle default F19–F78; bump 0.70.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_78_APPROVED.
+  Fase: 78.
+
 [2026-07-26] DEC-121 — Broker Disconnect + Milestone prep
   Decisión: F77 = POST /api/broker/disconnect cierra broker y limpia
   estado conectado; conserva last_broker_connect para reconnect;

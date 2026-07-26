@@ -1,3 +1,8 @@
+[2026-07-26] F78 Milestone Freeze Docs (v0.70) — v0.70.0
+  MILESTONE_V070_FREEZE.md; sync CHANGELOG/RESUMEN/MEMORY/README;
+  smoke starts with 0.70; bundle F19–F78; LIVE_BLOCKED intacto;
+  INTERNAL F78 + noche F19–F78; sin FASE_78_APPROVED; hito 0.70.
+
 [2026-07-26] F77 Broker Disconnect — v0.69.0
   POST /api/broker/disconnect cierra broker, limpia connected state,
   conserva last_connect; botón Market+Health; LIVE_BLOCKED intacto;
@@ -16,6 +21,13 @@
 ================================================================================
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
+
+[2026-07-26] FASE 78 — Milestone Freeze Docs + CHANGELOG Sync (v0.70)
+-------------------------------------------------------
+- v0.70.0 · DEC-122 · LIVE_BLOCKED intacto · sin FASE_78_APPROVED.
+- MILESTONE_V070_FREEZE.md (inventario F19–F77/F78); smoke starts with 0.70;
+  sync CHANGELOG / RESUMEN / PROJECT_MEMORY / README; bundle F19–F78.
+- Noche F19–F78 APROBADO_INTERNO (post-QA) · hito 0.70.
 
 [2026-07-26] FASE 69 — Risk Utilization Report
 -------------------------------------------------------

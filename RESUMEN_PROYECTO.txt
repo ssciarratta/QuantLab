@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.69.0 (F77 Broker Disconnect + Milestone prep)
+Versión código actual: 0.70.0 (F78 Milestone Freeze Docs — hito v0.70)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -34,45 +34,34 @@ Auditoría INTERNAL F74: código 0.66.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F75: código 0.67.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F76: código 0.68.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F77: código 0.69.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F78: código 0.70.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.70.0
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
-Noche F19–F49: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F49_NIGHT.md)
-Noche F19–F50: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F50_NIGHT.md)
-Noche F19–F51: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F51_NIGHT.md)
-Noche F19–F52: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F52_NIGHT.md)
-Noche F19–F67: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F67_NIGHT.md)
 Noche F19–F68: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F68_NIGHT.md)
-Noche F19–F70: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F70_NIGHT.md)
-Noche F19–F71: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F71_NIGHT.md)
-Noche F19–F72: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F72_NIGHT.md)
-Noche F19–F73: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F73_NIGHT.md)
-Noche F19–F74: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F74_NIGHT.md)
-Noche F19–F75: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F75_NIGHT.md)
-Noche F19–F76: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F76_NIGHT.md)
 Noche F19–F77: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F77_NIGHT.md)
-Noche F19–F69: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F69_NIGHT.md)
+Noche F19–F78: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F78_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
+Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F77: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61–F62 access log + F63–F64 backups + F65 blotter CSV + F66 equity + F67 PnL + F68 freeze v0.60 + F69 risk util + F70 kill + F71 health + F72 notif + F73 sound + F74 clock TZ + F75 heartbeat + F76 reconnect + F77 disconnect
+- F19–F78: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + ops/milestones F49–F58 + F59–F67 analytics + F68 freeze v0.60 + F69–F77 risk/kill/alerts/broker + F78 freeze v0.70
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F77 Broker Disconnect + Milestone prep (0.69.0) — APROBADO_INTERNO:
-- POST /api/broker/disconnect (keep last_broker_connect); botón Market + Health
-- DEC-121; suite test_broker_disconnect_f77.py; bundle F19–F77; prep v0.70
-- FASE_77_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F78 Milestone Freeze Docs + CHANGELOG Sync (0.70.0) — APROBADO_INTERNO:
+- MILESTONE_V070_FREEZE.md (inventario F19–F77/F78); smoke starts with 0.70
+- Sync CHANGELOG / RESUMEN / PROJECT_MEMORY / README; bundle F19–F78
+- DEC-122; FASE_78_APPROVED.md NO emitido · LIVE_BLOCKED intacto · hito 0.70
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F77 solo con APROBADO Meta-Auditor externo
-- Milestone freeze v0.70 cuando el arco esté listo
+- Certificados externos F19–F78 solo con APROBADO Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

@@ -19,6 +19,47 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.70.0] — 2026-07-26
+
+
+### Fase 78 — Milestone Freeze Docs + CHANGELOG Sync (v0.70)
+
+#### Added
+- Freeze documental `docs/audit/MILESTONE_V070_FREEZE.md` (inventario F19–F77/F78)
+- Smoke check: tip version **starts with 0.70**
+- Docs: `FASE_78_MILESTONE_V070.md` · implementation report · DEC-122
+- Bundle INTERNAL default F19–F78
+
+#### Changed
+- Sync tip: `CHANGELOG` · `RESUMEN_PROYECTO.txt` · `.cursor/PROJECT_MEMORY.md` · `README`
+- `phases_summary` → `F19–F78 INTERNAL`
+- Bump **0.70.0** (hito 0.70)
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_78_APPROVED.md`
+
+### Resumen agrupado F19–F77 (producto previo al hito 0.70)
+
+| Grupo | Fases | Versiones | Qué entrega |
+|-------|-------|-----------|-------------|
+| **Núcleo modos + UI** | F19–F22 | 0.11–0.14 | OperatingMode (REAL=PAPER); workbench loopback; lab panels; chat FakeProvider |
+| **Paper + venues + ops** | F23–F25 | 0.15–0.17 | PaperBook/sesión/risk; plugins MD; Ops Desk 1-click + hardening |
+| **Sesión + catálogo + layout** | F26–F28 | 0.18–0.20 | Paper Session Runner; Strategy Catalog MM/AS; layout + journal |
+| **Lab research UI** | F29–F34 | 0.21–0.26 | Reports; universe/catalog; features; validation; optimizer; MC + HB export |
+| **UX workbench** | F35–F40 | 0.27–0.32 | Command palette; settings/status; onboarding; docs help; session ZIP; presets |
+| **Ops + hardening + E2E** | F41–F44 | 0.33–0.36 | Activity/toasts; ops metrics; red-team; E2E paper workflow |
+| **Meta + polish** | F45–F48 | 0.37–0.40 | About/badge; multi-session; chat context; theme CSS |
+| **Freeze v0.40 + ops prod** | F49–F54 | 0.41–0.46 | Milestone freeze v0.40; perf baseline; rate limit; shutdown; Docker; probes |
+| **API surface + security** | F55–F57 | 0.47–0.49 | OpenAPI catalog; security headers; Content-Security-Policy |
+| **Freeze v0.50 + a11y/i18n/ops** | F58–F64 | 0.50–0.56 | Milestone freeze v0.50; a11y; i18n es; access log + UI; auto-backup + UI |
+| **Paper analytics + freeze v0.60** | F65–F68 | 0.57–0.60 | Blotter CSV; equity; PnL; milestone freeze v0.60 |
+| **Risk + kill + health** | F69–F71 | 0.61–0.63 | Risk utilization; paper kill switch; health extended + 1k tests |
+| **Alerts + clock + broker ops** | F72–F77 | 0.64–0.69 | Desktop notif; sound; clock TZ; heartbeat; reconnect; disconnect |
+
+Freeze: `docs/audit/MILESTONE_V070_FREEZE.md` · noche F19–F77 APROBADO_INTERNO · tip F78 **0.70.0** · **LIVE bloqueado**.
+
+---
+
 ## [0.69.0] — 2026-07-26
 
 ### Fase 77 — Broker Disconnect + Milestone prep
