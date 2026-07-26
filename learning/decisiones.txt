@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-087 — Red-team Workbench Hardening
+  Decisión: F43 = auditoría red-team APIs workbench + remediación
+  fail-closed: zip_path sandbox (session parent), create_server
+  requiere allow_non_loopback fuera de loopback, body JSON default
+  2 MiB, csv_path anti-traversal, path segments anti-..;
+  tests test_redteam_f43.py. LIVE_BLOCKED=True; sin flip;
+  sin FASE_43_APPROVED; sin LIVE.
+  Fase: 43.
+
 [2026-07-26] DEC-086 — Ops Metrics Panel
   Decisión: F42 = exponer quantlab.infra.ops_metrics en workbench;
   GET /api/ops/metrics (JSON counters) + GET /api/ops/prometheus

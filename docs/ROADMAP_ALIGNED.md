@@ -8,6 +8,7 @@
 **Arco F23–F25:** [`docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md`](audit/INTERNAL_AUDIT_F23_F25_ARC.md) (**APROBADO_INTERNO**)  
 **Noche F19–F25:** [`docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F25_NIGHT.md) (**APROBADO_INTERNO**)  
 **Noche F19–F26:** [`docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F26_NIGHT.md) (**APROBADO_INTERNO**)  
+**Noche F19–F43:** [`docs/audit/INTERNAL_AUDIT_F19_F43_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F43_NIGHT.md) (**APROBADO_INTERNO**)  
 **F23 Paper Book:** [`docs/audit/INTERNAL_AUDIT_F23.md`](audit/INTERNAL_AUDIT_F23.md) (**APROBADO_INTERNO**)  
 **F24 Venue plugins:** [`docs/audit/INTERNAL_AUDIT_F24.md`](audit/INTERNAL_AUDIT_F24.md) (**APROBADO_INTERNO**)  
 **F25 Ops Desk:** [`docs/audit/INTERNAL_AUDIT_F25.md`](audit/INTERNAL_AUDIT_F25.md) (**APROBADO_INTERNO**)  
@@ -555,6 +556,20 @@
 **Noche F19–F42:** `docs/audit/INTERNAL_AUDIT_F19_F42_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_42_OPS_METRICS.md`  
 **Implementation report:** `docs/audit/FASE_42_IMPLEMENTATION_REPORT.md`
+
+### Fase 43 — Red-team Workbench Hardening
+**Módulos:**
+- Auditoría red-team APIs workbench (`api.py` / `server.py` / session paths)
+- Remediación fail-closed: `zip_path` sandbox, `create_server` loopback gate, body 2 MiB, `csv_path` anti-traversal
+- Tests `test_redteam_f43.py`; DEC-087; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F43.md`, 2026-07-26) — certificado externo `FASE_43_APPROVED.md` **NO emitido**  
+**Versión:** 0.35.0  
+**Review Package INTERNAL:** `docs/audit/FASE_43_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F43.md`  
+**Noche F19–F43:** `docs/audit/INTERNAL_AUDIT_F19_F43_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_43_REDTEAM.md`  
+**Implementation report:** `docs/audit/FASE_43_IMPLEMENTATION_REPORT.md`
 
 ---
 

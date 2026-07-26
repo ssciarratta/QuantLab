@@ -1016,6 +1016,63 @@ def check_f42_ops_metrics() -> None:
     metrics.reset()
 
 
+def check_f43_redteam() -> None:
+    """F43: zip sandbox, create_server loopback gate, body 2MiB, LIVE reject."""
+    from pathlib import Path
+
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import ApiError, WorkbenchState, handle_post_mode
+    from quantlab.workbench.server import DEFAULT_MAX_BODY_BYTES, create_server
+    from quantlab.workbench.session import WorkbenchSession, validate_session_id
+    from quantlab.workbench.session_zip import resolve_upload_archive
+
+    assert LIVE_BLOCKED is True
+    assert DEFAULT_MAX_BODY_BYTES == 2_000_000
+
+    try:
+        validate_session_id("../evil")
+        raise AssertionError("session_id traversal should raise")
+    except ValidationError:
+        pass
+
+    try:
+        create_server(host="0.0.0.0", port=0, allow_non_loopback=False)
+        raise AssertionError("create_server unbound without flag should raise")
+    except ValidationError:
+        pass
+
+    root = Path("/tmp/quantlab-smoke-f43-rt")
+    if root.exists():
+        import shutil
+
+        shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    parent = root / "sessions"
+    session = WorkbenchSession.create_or_load(parent, "smoke43")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    outside = root / "evil.zip"
+    outside.write_bytes(b"PK\x05\x06" + b"\x00" * 18)
+    try:
+        resolve_upload_archive(
+            zip_path=str(outside),
+            zip_base64=None,
+            work_dir=root / "w",
+            allowed_roots=(parent.resolve(),),
+        )
+        raise AssertionError("zip_path outside sandbox should raise")
+    except ValidationError:
+        pass
+
+    try:
+        handle_post_mode(state, {"mode": "live"})
+        raise AssertionError("LIVE mode should be rejected")
+    except ApiError as exc:
+        assert exc.status == 400
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -1046,6 +1103,7 @@ def main() -> int:
         ("F40 workspace presets", check_f40_workspace_presets),
         ("F41 activity log + toasts API", check_f41_activity_log),
         ("F42 ops metrics panel API", check_f42_ops_metrics),
+        ("F43 red-team workbench hardening", check_f43_redteam),
     ]
     ok = True
     for name, fn in checks:

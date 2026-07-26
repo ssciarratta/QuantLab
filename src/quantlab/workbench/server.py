@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+from quantlab.core.exceptions import ValidationError
 from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
@@ -78,13 +79,29 @@ from quantlab.workbench.api import (
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
 
+# F43 red-team: body JSON acotado (import ZIP tiene techo propio).
+DEFAULT_MAX_BODY_BYTES = 2_000_000
+SESSION_IMPORT_MAX_BODY_BYTES = 55_000_000
+
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+
+
+def is_loopback_host(host: str) -> bool:
+    """True si host es loopback (127.0.0.1 / ::1 / localhost)."""
+    h = host.strip().lower()
+    if h.startswith("[") and h.endswith("]"):
+        h = h[1:-1]
+    return h in LOOPBACK_HOSTS
+
 
 def _json_bytes(payload: dict[str, Any], status: int = 200) -> tuple[int, bytes, str]:
     body = json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
     return status, body, "application/json; charset=utf-8"
 
 
-def _read_json(handler: BaseHTTPRequestHandler, *, max_bytes: int = 1_000_000) -> dict[str, Any]:
+def _read_json(
+    handler: BaseHTTPRequestHandler, *, max_bytes: int = DEFAULT_MAX_BODY_BYTES
+) -> dict[str, Any]:
     length_raw = handler.headers.get("Content-Length", "0")
     try:
         length = int(length_raw)
@@ -110,6 +127,13 @@ def _wants_download(query: str) -> bool:
     qs = parse_qs(query)
     raw = (qs.get("download") or qs.get("format") or ["0"])[0].strip().lower()
     return raw in {"1", "true", "yes", "zip"}
+
+
+def _path_segment_ok(segment: str) -> bool:
+    """Fail-closed: un segmento de URL sin separators ni traversal."""
+    if not segment or segment in {".", ".."}:
+        return False
+    return "/" not in segment and "\\" not in segment and ".." not in segment
 
 
 def _safe_static_path(url_path: str) -> Path | None:
@@ -285,7 +309,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path.startswith("/api/lab/validation/"):
                     run_id = unquote(path[len("/api/lab/validation/") :]).strip("/")
-                    if not run_id or "/" in run_id or run_id == "run":
+                    if not _path_segment_ok(run_id) or run_id == "run":
                         self._send_error_json(400, "run_id inválido")
                         return
                     self._send_json(handle_get_lab_validation_run(state, run_id))
@@ -295,7 +319,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path.startswith("/api/lab/optimize/history/"):
                     run_id = unquote(path[len("/api/lab/optimize/history/") :]).strip("/")
-                    if not run_id or "/" in run_id:
+                    if not _path_segment_ok(run_id):
                         self._send_error_json(400, "run_id inválido")
                         return
                     self._send_json(handle_get_lab_optimize_run(state, run_id))
@@ -305,7 +329,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path.startswith("/api/lab/montecarlo/history/"):
                     run_id = unquote(path[len("/api/lab/montecarlo/history/") :]).strip("/")
-                    if not run_id or "/" in run_id:
+                    if not _path_segment_ok(run_id):
                         self._send_error_json(400, "run_id inválido")
                         return
                     self._send_json(handle_get_lab_montecarlo_run(state, run_id))
@@ -315,7 +339,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path.startswith("/api/lab/exports/"):
                     export_id = unquote(path[len("/api/lab/exports/") :]).strip("/")
-                    if not export_id or "/" in export_id:
+                    if not _path_segment_ok(export_id):
                         self._send_error_json(400, "export_id inválido")
                         return
                     self._send_json(handle_get_lab_export(state, export_id))
@@ -325,7 +349,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path.startswith("/api/lab/reports/"):
                     report_id = unquote(path[len("/api/lab/reports/") :]).strip("/")
-                    if not report_id or "/" in report_id:
+                    if not _path_segment_ok(report_id):
                         self._send_error_json(400, "report_id inválido")
                         return
                     self._send_json(handle_get_lab_report(state, report_id))
@@ -358,7 +382,11 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             path = parsed.path
             try:
                 # Import ZIP puede traer base64 grande (hasta ~50 MiB + overhead JSON).
-                max_body = 55_000_000 if path == "/api/session/import" else 1_000_000
+                max_body = (
+                    SESSION_IMPORT_MAX_BODY_BYTES
+                    if path == "/api/session/import"
+                    else DEFAULT_MAX_BODY_BYTES
+                )
                 body = _read_json(self, max_bytes=max_body)
                 if path == "/api/mode":
                     self._send_json(handle_post_mode(state, body))
@@ -444,8 +472,17 @@ def create_server(
     host: str = "127.0.0.1",
     port: int = 8765,
     state: WorkbenchState | None = None,
+    *,
+    allow_non_loopback: bool = False,
 ) -> ThreadingHTTPServer:
-    """Crea ThreadingHTTPServer bound a host:port."""
+    """Crea ThreadingHTTPServer bound a host:port.
+
+    Fail-closed F43: host non-loopback requiere ``allow_non_loopback=True``.
+    """
+    if not is_loopback_host(host) and not allow_non_loopback:
+        raise ValidationError(
+            f"host={host!r} no es loopback; pasar allow_non_loopback=True (riesgo: sin auth HTTP)"
+        )
     app_state = state if state is not None else WorkbenchState()
     handler = make_handler(app_state)
     server = ThreadingHTTPServer((host, port), handler)

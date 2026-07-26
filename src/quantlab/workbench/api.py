@@ -396,10 +396,12 @@ def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> d
     owned_upload = False
     try:
         try:
+            parent = session.root.parent.resolve()
             archive = resolve_upload_archive(
                 zip_path=zip_path,
                 zip_base64=zip_b64,
                 work_dir=work,
+                allowed_roots=(parent,),
             )
             owned_upload = zip_b64 is not None and bool(zip_b64.strip())
         except ValidationError as exc:
@@ -839,6 +841,19 @@ def _parse_md_source(body: dict[str, Any]) -> str | None:
     return key
 
 
+def _validate_csv_path(raw: str) -> str:
+    """Fail-closed F43: rechaza traversal / null byte en csv_path del workbench."""
+    if not isinstance(raw, str) or not raw.strip():
+        raise ApiError(400, "campo 'csv_path' inválido")
+    if "\x00" in raw:
+        raise ApiError(400, "csv_path inválido (null byte)")
+    text = raw.strip().replace("\\", "/")
+    parts = Path(text).parts
+    if any(p == ".." for p in parts) or ".." in text:
+        raise ApiError(400, "csv_path path traversal rechazado")
+    return raw.strip()
+
+
 def _parse_slippage_bps(body: dict[str, Any], default: Decimal) -> Decimal:
     raw = body.get("slippage_bps")
     if raw is None:
@@ -882,7 +897,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         if csv_path is not None:
             if not isinstance(csv_path, str):
                 raise ApiError(400, "campo 'csv_path' debe ser string")
-            create_opts["csv_path"] = csv_path
+            create_opts["csv_path"] = _validate_csv_path(csv_path)
 
         try:
             created = state.registry.create(venue, mode, **create_opts)

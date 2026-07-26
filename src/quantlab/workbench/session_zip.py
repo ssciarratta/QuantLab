@@ -13,6 +13,7 @@ import re
 import shutil
 import tempfile
 import zipfile
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -459,8 +460,13 @@ def resolve_upload_archive(
     zip_path: str | None,
     zip_base64: str | None,
     work_dir: Path,
+    allowed_roots: Sequence[Path] | None = None,
 ) -> Path:
-    """Resuelve archivo ZIP desde path local o base64 (mutuamente excluyentes)."""
+    """Resuelve archivo ZIP desde path local o base64 (mutuamente excluyentes).
+
+    ``zip_path`` solo se acepta si resuelve bajo alguno de ``allowed_roots``
+    (fail-closed F43: sin lectura arbitraria del filesystem).
+    """
     has_path = bool(zip_path and str(zip_path).strip())
     has_b64 = bool(zip_base64 and str(zip_base64).strip())
     if has_path == has_b64:
@@ -470,12 +476,33 @@ def resolve_upload_archive(
         tmp = Path(work_dir) / f"upload_{datetime.now(tz=UTC).strftime('%Y%m%dT%H%M%S%f')}.zip"
         return decode_zip_base64(zip_base64, dest=tmp)
     assert zip_path is not None
+    if "\x00" in zip_path:
+        raise ValidationError("zip_path inválido (null byte)")
     path = Path(zip_path).expanduser()
-    if not path.is_file():
+    try:
+        resolved = path.resolve()
+    except OSError as exc:
+        raise ValidationError(f"zip_path irresoluble: {zip_path}") from exc
+    roots = list(allowed_roots) if allowed_roots else []
+    if not roots:
+        raise ValidationError(
+            "zip_path requiere allowed_roots (sandbox session parent / _session_zips)"
+        )
+    ok = False
+    for root in roots:
+        try:
+            if resolved.is_relative_to(Path(root).resolve()):
+                ok = True
+                break
+        except (OSError, ValueError):
+            continue
+    if not ok:
+        raise ValidationError(f"zip_path fuera de sandbox (session parent): {zip_path!r}")
+    if not resolved.is_file():
         raise ValidationError(f"zip_path inexistente: {zip_path}")
-    if path.stat().st_size > MAX_ZIP_BYTES:
+    if resolved.stat().st_size > MAX_ZIP_BYTES:
         raise ValidationError(f"zip_path excede {MAX_ZIP_BYTES} bytes")
-    return path.resolve()
+    return resolved
 
 
 def import_result_to_dict(result: SessionImportResult) -> dict[str, Any]:

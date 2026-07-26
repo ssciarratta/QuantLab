@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.35.0] — 2026-07-26
+
+### Fase 43 — Red-team Workbench Hardening
+
+#### Added
+- Tests red-team `test_redteam_f43.py` (path traversal, LIVE, host, body)
+- Docs: `FASE_43_REDTEAM.md` · implementation report · DEC-087
+
+#### Security
+- `zip_path` sandbox bajo session parent (`allowed_roots`)
+- `create_server` fail-closed: non-loopback requiere `allow_non_loopback`
+- Body JSON default **2 MiB**; segmentos URL anti-`..`
+- `csv_path` anti-traversal en broker connect
+- `LIVE_BLOCKED is True` (sin flip)
+
+---
+
 ## [0.32.0] — 2026-07-26
 
 ### Fase 40 — Workspace Presets

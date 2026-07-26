@@ -16,21 +16,20 @@ from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH
 from quantlab.core.exceptions import ValidationError
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.workbench.api import WorkbenchState
-from quantlab.workbench.server import create_server
+from quantlab.workbench.server import create_server, is_loopback_host
 from quantlab.workbench.session import DEFAULT_SESSION_PARENT, WorkbenchSession
+
+# Re-export para tests / callers F25.
+__all__ = (
+    "DEFAULT_HOST",
+    "DEFAULT_PORT",
+    "build_parser",
+    "is_loopback_host",
+    "main",
+)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
-
-LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
-
-
-def is_loopback_host(host: str) -> bool:
-    """True si host es loopback (127.0.0.1 / ::1 / localhost)."""
-    h = host.strip().lower()
-    if h.startswith("[") and h.endswith("]"):
-        h = h[1:-1]
-    return h in LOOPBACK_HOSTS
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -161,7 +160,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         slippage_bps=slippage_bps,
     )
     state.ensure_session()
-    server = create_server(host=host, port=port, state=state)
+    server = create_server(
+        host=host,
+        port=port,
+        state=state,
+        allow_non_loopback=bool(args.allow_non_loopback),
+    )
     bound_host, bound_port = server.server_address[:2]
     # server_address tipado como (str | bytes, int) en stdlib
     host_s = bound_host.decode() if isinstance(bound_host, bytes) else str(bound_host)
