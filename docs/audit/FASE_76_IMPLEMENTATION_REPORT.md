@@ -4,7 +4,7 @@
 **Versión:** 0.68.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F75 Broker Heartbeat Status  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `30ff7ec`  
 **Alcance:** POST `/api/broker/reconnect` + last connect meta + UI Market/Health — **sin flip LIVE**
 
 ---
