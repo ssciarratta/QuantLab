@@ -113,7 +113,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 81 | Custom Preset Delete | 0.73.0 | `2975729` |
 | 82 | Window Snap to Edges | 0.74.0 | `bb57bed` |
 | 83 | Minimize / Restore All | 0.75.0 | 4bfb18d |
-| 84 | Cascade / Tile Windows | 0.76.0 | PENDING |
+| 84 | Cascade / Tile Windows | 0.76.0 | e82ebef |
 
 ---
 

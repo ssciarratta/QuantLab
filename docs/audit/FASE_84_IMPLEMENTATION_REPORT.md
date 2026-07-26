@@ -4,7 +4,7 @@
 **Versión:** 0.76.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F83 Minimize / Restore All v0.75  
-**Impl SHA:** `PENDING`  
+**Impl SHA:** `e82ebef`  
 **Alcance:** Cascade / Tile windows — **sin flip LIVE**
 
 ---

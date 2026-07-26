@@ -1,7 +1,7 @@
 # FASE 84 — Review Package (INTERNAL)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.76.0 · tip PENDING  
+**Versión:** 0.76.0 · tip e82ebef  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Veredicto INTERNAL:** **APROBADO_INTERNO** · sin certificado externo
 

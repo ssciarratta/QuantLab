@@ -2,7 +2,7 @@
 
 **Veredicto:** `# APROBADO_INTERNO`  
 **Fecha:** 2026-07-26  
-**Código tip:** PENDING · **v0.76.0** · F84 Cascade / Tile Windows  
+**Código tip:** e82ebef · **v0.76.0** · F84 Cascade / Tile Windows  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión:** **0.76.0** · F84 Cascade / Tile Windows  
 **LIVE_BLOCKED:** True  
