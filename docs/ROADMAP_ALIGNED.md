@@ -704,6 +704,19 @@
 **Spec:** `docs/FASE_53_DOCKER.md`  
 **Implementation report:** `docs/audit/FASE_53_IMPLEMENTATION_REPORT.md`
 
+### Fase 54 — Readiness / Liveness Probes
+**Módulos:**
+- `quantlab.workbench.probes` — livez/readyz payload + session-root writable check
+- `GET /api/livez` · `GET /api/readyz` (200/503) en server/api
+- Ops HEALTHCHECK en `docs/ops/DOCKER_WORKBENCH.md`
+- DEC-098; bump 0.46.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F54.md`, 2026-07-26) — certificado externo `FASE_54_APPROVED.md` **NO emitido**  
+**Versión:** 0.46.0  
+**Noche F19–F54:** `docs/audit/INTERNAL_AUDIT_F19_F54_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_54_PROBES.md`  
+**Implementation report:** `docs/audit/FASE_54_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-098 — Readiness / Liveness Probes
+  Decisión: F54 = GET /api/livez (siempre 200 si proceso up) +
+  GET /api/readyz (200 si LIVE_BLOCKED True y session root writable; 503 si no);
+  módulo quantlab.workbench.probes; documentado en DOCKER_WORKBENCH.md para
+  Docker HEALTHCHECK; suite test_probes_f54.py; bump 0.46.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_54_APPROVED.
+  Fase: 54.
+
 [2026-07-26] DEC-097 — Dockerfile Workbench (opt-in)
   Decisión: F53 = Dockerfile.workbench opt-in (python:3.12-slim + uv sync);
   EXPOSE 8765; CMD quantlab-workbench --host 0.0.0.0 --allow-non-loopback

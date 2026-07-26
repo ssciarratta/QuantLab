@@ -1,4 +1,4 @@
-# Workbench Docker (opt-in) — Fase 53
+# Workbench Docker (opt-in) — Fase 53 (+ probes F54)
 
 Imagen **opt-in** del QuantLab Workbench para Docker Desktop / local.
 **LIVE sigue bloqueado** (`LIVE_BLOCKED=True`). Sin auth HTTP.
@@ -20,7 +20,7 @@ quantlab-workbench --host 0.0.0.0 --allow-non-loopback --no-browser
 Desde la raíz del repo:
 
 ```bash
-docker build -f Dockerfile.workbench -t quantlab-workbench:0.45.0 .
+docker build -f Dockerfile.workbench -t quantlab-workbench:0.46.0 .
 # o tag local corto:
 docker build -f Dockerfile.workbench -t quantlab-workbench .
 ```
@@ -45,12 +45,38 @@ docker run --rm \
   quantlab-workbench
 ```
 
-## Health check rápido
+## Healthcheck / probes (F54)
+
+Preferí los probes delgados frente a `/api/health` para Docker / orchestrators:
+
+| Endpoint | Uso | Status |
+|----------|-----|--------|
+| `GET /api/livez` | **Liveness** — proceso up | siempre **200** si responde |
+| `GET /api/readyz` | **Readiness** — LIVE bloqueado + session root writable | **200** ready / **503** not ready |
+| `GET /api/health` | Health report rico (compat) | 200 + JSON detallado |
 
 ```bash
+# Liveness
+curl -sS http://127.0.0.1:8765/api/livez
+# {"ok":true,"alive":true,"status":"alive",...,"live_blocked":true}
+
+# Readiness
+curl -sS -w "\nHTTP %{http_code}\n" http://127.0.0.1:8765/api/readyz
+# 200 → ready; 503 → not_ready (checks.live_blocked / session_root_writable)
+
+# Compat
 curl -sS http://127.0.0.1:8765/api/health
 # ok=true · live_blocked=true
 ```
+
+Ejemplo `HEALTHCHECK` (liveness; el `Dockerfile.workbench` base no lo fija — opt-in):
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/api/livez')"
+```
+
+Para readiness en compose/orchestrator, usá `/api/readyz` (exit non-zero si HTTP ≠ 200).
 
 Apagado ordenado (F52): `docker stop` envía SIGTERM → graceful shutdown.
 
@@ -63,6 +89,7 @@ Apagado ordenado (F52): `docker stop` envía SIGTERM → graceful shutdown.
 
 ## Referencias
 
-- Spec: `docs/FASE_53_DOCKER.md`
+- Spec F53: `docs/FASE_53_DOCKER.md`
+- Spec F54 probes: `docs/FASE_54_PROBES.md`
 - 1-click nativo (sin Docker): `docs/ops/WORKBENCH_1CLICK.md`
 - Bind non-loopback (F25): flag `--allow-non-loopback`

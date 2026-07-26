@@ -39,6 +39,7 @@ from quantlab.workbench.api import (
     handle_get_lab_validation,
     handle_get_lab_validation_run,
     handle_get_layout,
+    handle_get_livez,
     handle_get_mode,
     handle_get_onboarding,
     handle_get_ops_metrics,
@@ -48,6 +49,7 @@ from quantlab.workbench.api import (
     handle_get_paper_session_status,
     handle_get_positions,
     handle_get_presets,
+    handle_get_readyz,
     handle_get_risk,
     handle_get_session,
     handle_get_session_export,
@@ -231,6 +233,14 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 return
 
             try:
+                if path == "/api/livez":
+                    self._send_json(handle_get_livez(state))
+                    return
+                if path == "/api/readyz":
+                    payload = handle_get_readyz(state)
+                    status = 200 if payload.get("ready") else 503
+                    self._send_json(payload, status=status)
+                    return
                 if path == "/api/health":
                     self._send_json(handle_get_health(state))
                     return

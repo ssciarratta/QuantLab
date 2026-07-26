@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 54 — Readiness / Liveness Probes
+-------------------------------------------------------
+- v0.46.0 · DEC-098 · LIVE_BLOCKED intacto · sin FASE_54_APPROVED.
+- GET /api/livez (200) + GET /api/readyz (200/503 LIVE_BLOCKED + writable).
+- quantlab.workbench.probes; DOCKER_WORKBENCH.md HEALTHCHECK.
+- Suite test_probes_f54.py; smoke F54.
+- Noche F19–F54 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 53 — Dockerfile Workbench (opt-in)
 -------------------------------------------------------
 - v0.45.0 · impl SHA 065821b · DEC-097 · LIVE_BLOCKED intacto · sin FASE_53_APPROVED.

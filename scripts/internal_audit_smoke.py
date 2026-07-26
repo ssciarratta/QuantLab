@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,8 +163,8 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -1299,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.45.0"
+    assert about["version"] == "0.46.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1353,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1416,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1481,8 +1481,8 @@ def check_f50_perf_baseline() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -1530,8 +1530,8 @@ def check_f51_rate_limit() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
     assert DEFAULT_RATE_LIMIT_RPS >= 120.0
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
@@ -1599,8 +1599,8 @@ def check_f52_shutdown() -> None:
     from quantlab.workbench.shutdown import perform_graceful_shutdown
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     class _Md:
         symbol = "TEST"
@@ -1686,8 +1686,8 @@ def check_f53_dockerfile() -> None:
     from quantlab.workbench.about import PHASES_SUMMARY
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.45.0"
-    assert PHASES_SUMMARY == "F19–F53 INTERNAL"
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     dockerfile = root / "Dockerfile.workbench"
@@ -1712,6 +1712,47 @@ def check_f53_dockerfile() -> None:
     di = dockerignore.read_text(encoding="utf-8")
     assert ".env" in di
     assert "data/" in di or "data" in di
+
+
+def check_f54_probes() -> None:
+    """F54: /api/livez always alive; /api/readyz LIVE_BLOCKED + writable."""
+    import tempfile
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import WorkbenchState, handle_get_livez, handle_get_readyz
+    from quantlab.workbench.probes import readyz_payload
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.46.0"
+    assert PHASES_SUMMARY == "F19–F54 INTERNAL"
+
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f54-"))
+    session = WorkbenchSession.create_or_load(root, "smoke54")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    live = handle_get_livez(state)
+    assert live["ok"] is True
+    assert live["alive"] is True
+    assert live["status"] == "alive"
+
+    ready = handle_get_readyz(state)
+    assert ready["ready"] is True
+    assert ready["checks"]["live_blocked"] is True
+    assert ready["checks"]["session_root_writable"] is True
+
+    not_ready = readyz_payload(session_root=session.root, live_blocked=False)
+    assert not_ready["ready"] is False
+    assert not_ready["status"] == "not_ready"
+
+    ops = Path(__file__).resolve().parents[1] / "docs" / "ops" / "DOCKER_WORKBENCH.md"
+    ops_text = ops.read_text(encoding="utf-8")
+    assert "/api/livez" in ops_text
+    assert "/api/readyz" in ops_text
 
 
 def main() -> int:
@@ -1755,6 +1796,7 @@ def main() -> int:
         ("F51 soft API rate limit", check_f51_rate_limit),
         ("F52 graceful shutdown paper safety", check_f52_shutdown),
         ("F53 Dockerfile workbench opt-in", check_f53_dockerfile),
+        ("F54 readiness / liveness probes", check_f54_probes),
     ]
     ok = True
     for name, fn in checks:

@@ -1555,3 +1555,52 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F53: **0.45.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 54 — Readiness / Liveness Probes
+
+**Código:** 0.46.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-098  
+**Qué es:** Probes HTTP `GET /api/livez` (liveness 200) y `GET /api/readyz` (200 si LIVE_BLOCKED + session root writable; 503 si no); ops HEALTHCHECK en Docker; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_54_PROBES.md` |
+| Ops | `docs/ops/DOCKER_WORKBENCH.md` (sección probes) |
+| Implementation report | `docs/audit/FASE_54_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F54.md` |
+| Review Package INTERNAL | `docs/audit/FASE_54_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F54.md` |
+| Noche F19–F54 | `docs/audit/INTERNAL_AUDIT_F19_F54_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 54** |
+
+**Certificado externo:** **NO** emitido (`FASE_54_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F54 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Probes module | `src/quantlab/workbench/probes.py` |
+| A2 | API handlers | `handle_get_livez` / `handle_get_readyz` en `api.py` |
+| A3 | Server routes | `GET /api/livez` · `GET /api/readyz` |
+| A4 | Suite F54 | `tests/unit/workbench/test_probes_f54.py` |
+| A5 | Spec | `docs/FASE_54_PROBES.md` |
+| A6 | Implementation report | `docs/audit/FASE_54_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-098 | `learning/decisiones.txt` |
+| A8 | Smoke F54 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 54 | `scripts/build_internal_review_bundle.py` |
+| A10 | Version 0.46.0 | `pyproject.toml` |
+
+### Lista B F54 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F54: **0.46.0** · LIVE: **BLOQUEADO** · flip: **NO**.

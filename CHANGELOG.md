@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.46.0] — 2026-07-26
+
+### Fase 54 — Readiness / Liveness Probes
+
+#### Added
+- `GET /api/livez` — liveness (siempre 200 si proceso up)
+- `GET /api/readyz` — readiness (200 si `LIVE_BLOCKED` + session root writable; 503 si no)
+- Módulo `quantlab.workbench.probes`
+- Ops: `DOCKER_WORKBENCH.md` documenta HEALTHCHECK con probes
+- Suite `tests/unit/workbench/test_probes_f54.py`
+- Docs: `FASE_54_PROBES.md` · implementation report · DEC-098
+- Bundle INTERNAL default F19–F54
+
+#### Changed
+- `phases_summary` → `F19–F54 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_54_APPROVED.md`
+
+---
+
 ## [0.45.0] — 2026-07-26
 
 ### Fase 53 — Dockerfile Workbench (opt-in)

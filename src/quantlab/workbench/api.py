@@ -51,6 +51,7 @@ from quantlab.workbench.optimizer_runs import (
 )
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.presets import apply_preset, list_presets
+from quantlab.workbench.probes import livez_payload, readyz_payload
 from quantlab.workbench.rate_limit import RateLimitConfig, RateLimiter
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
@@ -415,6 +416,26 @@ def handle_get_health(state: WorkbenchState) -> dict[str, Any]:
     report = run_health_checks().to_dict()
     report.update(_md_info(state))
     return report
+
+
+def handle_get_livez(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/livez — liveness: 200 si el proceso responde (F54)."""
+    _ = state  # process up = handler reachable; no I/O dependency
+    return livez_payload()
+
+
+def handle_get_readyz(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/readyz — readiness: LIVE_BLOCKED + session root writable (F54).
+
+    Caller HTTP debe mapear ``ready`` → status 200 / 503.
+    """
+    session_root: Path | None = None
+    try:
+        session = state.ensure_session()
+        session_root = session.root
+    except Exception:  # noqa: BLE001 — not ready if session unavailable
+        session_root = None
+    return readyz_payload(session_root=session_root)
 
 
 def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
