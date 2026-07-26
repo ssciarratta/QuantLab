@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import os
 from collections.abc import Callable
 from typing import Any
@@ -14,6 +15,7 @@ from quantlab.brokers.mode import ModeGuard, OperatingMode
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.plugins import load_entry_point_brokers
 from quantlab.brokers.port import BrokerPort
+from quantlab.brokers.read_only import ReadOnlyBrokerPort
 from quantlab.core.exceptions import ValidationError
 
 BrokerFactory = Callable[..., BrokerPort]
@@ -55,12 +57,32 @@ class BrokerRegistry:
         if factory is None:
             known = ", ".join(sorted(self._factories)) or "(ninguno)"
             raise ValidationError(f"venue desconocido: {venue_id!r}; registrados: {known}")
-        if opts:
-            try:
-                return factory(mode, **opts)
-            except TypeError:
-                return factory(mode)
-        return factory(mode)
+        try:
+            signature = inspect.signature(factory)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(
+                f"factory de venue {key!r} no expone una firma inspeccionable"
+            ) from exc
+        try:
+            signature.bind(mode, **opts)
+        except TypeError as exc:
+            option_names = ", ".join(sorted(opts)) or "(sin opciones)"
+            raise ValidationError(
+                f"factory de venue {key!r} no acepta mode/opciones [{option_names}]: {exc}"
+            ) from exc
+
+        # Deliberately invoke exactly once. Internal TypeError must propagate unchanged.
+        broker = factory(mode, **opts)
+        if not isinstance(broker, BrokerPort):
+            raise ValidationError(f"factory de venue {key!r} no retornó un BrokerPort")
+        if key in self._plugin_venues:
+            actual_venue = broker.venue_id.strip().lower()
+            if actual_venue != key:
+                raise ValidationError(
+                    f"plugin venue inconsistente: spec={key!r}, broker={broker.venue_id!r}"
+                )
+            return ReadOnlyBrokerPort(broker)
+        return broker
 
     def list_venues(self) -> list[str]:
         return sorted(self._factories)

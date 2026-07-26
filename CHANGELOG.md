@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.79.0] — 2026-07-26
+
+### Fase 87 — Broker Plugin Contract v1
+
+#### Added
+- `BrokerPluginSpec` API `"1"` con venue/capabilities read-only validados
+- `ReadOnlyBrokerPort` obligatorio para todo plugin externo
+- Test kit cooperativo `run_broker_contract` + reporte frozen
+- Docs operativas y suite adversarial F87
+
+#### Changed
+- Registry valida la firma antes de invocar y no reintenta `TypeError`
+- Entry points v1 publican spec; factory v0 queda legacy con warning
+- Bump **0.79.0**
+
+#### Security
+- Plugin externo sin submit/cancel, sin shadow y LIVE rechazado pre-factory
+- `LIVE_BLOCKED is True`; sin `FASE_87_APPROVED.md`
+
+---
+
 ## [0.78.0] — 2026-07-26
 
 ### Fase 86 — Maximize / Restore Window

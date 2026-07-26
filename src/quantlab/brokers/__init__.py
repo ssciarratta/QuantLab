@@ -1,5 +1,6 @@
-"""quantlab.brokers — Operating Modes + BrokerPort multiplataforma (Fase 19–24)."""
+"""quantlab.brokers — Operating Modes + BrokerPort multiplataforma."""
 
+from quantlab.brokers.contracts import BROKER_PLUGIN_API_VERSION, BrokerPluginSpec
 from quantlab.brokers.mode import (
     REAL_ALIAS,
     ModeGuard,
@@ -11,6 +12,7 @@ from quantlab.brokers.paper.book import PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.port import BrokerPort
+from quantlab.brokers.read_only import ReadOnlyBrokerPort
 from quantlab.brokers.registry import (
     BrokerRegistry,
     get_default_registry,
@@ -24,6 +26,9 @@ __all__ = [
     "resolve_mode",
     "default_mode",
     "BrokerPort",
+    "ReadOnlyBrokerPort",
+    "BrokerPluginSpec",
+    "BROKER_PLUGIN_API_VERSION",
     "BrokerRegistry",
     "PaperBook",
     "PaperBroker",

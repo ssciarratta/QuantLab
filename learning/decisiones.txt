@@ -1,3 +1,12 @@
+[2026-07-26] DEC-131 — Broker Plugin Contract v1 fail-closed
+  Decisión: F87 versiona plugins externos con BrokerPluginSpec API "1";
+  capabilities permitidas sólo market_data/account_read; registry aplica
+  ReadOnlyBrokerPort siempre y bloquea submit/cancel; factory signature.bind
+  antes de una única invocación, sin retry de TypeError interno; legacy v0
+  emite warning; test kit cooperativo/offline no es sandbox. Bump 0.79.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_87_APPROVED.
+  Fase: 87.
+
 [2026-07-26] DEC-130 — Maximize / Restore Window
   Decisión: F86 = wm.js maximize/restoreFromMaximize/toggleMaximize;
   store preMax geometry; titlebar btn + dblclick; command palette

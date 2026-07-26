@@ -1,14 +1,19 @@
-"""Carga de brokers externos vía entry points (Fase 24 / DEC-067).
+"""Carga de brokers externos vía entry points (Fase 24 / Fase 87).
 
 Grupo: ``quantlab.brokers``
-Cada entry point: callable ``(OperatingMode) -> BrokerPort`` (opts kwargs opcionales).
+Contrato v1: entry point sin argumentos que retorna ``BrokerPluginSpec``.
+Legacy v0: factory callable ``(OperatingMode) -> BrokerPort`` (deprecada).
 """
 
 from __future__ import annotations
 
+import inspect
+import warnings
 from importlib.metadata import entry_points
 from typing import TYPE_CHECKING, Any
 
+from quantlab.brokers.contracts.v1 import BrokerPluginSpec
+from quantlab.core.exceptions import ValidationError
 from quantlab.infra.logging import get_logger
 
 if TYPE_CHECKING:
@@ -17,6 +22,10 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 ENTRY_POINT_GROUP = "quantlab.brokers"
+
+
+class LegacyBrokerPluginWarning(UserWarning):
+    """A v0 naked factory was loaded through the compatibility path."""
 
 
 def _iter_broker_entry_points() -> list[Any]:
@@ -37,7 +46,7 @@ def _iter_broker_entry_points() -> list[Any]:
 
 
 def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
-    """Registra factories desde entry points ``quantlab.brokers``.
+    """Registra specs v1 o factories legacy desde ``quantlab.brokers``.
 
     Fallas de carga: warning structlog, **no** crash.
     Retorna lista de venue_ids cargados ok.
@@ -55,16 +64,35 @@ def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
 
     for ep in eps:
         name = getattr(ep, "name", None) or ""
-        key = name.strip().lower()
         try:
-            factory = ep.load()
-            if not callable(factory):
+            published = ep.load()
+            spec = _load_v1_spec(published)
+            if spec is not None:
+                key = spec.venue_id
+                factory = spec.factory
+            else:
+                if not callable(published):
+                    logger.warning(
+                        "broker_plugin_not_callable",
+                        venue=name,
+                        ep=str(ep),
+                    )
+                    continue
+                key = name.strip().lower()
+                if not key:
+                    raise ValidationError("entry point broker legacy sin nombre de venue")
+                warnings.warn(
+                    f"broker plugin {key!r} usa factory legacy v0; migrar a "
+                    "BrokerPluginSpec API v1",
+                    LegacyBrokerPluginWarning,
+                    stacklevel=2,
+                )
                 logger.warning(
-                    "broker_plugin_not_callable",
-                    venue=name,
+                    "broker_plugin_legacy_v0",
+                    venue=key,
                     ep=str(ep),
                 )
-                continue
+                factory = published
             if key and registry.has_venue(key):
                 logger.warning(
                     "broker_plugin_shadow_refused",
@@ -73,7 +101,7 @@ def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
                     reason="venue already registered",
                 )
                 continue
-            registry.register(name, factory, from_plugin=True)
+            registry.register(key, factory, from_plugin=True)
             loaded.append(key)
             logger.info("broker_plugin_loaded", venue=key)
         except Exception as exc:  # noqa: BLE001 — plugin externo
@@ -84,3 +112,25 @@ def load_entry_point_brokers(registry: BrokerRegistry) -> list[str]:
                 ep=str(ep),
             )
     return loaded
+
+
+def _load_v1_spec(published: Any) -> BrokerPluginSpec | None:
+    """Resolve a direct spec/provider; return ``None`` for a v0-style factory."""
+    if isinstance(published, BrokerPluginSpec):
+        return published
+    if not callable(published):
+        return None
+    try:
+        signature = inspect.signature(published)
+    except (TypeError, ValueError):
+        return None
+    try:
+        signature.bind()
+    except TypeError:
+        return None
+    candidate = published()
+    if not isinstance(candidate, BrokerPluginSpec):
+        raise ValidationError(
+            "entry point broker invocable sin argumentos debe retornar BrokerPluginSpec v1"
+        )
+    return candidate
