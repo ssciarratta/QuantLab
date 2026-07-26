@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F34):** *(tip F34)* · **v0.26.0** (Monte Carlo History + HB Export Wizard)  
+**Tip código (impl F34):** `18cea7c` · **v0.26.0** (Monte Carlo History + HB Export Wizard)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F33_NIGHT.md` con **F34**.  
@@ -45,7 +45,7 @@
 | **31** | Feature Store Browser + Pipeline Runner | 0.23.0 | `70a8ee2` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F31.md` |
 | **32** | Validation / Walk-Forward Runner UI | 0.24.0 | `8c1cf58` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F32.md` |
 | **33** | Optimizer History + Pareto Panel | 0.25.0 | `c39a57f` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F33.md` |
-| **34** | Monte Carlo History + HB Export Wizard | 0.26.0 | *(tip)* | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F34.md` |
+| **34** | Monte Carlo History + HB Export Wizard | 0.26.0 | `18cea7c` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F34.md` |
 
 ### Arcos
 
