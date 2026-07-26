@@ -57,6 +57,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         "Download diagnostics snapshot as JSON attachment (support bundle)",
         ("ops",),
     ),
+    ApiRoute(
+        "/api/support-bundle.zip",
+        "GET",
+        "Download read-only support ZIP (diagnostics/about/openapi/venues/recon)",
+        ("ops",),
+    ),
     ApiRoute("/api/livez", "GET", "Liveness probe", ("ops",)),
     ApiRoute("/api/readyz", "GET", "Readiness probe (LIVE_BLOCKED + writable)", ("ops",)),
     ApiRoute("/api/about", "GET", "About / version / phases INTERNAL", ("meta",)),

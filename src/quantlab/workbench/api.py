@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import contextlib
+import io
 import json
 import threading
 import uuid
+import zipfile
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -2386,6 +2388,55 @@ def handle_get_diagnostics_download(state: WorkbenchState) -> tuple[bytes, str]:
         :64
     ]
     filename = f"quantlab-diagnostics-{safe or 'session'}.json"
+    return body, filename
+
+
+def handle_get_support_bundle(state: WorkbenchState) -> tuple[bytes, str]:
+    """GET /api/support-bundle.zip — ZIP read-only para soporte (F97).
+
+    Empaqueta diagnostics + about + openapi + venues + reconciliation en un ZIP
+    en memoria. No muta estado ni toca journal/book.
+    """
+    session = state.ensure_session()
+    diagnostics = handle_get_diagnostics(state)
+    about = handle_get_about(state)
+    openapi = handle_get_openapi(state)
+    venues = handle_get_venues(state)
+    try:
+        recon = handle_get_paper_reconciliation(state)
+    except ApiError as exc:
+        recon = {"ok": False, "error": str(exc), "status": "unavailable"}
+
+    members: dict[str, bytes] = {
+        "README.txt": (
+            "QuantLab support bundle (read-only)\n"
+            f"version={__version__}\n"
+            f"session_id={session.session_id}\n"
+            "live_blocked=True\n"
+            "Contiene: diagnostics.json, about.json, openapi.json,\n"
+            "venues.json, reconciliation.json.\n"
+            "No incluye journal/book ni credenciales.\n"
+        ).encode(),
+        "diagnostics.json": json.dumps(diagnostics, indent=2, ensure_ascii=False).encode(
+            "utf-8"
+        ),
+        "about.json": json.dumps(about, indent=2, ensure_ascii=False).encode("utf-8"),
+        "openapi.json": json.dumps(openapi, indent=2, ensure_ascii=False).encode("utf-8"),
+        "venues.json": json.dumps(venues, indent=2, ensure_ascii=False).encode("utf-8"),
+        "reconciliation.json": json.dumps(recon, indent=2, ensure_ascii=False).encode(
+            "utf-8"
+        ),
+    }
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for name, content in members.items():
+            zf.writestr(name, content)
+    body = buf.getvalue()
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in session.session_id)[
+        :64
+    ]
+    filename = f"quantlab-support-{safe or 'session'}.zip"
     return body, filename
 
 

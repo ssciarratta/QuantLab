@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.88.0 (F96 Diagnostics Download support snapshot)
+Versión código actual: 0.89.0 (F97 Support Bundle ZIP read-only)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,14 +75,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F96: APROBADO_INTERNO Zero-Trust (noche F19–F96; sin certificados externos)
+- F19–F96: APROBADO_INTERNO Zero-Trust; F97 (Support Bundle) auditoría en curso
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F96 Diagnostics Download support snapshot (0.88.0):
+F97 Support Bundle ZIP read-only (0.89.0):
+- GET /api/support-bundle.zip (diagnostics/about/openapi/venues/recon + README)
+- Sin journal/book; botón Support ZIP en Diagnostics; DEC-141
+- FASE_97_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+
+Previo — F96 Diagnostics Download support snapshot (0.88.0):
 - GET /api/diagnostics.json descarga adjunta (reutiliza F95) + botón en pane
 - Nombre saneado por session_id; DEC-140; sin mutaciones
 - FASE_96_APPROVED.md NO emitido · LIVE_BLOCKED intacto

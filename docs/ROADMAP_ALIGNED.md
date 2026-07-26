@@ -1215,6 +1215,15 @@
 - `LIVE_BLOCKED=True`; sin flip; sin `FASE_96_APPROVED.md`
 
 
+## Fase 97 — Support Bundle ZIP (read-only)
+
+**Version:** 0.89.0 · **DEC-141** · implementada, auditoría INTERNAL en curso
+
+- `GET /api/support-bundle.zip` empaqueta diagnostics/about/openapi/venues/recon
+- Botón Support ZIP en pane Diagnostics; sin journal/book
+- Tests F97 + smoke; `LIVE_BLOCKED=True`; sin `FASE_97_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

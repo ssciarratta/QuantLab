@@ -15,6 +15,7 @@
       '<button type="button" class="btn secondary" id="diag-refresh">Actualizar</button>' +
       '<button type="button" class="btn secondary" id="diag-copy">Copiar JSON</button>' +
       '<a class="btn secondary" id="diag-download" href="/api/diagnostics.json" download>Descargar</a>' +
+      '<a class="btn secondary" id="diag-bundle" href="/api/support-bundle.zip" download>Support ZIP</a>' +
       "</div>" +
       '<dl class="kv" id="diag-summary"></dl>' +
       "</div>" +

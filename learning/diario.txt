@@ -1,3 +1,7 @@
+[2026-07-26] F97 — Support Bundle ZIP read-only (v0.89.0)
+  GET /api/support-bundle.zip + botón en Diagnostics. DEC-141.
+  Limpieza previa: temporales /tmp (vscode/pytest/Diagnostics/Outlook).
+
 [2026-07-26] F96 — Diagnostics Download support snapshot (v0.88.0)
   GET /api/diagnostics.json descarga adjunta + botón en pane. DEC-140.
   (Nota infra: disco C: al 100%; se limpiaron temporales VS Code/pytest.)

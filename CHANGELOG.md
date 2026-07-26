@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.89.0] — 2026-07-26
+
+### Fase 97 — Support Bundle ZIP (read-only)
+
+#### Added
+- `GET /api/support-bundle.zip`: ZIP en memoria con diagnostics/about/openapi/
+  venues/reconciliation + README; sin journal/book ni credenciales
+- Botón "Support ZIP" en pane Diagnostics + `QLApi.supportBundleUrl()`
+- Tests `test_support_bundle_f97.py` + smoke `check_f97_support_bundle`
+
+#### Notes
+- Read-only; reutiliza handlers F93–F96; `LIVE_BLOCKED=True`
+
+---
+
 ## [0.88.0] — 2026-07-26
 
 ### Fase 96 — Diagnostics Download (support snapshot)

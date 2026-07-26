@@ -71,6 +71,7 @@ from quantlab.workbench.api import (
     handle_get_sessions,
     handle_get_settings,
     handle_get_snapshot,
+    handle_get_support_bundle,
     handle_get_universe,
     handle_get_venues,
     handle_get_watchlist,
@@ -344,6 +345,15 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         body,
                         filename=filename,
                         content_type="application/json; charset=utf-8",
+                        path=path,
+                    )
+                    return
+                if path == "/api/support-bundle.zip":
+                    body, filename = handle_get_support_bundle(state)
+                    self._send_download(
+                        body,
+                        filename=filename,
+                        content_type="application/zip",
                         path=path,
                     )
                     return

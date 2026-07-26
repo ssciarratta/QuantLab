@@ -3319,3 +3319,33 @@ JSON adjunto para reportes de incidente. Read-only; reutiliza F95.
 
 Versión código F96: **0.88.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 97 — Support Bundle ZIP (read-only)
+
+**Código:** 0.89.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-141
+**Qué es:** ZIP read-only con diagnostics/about/openapi/venues/reconciliation
+para soporte. Sin journal/book.
+
+**DoD auditor:**
+- [x] `/api/support-bundle.zip` descarga ZIP en memoria
+- [x] Miembros fijos; sin journal/book
+- [x] Botón Support ZIP + helper URL
+- [x] Tests F97 + smoke `check_f97_support_bundle`
+- [x] Sin `FASE_97_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F97; bump 0.89.0
+
+### Lista A F97
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Handler | `src/quantlab/workbench/api.py` (`handle_get_support_bundle`) |
+| A2 | Ruta + catálogo | `server.py` · `api_catalog.py` |
+| A3 | UI | `panes/diagnostics.js` · `api.js` |
+| A4 | Tests | `tests/unit/workbench/test_support_bundle_f97.py` |
+| A5 | Smoke | `scripts/internal_audit_smoke.py` |
+| A6 | Spec | `docs/FASE_97_SUPPORT_BUNDLE.md` |
+
+Versión código F97: **0.89.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

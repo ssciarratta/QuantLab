@@ -29,8 +29,8 @@ _STATIC_INDEX = (
 
 def test_live_blocked_and_version_f57() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.88.0"
-    assert PHASES_SUMMARY == "F19–F96 INTERNAL"
+    assert __version__ == "0.89.0"
+    assert PHASES_SUMMARY == "F19–F97 INTERNAL"
 
 
 def test_csp_policy_constants() -> None:

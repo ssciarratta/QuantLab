@@ -375,6 +375,9 @@
     diagnosticsDownloadUrl: function () {
       return "/api/diagnostics.json";
     },
+    supportBundleUrl: function () {
+      return "/api/support-bundle.zip";
+    },
     about: function () {
       return request("GET", "/api/about");
     },
