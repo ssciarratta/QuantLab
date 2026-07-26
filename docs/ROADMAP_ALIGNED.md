@@ -1197,7 +1197,7 @@
 
 ## Fase 95 — Diagnostics Snapshot Panel (read-only)
 
-**Version:** 0.87.0 · **DEC-139** · implementada, auditoría INTERNAL en curso
+**Version:** 0.87.0 · **DEC-139** · **APROBADO_INTERNO** (noche F19–F95)
 
 - `GET /api/diagnostics` agregado read-only (versión/modo/salud/reconciliación)
 - Pane `diagnostics.js` (resumen + JSON + copiar) + comando `open.diagnostics`

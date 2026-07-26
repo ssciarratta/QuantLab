@@ -3,7 +3,7 @@
 **Fase:** F95 Diagnostics Snapshot Panel (read-only)
 **Versión:** 0.87.0 · **DEC:** DEC-139 · **Fecha:** 2026-07-26
 **Branch:** `cursor/modo-real-workbench-aafd` · **LIVE_BLOCKED:** True
-**Estado:** implementada · cierre formal pendiente de auditoría (sin `FASE_95_APPROVED.md`)
+**Estado:** **APROBADO_INTERNO** (`INTERNAL_AUDIT_F95.md`) · cierre externo pendiente (sin `FASE_95_APPROVED.md`)
 
 ---
 

@@ -15,5 +15,5 @@ Actualizado: 2026-07-26 · tip funcional F95 · versión 0.87.0.
 - Portabilidad Windows verificada (sqlite closing, guard i18n, fsync `rb+`,
   `/tmp` portable, env worker sandbox con SYSTEMROOT).
 - DEC vigente: DEC-139.
-- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F94_NIGHT.md` (F95 pendiente).
+- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F95_NIGHT.md`.
 - No crear `FASE_95_APPROVED.md`; requiere Meta-Auditor externo.
