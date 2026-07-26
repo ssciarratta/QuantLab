@@ -4,7 +4,7 @@
 **Versión:** 0.55.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F62 Access Log Panel UI · F39 Session ZIP  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `aa9407c`  
 **Alcance:** Auto-backup ZIP opcional + API lista + rotación — **sin flip LIVE**
 
 ---
