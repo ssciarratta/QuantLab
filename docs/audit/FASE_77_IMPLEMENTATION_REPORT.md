@@ -4,6 +4,7 @@
 **Versión:** 0.69.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F76 Broker Reconnect Button  
+**Impl SHA:** `f782981`  
 **Alcance:** POST `/api/broker/disconnect` + UI Market/Health — **sin flip LIVE**  
 **Milestone prep:** tip hacia v0.70 (sin freeze)
 
