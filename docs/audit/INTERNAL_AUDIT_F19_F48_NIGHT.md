@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F48):** _(tip)_ · **v0.40.0** (Theme CSS Completion)  
+**Tip código (impl F48):** `9227750` · **v0.40.0** (Theme CSS Completion)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F47_NIGHT.md` con **F48**.  
@@ -59,7 +59,7 @@
 | **45** | About Dialog + Version Badge | 0.37.0 | `a103236` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F45.md` |
 | **46** | Multi-Session Switcher | 0.38.0 | `ce9cbdd` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F46.md` |
 | **47** | Chat Context Awareness | 0.39.0 | `afdf067` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F47.md` |
-| **48** | Theme CSS Completion | 0.40.0 | _(tip)_ | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F48.md` |
+| **48** | Theme CSS Completion | 0.40.0 | `9227750` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F48.md` |
 
 ### Arcos
 
@@ -98,10 +98,10 @@ uv run python scripts/internal_audit_smoke.py  # 34/34
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F48_v0.40.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F48_v0.40.0_MANIFEST.json` |
-| Digest | _(post-build)_ |
+| Digest | fdc27b566b5f2d7b23376b809f4221d9c0d2c573ff79020b1ee870fc6d2c8cf9 |
 
 ```text
-_(sha256)_  QuantLab_Internal_Review_F19_F48_v0.40.0.zip
+fdc27b566b5f2d7b23376b809f4221d9c0d2c573ff79020b1ee870fc6d2c8cf9  QuantLab_Internal_Review_F19_F48_v0.40.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F48_v0.40.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).

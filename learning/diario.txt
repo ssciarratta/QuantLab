@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 48 — Theme CSS Completion (slate + high-contrast)
 -------------------------------------------------------
-- v0.40.0 · DEC-092 · LIVE_BLOCKED intacto · sin FASE_48_APPROVED.
+- v0.40.0 · impl SHA 9227750 · DEC-092 · LIVE_BLOCKED intacto · sin FASE_48_APPROVED.
 - Tokens CSS completos slate | high-contrast; data-theme en documentElement
   al load settings y PUT /api/settings; default data-theme=slate en HTML.
 - Tests test_themes_f48.py + smoke F48 theme roundtrip.

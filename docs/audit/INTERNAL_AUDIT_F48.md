@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Repo:** `/workspace` · branch `cursor/modo-real-workbench-aafd`  
-**Código implementación:** _(tip)_ · **v0.40.0**  
+**Código implementación:** `9227750` · **v0.40.0**  
 **Docs de trabajo:** `AUTO_AUDIT_2026-07-26_F48.md`, `FASE_48_IMPLEMENTATION_REPORT.md`, `FASE_48_REVIEW_PACKAGE.md`
 
 ---

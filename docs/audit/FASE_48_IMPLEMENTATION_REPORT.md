@@ -4,7 +4,7 @@
 **Versión:** 0.40.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F47 Chat Context Awareness  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `9227750`  
 **Alcance:** CSS tokens slate + high-contrast + `data-theme` — **sin flip LIVE**
 
 ---
