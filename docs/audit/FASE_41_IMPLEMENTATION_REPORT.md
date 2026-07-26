@@ -1,0 +1,52 @@
+# FASE 41 — Implementation Report (Activity Log + Toasts)
+
+**Fecha:** 2026-07-26  
+**Versión:** 0.33.0  
+**Branch:** `cursor/modo-real-workbench-aafd`  
+**Prereq:** F40 Workspace Presets  
+**Alcance:** activity.jsonl + GET /api/activity + toasts + panel — **sin flip LIVE**
+
+---
+
+## Entregas
+
+| ID | Entrega | Path |
+|----|---------|------|
+| D1 | Activity core | `workbench/activity.py` |
+| A1 | `GET /api/activity?limit=` | `api.py` + `server.py` |
+| A2 | Hooks connect/submit/backtest/optimize/export/error | `api.py` |
+| U1 | Toasts + panel Activity | `static/js/toasts.js` · `panes/activity.js` · `shell.js` · `index.html` · CSS |
+| U2 | API client `getActivity` + toast paths | `static/js/api.js` |
+| T1 | Tests F41 | `tests/unit/workbench/test_activity_f41.py` |
+| T2 | Smoke F41 | `scripts/internal_audit_smoke.py` |
+| D2 | Spec + DEC-085 + bump | `docs/FASE_41_ACTIVITY.md` · `0.33.0` |
+
+## Invariantes
+
+- `LIVE_BLOCKED is True`
+- Append-only JSONL (sin rewrite)
+- Eventos allowlist fail-closed
+- DEC-085
+
+## QA
+
+```text
+export PATH="$HOME/.local/bin:$PATH"
+uv sync --extra dev
+uv run ruff format src/quantlab tests/unit/workbench
+uv run ruff check src/quantlab tests/unit/workbench
+uv run mypy --strict src/quantlab
+uv run pytest tests/unit/workbench/test_activity_f41.py -q
+uv run pytest tests/unit/workbench -q
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+## Fuera de alcance (correcto)
+
+- Flip `LIVE_BLOCKED`
+- Auth WAN / Electron
+- Browser E2E
+- Certificado externo `FASE_41_APPROVED.md`
+- Truncate / rotate del activity log

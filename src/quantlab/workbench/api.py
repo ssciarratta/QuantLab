@@ -23,6 +23,7 @@ from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
@@ -200,6 +201,62 @@ class ApiError(Exception):
         self.message = message
 
 
+def _record_activity(
+    state: WorkbenchState,
+    event: str,
+    *,
+    ok: bool = True,
+    message: str = "",
+    detail: dict[str, Any] | None = None,
+    op: str | None = None,
+) -> None:
+    """Append-only a ``activity.jsonl`` (best-effort; no rompe el handler)."""
+    try:
+        session = state.ensure_session()
+        session.ensure_layout()
+        ActivityLog(session.activity_path).append(
+            event,
+            ok=ok,
+            message=message,
+            detail=detail,
+            op=op,
+        )
+    except Exception:  # noqa: BLE001 — activity nunca debe tumbar la API
+        return
+
+
+def _activity_error(state: WorkbenchState, op: str, message: str) -> None:
+    _record_activity(
+        state,
+        "error",
+        ok=False,
+        message=message,
+        op=op,
+        detail={"op": op},
+    )
+
+
+def handle_get_activity(state: WorkbenchState, query: str = "") -> dict[str, Any]:
+    """GET /api/activity?limit=100 — últimos eventos de sesión."""
+    session = state.ensure_session()
+    session.ensure_layout()
+    params = parse_qs(query, keep_blank_values=False)
+    limit: int | None = None
+    raw_limit = params.get("limit")
+    if raw_limit and raw_limit[0].strip():
+        try:
+            limit = int(raw_limit[0].strip())
+        except ValueError as exc:
+            raise ApiError(400, "limit debe ser int") from exc
+    try:
+        payload = list_activity(session.activity_path, limit=limit)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload["session_id"] = session.session_id
+    payload["limit"] = clamp_limit(limit)
+    return payload
+
+
 def _require_broker(state: WorkbenchState) -> BrokerPort:
     if state.broker is None:
         raise ApiError(400, "broker no conectado; POST /api/broker/connect primero")
@@ -268,8 +325,20 @@ def handle_get_session_export(state: WorkbenchState) -> dict[str, Any]:
         result = export_session(session)
         write_export_sidecar_sha(result)
     except ValidationError as exc:
+        _activity_error(state, "export", str(exc))
         raise ApiError(400, str(exc)) from exc
-    return export_result_to_dict(result)
+    out = export_result_to_dict(result)
+    _record_activity(
+        state,
+        "export",
+        ok=True,
+        message="session zip export",
+        detail={
+            "filename": out.get("filename"),
+            "files_count": out.get("files_count"),
+        },
+    )
+    return out
 
 
 def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -277,12 +346,14 @@ def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> d
     session = state.ensure_session()
     mode_raw = body.get("mode", "new")
     if not isinstance(mode_raw, str) or mode_raw not in ("new", "merge"):
+        _activity_error(state, "export", "mode debe ser 'new' o 'merge'")
         raise ApiError(400, "mode debe ser 'new' o 'merge'")
     mode: str = mode_raw
     sid_raw = body.get("session_id")
     session_id: str | None = None
     if sid_raw is not None:
         if not isinstance(sid_raw, str):
+            _activity_error(state, "export", "session_id debe ser string")
             raise ApiError(400, "session_id debe ser string")
         session_id = sid_raw.strip() or None
 
@@ -302,6 +373,7 @@ def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> d
             )
             owned_upload = zip_b64 is not None and bool(zip_b64.strip())
         except ValidationError as exc:
+            _activity_error(state, "export", str(exc))
             raise ApiError(400, str(exc)) from exc
 
         parent = session.root.parent
@@ -323,8 +395,21 @@ def handle_post_session_import(state: WorkbenchState, body: dict[str, Any]) -> d
                 # Rehidrata book/journal tras merge.
                 state._hydrate_from_session()
         except ValidationError as exc:
+            _activity_error(state, "export", str(exc))
             raise ApiError(400, str(exc)) from exc
-        return import_result_to_dict(result)
+        out = import_result_to_dict(result)
+        _record_activity(
+            state,
+            "export",
+            ok=True,
+            message=f"session zip import ({mode})",
+            detail={
+                "mode": mode,
+                "session_id": out.get("session_id"),
+                "files_written": out.get("files_written"),
+            },
+        )
+        return out
     finally:
         if owned_upload:
             rmtree_quiet(work)
@@ -740,86 +825,98 @@ def _parse_slippage_bps(body: dict[str, Any], default: Decimal) -> Decimal:
 
 
 def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    venue_raw = body.get("venue")
-    if not isinstance(venue_raw, str) or not venue_raw.strip():
-        raise ApiError(400, "campo 'venue' requerido")
-    venue = venue_raw.strip().lower()
-
-    mode_raw = body.get("mode")
-    if mode_raw is None:
-        mode = state.mode
-    elif isinstance(mode_raw, str):
-        mode = _parse_mode(mode_raw)
-        state.mode = mode
-    else:
-        raise ApiError(400, "campo 'mode' inválido")
-
-    _reject_live_mode(mode)
-
-    md_source = _parse_md_source(body)
-    slippage_bps = _parse_slippage_bps(body, state.slippage_bps)
-    state.slippage_bps = slippage_bps
-    create_opts: dict[str, Any] = {}
-    if md_source is not None:
-        create_opts["md_source"] = md_source
-    csv_path = body.get("csv_path")
-    if csv_path is not None:
-        if not isinstance(csv_path, str):
-            raise ApiError(400, "campo 'csv_path' debe ser string")
-        create_opts["csv_path"] = csv_path
-
     try:
-        created = state.registry.create(venue, mode, **create_opts)
-    except ValidationError as exc:
-        raise ApiError(400, str(exc)) from exc
+        venue_raw = body.get("venue")
+        if not isinstance(venue_raw, str) or not venue_raw.strip():
+            raise ApiError(400, "campo 'venue' requerido")
+        venue = venue_raw.strip().lower()
 
-    # Cerrar anterior
-    if state.paper_session is not None:
-        state.paper_session.stop()
-        state.paper_session = None
-    if state.broker is not None:
-        with contextlib.suppress(Exception):
-            state.broker.close()
+        mode_raw = body.get("mode")
+        if mode_raw is None:
+            mode = state.mode
+        elif isinstance(mode_raw, str):
+            mode = _parse_mode(mode_raw)
+            state.mode = mode
+        else:
+            raise ApiError(400, "campo 'mode' inválido")
 
-    # Siempre PaperBroker + book/journal de sesión: nunca place_order venue.
-    state.ensure_session()
-    journal = state.ensure_journal()
-    book = state.ensure_book()
-    md: BrokerPort = created._md if isinstance(created, PaperBroker) else created  # noqa: SLF001
+        _reject_live_mode(mode)
 
-    def _on_book_change(updated: PaperBook) -> None:
-        state.book = updated
-        state.persist_book()
+        md_source = _parse_md_source(body)
+        slippage_bps = _parse_slippage_bps(body, state.slippage_bps)
+        state.slippage_bps = slippage_bps
+        create_opts: dict[str, Any] = {}
+        if md_source is not None:
+            create_opts["md_source"] = md_source
+        csv_path = body.get("csv_path")
+        if csv_path is not None:
+            if not isinstance(csv_path, str):
+                raise ApiError(400, "campo 'csv_path' debe ser string")
+            create_opts["csv_path"] = csv_path
 
-    broker: BrokerPort = PaperBroker(
-        md,
-        journal=journal,
-        book=book,
-        slippage_bps=slippage_bps,
-        on_book_change=_on_book_change,
-    )
+        try:
+            created = state.registry.create(venue, mode, **create_opts)
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
 
-    connect_info = broker.connect()
-    state.broker = broker
-    state.venue = venue
-    health = broker.health()
-    provider = health.get("md_provider") or health.get("provider") or venue
-    state.md_provider = str(provider)
-    state.md_source = str(
-        health.get("md_source") or md_source or create_opts.get("md_source") or "fake"
-    )
-    return {
-        "ok": True,
-        "venue": venue,
-        "mode": mode.value,
-        "broker_venue_id": broker.venue_id,
-        "paper_broker": True,
-        "md_provider": state.md_provider,
-        "md_source": state.md_source,
-        "slippage_bps": str(slippage_bps),
-        "session_id": state.ensure_session().session_id,
-        "connect": to_jsonable(connect_info),
-    }
+        # Cerrar anterior
+        if state.paper_session is not None:
+            state.paper_session.stop()
+            state.paper_session = None
+        if state.broker is not None:
+            with contextlib.suppress(Exception):
+                state.broker.close()
+
+        # Siempre PaperBroker + book/journal de sesión: nunca place_order venue.
+        state.ensure_session()
+        journal = state.ensure_journal()
+        book = state.ensure_book()
+        md: BrokerPort = created._md if isinstance(created, PaperBroker) else created  # noqa: SLF001
+
+        def _on_book_change(updated: PaperBook) -> None:
+            state.book = updated
+            state.persist_book()
+
+        broker: BrokerPort = PaperBroker(
+            md,
+            journal=journal,
+            book=book,
+            slippage_bps=slippage_bps,
+            on_book_change=_on_book_change,
+        )
+
+        connect_info = broker.connect()
+        state.broker = broker
+        state.venue = venue
+        health = broker.health()
+        provider = health.get("md_provider") or health.get("provider") or venue
+        state.md_provider = str(provider)
+        state.md_source = str(
+            health.get("md_source") or md_source or create_opts.get("md_source") or "fake"
+        )
+        out = {
+            "ok": True,
+            "venue": venue,
+            "mode": mode.value,
+            "broker_venue_id": broker.venue_id,
+            "paper_broker": True,
+            "md_provider": state.md_provider,
+            "md_source": state.md_source,
+            "slippage_bps": str(slippage_bps),
+            "session_id": state.ensure_session().session_id,
+            "connect": to_jsonable(connect_info),
+        }
+        _record_activity(
+            state,
+            "connect",
+            ok=True,
+            message=f"connected {venue}",
+            detail={"venue": venue, "mode": mode.value},
+        )
+        return out
+    except ApiError as exc:
+        _activity_error(state, "connect", exc.message)
+        raise
 
 
 def handle_get_instruments(state: WorkbenchState) -> dict[str, Any]:
@@ -937,35 +1034,51 @@ def _parse_order_intent(body: dict[str, Any]) -> OrderIntent:
 
 
 def handle_post_paper_submit(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    _reject_live_mode(state.mode)
-    if state.mode not in (OperatingMode.TESTER, OperatingMode.PAPER):
-        raise ApiError(400, "paper/submit solo en modos tester|paper")
+    try:
+        _reject_live_mode(state.mode)
+        if state.mode not in (OperatingMode.TESTER, OperatingMode.PAPER):
+            raise ApiError(400, "paper/submit solo en modos tester|paper")
 
-    broker = _require_broker(state)
-    if not isinstance(broker, PaperBroker):
-        raise ApiError(
-            400,
-            "paper/submit requiere PaperBroker; reconectar en tester|paper "
-            "(nunca llama place_order venue)",
-        )
+        broker = _require_broker(state)
+        if not isinstance(broker, PaperBroker):
+            raise ApiError(
+                400,
+                "paper/submit requiere PaperBroker; reconectar en tester|paper "
+                "(nunca llama place_order venue)",
+            )
 
-    intent = _parse_order_intent(body)
-    if intent.intent_type is IntentType.PLACE_ORDER:
+        intent = _parse_order_intent(body)
+        if intent.intent_type is IntentType.PLACE_ORDER:
+            try:
+                snap = broker.get_snapshot(intent.instrument_id)
+                state.risk.check_intent(intent, snap)
+            except ValidationError as exc:
+                raise ApiError(400, str(exc)) from exc
         try:
-            snap = broker.get_snapshot(intent.instrument_id)
-            state.risk.check_intent(intent, snap)
+            ack = broker.submit(intent)
         except ValidationError as exc:
             raise ApiError(400, str(exc)) from exc
-    try:
-        ack = broker.submit(intent)
-    except ValidationError as exc:
-        raise ApiError(400, str(exc)) from exc
-    account = dataclass_to_dict(broker.get_account())
-    return {
-        "ack": dataclass_to_dict(ack),
-        "account": account,
-        "positions": [dataclass_to_dict(p) for p in broker.get_positions()],
-    }
+        account = dataclass_to_dict(broker.get_account())
+        out = {
+            "ack": dataclass_to_dict(ack),
+            "account": account,
+            "positions": [dataclass_to_dict(p) for p in broker.get_positions()],
+        }
+        _record_activity(
+            state,
+            "submit",
+            ok=True,
+            message=f"submit {intent.intent_type.value}",
+            detail={
+                "intent_type": intent.intent_type.value,
+                "instrument_id": intent.instrument_id,
+                "side": getattr(intent.side, "value", str(intent.side)),
+            },
+        )
+        return out
+    except ApiError as exc:
+        _activity_error(state, "submit", exc.message)
+        raise
 
 
 def _require_paper_broker(state: WorkbenchState) -> PaperBroker:
@@ -1253,34 +1366,50 @@ def handle_get_lab_report(state: WorkbenchState, report_id: str) -> dict[str, An
 
 
 def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    strategy_id = body.get("strategy_id", "momentum")
-    if not isinstance(strategy_id, str) or not strategy_id.strip():
-        raise ApiError(400, "strategy_id debe ser string no vacío")
-    params = body.get("params")
-    if params is None:
-        params_dict: dict[str, Any] = {}
-    elif isinstance(params, dict):
-        params_dict = params
-    else:
-        raise ApiError(400, "params debe ser objeto JSON")
-    n_bars = body.get("n_bars", 24)
-    if not isinstance(n_bars, int):
-        raise ApiError(400, "n_bars debe ser int")
-    experiment_id = body.get("experiment_id", "wb-lab-backtest")
-    if not isinstance(experiment_id, str) or not experiment_id.strip():
-        raise ApiError(400, "experiment_id inválido")
     try:
-        experiment_id = lab_services.validate_experiment_id(experiment_id)
-        result = lab_services.run_lab_backtest(
-            strategy_id=strategy_id,
-            params=params_dict,
-            n_bars=n_bars,
-            experiment_id=experiment_id,
-            reports_dir=state.ensure_lab_reports_dir(),
+        strategy_id = body.get("strategy_id", "momentum")
+        if not isinstance(strategy_id, str) or not strategy_id.strip():
+            raise ApiError(400, "strategy_id debe ser string no vacío")
+        params = body.get("params")
+        if params is None:
+            params_dict: dict[str, Any] = {}
+        elif isinstance(params, dict):
+            params_dict = params
+        else:
+            raise ApiError(400, "params debe ser objeto JSON")
+        n_bars = body.get("n_bars", 24)
+        if not isinstance(n_bars, int):
+            raise ApiError(400, "n_bars debe ser int")
+        experiment_id = body.get("experiment_id", "wb-lab-backtest")
+        if not isinstance(experiment_id, str) or not experiment_id.strip():
+            raise ApiError(400, "experiment_id inválido")
+        try:
+            experiment_id = lab_services.validate_experiment_id(experiment_id)
+            result = lab_services.run_lab_backtest(
+                strategy_id=strategy_id,
+                params=params_dict,
+                n_bars=n_bars,
+                experiment_id=experiment_id,
+                reports_dir=state.ensure_lab_reports_dir(),
+            )
+        except ValidationError as exc:
+            raise _lab_validation_error(exc) from exc
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "backtest",
+            ok=True,
+            message=f"backtest {strategy_id}",
+            detail={
+                "strategy_id": strategy_id,
+                "n_bars": n_bars,
+                "experiment_id": experiment_id,
+            },
         )
-    except ValidationError as exc:
-        raise _lab_validation_error(exc) from exc
-    return state.store_lab_result(result)
+        return out
+    except ApiError as exc:
+        _activity_error(state, "backtest", exc.message)
+        raise
 
 
 def handle_post_lab_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -1296,35 +1425,51 @@ def handle_post_lab_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict
 
 def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/optimize — grid + Pareto + persist session/optimizer (F33)."""
-    lookbacks_raw = body.get("lookbacks", [2, 3])
-    quantities_raw = body.get("quantities", ["1"])
-    n_bars = body.get("n_bars", 20)
-    persist = body.get("persist", True)
-    if not isinstance(lookbacks_raw, list) or not lookbacks_raw:
-        raise ApiError(400, "lookbacks debe ser lista no vacía")
-    if not isinstance(quantities_raw, list) or not quantities_raw:
-        raise ApiError(400, "quantities debe ser lista no vacía")
-    if not isinstance(n_bars, int):
-        raise ApiError(400, "n_bars debe ser int")
-    if not isinstance(persist, bool):
-        raise ApiError(400, "persist debe ser bool")
-    # Path-safe: solo sandbox de sesión.
-    if "path" in body or "optimizer_root" in body or "target_path" in body:
-        raise ApiError(400, "path externo no permitido; optimizer solo a sandbox de sesión")
     try:
-        lookbacks = tuple(int(x) for x in lookbacks_raw)
-        quantities = tuple(str(x) for x in quantities_raw)
-        result = lab_services.run_lab_optimize(
-            lookbacks=lookbacks,
-            quantities=quantities,
-            n_bars=n_bars,
-            persist=persist,
-            optimizer_root=state.ensure_lab_optimizer_dir() if persist else None,
+        lookbacks_raw = body.get("lookbacks", [2, 3])
+        quantities_raw = body.get("quantities", ["1"])
+        n_bars = body.get("n_bars", 20)
+        persist = body.get("persist", True)
+        if not isinstance(lookbacks_raw, list) or not lookbacks_raw:
+            raise ApiError(400, "lookbacks debe ser lista no vacía")
+        if not isinstance(quantities_raw, list) or not quantities_raw:
+            raise ApiError(400, "quantities debe ser lista no vacía")
+        if not isinstance(n_bars, int):
+            raise ApiError(400, "n_bars debe ser int")
+        if not isinstance(persist, bool):
+            raise ApiError(400, "persist debe ser bool")
+        # Path-safe: solo sandbox de sesión.
+        if "path" in body or "optimizer_root" in body or "target_path" in body:
+            raise ApiError(400, "path externo no permitido; optimizer solo a sandbox de sesión")
+        try:
+            lookbacks = tuple(int(x) for x in lookbacks_raw)
+            quantities = tuple(str(x) for x in quantities_raw)
+            result = lab_services.run_lab_optimize(
+                lookbacks=lookbacks,
+                quantities=quantities,
+                n_bars=n_bars,
+                persist=persist,
+                optimizer_root=state.ensure_lab_optimizer_dir() if persist else None,
+            )
+        except (ValidationError, TypeError, ValueError) as exc:
+            raise ApiError(400, str(exc)) from exc
+        result["session_id"] = state.ensure_session().session_id
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "optimize",
+            ok=True,
+            message="optimize grid",
+            detail={
+                "n_bars": n_bars,
+                "n_lookbacks": len(lookbacks),
+                "persist": persist,
+            },
         )
-    except (ValidationError, TypeError, ValueError) as exc:
-        raise ApiError(400, str(exc)) from exc
-    result["session_id"] = state.ensure_session().session_id
-    return state.store_lab_result(result)
+        return out
+    except ApiError as exc:
+        _activity_error(state, "optimize", exc.message)
+        raise
 
 
 def handle_get_lab_optimize_history(state: WorkbenchState) -> dict[str, Any]:

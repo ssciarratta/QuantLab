@@ -895,6 +895,74 @@ def check_f40_workspace_presets() -> None:
     }
 
 
+def check_f41_activity_log() -> None:
+    """F41: activity.jsonl append-only + GET /api/activity + hooks."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.activity import ACTIVITY_EVENT_TYPES, ActivityLog, list_activity
+    from quantlab.workbench.api import (
+        ApiError,
+        WorkbenchState,
+        handle_get_activity,
+        handle_post_broker_connect,
+        handle_post_lab_backtest,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert {
+        "connect",
+        "submit",
+        "backtest",
+        "optimize",
+        "export",
+        "error",
+    } == ACTIVITY_EVENT_TYPES
+
+    root = Path("/tmp/quantlab-smoke-f41-activity")
+    if root.exists():
+        import shutil
+
+        shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke41")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    assert session.activity_path.is_file()
+
+    connected = handle_post_broker_connect(
+        state, {"venue": "binance", "mode": "tester", "md_source": "fake"}
+    )
+    assert connected["ok"] is True
+
+    bt = handle_post_lab_backtest(
+        state,
+        {"strategy_id": "momentum", "n_bars": 12, "experiment_id": "smoke-f41-bt"},
+    )
+    assert bt is not None
+
+    try:
+        handle_post_broker_connect(state, {"venue": ""})
+        raise AssertionError("expected ApiError for empty venue")
+    except ApiError:
+        pass
+
+    listed = handle_get_activity(state, "limit=100")
+    assert listed["ok"] is True
+    assert listed["kind"] == "activity"
+    assert listed["live_blocked"] is True
+    events = {e["event"] for e in listed["events"]}
+    assert "connect" in events
+    assert "backtest" in events
+    assert "error" in events
+
+    # Append-only direct write
+    ActivityLog(session.activity_path).append("export", message="smoke-export")
+    again = list_activity(session.activity_path, limit=50)
+    assert any(e["event"] == "export" for e in again["events"])
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -923,6 +991,7 @@ def main() -> int:
         ("F38 docs / help browser", check_f38_docs_help),
         ("F39 session export/import ZIP", check_f39_session_zip),
         ("F40 workspace presets", check_f40_workspace_presets),
+        ("F41 activity log + toasts API", check_f41_activity_log),
     ]
     ok = True
     for name, fn in checks:

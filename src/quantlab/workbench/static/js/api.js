@@ -2,6 +2,31 @@
 (function (global) {
   "use strict";
 
+  // Paths que disparan toast success/error (F41).
+  const TOAST_LABELS = {
+    "POST /api/broker/connect": "Connect",
+    "POST /api/paper/submit": "Submit",
+    "POST /api/lab/backtest": "Backtest",
+    "POST /api/lab/optimize": "Optimize",
+    "GET /api/session/export": "Export",
+    "POST /api/session/import": "Import",
+  };
+
+  function toastKey(method, path) {
+    const base = String(path || "").split("?")[0];
+    return method + " " + base;
+  }
+
+  function maybeToast(method, path, ok, message) {
+    const label = TOAST_LABELS[toastKey(method, path)];
+    if (!label || !global.QLToasts) return;
+    if (ok) {
+      global.QLToasts.success(label + " · " + (message || "ok"));
+    } else {
+      global.QLToasts.error(label + " · " + (message || "error"));
+    }
+  }
+
   async function request(method, path, body) {
     const opts = {
       method: method,
@@ -18,16 +43,21 @@
       try {
         data = JSON.parse(text);
       } catch (err) {
+        maybeToast(method, path, false, "respuesta no JSON");
         throw new Error("Respuesta no JSON: " + text.slice(0, 120));
       }
     }
     if (!res.ok) {
       const msg = (data && data.error) || res.statusText || "error";
+      maybeToast(method, path, false, msg);
       const e = new Error(msg);
       e.status = res.status;
       e.payload = data;
       throw e;
     }
+    const brief =
+      (data && (data.message || data.filename || data.venue || data.kind)) || "ok";
+    maybeToast(method, path, true, String(brief));
     return data;
   }
 
@@ -83,6 +113,11 @@
     },
     session: function () {
       return request("GET", "/api/session");
+    },
+    getActivity: function (limit) {
+      const q =
+        limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";
+      return request("GET", "/api/activity" + q);
     },
     risk: function () {
       return request("GET", "/api/risk");

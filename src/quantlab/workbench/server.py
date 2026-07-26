@@ -13,6 +13,7 @@ from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
     handle_get_account,
+    handle_get_activity,
     handle_get_catalog,
     handle_get_chat_tools,
     handle_get_commands,
@@ -205,6 +206,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
+                    return
+                if path == "/api/activity":
+                    self._send_json(handle_get_activity(state, parsed.query))
                     return
                 if path == "/api/session/export":
                     payload = handle_get_session_export(state)

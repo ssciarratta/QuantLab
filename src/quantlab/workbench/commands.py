@@ -178,6 +178,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "pane_id": "docs",
         "keywords": ("docs", "help", "ayuda", "markdown", "manual", "ops"),
     },
+    {
+        "id": "open.activity",
+        "kind": "pane",
+        "label": "Abrir Activity",
+        "pane_id": "activity",
+        "keywords": ("activity", "log", "toast", "eventos", "historial"),
+    },
 )
 
 _ACTION_COMMANDS: tuple[dict[str, Any], ...] = (

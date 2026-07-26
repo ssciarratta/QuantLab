@@ -1167,6 +1167,111 @@ button.btn.secondary:hover {
   font-size: 0.68rem;
 }
 
+/* F41 — toasts + activity */
+.ql-toast-host {
+  position: fixed;
+  right: 1rem;
+  bottom: calc(var(--status-bar-h) + var(--taskbar-h) + 0.75rem);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-width: min(360px, calc(100vw - 2rem));
+  pointer-events: none;
+}
+
+.ql-toast {
+  pointer-events: auto;
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--ok);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 0.78rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  cursor: pointer;
+}
+
+.ql-toast--error {
+  border-left-color: var(--danger);
+}
+
+.ql-toast--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ql-toast--out {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.ql-toast-kind {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--amber);
+  flex: 0 0 auto;
+}
+
+.ql-toast--error .ql-toast-kind {
+  color: var(--danger);
+}
+
+.ql-toast-msg {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.activity-item {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border-soft);
+  border-left: 3px solid var(--ok);
+  background: rgba(20, 28, 39, 0.55);
+}
+
+.activity-item--err {
+  border-left-color: var(--danger);
+}
+
+.activity-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.activity-event {
+  color: var(--amber);
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.activity-msg {
+  font-size: 0.78rem;
+}
+
+.activity-detail {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  word-break: break-all;
+}
+
 @media (max-width: 640px) {
   .win {
     left: 4px !important;

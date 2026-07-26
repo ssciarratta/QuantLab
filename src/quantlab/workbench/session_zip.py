@@ -37,6 +37,7 @@ INCLUDE_FILES: frozenset[str] = frozenset(
         "settings.json",
         "watchlist.json",
         "chat_audit.jsonl",
+        "activity.jsonl",
     }
 )
 INCLUDE_DIRS: frozenset[str] = frozenset(

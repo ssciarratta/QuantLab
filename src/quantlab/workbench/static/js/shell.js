@@ -248,6 +248,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openActivity() {
+    const pane = QLPanes.createActivityPane();
+    wm.open("activity", "Activity", pane, mergeOpts("activity", { x: 220, y: 70, w: 520, h: 440 }));
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -261,6 +267,7 @@
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
+    activity: openActivity,
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,
