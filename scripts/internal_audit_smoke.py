@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,8 +163,8 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -1299,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.42.0"
+    assert about["version"] == "0.43.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1353,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1416,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1481,8 +1481,8 @@ def check_f50_perf_baseline() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.42.0"
-    assert PHASES_SUMMARY == "F19–F50 INTERNAL"
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -1504,6 +1504,67 @@ def check_f50_perf_baseline() -> None:
         )
         assert_baseline_within_budget(report)
         assert len(report.endpoints) == 5
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(timeout=2.0)
+
+
+def check_f51_rate_limit() -> None:
+    """F51: soft rate limit in-process; 429 JSON con límite bajo inyectado."""
+    import http.client
+    import json
+    import tempfile
+    import threading
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import WorkbenchState
+    from quantlab.workbench.rate_limit import (
+        DEFAULT_RATE_LIMIT_RPS,
+        RateLimitConfig,
+    )
+    from quantlab.workbench.server import create_server
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.43.0"
+    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert DEFAULT_RATE_LIMIT_RPS >= 120.0
+
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
+    session = WorkbenchSession.create_or_load(root, "smoke51")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    state.configure_rate_limit(
+        RateLimitConfig(enabled=True, requests_per_second=2.0, burst=2.0)
+    )
+    server = create_server(host="127.0.0.1", port=0, state=state)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        host, port = server.server_address[:2]
+        assert isinstance(host, str)
+        assert isinstance(port, int)
+        statuses: list[int] = []
+        for _ in range(4):
+            conn = http.client.HTTPConnection(host, port, timeout=5.0)
+            try:
+                conn.request("GET", "/api/mode")
+                resp = conn.getresponse()
+                raw = resp.read()
+                statuses.append(resp.status)
+                if resp.status == 429:
+                    body = json.loads(raw.decode("utf-8"))
+                    assert body["ok"] is False
+                    assert body["code"] == "rate_limit_exceeded"
+                    assert resp.getheader("Retry-After") is not None
+            finally:
+                conn.close()
+        assert statuses.count(200) == 2
+        assert statuses.count(429) >= 1
     finally:
         server.shutdown()
         server.server_close()
@@ -1548,6 +1609,7 @@ def main() -> int:
         ("F47 chat context awareness", check_f47_chat_context),
         ("F48 theme CSS slate + high-contrast", check_f48_themes),
         ("F50 workbench API perf baseline", check_f50_perf_baseline),
+        ("F51 soft API rate limit", check_f51_rate_limit),
     ]
     ok = True
     for name, fn in checks:

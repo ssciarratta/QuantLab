@@ -1414,3 +1414,49 @@ uv run python scripts/workbench_perf_baseline.py
 ```
 
 Versión código F50: **0.42.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 51 — API Rate Limit (loopback soft)
+
+**Código:** 0.43.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-095  
+**Qué es:** Soft rate limit in-process del workbench HTTP (token bucket por IP+path); default 120 req/s; 429 JSON + Retry-After; tests con límite bajo inyectado; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_51_RATE_LIMIT.md` |
+| Implementation report | `docs/audit/FASE_51_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F51.md` |
+| Review Package INTERNAL | `docs/audit/FASE_51_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F51.md` |
+| Noche F19–F51 | `docs/audit/INTERNAL_AUDIT_F19_F51_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 51** |
+
+**Certificado externo:** **NO** emitido (`FASE_51_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F51 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Módulo rate_limit | `src/quantlab/workbench/rate_limit.py` |
+| A2 | Suite F51 | `tests/unit/workbench/test_rate_limit_f51.py` |
+| A3 | Spec | `docs/FASE_51_RATE_LIMIT.md` |
+| A4 | Implementation report | `docs/audit/FASE_51_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-095 | `learning/decisiones.txt` |
+| A6 | Smoke F51 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 51 | `scripts/build_internal_review_bundle.py` |
+| A8 | Version 0.43.0 | `pyproject.toml` |
+
+### Lista B F51 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F51: **0.43.0** · LIVE: **BLOQUEADO** · flip: **NO**.

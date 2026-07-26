@@ -122,8 +122,8 @@ def _seed_project(tmp: Path) -> Path:
     return tmp
 
 
-def test_default_to_phase_is_50() -> None:
-    assert DEFAULT_TO_PHASE == 50
+def test_default_to_phase_is_51() -> None:
+    assert DEFAULT_TO_PHASE == 51
 
 
 def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None:

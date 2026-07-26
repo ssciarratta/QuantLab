@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-095 — API Rate Limit (loopback soft)
+  Decisión: F51 = soft rate limit in-process del workbench HTTP (token bucket
+  keyed por IP+path); default 120 req/s · burst 120 para no romper tests;
+  429 JSON + Retry-After al exceder; inyección vía
+  WorkbenchState.configure_rate_limit; suite test_rate_limit_f51.py;
+  bump 0.43.0. LIVE_BLOCKED=True; sin flip; sin FASE_51_APPROVED.
+  Fase: 51.
+
 [2026-07-26] DEC-094 — Performance Baseline Workbench API
   Decisión: F50 = medir latencia loopback de endpoints clave (health, mode,
   commands, about, lab/capabilities) sobre ThreadingHTTPServer en thread;

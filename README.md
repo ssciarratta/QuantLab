@@ -40,9 +40,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F48 | Theme CSS Completion (slate + high-contrast) · **APROBADO_INTERNO** · v0.40.0 |
 | F49 | Milestone Freeze Docs + CHANGELOG Sync · **APROBADO_INTERNO** · v0.41.0 |
 | F50 | Performance Baseline Workbench API · **APROBADO_INTERNO** · v0.42.0 |
+| F51 | API Rate Limit (loopback soft) · **APROBADO_INTERNO** · v0.43.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Noche F19–F50](docs/audit/INTERNAL_AUDIT_F19_F50_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Noche F19–F51](docs/audit/INTERNAL_AUDIT_F19_F51_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

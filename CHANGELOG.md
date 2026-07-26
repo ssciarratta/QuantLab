@@ -19,6 +19,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.43.0] — 2026-07-26
+
+### Fase 51 — API Rate Limit (loopback soft)
+
+#### Added
+- `quantlab.workbench.rate_limit` — token bucket in-process por IP/path
+- Soft limit en `server.py` (GET/POST/PUT) → 429 JSON + `Retry-After`
+- Default 120 req/s · burst 120; inyección `configure_rate_limit`
+- Suite `tests/unit/workbench/test_rate_limit_f51.py`
+- Docs: `FASE_51_RATE_LIMIT.md` · implementation report · DEC-095
+- Bundle INTERNAL default F19–F51
+
+#### Changed
+- `phases_summary` → `F19–F51 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_51_APPROVED.md`
+
+---
+
 ## [0.42.0] — 2026-07-26
 
 ### Fase 50 — Performance Baseline Workbench API

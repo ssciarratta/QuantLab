@@ -50,6 +50,7 @@ from quantlab.workbench.optimizer_runs import (
 )
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.presets import apply_preset, list_presets
+from quantlab.workbench.rate_limit import RateLimitConfig, RateLimiter
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import (
@@ -109,9 +110,15 @@ class WorkbenchState:
     bind_host: str = "127.0.0.1"
     allow_non_loopback: bool = False
     session_parent: Path | None = None
+    rate_limiter: RateLimiter = field(default_factory=RateLimiter)
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
+
+    def configure_rate_limit(self, config: RateLimitConfig) -> RateLimiter:
+        """Reemplaza el limiter (tests / inyección de límite bajo)."""
+        self.rate_limiter = RateLimiter(config)
+        return self.rate_limiter
 
     def resolve_session_parent(self) -> Path:
         """Parent durable de sesiones (switcher / list)."""
