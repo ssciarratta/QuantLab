@@ -1,3 +1,11 @@
+[2026-07-26] DEC-133 — Certificación A3 MD read-only en lanes no sustituibles
+  Decisión: F89 define fake-contract obligatorio CI/offline y sandbox-env opt-in
+  únicamente simulation. Sandbox usa pyRofex con resolución strict sin fallback;
+  SKIPPED_NOT_REQUESTED no equivale a PASS. El reporte excluye secretos, account
+  IDs y payloads raw; place_order/cancel_order son write-bomb y PASS exige cero
+  writes. Bump 0.81.0. LIVE_BLOCKED=True; sin flip; sin FASE_89_APPROVED.
+  Fase: 89.
+
 [2026-07-26] DEC-132 — Journal PAPER autoritativo; book como proyección
   Decisión: F88 define journal.jsonl append-only como source of truth y
   book.json v2 como proyección atómica reconstruible, ligada por checkpoint

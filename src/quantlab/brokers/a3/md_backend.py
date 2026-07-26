@@ -34,15 +34,17 @@ def has_a3_credentials() -> bool:
     return bool(user and password and account)
 
 
-def _resolve_a3_environment() -> A3EnvironmentName:
+def _resolve_a3_environment(*, strict: bool = False) -> A3EnvironmentName:
     raw = os.environ.get("QUANTLAB_A3_ENVIRONMENT", "simulation").strip().lower()
     try:
         return A3EnvironmentName(raw)
-    except ValueError:
+    except ValueError as exc:
+        if strict:
+            raise A3ConfigurationError("QUANTLAB_A3_ENVIRONMENT inválido") from exc
         return A3EnvironmentName.SIMULATION
 
 
-def try_build_env_md_backend() -> tuple[A3Backend | None, str]:
+def try_build_env_md_backend(*, strict: bool = False) -> tuple[A3Backend | None, str]:
     """Intenta PyRofexBackend para MD read-only. No conecta aún.
 
     Retorna ``(backend, reason)``; backend None si no aplica.
@@ -56,18 +58,21 @@ def try_build_env_md_backend() -> tuple[A3Backend | None, str]:
         from quantlab.data.exchanges.a3.config import load_credentials_from_env
 
         creds = load_credentials_from_env()
-        env = _resolve_a3_environment()
+        env = _resolve_a3_environment(strict=strict)
         backend: A3Backend = PyRofexBackend(creds, env)
         return backend, "ok"
-    except A3ConfigurationError as exc:
-        return None, str(exc)
-    except Exception as exc:  # noqa: BLE001 — frontera pyRofex/creds
-        logger.warning("a3_env_md_backend_build_failed", error=str(exc))
-        return None, f"build_failed: {exc}"
+    except A3ConfigurationError:
+        return None, "a3_configuration_error"
+    except Exception:  # noqa: BLE001 — frontera pyRofex/creds
+        # No incluir el texto externo: puede contener datos sensibles.
+        logger.warning("a3_env_md_backend_build_failed")
+        return None, "backend_build_failed"
 
 
 def resolve_a3_md_backend(
     md_source: str = MD_SOURCE_FAKE,
+    *,
+    allow_fallback: bool = True,
 ) -> tuple[A3Backend, dict[str, Any]]:
     """Resuelve backend MD + metadata de health (provider, fallback).
 
@@ -76,6 +81,8 @@ def resolve_a3_md_backend(
     """
     source = (md_source or MD_SOURCE_FAKE).strip().lower()
     if source not in VALID_MD_SOURCES:
+        if not allow_fallback:
+            raise A3ConfigurationError("md_source inválido para resolución strict")
         source = MD_SOURCE_FAKE
 
     detail: dict[str, Any] = {
@@ -87,12 +94,14 @@ def resolve_a3_md_backend(
     }
 
     if source == MD_SOURCE_ENV:
-        backend, reason = try_build_env_md_backend()
+        backend, reason = try_build_env_md_backend(strict=not allow_fallback)
         if backend is not None:
             detail["md_provider"] = "a3-env-readonly"
             detail["md_source"] = MD_SOURCE_ENV
             detail["build"] = reason
             return backend, detail
+        if not allow_fallback:
+            raise A3ConfigurationError(f"A3 env MD backend no disponible: {reason}")
         detail["fallback"] = True
         detail["fallback_reason"] = reason
         detail["md_provider"] = "a3-fake"

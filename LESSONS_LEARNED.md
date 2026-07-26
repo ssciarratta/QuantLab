@@ -79,3 +79,18 @@
    fail-closed + backup + rebuild CLI offline, aun en journal-ahead demostrable.
 5. Un reader “tolerante” de JSONL convierte corrupción en pérdida silenciosa:
    línea, tipos, timezone, finitud, source y duplicados deben validarse.
+
+---
+
+## Fase 89 — A3 MD read-only certification (2026-07-26)
+
+1. Una lane opt-in omitida debe reportar skip explícito; llamarla PASS crea una
+   certificación ficticia.
+2. Un fallback útil para UX normal es inseguro en certificación: la lane strict
+   debe fallar antes que sustituir pyRofex por fake.
+3. La seguridad read-only se prueba con write-bomb y contador, no sólo por
+   ausencia aparente de llamadas en el happy path.
+4. El reporte de integración debe usar códigos y agregados allowlisted; propagar
+   excepciones o payloads del proveedor puede filtrar identidad/secretos.
+5. Production se rechaza antes de connect y sandbox se aísla en subprocess con
+   timeout y entorno mínimo.

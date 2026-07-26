@@ -1124,6 +1124,20 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_88_APPROVED.md`
 
 
+## Fase 89 — A3 MD Read-only Certification
+
+**Versión:** 0.81.0 · **DEC-133** · **APROBADO_INTERNO** (sin `FASE_89_APPROVED.md`)
+
+- Lane fake-contract obligatoria CI/offline con spy/write-bomb
+- Lane sandbox-env opt-in, exclusivamente simulation y sin fallback a fake
+- Estados PASS/FAIL/SKIPPED_NOT_REQUESTED; skip no equivale a PASS
+- Reporte frozen saneado: conteos/latencia/issues; sin secretos/account/raw
+- Worker sandbox en subprocess con entorno allowlisted y timeout
+- Sandbox real `SKIPPED_NOT_REQUESTED`: no se afirma certificación real
+- Suite adversarial + smoke F89; bundle INTERNAL default F19–F89
+- `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_89_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

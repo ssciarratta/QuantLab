@@ -3054,3 +3054,43 @@ proyección atómica reconstruible, con check/rebuild offline.
 
 Versión código F88: **0.80.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 89 — A3 MD Read-only Certification
+
+**Código:** 0.81.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-133
+**Qué es:** contrato fake CI/offline y sandbox pyRofex simulation opt-in,
+estrictamente read-only y sin fallback.
+
+**DoD auditor:**
+- [x] Status frozen PASS/FAIL/SKIPPED_NOT_REQUESTED
+- [x] Reporte allowlisted sin credenciales, account IDs ni raw payload
+- [x] Fake backend bajo spy/write-bomb; cero place/cancel
+- [x] Sandbox doble opt-in, simulation y credenciales obligatorias
+- [x] Production rechazado antes de connect
+- [x] Resolver strict `allow_fallback=False`
+- [x] Worker subprocess con env saneado y timeout
+- [x] Close en finally y validación aware/finite DTO
+- [x] Fake local PASS; sandbox real `SKIPPED_NOT_REQUESTED`, no certificado
+- [x] Sin `FASE_89_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F89; bump 0.81.0
+
+### Lista A F89
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Contrato/report | `src/quantlab/brokers/a3/read_contract.py` |
+| A2 | Resolver strict | `src/quantlab/brokers/a3/md_backend.py` |
+| A3 | CLI/worker | `scripts/a3_md_certify.py` |
+| A4 | Suite adversarial | `tests/unit/brokers/test_a3_read_contract_f89.py` |
+| A5 | Suite CLI | `tests/unit/scripts/test_a3_md_certify_f89.py` |
+| A6 | Spec + runbook | `docs/FASE_89_A3_MD_CERTIFICATION.md` · `docs/ops/A3_MD_CERTIFICATION.md` |
+| A7 | Report fake local | `reports/certification/a3-md-cert.json` |
+| A8 | DEC-133 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A9 | Smoke F89 | `scripts/internal_audit_smoke.py` |
+| A10 | Bundle to-phase 89 | `scripts/build_internal_review_bundle.py` |
+
+Versión código F89: **0.81.0** · LIVE: **BLOQUEADO** · sandbox real:
+**SKIPPED_NOT_REQUESTED** · flip: **NO**.
+

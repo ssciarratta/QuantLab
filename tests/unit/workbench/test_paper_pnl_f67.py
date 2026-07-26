@@ -96,8 +96,8 @@ class _FakeMd:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.80.0"
-    assert PHASES_SUMMARY == "F19–F88 INTERNAL"
+    assert __version__ == "0.81.0"
+    assert PHASES_SUMMARY == "F19–F89 INTERNAL"
     assert not Path("docs/audit/FASE_67_APPROVED.md").exists()
 
 

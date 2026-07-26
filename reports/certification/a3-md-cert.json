@@ -1,0 +1,25 @@
+{
+  "lanes": [
+    {
+      "environment": "offline",
+      "instruments_count": 1,
+      "issues": [],
+      "lane": "fake",
+      "latency_ms": {
+        "count": 7,
+        "max": 0.013,
+        "mean": 0.003,
+        "min": 0.001
+      },
+      "live_blocked": true,
+      "provider": "a3-fake",
+      "snapshots_count": 1,
+      "status": "PASS",
+      "write_calls": 0
+    }
+  ],
+  "live_blocked": true,
+  "phase": 89,
+  "quantlab_version": "0.81.0",
+  "schema_version": 1
+}
