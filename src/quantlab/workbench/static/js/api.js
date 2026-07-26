@@ -201,6 +201,9 @@
     paperReconciliation: function () {
       return request("GET", "/api/paper/reconciliation");
     },
+    paperRehydrate: function () {
+      return request("POST", "/api/paper/reconciliation/rehydrate", {});
+    },
     paperFillsCsvUrl: function () {
       return "/api/paper/fills.csv";
     },

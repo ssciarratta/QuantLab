@@ -22,6 +22,8 @@ ACTIVITY_EVENT_TYPES: frozenset[str] = frozenset(
         "optimize",
         "export",
         "error",
+        # F91: rehydrate de sesión post-rebuild (auditable en el activity log).
+        "rehydrate",
     }
 )
 

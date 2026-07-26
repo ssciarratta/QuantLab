@@ -29,6 +29,11 @@
       "<h3>Recuperación</h3>" +
       '<p class="muted" style="margin-top:0">Si status ≠ ok, correr offline (crea backup; nunca modifica el journal):</p>' +
       '<code class="mono" id="recon-rebuild-via" style="word-break:break-all">—</code>' +
+      '<p class="muted" style="margin-bottom:0">Después del rebuild, releer la sesión sin reiniciar el proceso (detiene el runner; requiere reconectar broker):</p>' +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn secondary" id="recon-rehydrate">Releer sesión (post-rebuild)</button>' +
+      '<span class="mono muted" id="recon-rehydrate-status">—</span>' +
+      "</div>" +
       "</div>";
 
     const badgeEl = root.querySelector("#recon-badge");
@@ -103,6 +108,32 @@
 
     root.querySelector("#recon-refresh").addEventListener("click", function () {
       refresh();
+    });
+
+    const rehydrateBtn = root.querySelector("#recon-rehydrate");
+    const rehydrateStatusEl = root.querySelector("#recon-rehydrate-status");
+    rehydrateBtn.addEventListener("click", function () {
+      if (!window.confirm("¿Releer la sesión desde disco? Detiene el runner paper y requiere reconectar broker. No reconstruye archivos.")) {
+        return;
+      }
+      rehydrateBtn.disabled = true;
+      rehydrateStatusEl.textContent = "releyendo…";
+      rehydrateStatusEl.className = "mono muted";
+      QLApi.paperRehydrate()
+        .then(function (data) {
+          rehydrateStatusEl.textContent = data.ok
+            ? "rehydrate ok — reconectar broker"
+            : "sigue " + String(data.status || "?");
+          rehydrateStatusEl.className = data.ok ? "mono status-ok" : "mono status-bad";
+          render(data);
+        })
+        .catch(function (err) {
+          rehydrateStatusEl.textContent = "error: " + err.message;
+          rehydrateStatusEl.className = "mono status-bad";
+        })
+        .finally(function () {
+          rehydrateBtn.disabled = false;
+        });
     });
 
     autoEl.addEventListener("change", function () {

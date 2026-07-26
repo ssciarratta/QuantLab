@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.82.0 (F90 Paper Reconciliation Status Panel)
+Versión código actual: 0.83.0 (F91 Paper Session Rehydrate post-rebuild)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -73,22 +73,23 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F90: APROBADO_INTERNO Zero-Trust (noche F19–F90; sin certificados externos)
+- F19–F90: APROBADO_INTERNO Zero-Trust; F91 implementada, auditoría INTERNAL en curso
 - Workbench F19–F48 + ops/milestones F49–F58 + analytics/risk/desktop F59–F87 + F88 journal/book + F89 A3 MD cert + F90 reconciliation UI
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F90 Paper Reconciliation Status Panel (0.82.0):
-- Panel SPA read-only sobre GET /api/paper/reconciliation (F88)
-- Badge ok/status, checkpoint, issues y rebuild_via (CLI offline)
-- Sin mutaciones HTTP desde la UI (test + smoke lo verifican)
-- DEC-134; FASE_90_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-Además: fixes portabilidad Windows post-F88/F89 (sqlite locks, i18n guard,
-fsync backup, /tmp, env worker sandbox) — suite verde en Windows y Linux.
+F91 Paper Session Rehydrate post-rebuild (0.83.0):
+- POST /api/paper/reconciliation/rehydrate: teardown + relectura desde disco
+- Sin auto-recovery: durable inválido queda bloqueado como al boot
+- Journal nunca mutado; broker desconectado (reconexión explícita)
+- Botón con confirm en panel Reconciliación (F90); activity `rehydrate`
+- DEC-135; FASE_91_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+Antes en el día: F90 panel reconciliación (0.82.0) + fixes portabilidad
+Windows (sqlite locks, i18n guard, fsync, /tmp, env worker sandbox).
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F90 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F91 solo con APROBADO Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

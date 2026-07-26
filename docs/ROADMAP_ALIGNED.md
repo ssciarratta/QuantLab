@@ -1151,6 +1151,19 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_90_APPROVED.md`
 
 
+## Fase 91 — Paper Session Rehydrate post-rebuild
+
+**Versión:** 0.83.0 · **DEC-135** · implementada, auditoría INTERNAL en curso
+
+- `POST /api/paper/reconciliation/rehydrate`: teardown runtime + relectura disco
+- Reusa `switch_session` (path auditado F46/F88) sobre el session_id actual
+- Sin auto-recovery: durable inválido queda bloqueado como al boot
+- Journal nunca mutado; broker queda desconectado (reconexión explícita)
+- Botón con confirm en panel Reconciliación (F90); evento activity `rehydrate`
+- Suite e2e drift→rebuild→rehydrate + smoke F91; bundle default F19–F91
+- `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_91_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

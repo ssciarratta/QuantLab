@@ -1,3 +1,8 @@
+[2026-07-26] F91 — Paper Session Rehydrate post-rebuild (v0.83.0)
+  POST rehydrate: teardown + relectura desde disco tras rebuild CLI; sin
+  auto-recovery ni mutación de archivos. Botón con confirm en panel F90.
+  DEC-135.
+
 [2026-07-26] F90 — Paper Reconciliation Status Panel (v0.82.0)
   Panel SPA read-only para GET /api/paper/reconciliation: badge, checkpoint,
   issues y rebuild_via CLI. Sin mutaciones HTTP. DEC-134.

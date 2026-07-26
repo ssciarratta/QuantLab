@@ -88,6 +88,7 @@ from quantlab.workbench.api import (
     handle_post_mode,
     handle_post_onboarding_complete,
     handle_post_paper_kill,
+    handle_post_paper_rehydrate,
     handle_post_paper_session_start,
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
@@ -585,6 +586,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/kill":
                     self._send_json(handle_post_paper_kill(state, body))
+                    return
+                if path == "/api/paper/reconciliation/rehydrate":
+                    self._send_json(handle_post_paper_rehydrate(state))
                     return
                 if path == "/api/paper/session/start":
                     self._send_json(handle_post_paper_session_start(state, body))

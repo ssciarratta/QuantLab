@@ -16,8 +16,8 @@ def _static_root() -> Path:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.82.0"
-    assert PHASES_SUMMARY == "F19–F90 INTERNAL"
+    assert __version__ == "0.83.0"
+    assert PHASES_SUMMARY == "F19–F91 INTERNAL"
     assert not Path("docs/audit/FASE_90_APPROVED.md").exists()
 
 
@@ -66,13 +66,19 @@ def test_static_reconciliation_pane_present() -> None:
     assert '"pane.reconciliation"' in i18n_text
 
 
-def test_pane_is_strictly_read_only() -> None:
-    """DoD F90: la UI de reconciliación no dispara mutaciones (sin POST/PUT/DELETE)."""
+def test_pane_never_mutates_files() -> None:
+    """DoD F90/F91: la UI nunca reconstruye archivos ni toca órdenes.
+
+    Única acción permitida además del GET: rehydrate (F91), que relee la
+    sesión desde disco sin mutar journal/book.
+    """
     js = (_static_root() / "js" / "panes" / "reconciliation.js").read_text(encoding="utf-8")
-    for verb in ("POST", "PUT", "DELETE", "setPaperKill", "paperSubmit"):
+    for verb in ("PUT", "DELETE", "setPaperKill", "paperSubmit", "rebuild_session"):
         assert verb not in js
-    # Solo el getter read-only del API client.
-    assert js.count("QLApi.") == js.count("QLApi.paperReconciliation")
+    allowed = js.count("QLApi.paperReconciliation") + js.count("QLApi.paperRehydrate")
+    assert js.count("QLApi.") == allowed
+    # El rehydrate pide confirmación explícita al operador.
+    assert "confirm(" in js
 
 
 def test_i18n_locales_have_pane_key() -> None:

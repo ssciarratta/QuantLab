@@ -369,6 +369,20 @@ class WorkbenchState:
         self.paper_reconciliation = report
         return report
 
+    def rehydrate_session(self) -> ReconciliationReport:
+        """Relee journal/book desde disco tras un rebuild CLI (F91).
+
+        Nunca reconstruye archivos ni muta el journal: hace teardown del
+        runtime (runner/broker) y re-hidrata desde el estado durable, igual
+        que un reinicio de proceso. Si el estado durable sigue inválido, el
+        resultado queda igual de bloqueado que al boot.
+        """
+        session = self.ensure_session()
+        self.switch_session(session.session_id)
+        if self.paper_reconciliation is None:
+            raise ValidationError("reconciliación no disponible tras rehydrate")
+        return self.paper_reconciliation
+
     def _teardown_session_runtime(self) -> None:
         """Detiene runner paper, persiste book y limpia estado atado a sesión."""
         if self.paper_session is not None:
@@ -1974,6 +1988,36 @@ def _parse_order_intent(body: dict[str, Any]) -> OrderIntent:
         )
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+
+
+def handle_post_paper_rehydrate(state: WorkbenchState) -> dict[str, Any]:
+    """POST /api/paper/reconciliation/rehydrate — relee sesión desde disco (F91).
+
+    Pensado para después de ``reconcile_paper_session.py --rebuild``: evita
+    reiniciar el proceso. No reconstruye archivos; el único rebuild sigue
+    siendo el CLI offline. Requiere reconectar broker tras el rehydrate.
+    """
+    if not LIVE_BLOCKED:
+        raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    try:
+        report = state.rehydrate_session()
+    except ValidationError as exc:
+        _activity_error(state, "paper.rehydrate", str(exc))
+        raise ApiError(400, str(exc)) from exc
+    payload = report.to_dict()
+    payload["session_id"] = state.ensure_session().session_id
+    payload["rehydrated"] = True
+    payload["broker_connected"] = state.broker is not None
+    payload["rebuild_via"] = "scripts/reconcile_paper_session.py --session PATH --rebuild"
+    _record_activity(
+        state,
+        "rehydrate",
+        ok=report.ok,
+        message=f"status={report.status}",
+        detail={"status": report.status, "issues": list(report.issues)},
+        op="paper.rehydrate",
+    )
+    return payload
 
 
 def handle_get_paper_kill(state: WorkbenchState) -> dict[str, Any]:

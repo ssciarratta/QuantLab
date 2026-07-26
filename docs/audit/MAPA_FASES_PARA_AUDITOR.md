@@ -3130,3 +3130,39 @@ journal/book de F88; el rebuild sigue siendo exclusivamente CLI offline.
 
 Versión código F90: **0.82.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 91 — Paper Session Rehydrate post-rebuild
+
+**Código:** 0.83.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-135
+**Qué es:** rehydrate explícito del runtime tras el rebuild CLI offline de
+F88, sin reiniciar el proceso y sin auto-recovery.
+
+**DoD auditor:**
+- [x] POST-only `/api/paper/reconciliation/rehydrate` en catálogo
+- [x] Teardown runner/broker + relectura durable vía `switch_session`
+- [x] Durable inválido queda bloqueado igual que al boot (sin auto-recovery)
+- [x] Journal byte-idéntico pre/post rehydrate (test + smoke)
+- [x] Broker desconectado post-rehydrate; reconexión explícita
+- [x] Botón UI con `confirm()`; evento `rehydrate` en activity allowlist
+- [x] Sin `FASE_91_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F91; bump 0.83.0
+
+### Lista A F91
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | State + handler | `src/quantlab/workbench/api.py` |
+| A2 | Ruta POST | `src/quantlab/workbench/server.py` |
+| A3 | Catálogo OpenAPI | `src/quantlab/workbench/api_catalog.py` |
+| A4 | Activity allowlist | `src/quantlab/workbench/activity.py` |
+| A5 | UI botón + client | `static/js/panes/reconciliation.js` · `static/js/api.js` |
+| A6 | Suite e2e | `tests/unit/workbench/test_paper_rehydrate_f91.py` |
+| A7 | Spec | `docs/FASE_91_PAPER_REHYDRATE.md` |
+| A8 | DEC-135 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A9 | Smoke F91 | `scripts/internal_audit_smoke.py` |
+| A10 | Bundle to-phase 91 | `scripts/build_internal_review_bundle.py` |
+
+Versión código F91: **0.83.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

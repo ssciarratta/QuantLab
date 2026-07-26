@@ -95,6 +95,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         "Read-only paper journal/book reconciliation status",
         ("paper",),
     ),
+    ApiRoute(
+        "/api/paper/reconciliation/rehydrate",
+        "POST",
+        "Reload session from disk after offline CLI rebuild (never rebuilds files)",
+        ("paper",),
+    ),
     ApiRoute("/api/paper/submit", "POST", "Submit paper order (simulated fills)", ("paper",)),
     ApiRoute("/api/paper/kill", "GET", "Paper kill switch status", ("paper", "risk")),
     ApiRoute(

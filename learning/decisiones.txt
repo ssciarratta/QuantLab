@@ -1,3 +1,12 @@
+[2026-07-26] DEC-135 — Rehydrate explícito post-rebuild; nunca auto-recovery
+  Decisión: F91 agrega POST /api/paper/reconciliation/rehydrate que hace
+  teardown del runtime y relee journal/book desde disco reusando
+  switch_session. No reconstruye archivos ni auto-recupera: durable inválido
+  queda bloqueado como al boot; broker queda desconectado y la reconexión es
+  explícita. Evento 'rehydrate' en activity allowlist. Bump 0.83.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_91_APPROVED.
+  Fase: 91.
+
 [2026-07-26] DEC-134 — Panel Reconciliación Paper estrictamente read-only
   Decisión: F90 agrega UI del estado journal/book (F88) consumiendo solo
   GET /api/paper/reconciliation. La UI muestra rebuild_via (CLI offline) y
