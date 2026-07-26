@@ -55,7 +55,7 @@
 | **55** | OpenAPI / API Catalog | 0.47.0 | `b415978` | APROBADO_INTERNO |
 | **56** | Security Headers | 0.48.0 | `6246a74` | APROBADO_INTERNO |
 | **57** | Content-Security-Policy | 0.49.0 | `fbb0355` | APROBADO_INTERNO |
-| **58** | Milestone Freeze Docs + CHANGELOG (v0.50) | 0.50.0 | *(tip F58)* | APROBADO_INTERNO |
+| **58** | Milestone Freeze Docs + CHANGELOG (v0.50) | 0.50.0 | `7f6c440` | APROBADO_INTERNO |
 
 ### Arcos INTERNAL
 

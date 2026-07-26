@@ -1,9 +1,10 @@
 # Fase 58 — Milestone Freeze Docs + CHANGELOG Sync (v0.50)
 
-**Estado:** 📦 implementación tip (INTERNAL pendiente post-QA) — certificado externo `FASE_58_APPROVED.md` **NO** emitido  
+**Estado:** ✅ **APROBADO_INTERNO** (v0.50.0) — certificado externo `FASE_58_APPROVED.md` **NO** emitido  
 **Base:** v0.49.0 · F57 APROBADO_INTERNO  
 **LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
 **DEC:** DEC-102  
+**INTERNAL:** `docs/audit/INTERNAL_AUDIT_F58.md` · noche `INTERNAL_AUDIT_F19_F58_NIGHT.md` 
 
 ## Objetivo
 

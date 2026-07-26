@@ -763,10 +763,10 @@
 - Smoke tip version **starts with 0.50**; bundle default F19–F58
 - DEC-102; bump 0.50.0; sin flip LIVE
 
-**Estado en repo:** 📦 implementación tip — certificado externo `FASE_58_APPROVED.md` **NO emitido**  
-**Versión:** 0.50.0  
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F58.md`, 2026-07-26) — certificado externo `FASE_58_APPROVED.md` **NO emitido**  
+**Versión:** 0.50.0 · implementación `7f6c440`  
 **Freeze:** `docs/audit/MILESTONE_V050_FREEZE.md`  
-**Noche F19–F58:** `docs/audit/INTERNAL_AUDIT_F19_F58_NIGHT.md`  
+**Noche F19–F58:** `docs/audit/INTERNAL_AUDIT_F19_F58_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_58_MILESTONE_V050.md`  
 **Implementation report:** `docs/audit/FASE_58_IMPLEMENTATION_REPORT.md`
 

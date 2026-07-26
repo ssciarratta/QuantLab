@@ -4,6 +4,7 @@
 **Versión:** 0.50.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F57 Content-Security-Policy  
+**Impl SHA:** `7f6c440`  
 **Alcance:** docs/milestone freeze F19–F57/F58 + sync tip — **sin flip LIVE**
 
 ---
