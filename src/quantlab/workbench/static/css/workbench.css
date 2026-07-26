@@ -1283,6 +1283,49 @@ button.btn.secondary:hover {
   font-size: 0.72rem;
 }
 
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  max-height: 360px;
+  overflow: auto;
+}
+
+.session-item {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border-soft);
+  background: rgba(20, 28, 39, 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.session-item--current {
+  border-color: var(--ok);
+}
+
+.session-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.session-id {
+  color: var(--text);
+}
+
+.session-badge {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ok);
+}
+
+.session-created {
+  font-size: 0.75rem;
+}
+
 .activity-msg {
   font-size: 0.78rem;
 }

@@ -277,6 +277,25 @@
     }
   }
 
+  function onSessionSwitched(data) {
+    const sid =
+      (data && data.session_id) ||
+      (data && data.session && data.session.session_id) ||
+      "—";
+    if (bannerSession) bannerSession.textContent = "session " + sid;
+    if (sbSession) sbSession.textContent = sid;
+    cachedSessionId = sid;
+    QLApi.getMode()
+      .then(updateBanner)
+      .catch(function () {});
+  }
+
+  function openSessions() {
+    const pane = QLPanes.createSessionsPane(onSessionSwitched);
+    wm.open("sessions", "Sessions", pane, mergeOpts("sessions", { x: 200, y: 60, w: 480, h: 440 }));
+    pane.refresh().catch(function () {});
+  }
+
   function openActivity() {
     const pane = QLPanes.createActivityPane();
     wm.open("activity", "Activity", pane, mergeOpts("activity", { x: 220, y: 70, w: 520, h: 440 }));
@@ -308,6 +327,7 @@
     settings: openSettings,
     docs: openDocs,
     about: openAbout,
+    sessions: openSessions,
     activity: openActivity,
     ops_metrics: openOpsMetrics,
     backtest: openBacktest,

@@ -599,6 +599,20 @@
 **Spec:** `docs/FASE_45_ABOUT.md`  
 **Implementation report:** `docs/audit/FASE_45_IMPLEMENTATION_REPORT.md`
 
+### Fase 46 — Multi-Session Switcher
+**Módulos:**
+- `GET /api/sessions` + `POST /api/sessions/switch` + `POST /api/sessions/new`
+- UI panel Sessions (Inicio / command palette); `validate_session_id` fail-closed
+- DEC-090; bump 0.38.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F46.md`, 2026-07-26) — certificado externo `FASE_46_APPROVED.md` **NO emitido**  
+**Versión:** 0.38.0 · implementación _(tip)_  
+**Review Package INTERNAL:** `docs/audit/FASE_46_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F46.md`  
+**Noche F19–F46:** `docs/audit/INTERNAL_AUDIT_F19_F46_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_46_SESSIONS.md`  
+**Implementation report:** `docs/audit/FASE_46_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -643,6 +657,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F45 **APROBADO_INTERNO** (noche F19–F45).  
+1. F0–F18 certificados externos; F19–F46 **APROBADO_INTERNO** (noche F19–F46).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

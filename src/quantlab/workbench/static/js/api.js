@@ -114,6 +114,15 @@
     session: function () {
       return request("GET", "/api/session");
     },
+    sessionsList: function () {
+      return request("GET", "/api/sessions");
+    },
+    sessionsSwitch: function (sessionId) {
+      return request("POST", "/api/sessions/switch", { session_id: sessionId });
+    },
+    sessionsNew: function (body) {
+      return request("POST", "/api/sessions/new", body || {});
+    },
     getActivity: function (limit) {
       const q =
         limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";

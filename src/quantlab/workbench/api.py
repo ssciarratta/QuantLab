@@ -52,7 +52,13 @@ from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRun
 from quantlab.workbench.presets import apply_preset, list_presets
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
-from quantlab.workbench.session import WorkbenchSession
+from quantlab.workbench.session import (
+    DEFAULT_SESSION_PARENT,
+    WorkbenchSession,
+    list_sessions,
+    resolve_session_parent,
+    validate_session_id,
+)
 from quantlab.workbench.session_zip import (
     export_result_to_dict,
     export_session,
@@ -102,17 +108,29 @@ class WorkbenchState:
     paper_session: PaperSessionRunner | None = None
     bind_host: str = "127.0.0.1"
     allow_non_loopback: bool = False
+    session_parent: Path | None = None
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
 
+    def resolve_session_parent(self) -> Path:
+        """Parent durable de sesiones (switcher / list)."""
+        if self.session is not None:
+            parent = self.session.root.parent.resolve()
+            self.session_parent = parent
+            return parent
+        if self.session_parent is not None:
+            return resolve_session_parent(self.session_parent)
+        return resolve_session_parent(DEFAULT_SESSION_PARENT)
+
     def ensure_session(self) -> WorkbenchSession:
         if self.session is None:
             self.session = WorkbenchSession.create_or_load(
-                None,
+                self.session_parent,
                 None,
                 initial_cash=self.initial_cash,
             )
+            self.session_parent = self.session.root.parent.resolve()
             self._hydrate_from_session()
         elif self.journal is None or self.book is None:
             self._hydrate_from_session()
@@ -122,11 +140,67 @@ class WorkbenchState:
         if self.session is None:
             raise ValidationError("sesión no inicializada")
         self.session.ensure_layout()
+        self.session_parent = self.session.root.parent.resolve()
         self.journal = PaperFillJournal(self.session.journal_path)
         self.book = self.session.load_book(default_cash=self.initial_cash)
         self._lab_registry_path = self.session.experiments_dir / "experiments.sqlite"
         self._lab_export_dir = self.session.exports_dir
         lab_services.ensure_demo_experiment(self._lab_registry_path)
+
+    def _teardown_session_runtime(self) -> None:
+        """Detiene runner paper, persiste book y limpia estado atado a sesión."""
+        if self.paper_session is not None:
+            self.paper_session.stop()
+            self.paper_session = None
+        if self.session is not None and self.book is not None:
+            with contextlib.suppress(OSError, ValidationError):
+                self.session.save_book(self.book)
+        self.broker = None
+        self.venue = None
+        self.md_provider = None
+        self.md_source = None
+        self.journal = None
+        self.book = None
+        self.last_lab_result = None
+        self._chat = None
+        self._lab_registry_path = None
+        self._lab_export_dir = None
+
+    def switch_session(self, session_id: str, *, create: bool = False) -> WorkbenchSession:
+        """Cambia a otra sesión (fail-closed ``validate_session_id``) y recrea paths."""
+        sid = validate_session_id(session_id)
+        parent = self.resolve_session_parent()
+        parent.mkdir(parents=True, exist_ok=True)
+        target = (parent / sid).resolve()
+        if not target.is_relative_to(parent):
+            raise ValidationError(
+                f"session root fuera de parent (path traversal): {target} vs {parent}"
+            )
+        if not create and not target.is_dir():
+            raise ValidationError(f"sesión no encontrada: {sid}")
+        self._teardown_session_runtime()
+        self.session = WorkbenchSession.create_or_load(
+            parent,
+            sid,
+            initial_cash=self.initial_cash,
+        )
+        self.session_parent = parent
+        self._hydrate_from_session()
+        return self.session
+
+    def new_session(self, session_id: str | None = None) -> WorkbenchSession:
+        """Crea sesión nueva bajo el parent y hace switch."""
+        parent = self.resolve_session_parent()
+        raw = (session_id or "").strip() or uuid.uuid4().hex[:12]
+        sid = validate_session_id(raw)
+        target = (parent / sid).resolve()
+        if not target.is_relative_to(parent):
+            raise ValidationError(
+                f"session root fuera de parent (path traversal): {target} vs {parent}"
+            )
+        if target.is_dir() and (target / "meta.json").is_file():
+            raise ValidationError(f"sesión ya existe: {sid}")
+        return self.switch_session(sid, create=True)
 
     def persist_book(self) -> None:
         session = self.ensure_session()
@@ -355,9 +429,101 @@ def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
         "mode": state.mode.value,
         "initial_cash": str(state.initial_cash),
         "slippage_bps": str(state.slippage_bps),
+        "session_id": session.session_id,
+        "session_parent": str(state.resolve_session_parent()),
     }
     out.update(_md_info(state))
     return out
+
+
+def handle_get_sessions(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/sessions — lista dirs de sesión bajo session root (F46)."""
+    current = state.ensure_session()
+    parent = state.resolve_session_parent()
+    sessions = list_sessions(parent)
+    for item in sessions:
+        item["current"] = item["session_id"] == current.session_id
+    return {
+        "ok": True,
+        "kind": "sessions",
+        "session_id": current.session_id,
+        "session_parent": str(parent),
+        "count": len(sessions),
+        "sessions": sessions,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+
+
+def handle_post_sessions_switch(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/sessions/switch — cambia a otra sesión (fail-closed)."""
+    raw = body.get("session_id")
+    if not isinstance(raw, str) or not raw.strip():
+        raise ApiError(400, "session_id requerido")
+    try:
+        session = state.switch_session(raw.strip(), create=False)
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 404 if "no encontrada" in msg else 400
+        _activity_error(state, "session_switch", msg)
+        raise ApiError(status, msg) from exc
+    _record_activity(
+        state,
+        "session_switch",
+        ok=True,
+        message=f"switched to {session.session_id}",
+        detail={"session_id": session.session_id},
+        op="switch",
+    )
+    return {
+        "ok": True,
+        "kind": "session_switch",
+        "session_id": session.session_id,
+        "session": session.to_dict(),
+        "session_parent": str(state.resolve_session_parent()),
+        "mode": state.mode.value,
+        "live_blocked": LIVE_BLOCKED is True,
+        "connected_venue": state.venue,
+        "md_provider": state.md_provider,
+    }
+
+
+def handle_post_sessions_new(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """POST /api/sessions/new — crea sesión nueva y switch (F46)."""
+    payload = body if isinstance(body, dict) else {}
+    raw = payload.get("session_id")
+    sid: str | None = None
+    if raw is not None:
+        if not isinstance(raw, str):
+            raise ApiError(400, "session_id debe ser string")
+        sid = raw.strip() or None
+    try:
+        session = state.new_session(sid)
+    except ValidationError as exc:
+        msg = str(exc)
+        _activity_error(state, "session_new", msg)
+        raise ApiError(400, msg) from exc
+    _record_activity(
+        state,
+        "session_new",
+        ok=True,
+        message=f"created session {session.session_id}",
+        detail={"session_id": session.session_id},
+        op="new",
+    )
+    return {
+        "ok": True,
+        "kind": "session_new",
+        "session_id": session.session_id,
+        "session": session.to_dict(),
+        "session_parent": str(state.resolve_session_parent()),
+        "mode": state.mode.value,
+        "live_blocked": LIVE_BLOCKED is True,
+        "created": True,
+    }
 
 
 def handle_get_session_export(state: WorkbenchState) -> dict[str, Any]:

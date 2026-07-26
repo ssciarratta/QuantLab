@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.38.0] — 2026-07-26
+
+### Fase 46 — Multi-Session Switcher
+
+#### Added
+- API `GET /api/sessions` + `POST /api/sessions/switch` + `POST /api/sessions/new`
+- UI panel Sessions (menú Inicio / `open.sessions`)
+- Docs: `FASE_46_SESSIONS.md` · implementation report · DEC-090
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); `validate_session_id` fail-closed en switch
+
+---
+
 ## [0.37.0] — 2026-07-26
 
 ### Fase 45 — About Dialog + Version Badge

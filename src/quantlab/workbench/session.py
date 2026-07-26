@@ -32,6 +32,57 @@ def validate_session_id(session_id: str) -> str:
     return sid
 
 
+def resolve_session_parent(parent: Path | None = None) -> Path:
+    """Resuelve el parent de sesiones (default ``data/runtime/workbench``)."""
+    root = Path(parent) if parent is not None else DEFAULT_SESSION_PARENT
+    return root.resolve()
+
+
+def list_sessions(parent: Path | None = None) -> list[dict[str, Any]]:
+    """Lista directorios de sesión bajo ``parent`` (solo IDs válidos).
+
+    Fail-closed: ignora entradas que no pasen ``validate_session_id`` o
+    que escapen del parent vía symlink/traversal.
+    """
+    root = resolve_session_parent(parent)
+    if not root.is_dir():
+        return []
+    items: list[dict[str, Any]] = []
+    for child in sorted(root.iterdir(), key=lambda p: p.name.lower()):
+        if not child.is_dir():
+            continue
+        try:
+            sid = validate_session_id(child.name)
+        except ValidationError:
+            continue
+        try:
+            resolved = child.resolve()
+        except OSError:
+            continue
+        if not resolved.is_relative_to(root):
+            continue
+        meta: dict[str, Any] = {}
+        meta_path = resolved / "meta.json"
+        if meta_path.is_file():
+            try:
+                raw = json.loads(meta_path.read_text(encoding="utf-8"))
+                if isinstance(raw, dict):
+                    meta = raw
+            except (OSError, json.JSONDecodeError, UnicodeError):
+                meta = {}
+        created = meta.get("created_at")
+        items.append(
+            {
+                "session_id": sid,
+                "root": str(resolved),
+                "created_at": created if isinstance(created, str) else None,
+                "has_book": (resolved / "book.json").is_file(),
+                "has_meta": meta_path.is_file(),
+            }
+        )
+    return items
+
+
 class WorkbenchSession:
     """Root durable: ``<parent>/<session_id>/`` con journal/book/meta/labs/audit."""
 

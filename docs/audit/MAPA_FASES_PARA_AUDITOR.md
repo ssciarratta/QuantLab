@@ -1109,10 +1109,10 @@ Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F45 **APROBADO_INTERNO**.  
-2. QuantLab v0.37.0: About Dialog + Version Badge.  
-3. **LIVE sigue BLOQUEADO**; `GET /api/about` read-only.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F45 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F46 **APROBADO_INTERNO**.  
+2. QuantLab v0.38.0: Multi-Session Switcher.  
+3. **LIVE sigue BLOQUEADO**; switch fail-closed `validate_session_id`.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F46 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.
 
 ---
@@ -1123,7 +1123,7 @@ Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 **Código:** 0.37.0 · branch `cursor/modo-real-workbench-aafd`  
 **LIVE:** BLOQUEADO · flip **NO**
 
-**Qué es:** `GET /api/about` + badge de versión en status bar + diálogo Acerca de (menú Inicio / command palette); phases_summary `F19–F45 INTERNAL`; bind_policy loopback-default.
+**Qué es:** `GET /api/about` + badge de versión en status bar + diálogo Acerca de (menú Inicio / command palette); phases_summary tip actual `F19–F46 INTERNAL`; bind_policy loopback-default.
 
 **Docs de auditoría:**
 
@@ -1164,3 +1164,53 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F45: **0.37.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 46 — Multi-Session Switcher (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.38.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** `GET /api/sessions` + `POST /api/sessions/switch` + `POST /api/sessions/new`; UI panel Sessions; fail-closed `validate_session_id`; recrea paths journal/book/labs.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_46_SESSIONS.md` |
+| Implementation report | `docs/audit/FASE_46_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F46.md` |
+| Review Package INTERNAL | `docs/audit/FASE_46_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F46.md` |
+| Noche F19–F46 | `docs/audit/INTERNAL_AUDIT_F19_F46_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 46** |
+
+**Certificado externo:** **NO** emitido (`FASE_46_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F46 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | list_sessions + validate | `workbench/session.py` |
+| A2 | WorkbenchState switch/new + API | `api.py` · `server.py` |
+| A3 | UI Sessions panel | `sessions.js` · `shell.js` · `index.html` · CSS |
+| A4 | Spec | `docs/FASE_46_SESSIONS.md` |
+| A5 | Implementation report | `docs/audit/FASE_46_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-090 | `learning/decisiones.txt` |
+| A7 | Suite F46 | `tests/unit/workbench/test_sessions_f46.py` |
+| A8 | Version 0.38.0 | `pyproject.toml` |
+
+### Lista B F46 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F46: **0.38.0** · LIVE: **BLOQUEADO** · flip: **NO**.

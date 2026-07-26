@@ -156,6 +156,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     state = WorkbenchState(
         mode=mode,
         session=session,
+        session_parent=session.root.parent.resolve(),
         initial_cash=initial_cash,
         slippage_bps=slippage_bps,
     )

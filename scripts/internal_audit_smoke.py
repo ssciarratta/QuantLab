@@ -1209,8 +1209,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.37.0"
-    assert PHASES_SUMMARY == "F19–F45 INTERNAL"
+    assert __version__ == "0.38.0"
+    assert PHASES_SUMMARY == "F19–F46 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1221,7 +1221,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.37.0"
+    assert about["version"] == "0.38.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1241,6 +1241,74 @@ def check_f45_about() -> None:
     shell = (STATIC_ROOT / "js" / "shell.js").read_text(encoding="utf-8")
     assert "openAbout" in shell
     assert "refreshVersionBadge" in shell
+
+
+def check_f46_sessions() -> None:
+    """F46: multi-session list/switch/new + UI + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import (
+        ApiError,
+        WorkbenchState,
+        handle_get_sessions,
+        handle_post_sessions_new,
+        handle_post_sessions_switch,
+    )
+    from quantlab.workbench.commands import list_commands
+    from quantlab.workbench.server import STATIC_ROOT
+    from quantlab.workbench.session import WorkbenchSession, list_sessions
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.38.0"
+    assert PHASES_SUMMARY == "F19–F46 INTERNAL"
+
+    root = Path("/tmp/quantlab-smoke-f46-sessions")
+    parent = root / "sessions"
+    parent.mkdir(parents=True, exist_ok=True)
+    s1 = WorkbenchSession.create_or_load(parent, "smoke46a")
+    WorkbenchSession.create_or_load(parent, "smoke46b")
+    state = WorkbenchState(session=s1, session_parent=parent)
+    state.ensure_session()
+
+    listed = handle_get_sessions(state)
+    assert listed["ok"] is True
+    assert listed["kind"] == "sessions"
+    assert listed["count"] >= 2
+    assert listed["session_id"] == "smoke46a"
+    assert listed["live_blocked"] is True
+
+    ids = {i["session_id"] for i in list_sessions(parent)}
+    assert "smoke46a" in ids and "smoke46b" in ids
+
+    switched = handle_post_sessions_switch(state, {"session_id": "smoke46b"})
+    assert switched["ok"] is True
+    assert switched["session_id"] == "smoke46b"
+
+    created = handle_post_sessions_new(state, {"session_id": "smoke46c"})
+    assert created["ok"] is True
+    assert created["session_id"] == "smoke46c"
+
+    try:
+        handle_post_sessions_switch(state, {"session_id": "../evil"})
+        raise AssertionError("path traversal should fail")
+    except ApiError as exc:
+        assert exc.status == 400
+
+    cmd_ids = {c["id"] for c in list_commands()["commands"]}
+    assert "open.sessions" in cmd_ids
+
+    assert (STATIC_ROOT / "js" / "panes" / "sessions.js").is_file()
+    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+    assert "sessions.js" in html
+    assert 'data-open="sessions"' in html
+    shell = (STATIC_ROOT / "js" / "shell.js").read_text(encoding="utf-8")
+    assert "openSessions" in shell
+    api = (STATIC_ROOT / "js" / "api.js").read_text(encoding="utf-8")
+    assert "sessionsList" in api
+    assert "/api/sessions/switch" in api
 
 
 def main() -> int:
@@ -1276,6 +1344,7 @@ def main() -> int:
         ("F43 red-team workbench hardening", check_f43_redteam),
         ("F44 e2e paper workflow integration", check_f44_e2e_paper_workflow),
         ("F45 about dialog + version badge", check_f45_about),
+        ("F46 multi-session switcher", check_f46_sessions),
     ]
     ok = True
     for name, fn in checks:

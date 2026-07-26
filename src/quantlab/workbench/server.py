@@ -51,6 +51,7 @@ from quantlab.workbench.api import (
     handle_get_risk,
     handle_get_session,
     handle_get_session_export,
+    handle_get_sessions,
     handle_get_settings,
     handle_get_snapshot,
     handle_get_universe,
@@ -73,6 +74,8 @@ from quantlab.workbench.api import (
     handle_post_paper_submit,
     handle_post_presets_apply,
     handle_post_session_import,
+    handle_post_sessions_new,
+    handle_post_sessions_switch,
     handle_put_layout,
     handle_put_settings,
     handle_put_watchlist,
@@ -236,6 +239,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session":
                     self._send_json(handle_get_session(state))
+                    return
+                if path == "/api/sessions":
+                    self._send_json(handle_get_sessions(state))
                     return
                 if path == "/api/activity":
                     self._send_json(handle_get_activity(state, parsed.query))
@@ -439,6 +445,12 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session/import":
                     self._send_json(handle_post_session_import(state, body))
+                    return
+                if path == "/api/sessions/switch":
+                    self._send_json(handle_post_sessions_switch(state, body))
+                    return
+                if path == "/api/sessions/new":
+                    self._send_json(handle_post_sessions_new(state, body))
                     return
                 if path == "/api/presets/apply":
                     self._send_json(handle_post_presets_apply(state, body))

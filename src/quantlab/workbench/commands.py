@@ -186,6 +186,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("about", "acerca", "version", "versión", "info", "python"),
     },
     {
+        "id": "open.sessions",
+        "kind": "pane",
+        "label": "Abrir Sessions",
+        "pane_id": "sessions",
+        "keywords": ("sessions", "sesión", "switch", "cambiar", "multi"),
+    },
+    {
         "id": "open.activity",
         "kind": "pane",
         "label": "Abrir Activity",
