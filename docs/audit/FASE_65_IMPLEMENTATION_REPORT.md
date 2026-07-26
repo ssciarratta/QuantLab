@@ -4,7 +4,7 @@
 **Versión:** 0.57.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F28 Journal CSV client · F64 Backups UI  
-**Impl SHA:** _(tip feat commit)_  
+**Impl SHA:** `d5aae45`  
 **Alcance:** `GET /api/paper/fills.csv` + botones descarga Blotter/Journal — **sin flip LIVE**
 
 ---
