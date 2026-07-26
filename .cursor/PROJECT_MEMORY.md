@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.87.0** (F95 Diagnostics read-only)
+**Versión tip:** **0.88.0** (F96 Diagnostics Download)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
@@ -50,7 +50,8 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F93 | Venues / Broker Registry Panel read-only · **0.85.0** |
 | F94 | API Explorer Panel read-only · **0.86.0** |
 | F95 | Diagnostics Snapshot Panel read-only · **0.87.0** |
-| Noche F19–F94 | `docs/audit/INTERNAL_AUDIT_F19_F94_NIGHT.md` |
+| F96 | Diagnostics Download support snapshot · **0.88.0** |
+| Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
@@ -143,13 +144,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 6. Session paths fail-closed (`validate_session_id`, zip-slip)
 7. PaperBroker / Paper Session: fills simulados; sin venue submit
 8. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-9. Sin emitir `FASE_19`…`FASE_95_APPROVED.md` desde INTERNAL
-10. `phases_summary` tip: `F19–F95 INTERNAL`
-11. About / health `version` ≡ `__version__` y startswith `0.87`
+9. Sin emitir `FASE_19`…`FASE_96_APPROVED.md` desde INTERNAL
+10. `phases_summary` tip: `F19–F96 INTERNAL`
+11. About / health `version` ≡ `__version__` y startswith `0.88`
 12. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
 
 ## Próximo
 
-- Certificados externos F19–F95 solo con Meta-Auditor externo
-- Cierre INTERNAL F95 + bundle noche F19–F95; luego F96 según roadmap
+- Certificados externos F19–F96 solo con Meta-Auditor externo
+- Cierre INTERNAL F96 + bundle noche F19–F96; luego F97 según roadmap
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado
