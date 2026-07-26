@@ -38,6 +38,14 @@ _SAFE_PROCESS_ENV_NAMES = (
     "REQUESTS_CA_BUNDLE",
     "LANG",
     "LC_ALL",
+    # Windows: sin SYSTEMROOT el intérprete no inicializa Winsock (WinError 10106).
+    # Son variables de sistema no-secretas requeridas para arrancar Python.
+    "SYSTEMROOT",
+    "WINDIR",
+    "COMSPEC",
+    "PATHEXT",
+    "TEMP",
+    "TMP",
 )
 
 
