@@ -19,6 +19,7 @@ from quantlab.workbench.api import (
     handle_get_instruments,
     handle_get_lab_capabilities,
     handle_get_lab_experiments,
+    handle_get_lab_features_store,
     handle_get_lab_metrics,
     handle_get_lab_report,
     handle_get_lab_reports,
@@ -206,6 +207,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         return
                     self._send_json(handle_get_lab_report(state, report_id))
                     return
+                if path == "/api/lab/features/store":
+                    self._send_json(handle_get_lab_features_store(state))
+                    return
                 if path == "/api/chat/tools":
                     self._send_json(handle_get_chat_tools(state))
                     return
@@ -261,7 +265,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/montecarlo":
                     self._send_json(handle_post_lab_montecarlo(state, body))
                     return
-                if path == "/api/lab/features":
+                if path in ("/api/lab/features", "/api/lab/features/run"):
                     self._send_json(handle_post_lab_features(state, body))
                     return
                 if path == "/api/lab/export-hb":

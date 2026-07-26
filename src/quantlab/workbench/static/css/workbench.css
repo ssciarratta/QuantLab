@@ -493,6 +493,11 @@ button.btn.secondary:hover {
   font-size: 0.72rem;
 }
 
+.features-store-table {
+  width: 100%;
+  font-size: 0.72rem;
+}
+
 .mono {
   font-family: var(--mono);
 }

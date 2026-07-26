@@ -418,6 +418,44 @@ def check_f30_universe_catalog() -> None:
     assert offline["datasets"] == []
 
 
+def check_f31_features_store() -> None:
+    """F31: feature store list + pipeline persist + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_lab_features_store,
+        handle_post_lab_features,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f31-features")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke31")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    empty = handle_get_lab_features_store(state)
+    assert empty["ok"] is True
+    assert empty["read_only"] is True
+    assert empty["live_blocked"] is True
+    assert empty["source"] == "session"
+    assert isinstance(empty["artifacts"], list)
+
+    run = handle_post_lab_features(state, {"n_bars": 10})
+    assert run["ok"] is True
+    assert run["persisted"] is True
+    assert run["live_routing"] is False
+    assert "log_return" in run["columns"]
+    assert Path(run["store_ref"]["path"]).is_file()
+
+    listed = handle_get_lab_features_store(state)
+    assert listed["count"] >= 1
+    assert listed["live_blocked"] is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -436,6 +474,7 @@ def main() -> int:
         ("F28 layout + journal API", check_f28_layout_journal),
         ("F29 reports + metrics history", check_f29_reports),
         ("F30 universe watchlist + catalog", check_f30_universe_catalog),
+        ("F31 features store + pipeline", check_f31_features_store),
     ]
     ok = True
     for name, fn in checks:

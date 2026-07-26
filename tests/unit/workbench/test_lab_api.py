@@ -162,6 +162,11 @@ def test_lab_features(
     assert body["kind"] == "features"
     assert "close_price" in body["series_summary"]
     assert "simple_return" in body["series_summary"]
+    assert "log_return" in body["series_summary"]
+    assert body["persisted"] is True
+    assert body["live_blocked"] is True
+    assert isinstance(body["columns"], list)
+    assert "log_return" in body["columns"]
 
 
 def test_lab_export_hb_path_safe(

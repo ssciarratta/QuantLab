@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.23.0] — 2026-07-26
+
+### Fase 31 — Feature Store Browser + Pipeline Runner UI
+
+#### Added
+- `workbench/feature_store_browser.py` — list read-only FeatureStore (session/features)
+- API `GET /api/lab/features/store`, `POST /api/lab/features/run` (alias `/api/lab/features`)
+- Persist demo via `FeatureStore.put` en sesión; panel Features (store + columnas)
+- Tests `test_features_store_f31.py` · DEC-075
+- Docs: `FASE_31_FEATURES_UI.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); path externo de store rechazado; store list read-only
+
+---
+
 ## [0.22.0] — 2026-07-26
 
 ### Fase 30 — Universe Watchlist + Data Catalog Browser

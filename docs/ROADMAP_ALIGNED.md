@@ -374,6 +374,22 @@
 **Spec:** `docs/FASE_30_UNIVERSE_CATALOG.md`  
 **Implementation report:** `docs/audit/FASE_30_IMPLEMENTATION_REPORT.md`
 
+### Fase 31 — Feature Store Browser + Pipeline Runner UI
+**Módulos:**
+- `workbench/feature_store_browser.py` — list read-only FeatureStore (session/features)
+- `lab_services.run_lab_features` — persist vía `FeatureStore.put`
+- API `GET /api/lab/features/store`, `POST /api/lab/features/run` (+ alias)
+- Panel Features: store + pipeline + columnas
+- DEC-075; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F31.md`, 2026-07-26) — certificado externo `FASE_31_APPROVED.md` **NO emitido**  
+**Versión:** 0.23.0 · implementación *(tip commit feat)*  
+**Review Package INTERNAL:** `docs/audit/FASE_31_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F31.md`  
+**Noche F19–F31:** `docs/audit/INTERNAL_AUDIT_F19_F31_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_31_FEATURES_UI.md`  
+**Implementation report:** `docs/audit/FASE_31_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -418,6 +434,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F30 **APROBADO_INTERNO** (noche F19–F30).  
+1. F0–F18 certificados externos; F19–F31 **APROBADO_INTERNO** (noche F19–F31).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

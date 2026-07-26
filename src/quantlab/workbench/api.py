@@ -24,6 +24,7 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.catalog_browser import list_catalog_datasets
+from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
@@ -118,6 +119,11 @@ class WorkbenchState:
         session = self.ensure_session()
         session.reports_dir.mkdir(parents=True, exist_ok=True)
         return session.reports_dir
+
+    def ensure_lab_features_dir(self) -> Path:
+        session = self.ensure_session()
+        session.features_dir.mkdir(parents=True, exist_ok=True)
+        return session.features_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
@@ -960,14 +966,39 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
 
 
 def handle_post_lab_features(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/features[/run] — pipeline demo + persist FeatureStore sesión (F31)."""
     n_bars = body.get("n_bars", 20)
     if not isinstance(n_bars, int):
         raise ApiError(400, "n_bars debe ser int")
+    version = body.get("version")
+    if version is not None and not isinstance(version, str):
+        raise ApiError(400, "version debe ser string")
+    persist = body.get("persist", True)
+    if not isinstance(persist, bool):
+        raise ApiError(400, "persist debe ser bool")
+    # Path-safe: solo sandbox de sesión; rechazar override externo.
+    if "path" in body or "store_root" in body or "target_path" in body:
+        raise ApiError(400, "path externo no permitido; features solo a sandbox de sesión")
     try:
-        result = lab_services.run_lab_features(n_bars=n_bars)
+        store_root = state.ensure_lab_features_dir() if persist else None
+        result = lab_services.run_lab_features(
+            n_bars=n_bars,
+            store_root=store_root,
+            version=version.strip() if isinstance(version, str) else None,
+            persist=persist,
+        )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
+    result["session_id"] = state.ensure_session().session_id
     return state.store_lab_result(result)
+
+
+def handle_get_lab_features_store(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/features/store — lista artifacts session/features o default (F31)."""
+    session = state.ensure_session()
+    payload = list_feature_store(session_root=session.root)
+    payload["session_id"] = session.session_id
+    return payload
 
 
 def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:

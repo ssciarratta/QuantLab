@@ -156,7 +156,7 @@
 
   function openFeatures() {
     const pane = QLPanes.createFeaturesPane();
-    wm.open("features", "Features", pane, mergeOpts("features", { x: 180, y: 110, w: 460, h: 380 }));
+    wm.open("features", "Features", pane, mergeOpts("features", { x: 180, y: 110, w: 520, h: 460 }));
   }
 
   function openExportHb() {

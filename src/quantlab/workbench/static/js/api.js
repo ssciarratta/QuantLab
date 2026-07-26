@@ -151,7 +151,13 @@
       return request("POST", "/api/lab/montecarlo", body || {});
     },
     labFeatures: function (body) {
-      return request("POST", "/api/lab/features", body || {});
+      return request("POST", "/api/lab/features/run", body || {});
+    },
+    labFeaturesRun: function (body) {
+      return request("POST", "/api/lab/features/run", body || {});
+    },
+    labFeaturesStore: function () {
+      return request("GET", "/api/lab/features/store");
     },
     labExportHb: function (body) {
       return request("POST", "/api/lab/export-hb", body || {});

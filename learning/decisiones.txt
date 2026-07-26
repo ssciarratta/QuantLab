@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-075 — Feature Store Browser + Pipeline Runner UI
+  Decisión: F31 = browser read-only FeatureStore (session/features o
+  data/features / QUANTLAB_FEATURE_STORE_PATH); GET /api/lab/features/store;
+  POST /api/lab/features/run (alias /api/lab/features) persiste demo
+  close+simple_return+log_return vía FeatureStore.put en sandbox sesión;
+  panel Features lista artifacts + columnas. LIVE_BLOCKED=True; sin flip;
+  sin venue submit; sin path externo de store.
+  Fase: 31.
+
 [2026-07-26] DEC-074 — Universe Watchlist + Data Catalog Browser
   Decisión: F30 = watchlist.json por sesión (GET/PUT /api/watchlist add/remove);
   GET /api/universe (broker ∪ watchlist); GET /api/catalog read-only vía

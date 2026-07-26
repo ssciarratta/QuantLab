@@ -24,7 +24,12 @@ from quantlab.execution_export.hummingbot import HummingbotExporter
 from quantlab.experiments.registry import ExperimentRegistry
 from quantlab.features.pipeline import build_pipeline
 from quantlab.features.serialization import feature_frame_to_dict
-from quantlab.features.transformers import ClosePriceTransformer, SimpleReturnTransformer
+from quantlab.features.store import FeatureStore
+from quantlab.features.transformers import (
+    ClosePriceTransformer,
+    LogReturnTransformer,
+    SimpleReturnTransformer,
+)
 from quantlab.montecarlo.simulator import MonteCarloSimulator
 from quantlab.optimizer.grid import GridSearchOptimizer
 from quantlab.research.alpha import AlphaScanner
@@ -95,7 +100,13 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "id": "features",
         "label": "Features pipeline demo",
         "method": "POST",
-        "path": "/api/lab/features",
+        "path": "/api/lab/features/run",
+    },
+    {
+        "id": "features_store",
+        "label": "Feature Store browser",
+        "method": "GET",
+        "path": "/api/lab/features/store",
     },
     {
         "id": "export_hb",
@@ -373,17 +384,34 @@ def run_lab_montecarlo(
     }
 
 
-def run_lab_features(*, n_bars: int = 20) -> dict[str, Any]:
+def _demo_feature_version() -> str:
+    stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%S%f")[:-3] + "Z"
+    return f"wb-demo-{stamp}"
+
+
+def run_lab_features(
+    *,
+    n_bars: int = 20,
+    store_root: Path | None = None,
+    version: str | None = None,
+    persist: bool = True,
+) -> dict[str, Any]:
+    """Pipeline demo (close + simple_return + log_return) → FeatureStore sesión.
+
+    Si ``persist`` y ``store_root``: escribe via ``FeatureStore.put`` (F31).
+    """
     if n_bars < 4 or n_bars > 120:
         raise ValidationError("n_bars debe estar entre 4 y 120")
     bars = make_synthetic_bars(n_bars)
     pipeline = build_pipeline(
         ClosePriceTransformer(),
         SimpleReturnTransformer(),
+        LogReturnTransformer(),
         name="wb_demo_pipeline",
     )
     frame = pipeline.run(bars)
     payload = feature_frame_to_dict(frame)
+    columns = sorted(payload["series"].keys())
     # Resumen liviano para UI (sin todos los points si son muchos)
     series_summary = {
         name: {
@@ -393,7 +421,7 @@ def run_lab_features(*, n_bars: int = 20) -> dict[str, Any]:
         }
         for name, s in payload["series"].items()
     }
-    return {
+    result: dict[str, Any] = {
         "ok": True,
         "kind": "features",
         "pipeline_name": frame.pipeline_name,
@@ -402,8 +430,34 @@ def run_lab_features(*, n_bars: int = 20) -> dict[str, Any]:
         "min_lookback": frame.min_lookback,
         "schema_version": frame.schema_version,
         "series_summary": series_summary,
+        "columns": columns,
+        "persisted": False,
+        "store_ref": None,
+        "store_path": None,
         "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
     }
+    if persist and store_root is not None:
+        if not LIVE_BLOCKED:
+            raise ValidationError("LIVE_BLOCKED debe ser True; abortando feature persist")
+        ver = (version or _demo_feature_version()).strip()
+        if not ver:
+            raise ValidationError("version de feature inválida")
+        store = FeatureStore(Path(store_root))
+        ref = store.put(frame, version=ver)
+        result["persisted"] = True
+        result["store_path"] = str(Path(store_root).resolve())
+        result["store_ref"] = {
+            "instrument_id": ref.instrument_id,
+            "pipeline_name": ref.pipeline_name,
+            "version": ref.version,
+            "path": ref.path,
+            "checksum": ref.checksum,
+            "schema_version": ref.schema_version,
+            "created_at": ref.created_at.isoformat(),
+            "columns": columns,
+        }
+    return result
 
 
 def run_lab_export_hb(
