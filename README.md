@@ -20,9 +20,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F28 | Layout persistence + Journal viewer · v0.20.0 |
 | F29 | Report Viewer + Metrics History · **APROBADO_INTERNO** · v0.21.0 |
 | F30 | Universe Watchlist + Data Catalog · **APROBADO_INTERNO** · v0.22.0 |
+| F31 | Feature Store Browser + Pipeline Runner · **APROBADO_INTERNO** · v0.23.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F30](docs/audit/INTERNAL_AUDIT_F19_F30_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F31](docs/audit/INTERNAL_AUDIT_F19_F31_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---
@@ -37,9 +38,9 @@ uv run quantlab-vertical-slice
 uv run quantlab-a3 health
 ```
 
-### Workbench local (F20–F30)
+### Workbench local (F20–F31)
 
-UI loopback (stdlib) con paneles Health / MD / **Universe** / **Catalog** / Blotter / **Journal** / Riesgo / **Sesión Paper**, Laboratorio (**Reports**) y **Chat IA** safe-mode:
+UI loopback (stdlib) con paneles Health / MD / **Universe** / **Catalog** / Blotter / **Journal** / Riesgo / **Sesión Paper**, Laboratorio (**Reports** / **Features**) y **Chat IA** safe-mode:
 
 ```bash
 ./scripts/launch_workbench.sh --no-browser

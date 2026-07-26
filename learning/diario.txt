@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 31 — Feature Store Browser + Pipeline Runner UI
+----------------------------------------------------------------
+- v0.23.0 · impl SHA 70a8ee2 · DEC-075.
+- GET /api/lab/features/store; POST /api/lab/features/run (persist FeatureStore
+  en session/features); alias legacy POST /api/lab/features.
+- Panel Features: lista store + pipeline + columnas.
+- INTERNAL APROBADO_INTERNO; FASE_31_APPROVED.md NO emitido.
+- Noche F19–F31 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+- QA: mypy 163 · ruff · pytest 636 · smoke 17 PASS.
+
 [2026-07-26] FASE 30 — Universe Watchlist + Data Catalog Browser
 ---------------------------------------------------------------
 - v0.22.0 · impl SHA 7d8bf88 · DEC-074.
