@@ -1,3 +1,7 @@
+[2026-07-26] F96 — Diagnostics Download support snapshot (v0.88.0)
+  GET /api/diagnostics.json descarga adjunta + botón en pane. DEC-140.
+  (Nota infra: disco C: al 100%; se limpiaron temporales VS Code/pytest.)
+
 [2026-07-26] F95 — Diagnostics Snapshot Panel read-only (v0.87.0)
   /api/diagnostics agregado + pane diagnostics.js (resumen + JSON + copiar).
   Sin mutaciones. DEC-139.

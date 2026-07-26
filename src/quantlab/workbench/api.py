@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import threading
 import uuid
 from dataclasses import dataclass, field
@@ -2369,6 +2370,22 @@ def handle_get_paper_fills_csv(state: WorkbenchState) -> tuple[bytes, str]:
         :64
     ]
     filename = f"quantlab-fills-{safe or 'session'}.csv"
+    return body, filename
+
+
+def handle_get_diagnostics_download(state: WorkbenchState) -> tuple[bytes, str]:
+    """GET /api/diagnostics.json — snapshot como descarga adjunta (F96).
+
+    Reutiliza ``handle_get_diagnostics`` (read-only) y lo serializa a un archivo
+    para adjuntar a reportes de incidente. No muta estado.
+    """
+    payload = handle_get_diagnostics(state)
+    body = json.dumps(payload, indent=2, ensure_ascii=False).encode("utf-8")
+    session = state.ensure_session()
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in session.session_id)[
+        :64
+    ]
+    filename = f"quantlab-diagnostics-{safe or 'session'}.json"
     return body, filename
 
 

@@ -1,3 +1,10 @@
+[2026-07-26] DEC-140 — Descarga de diagnóstico reutiliza F95
+  Decisión: F96 agrega GET /api/diagnostics.json que reutiliza el snapshot
+  read-only de F95 y lo entrega como archivo adjunto (patrón fills.csv F65),
+  con nombre saneado por session_id. Sin nuevas fuentes ni mutaciones.
+  Bump 0.88.0. LIVE_BLOCKED=True; sin FASE_96_APPROVED.
+  Fase: 96.
+
 [2026-07-26] DEC-139 — /api/diagnostics agrega, no reemplaza
   Decisión: F95 agrega un snapshot read-only agregado (/api/diagnostics) que
   compone versión/modo/salud/conexión/reconciliación en un payload compacto para

@@ -3289,3 +3289,33 @@ el JSON copiable. Read-only; no reemplaza `/api/health`.
 
 Versión código F95: **0.87.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 96 — Diagnostics Download (support snapshot)
+
+**Código:** 0.88.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-140
+**Qué es:** `GET /api/diagnostics.json` entrega el snapshot de F95 como archivo
+JSON adjunto para reportes de incidente. Read-only; reutiliza F95.
+
+**DoD auditor:**
+- [x] `/api/diagnostics.json` descarga adjunta read-only
+- [x] Nombre saneado por `session_id`; sin mutaciones
+- [x] Botón descarga en pane + helper URL
+- [x] Tests F96 + smoke `check_f96_diagnostics_download`
+- [x] Sin `FASE_96_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F96; bump 0.88.0
+
+### Lista A F96
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Handler | `src/quantlab/workbench/api.py` (`handle_get_diagnostics_download`) |
+| A2 | Ruta + catálogo | `server.py` · `api_catalog.py` |
+| A3 | UI | `panes/diagnostics.js` · `api.js` |
+| A4 | Tests | `tests/unit/workbench/test_diagnostics_download_f96.py` |
+| A5 | Smoke | `scripts/internal_audit_smoke.py` |
+| A6 | Spec | `docs/FASE_96_DIAGNOSTICS_DOWNLOAD.md` |
+
+Versión código F96: **0.88.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

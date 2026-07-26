@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.88.0] — 2026-07-26
+
+### Fase 96 — Diagnostics Download (support snapshot)
+
+#### Added
+- `GET /api/diagnostics.json`: descarga del snapshot de diagnóstico como
+  archivo JSON adjunto (Content-Disposition), reutiliza F95 read-only
+- Botón "Descargar" en el pane Diagnostics + `QLApi.diagnosticsDownloadUrl()`
+- Tests `test_diagnostics_download_f96.py` + smoke `check_f96_diagnostics_download`
+
+#### Notes
+- Read-only; nombre de archivo saneado por session_id; `LIVE_BLOCKED=True`
+
+---
+
 ## [0.87.0] — 2026-07-26
 
 ### Fase 95 — Diagnostics Snapshot Panel (read-only)

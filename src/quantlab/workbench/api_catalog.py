@@ -51,6 +51,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         "Read-only aggregate snapshot (version/mode/health/reconciliation)",
         ("ops",),
     ),
+    ApiRoute(
+        "/api/diagnostics.json",
+        "GET",
+        "Download diagnostics snapshot as JSON attachment (support bundle)",
+        ("ops",),
+    ),
     ApiRoute("/api/livez", "GET", "Liveness probe", ("ops",)),
     ApiRoute("/api/readyz", "GET", "Readiness probe (LIVE_BLOCKED + writable)", ("ops",)),
     ApiRoute("/api/about", "GET", "About / version / phases INTERNAL", ("meta",)),

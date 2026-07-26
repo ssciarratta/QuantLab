@@ -1205,6 +1205,16 @@
 - `LIVE_BLOCKED=True`; sin flip; sin `FASE_95_APPROVED.md`
 
 
+## Fase 96 — Diagnostics Download (support snapshot)
+
+**Version:** 0.88.0 · **DEC-140** · implementada, auditoría INTERNAL en curso
+
+- `GET /api/diagnostics.json` descarga adjunta read-only (reutiliza F95)
+- Botón "Descargar" en pane Diagnostics + `QLApi.diagnosticsDownloadUrl()`
+- Tests F96 + smoke; nombre saneado por session_id
+- `LIVE_BLOCKED=True`; sin flip; sin `FASE_96_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

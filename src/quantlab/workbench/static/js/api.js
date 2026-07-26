@@ -372,6 +372,9 @@
     diagnostics: function () {
       return request("GET", "/api/diagnostics");
     },
+    diagnosticsDownloadUrl: function () {
+      return "/api/diagnostics.json";
+    },
     about: function () {
       return request("GET", "/api/about");
     },
