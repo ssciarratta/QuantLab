@@ -4,6 +4,7 @@
 **Versión:** 0.47.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F54 APROBADO_INTERNO  
+**Impl SHA:** `b415978`  
 **Alcance:** OpenAPI 3 mínimo desde catálogo — **sin flip LIVE** · **sin FastAPI**
 
 ---
@@ -44,9 +45,9 @@
 export PATH="$HOME/.local/bin:$PATH"
 uv run mypy --strict src/quantlab
 uv run ruff check src/quantlab tests scripts
-uv run pytest -q
+uv run pytest -q                      # 892 passed
 uv run quantlab-health                # 0.47.0 · live_blocked=true
-uv run python scripts/internal_audit_smoke.py
+uv run python scripts/internal_audit_smoke.py  # 41/41 PASS
 ```
 
 ## Fuera de alcance (correcto)
