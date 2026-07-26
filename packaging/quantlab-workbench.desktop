@@ -1,0 +1,14 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=QuantLab Workbench
+GenericName=QuantLab Ops Desk
+Comment=Escritorio de operaciones QuantLab (paper/research; LIVE bloqueado)
+# Ajustar Path al clone local del repo; Exec es relativo a Path.
+Path=/absolute/path/to/QuantLab
+Exec=scripts/launch_workbench.sh
+Icon=applications-office
+Terminal=true
+Categories=Finance;
+StartupNotify=true
+Keywords=quant;trading;paper;research;

@@ -22,11 +22,21 @@ from quantlab.workbench.session import DEFAULT_SESSION_PARENT, WorkbenchSession
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8765
 
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+
+
+def is_loopback_host(host: str) -> bool:
+    """True si host es loopback (127.0.0.1 / ::1 / localhost)."""
+    h = host.strip().lower()
+    if h.startswith("[") and h.endswith("]"):
+        h = h[1:-1]
+    return h in LOOPBACK_HOSTS
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="quantlab-workbench",
-        description="QuantLab Workbench — UI local loopback (Fase 20–23).",
+        description="QuantLab Workbench — UI local loopback (Fase 20–25).",
     )
     parser.add_argument(
         "--host",
@@ -38,6 +48,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=DEFAULT_PORT,
         help=f"Puerto HTTP (default: {DEFAULT_PORT})",
+    )
+    parser.add_argument(
+        "--allow-non-loopback",
+        action="store_true",
+        help="Permitir bind fuera de loopback (riesgo; warning stderr)",
     )
     parser.add_argument(
         "--no-browser",
@@ -64,6 +79,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=str(DEFAULT_INITIAL_CASH),
         help=f"Cash inicial del PaperBook (default: {DEFAULT_INITIAL_CASH})",
     )
+    parser.add_argument(
+        "--slippage-bps",
+        default="0",
+        help="Slippage paper adverso en bps (default: 0)",
+    )
     return parser
 
 
@@ -73,6 +93,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not LIVE_BLOCKED:
         print("ABORT: LIVE_BLOCKED=False — workbench no arranca", file=sys.stderr)
         return 2
+
+    host = str(args.host)
+    if not is_loopback_host(host) and not args.allow_non_loopback:
+        print(
+            f"ABORT: host={host!r} no es loopback. "
+            "Usar 127.0.0.1/::1/localhost o pasar --allow-non-loopback.",
+            file=sys.stderr,
+        )
+        return 2
+    if not is_loopback_host(host) and args.allow_non_loopback:
+        print(
+            f"WARNING: bind non-loopback host={host!r} (sin auth HTTP; no exponer a WAN).",
+            file=sys.stderr,
+        )
 
     try:
         mode = resolve_mode(str(args.mode))
@@ -96,6 +130,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("initial-cash no puede ser negativo", file=sys.stderr)
         return 2
 
+    try:
+        slippage_bps = Decimal(str(args.slippage_bps))
+    except (InvalidOperation, ValueError) as exc:
+        print(f"slippage-bps inválido: {exc}", file=sys.stderr)
+        return 2
+    if slippage_bps < 0:
+        print("slippage-bps no puede ser negativo", file=sys.stderr)
+        return 2
+    if slippage_bps >= Decimal("10000"):
+        print("slippage-bps debe ser < 10000", file=sys.stderr)
+        return 2
+
     root_parent = Path(args.session_root) if args.session_root else None
     try:
         session = WorkbenchSession.create_or_load(
@@ -107,9 +153,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"sesión inválida: {exc}", file=sys.stderr)
         return 2
 
-    host = str(args.host)
     port = int(args.port)
-    state = WorkbenchState(mode=mode, session=session, initial_cash=initial_cash)
+    state = WorkbenchState(
+        mode=mode,
+        session=session,
+        initial_cash=initial_cash,
+        slippage_bps=slippage_bps,
+    )
     state.ensure_session()
     server = create_server(host=host, port=port, state=state)
     bound_host, bound_port = server.server_address[:2]
@@ -117,9 +167,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     host_s = bound_host.decode() if isinstance(bound_host, bytes) else str(bound_host)
     url = f"http://{host_s}:{int(bound_port)}/"
 
-    print(f"QuantLab Workbench v0.15 — {url}")
+    print(f"QuantLab Workbench v0.17 — {url}")
     print(f"mode={mode.value}  LIVE_BLOCKED={LIVE_BLOCKED}  real_alias=paper")
     print(f"session_id={session.session_id}  root={session.root}")
+    print(f"slippage_bps={slippage_bps}")
     print("Chat: asistente research (safe-mode) — no envía órdenes.")
     print("Ctrl+C para detener.")
 

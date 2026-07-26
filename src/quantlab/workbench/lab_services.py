@@ -5,6 +5,7 @@ Usa datos sintéticos en memoria / registry temporal. Nunca envía órdenes live
 
 from __future__ import annotations
 
+import re
 import tempfile
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
@@ -33,6 +34,22 @@ from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
 from quantlab.validation.splits import train_val_oos_split, walk_forward
 
 STRATEGY_IDS: tuple[str, ...] = ("dummy", "momentum", "buy_once")
+
+# Fail-closed path segment / export filename (F25 M1).
+_EXPERIMENT_ID_RE = re.compile(r"^[A-Za-z0-9_-]+$")
+
+
+def validate_experiment_id(experiment_id: str) -> str:
+    """Valida ``experiment_id`` charset ``^[A-Za-z0-9_-]+$`` (sin path separators)."""
+    if not isinstance(experiment_id, str):
+        raise ValidationError(f"experiment_id inválido (tipo): {type(experiment_id).__name__}")
+    eid = experiment_id.strip()
+    if not eid or not _EXPERIMENT_ID_RE.fullmatch(eid):
+        raise ValidationError(
+            f"experiment_id inválido (charset ^[A-Za-z0-9_-]+$): {experiment_id!r}"
+        )
+    return eid
+
 
 CAPABILITIES: tuple[dict[str, str], ...] = (
     {
@@ -151,6 +168,7 @@ def run_lab_backtest(
     experiment_id: str = "wb-lab-backtest",
 ) -> dict[str, Any]:
     """Corre BarBacktester 5A sobre barras sintéticas."""
+    experiment_id = validate_experiment_id(experiment_id)
     if n_bars < 4 or n_bars > 120:
         raise ValidationError("n_bars debe estar entre 4 y 120")
     strategy_params = dict(params or {})
@@ -372,6 +390,7 @@ def run_lab_export_hb(
     """Validate + build + export a path bajo export_root (path-safe). LIVE routing false."""
     if not LIVE_BLOCKED:
         raise ValidationError("LIVE_BLOCKED debe ser True; abortando export")
+    experiment_id = validate_experiment_id(experiment_id)
     export_root = export_root.resolve()
     export_root.mkdir(parents=True, exist_ok=True)
     target = (export_root / f"{experiment_id}.json").resolve()

@@ -53,6 +53,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openRisk() {
+    const pane = QLPanes.createRiskPane();
+    wm.open("risk", "Riesgo", pane, { x: 240, y: 60, w: 460, h: 380 });
+    pane.refresh().catch(function () {});
+  }
+
   function openBacktest() {
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", "Backtest", pane, { x: 48, y: 48, w: 480, h: 420 });
@@ -112,6 +118,7 @@
     market: openMarket,
     blotter: openBlotter,
     positions: openPositions,
+    risk: openRisk,
     chat: openChat,
     backtest: openBacktest,
     scanner: openScanner,

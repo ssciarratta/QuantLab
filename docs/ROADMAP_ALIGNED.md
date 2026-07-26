@@ -318,7 +318,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F24 **APROBADO_INTERNO**.  
-2. Certificados externos F19–F24 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
-3. Siguiente producto: F25 ops desk (sin flip LIVE).  
-4. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
+1. F0–F18 certificados externos; F19–F24 **APROBADO_INTERNO**; F25 **IMPLEMENTADO** v0.17.0.  
+2. Certificados externos F19–F25 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
+3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

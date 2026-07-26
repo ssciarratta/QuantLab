@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.17.0] — 2026-07-26
+
+### Fase 25 — Ops Desk (1-click + hardening)
+
+#### Added
+- `scripts/launch_workbench.sh` + `packaging/quantlab-workbench.desktop` + `docs/ops/WORKBENCH_1CLICK.md`
+- CLI `--allow-non-loopback` / `--slippage-bps`; `GET /api/risk`; panel Riesgo
+- PaperBroker `slippage_bps` adverso (buy/sell worse)
+- `validate_experiment_id` charset `^[A-Za-z0-9_-]+$`
+- Tests non-loopback, experiment_id, paper slippage; smoke F23/F24/F25
+
+#### Security
+- Host no-loopback abort exit 2 sin flag; warning si se permite
+- `LIVE_BLOCKED is True` (sin flip)
+
+---
+
 ## [0.16.0] — 2026-07-26
 
 ### Fase 24 — Venue plugins + MD read-only multiplataforma

@@ -36,6 +36,27 @@ def _mid_or_fallback(snapshot: BrokerSnapshot) -> Decimal:
     raise ValidationError(f"snapshot sin precio usable para {snapshot.symbol}")
 
 
+def apply_paper_slippage(
+    price: Decimal,
+    side: str,
+    slippage_bps: Decimal,
+) -> Decimal:
+    """Slippage adverso en bps: BUY peor (↑), SELL peor (↓). ``0`` = identidad."""
+    if slippage_bps < 0:
+        raise ValidationError("slippage_bps no puede ser negativo")
+    if slippage_bps >= Decimal("10000"):
+        raise ValidationError("slippage_bps debe ser < 10000")
+    if slippage_bps == 0:
+        return price
+    factor = slippage_bps / Decimal("10000")
+    side_u = side.strip().upper()
+    if side_u == "BUY":
+        return price * (Decimal("1") + factor)
+    if side_u == "SELL":
+        return price * (Decimal("1") - factor)
+    raise ValidationError(f"side inválido para slippage: {side!r}")
+
+
 class PaperBroker:
     """Ejecución PAPER: nunca envía órdenes al venue subyacente.
 
@@ -52,14 +73,20 @@ class PaperBroker:
         *,
         initial_cash: Decimal | None = None,
         allow_short: bool = False,
+        slippage_bps: Decimal = Decimal("0"),
         on_book_change: Callable[[PaperBook], None] | None = None,
     ) -> None:
+        if slippage_bps < 0:
+            raise ValidationError("slippage_bps no puede ser negativo")
+        if slippage_bps >= Decimal("10000"):
+            raise ValidationError("slippage_bps debe ser < 10000")
         self._md = md_port
         self._journal = journal
         self._book = book or PaperBook(
             initial_cash=initial_cash if initial_cash is not None else DEFAULT_INITIAL_CASH,
             allow_short=allow_short,
         )
+        self._slippage_bps = Decimal(slippage_bps)
         self._on_book_change = on_book_change
         self._open_orders: dict[str, OrderIntent] = {}
         self._seq = 0
@@ -71,6 +98,10 @@ class PaperBroker:
     @property
     def book(self) -> PaperBook:
         return self._book
+
+    @property
+    def slippage_bps(self) -> Decimal:
+        return self._slippage_bps
 
     def connect(self) -> dict[str, object]:
         return dict(self._md.connect())
@@ -150,7 +181,8 @@ class PaperBroker:
         if intent.quantity is None or intent.side is None:
             raise ValidationError("PLACE_ORDER requiere side y quantity")
         snapshot = self._md.get_snapshot(intent.instrument_id)
-        price = _mid_or_fallback(snapshot)
+        mid = _mid_or_fallback(snapshot)
+        price = apply_paper_slippage(mid, intent.side.value, self._slippage_bps)
         self._seq += 1
         order_id = f"PAPER-{self._seq}-{uuid.uuid4().hex[:8]}"
         fill = PaperFill(

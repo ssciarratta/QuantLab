@@ -45,6 +45,7 @@ class WorkbenchState:
     session: WorkbenchSession | None = None
     risk: PaperRiskLimits = field(default_factory=PaperRiskLimits)
     initial_cash: Decimal = field(default_factory=lambda: Decimal(DEFAULT_INITIAL_CASH))
+    slippage_bps: Decimal = field(default_factory=lambda: Decimal("0"))
     last_lab_result: dict[str, Any] | None = None
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
@@ -180,9 +181,29 @@ def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
         "live_blocked": LIVE_BLOCKED is True,
         "mode": state.mode.value,
         "initial_cash": str(state.initial_cash),
+        "slippage_bps": str(state.slippage_bps),
     }
     out.update(_md_info(state))
     return out
+
+
+def handle_get_risk(state: WorkbenchState) -> dict[str, Any]:
+    """Límites paper + path de sesión (panel Riesgo)."""
+    session = state.ensure_session()
+    allowed = sorted(state.risk.allowed_symbols) if state.risk.allowed_symbols is not None else None
+    return {
+        "ok": True,
+        "limits": {
+            "max_qty": str(state.risk.max_qty),
+            "max_notional": str(state.risk.max_notional),
+            "allowed_symbols": allowed,
+        },
+        "slippage_bps": str(state.slippage_bps),
+        "session_id": session.session_id,
+        "session_root": str(session.root),
+        "live_blocked": LIVE_BLOCKED is True,
+        "mode": state.mode.value,
+    }
 
 
 def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -221,6 +242,21 @@ def _parse_md_source(body: dict[str, Any]) -> str | None:
     return key
 
 
+def _parse_slippage_bps(body: dict[str, Any], default: Decimal) -> Decimal:
+    raw = body.get("slippage_bps")
+    if raw is None:
+        return default
+    try:
+        value = Decimal(str(raw))
+    except (InvalidOperation, ValueError) as exc:
+        raise ApiError(400, f"slippage_bps inválido: {exc}") from exc
+    if value < 0:
+        raise ApiError(400, "slippage_bps no puede ser negativo")
+    if value >= Decimal("10000"):
+        raise ApiError(400, "slippage_bps debe ser < 10000")
+    return value
+
+
 def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     venue_raw = body.get("venue")
     if not isinstance(venue_raw, str) or not venue_raw.strip():
@@ -239,6 +275,8 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
     _reject_live_mode(mode)
 
     md_source = _parse_md_source(body)
+    slippage_bps = _parse_slippage_bps(body, state.slippage_bps)
+    state.slippage_bps = slippage_bps
     create_opts: dict[str, Any] = {}
     if md_source is not None:
         create_opts["md_source"] = md_source
@@ -272,6 +310,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         md,
         journal=journal,
         book=book,
+        slippage_bps=slippage_bps,
         on_book_change=_on_book_change,
     )
 
@@ -292,6 +331,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         "paper_broker": True,
         "md_provider": state.md_provider,
         "md_source": state.md_source,
+        "slippage_bps": str(slippage_bps),
         "session_id": state.ensure_session().session_id,
         "connect": to_jsonable(connect_info),
     }
@@ -506,11 +546,12 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
     if not isinstance(experiment_id, str) or not experiment_id.strip():
         raise ApiError(400, "experiment_id inválido")
     try:
+        experiment_id = lab_services.validate_experiment_id(experiment_id)
         result = lab_services.run_lab_backtest(
             strategy_id=strategy_id,
             params=params_dict,
             n_bars=n_bars,
-            experiment_id=experiment_id.strip(),
+            experiment_id=experiment_id,
         )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
@@ -592,9 +633,10 @@ def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> di
     if "path" in body or "target_path" in body:
         raise ApiError(400, "path externo no permitido; export solo a sandbox de sesión")
     try:
+        experiment_id = lab_services.validate_experiment_id(experiment_id)
         result = lab_services.run_lab_export_hb(
             state.ensure_lab_export_dir(),
-            experiment_id=experiment_id.strip(),
+            experiment_id=experiment_id,
             strategy_version=strategy_version.strip(),
         )
     except ValidationError as exc:

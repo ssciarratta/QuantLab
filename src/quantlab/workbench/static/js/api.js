@@ -58,6 +58,9 @@
       if (opts && opts.csv_path) {
         body.csv_path = opts.csv_path;
       }
+      if (opts && opts.slippage_bps != null && opts.slippage_bps !== "") {
+        body.slippage_bps = opts.slippage_bps;
+      }
       return request("POST", "/api/broker/connect", body);
     },
     instruments: function () {
@@ -77,6 +80,9 @@
     },
     session: function () {
       return request("GET", "/api/session");
+    },
+    risk: function () {
+      return request("GET", "/api/risk");
     },
     paperSubmit: function (intent) {
       return request("POST", "/api/paper/submit", intent);

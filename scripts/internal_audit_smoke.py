@@ -10,7 +10,7 @@ Exit 0 = all PASS; exit 1 = algún FAIL.
 from __future__ import annotations
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 
 def _check(name: str, fn: Callable[[], None]) -> bool:
@@ -41,7 +41,7 @@ def check_live_gate_raises() -> None:
 
 
 def check_brokers_imports() -> None:
-    from quantlab.brokers.mode import REAL_ALIAS, OperatingMode, ModeGuard
+    from quantlab.brokers.mode import REAL_ALIAS, ModeGuard, OperatingMode
     from quantlab.brokers.registry import get_default_registry
 
     assert REAL_ALIAS is OperatingMode.PAPER
@@ -125,6 +125,43 @@ def check_paper_book_session() -> None:
     _ = WorkbenchSession
 
 
+def check_f23_book_import() -> None:
+    """F23: import surface PaperBook / PaperBroker / journal."""
+    from quantlab.brokers.paper import PaperBook, PaperBroker, PaperFillJournal
+    from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH
+
+    assert DEFAULT_INITIAL_CASH > 0
+    _ = PaperBook, PaperBroker, PaperFillJournal
+
+
+def check_f24_plugins() -> None:
+    """F24: entry-point loader + generics en registry."""
+    from quantlab.brokers.plugins import load_entry_point_brokers
+    from quantlab.brokers.registry import BrokerRegistry, get_default_registry
+
+    reg = get_default_registry()
+    assert "generic_csv" in reg.list_venues()
+    assert "generic_rest" in reg.list_venues()
+    # loader no crashea sobre registry vacío
+    empty = BrokerRegistry()
+    load_entry_point_brokers(empty)
+
+
+def check_f25_launch_parser() -> None:
+    """F25: --allow-non-loopback en parser + is_loopback_host."""
+    from quantlab.workbench.launch import build_parser, is_loopback_host
+
+    parser = build_parser()
+    ns = parser.parse_args(["--allow-non-loopback", "--host", "0.0.0.0"])
+    assert ns.allow_non_loopback is True
+    assert is_loopback_host("127.0.0.1") is True
+    assert is_loopback_host("0.0.0.0") is False
+    # flag presente en help
+    help_txt = parser.format_help()
+    assert "--allow-non-loopback" in help_txt
+    assert "--slippage-bps" in help_txt
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -134,6 +171,9 @@ def main() -> int:
         ("chat allowlist + FakeProvider", check_chat_safe),
         ("quantlab-health live_blocked", check_health_dict),
         ("paper book + session_id fail-closed", check_paper_book_session),
+        ("F23 paper book import", check_f23_book_import),
+        ("F24 plugins + generics", check_f24_plugins),
+        ("F25 launch --allow-non-loopback", check_f25_launch_parser),
     ]
     ok = True
     for name, fn in checks:
