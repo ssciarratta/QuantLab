@@ -4,7 +4,7 @@
 **Versión:** 0.78.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F85 Bring to Front / Send to Back v0.77  
-**Impl SHA:** `aa6266f`  
+**Impl SHA:** `b82485c`  
 **Alcance:** Maximize / Restore Window — **sin flip LIVE**
 
 ---

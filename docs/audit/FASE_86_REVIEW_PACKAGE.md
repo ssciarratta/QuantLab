@@ -1,7 +1,7 @@
 # FASE 86 — Review Package (INTERNAL)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.78.0 · tip aa6266f  
+**Versión:** 0.78.0 · tip b82485c   
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **LIVE_BLOCKED:** True  
 **Certificado externo:** **NO** (`FASE_86_APPROVED.md` no emitido)
