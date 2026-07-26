@@ -153,6 +153,12 @@
     labOptimize: function (body) {
       return request("POST", "/api/lab/optimize", body || {});
     },
+    labOptimizeHistory: function () {
+      return request("GET", "/api/lab/optimize/history");
+    },
+    labOptimizeGet: function (runId) {
+      return request("GET", "/api/lab/optimize/history/" + encodeURIComponent(runId));
+    },
     labMonteCarlo: function (body) {
       return request("POST", "/api/lab/montecarlo", body || {});
     },

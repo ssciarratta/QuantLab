@@ -2,7 +2,7 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.24.0 (F32) · F31 INTERNAL 0.23.0 · F30 INTERNAL 0.22.0  
+**Código actual:** 0.25.0 (F33) · F32 INTERNAL 0.24.0 · F31 INTERNAL 0.23.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
 **Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` (**APROBADO_INTERNO**)  
@@ -13,6 +13,8 @@
 **Noche F19–F29:** `docs/audit/INTERNAL_AUDIT_F19_F29_NIGHT.md` (**APROBADO_INTERNO**)  
 **Noche F19–F30:** `docs/audit/INTERNAL_AUDIT_F19_F30_NIGHT.md` (**APROBADO_INTERNO**)  
 **Noche F19–F31:** `docs/audit/INTERNAL_AUDIT_F19_F31_NIGHT.md` (**APROBADO_INTERNO**)  
+**Noche F19–F32:** `docs/audit/INTERNAL_AUDIT_F19_F32_NIGHT.md` (**APROBADO_INTERNO**)  
+**Noche F19–F33:** `docs/audit/INTERNAL_AUDIT_F19_F33_NIGHT.md` (**APROBADO_INTERNO**)  
 **F23:** `docs/audit/INTERNAL_AUDIT_F23.md` (**APROBADO_INTERNO**)  
 **F24:** `docs/audit/INTERNAL_AUDIT_F24.md` (**APROBADO_INTERNO**)  
 **F25:** `docs/audit/INTERNAL_AUDIT_F25.md` (**APROBADO_INTERNO**)  
@@ -21,7 +23,9 @@
 **F28:** `docs/audit/INTERNAL_AUDIT_F28.md` (**APROBADO_INTERNO**)  
 **F29:** `docs/audit/INTERNAL_AUDIT_F29.md` (**APROBADO_INTERNO**)  
 **F30:** `docs/audit/INTERNAL_AUDIT_F30.md` (**APROBADO_INTERNO**)  
-**F31:** `docs/audit/INTERNAL_AUDIT_F31.md` (**APROBADO_INTERNO**)
+**F31:** `docs/audit/INTERNAL_AUDIT_F31.md` (**APROBADO_INTERNO**)  
+**F32:** `docs/audit/INTERNAL_AUDIT_F32.md` (**APROBADO_INTERNO**)  
+**F33:** `docs/audit/INTERNAL_AUDIT_F33.md` (**APROBADO_INTERNO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
 > **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
@@ -31,7 +35,9 @@
 > **F28** = Layout persistence + Journal viewer;  
 > **F29** = Report Viewer + Metrics History;  
 > **F30** = Universe Watchlist + Data Catalog Browser;  
-> **F31** = Feature Store Browser + Pipeline Runner UI.  
+> **F31** = Feature Store Browser + Pipeline Runner UI;  
+> **F32** = Validation / Walk-Forward Runner UI;  
+> **F33** = Optimizer History + Pareto Panel.  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
@@ -690,10 +696,61 @@ Versión código F32: **0.24.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 33 — Optimizer History + Pareto Panel (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.25.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** historial de optimize lab runs en session `optimizer/` + frente Pareto simple (sharpe↑/MDD↓) + panel UI.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_33_OPTIMIZER_UI.md` |
+| Implementation report | `docs/audit/FASE_33_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F33.md` |
+| Review Package INTERNAL | `docs/audit/FASE_33_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F33.md` |
+| Noche F19–F33 | `docs/audit/INTERNAL_AUDIT_F19_F33_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 33** |
+
+**Certificado externo:** **NO** emitido (`FASE_33_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F33 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persist optimizer runs | `workbench/optimizer_runs.py` |
+| A2 | Session `optimizer_dir` | `workbench/session.py` |
+| A3 | Lab runner grid + Pareto | `workbench/lab_services.py` |
+| A4 | `POST` optimize + `GET` history | `api.py` + `server.py` |
+| A5 | Panel Optimizer enriquecido | `static/js/panes/optimize.js` |
+| A6 | LIVE gate | `execution/live_gate.py` |
+| A7 | DEC-077 | `learning/decisiones.txt` |
+| A8 | Suite F33 | `tests/unit/workbench/test_optimizer_f33.py` |
+| A9 | Smoke F33 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F33 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F33: **0.25.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F32 **APROBADO_INTERNO**.  
-2. QuantLab v0.24.0: Validation / Walk-Forward Runner (session + API + UI).  
-3. **LIVE sigue BLOQUEADO**; validation persist path-safe / empty-ok.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F32 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F33 **APROBADO_INTERNO**.  
+2. QuantLab v0.25.0: Optimizer History + Pareto (session + API + UI).  
+3. **LIVE sigue BLOQUEADO**; optimizer persist path-safe.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F33 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

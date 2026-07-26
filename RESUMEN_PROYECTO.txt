@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.24.0 (F32)
+Versión código actual: 0.25.0 (F33)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
@@ -18,6 +18,7 @@ Auditoría INTERNAL F29: código 0.21.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F30: código 0.22.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F31: código 0.23.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F32: código 0.24.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F33: código 0.25.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F25_NIGHT.md)
@@ -28,27 +29,29 @@ Noche F19–F29: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F29_NIGHT.md)
 Noche F19–F30: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F30_NIGHT.md)
 Noche F19–F31: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F31_NIGHT.md)
 Noche F19–F32: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F32_NIGHT.md)
+Noche F19–F33: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F33_NIGHT.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F32: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- F19–F33: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
 - Workbench Ops Desk + Paper Session + Strategy Catalog + Layout/Journal + Reports
-  + Universe/Catalog + Feature Store UI + Validation/WF Runner + Lab + Chat IA
+  + Universe/Catalog + Feature Store UI + Validation/WF + Optimizer History/Pareto
+  + Lab + Chat IA
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F32 Validation / Walk-Forward Runner UI (v0.24.0) — APROBADO_INTERNO:
-- POST /api/lab/validation/run; GET /api/lab/validation (+/{id}); persist session/validation
-- Índices + anti-leakage; panel Validation; DEC-076
-- docs FASE_32_VALIDATION_UI · REVIEW_PACKAGE · INTERNAL_AUDIT_F32 · noche F19–F32
-- FASE_32_APPROVED.md NO emitido
+F33 Optimizer History + Pareto Panel (v0.25.0) — APROBADO_INTERNO:
+- POST /api/lab/optimize enriquecido; GET /api/lab/optimize/history; persist session/optimizer
+- Pareto sharpe↑/MDD↓; panel Optimizer; DEC-077
+- docs FASE_33_OPTIMIZER_UI · REVIEW_PACKAGE · INTERNAL_AUDIT_F33 · noche F19–F33
+- FASE_33_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F32 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F33 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
 

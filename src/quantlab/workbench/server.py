@@ -21,6 +21,8 @@ from quantlab.workbench.api import (
     handle_get_lab_experiments,
     handle_get_lab_features_store,
     handle_get_lab_metrics,
+    handle_get_lab_optimize_history,
+    handle_get_lab_optimize_run,
     handle_get_lab_report,
     handle_get_lab_reports,
     handle_get_lab_strategies,
@@ -205,6 +207,16 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         self._send_error_json(400, "run_id inválido")
                         return
                     self._send_json(handle_get_lab_validation_run(state, run_id))
+                    return
+                if path == "/api/lab/optimize/history":
+                    self._send_json(handle_get_lab_optimize_history(state))
+                    return
+                if path.startswith("/api/lab/optimize/history/"):
+                    run_id = unquote(path[len("/api/lab/optimize/history/") :]).strip("/")
+                    if not run_id or "/" in run_id:
+                        self._send_error_json(400, "run_id inválido")
+                        return
+                    self._send_json(handle_get_lab_optimize_run(state, run_id))
                     return
                 if path == "/api/lab/reports":
                     self._send_json(handle_get_lab_reports(state))

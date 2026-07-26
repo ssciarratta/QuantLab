@@ -406,6 +406,22 @@
 **Spec:** `docs/FASE_32_VALIDATION_UI.md`  
 **Implementation report:** `docs/audit/FASE_32_IMPLEMENTATION_REPORT.md`
 
+### Fase 33 — Optimizer History + Pareto Panel
+**Módulos:**
+- `workbench/optimizer_runs.py` — persist session `optimizer/`
+- `lab_services.run_lab_optimize` — grid + métricas + Pareto + persist
+- API `POST /api/lab/optimize`, `GET /api/lab/optimize/history` (+ `/{id}`)
+- Panel Optimizer: historial + tabla + Pareto (SVG)
+- DEC-077; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F33.md`, 2026-07-26) — certificado externo `FASE_33_APPROVED.md` **NO emitido**  
+**Versión:** 0.25.0  
+**Review Package INTERNAL:** `docs/audit/FASE_33_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F33.md`  
+**Noche F19–F33:** `docs/audit/INTERNAL_AUDIT_F19_F33_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_33_OPTIMIZER_UI.md`  
+**Implementation report:** `docs/audit/FASE_33_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

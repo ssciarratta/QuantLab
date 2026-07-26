@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 import tempfile
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from pathlib import Path
@@ -33,11 +33,13 @@ from quantlab.features.transformers import (
 )
 from quantlab.montecarlo.simulator import MonteCarloSimulator
 from quantlab.optimizer.grid import GridSearchOptimizer
+from quantlab.optimizer.pareto import pareto_from_trials
 from quantlab.research.alpha import AlphaScanner
 from quantlab.research.strategies.buy_once import BuyOnceStrategy
 from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
 from quantlab.validation.leakage import check_temporal_leakage
 from quantlab.validation.splits import train_val_oos_split, walk_forward
+from quantlab.workbench.optimizer_runs import persist_optimizer_run
 from quantlab.workbench.strategy_catalog import (
     CANONICAL_STRATEGY_IDS,
     build_strategy,
@@ -89,9 +91,15 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
     },
     {
         "id": "optimize",
-        "label": "Optimizer grid (mini)",
+        "label": "Optimizer grid + Pareto (mini)",
         "method": "POST",
         "path": "/api/lab/optimize",
+    },
+    {
+        "id": "optimize_history",
+        "label": "Optimizer history (session)",
+        "method": "GET",
+        "path": "/api/lab/optimize/history",
     },
     {
         "id": "montecarlo",
@@ -315,18 +323,30 @@ def ensure_demo_experiment(registry_path: Path) -> None:
     )
 
 
+def _metric_float(metrics: Mapping[str, Any], key: str, default: float = 0.0) -> float:
+    raw = metrics.get(key, default)
+    return float(raw) if isinstance(raw, (int, float)) else default
+
+
 def run_lab_optimize(
     *,
     lookbacks: tuple[int, ...] = (2, 3),
     quantities: tuple[str, ...] = ("1",),
     n_bars: int = 20,
+    persist: bool = False,
+    optimizer_root: Path | None = None,
 ) -> dict[str, Any]:
-    """Grid mini: lookback × quantity → sharpe (o 0 si no hay métrica)."""
+    """Grid mini: lookback × quantity → sharpe (+ Pareto sharpe/MDD) — F33.
+
+    Si ``persist`` y ``optimizer_root``: escribe summary en session ``optimizer/``.
+    """
     if len(lookbacks) * len(quantities) > 12:
         raise ValidationError("grid demasiado grande (máx 12 trials)")
     if n_bars < 8 or n_bars > 60:
         raise ValidationError("n_bars debe estar entre 8 y 60")
     bars = make_synthetic_bars(n_bars)
+    second_objective: list[float] = []
+    trial_metrics: list[dict[str, float]] = []
 
     def objective(params: dict[str, Any]) -> float:
         strategy = SimpleMomentumStrategy(
@@ -334,8 +354,12 @@ def run_lab_optimize(
         )
         bt = BarBacktester(BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000")))
         result = bt.run(strategy, bars)
-        sharpe = result.metrics.metrics.get("sharpe", 0.0)
-        return float(sharpe) if isinstance(sharpe, (int, float)) else 0.0
+        m = result.metrics.metrics
+        sharpe = _metric_float(m, "sharpe")
+        mdd = _metric_float(m, "max_drawdown")
+        second_objective.append(mdd)
+        trial_metrics.append({"sharpe": sharpe, "max_drawdown": mdd})
+        return sharpe
 
     space: dict[str, list[Any]] = {
         "lookback": list(lookbacks),
@@ -343,21 +367,101 @@ def run_lab_optimize(
     }
     opt = GridSearchOptimizer(seed=42)
     result = opt.grid(space, objective, maximize=True)
-    return {
+
+    history: list[dict[str, Any]] = []
+    for i, t in enumerate(result.history):
+        metrics = trial_metrics[i] if i < len(trial_metrics) else {}
+        history.append(
+            {
+                "params": t.params,
+                "score": t.score,
+                "trial_id": t.trial_id,
+                "metrics": metrics,
+            }
+        )
+
+    pareto_payload: dict[str, Any] | None = None
+    if len(result.history) >= 2 and len(second_objective) == len(result.history):
+        front = pareto_from_trials(
+            result.history,
+            second_objective=second_objective,
+            maximize=(True, False),
+        )
+        pareto_payload = {
+            "objectives": [
+                {"key": "sharpe", "direction": "max"},
+                {"key": "max_drawdown", "direction": "min"},
+            ],
+            "n_front": len(front.front),
+            "n_dominated": len(front.dominated),
+            "front": [
+                {
+                    "trial_id": p.trial_id,
+                    "params": p.params,
+                    "objectives": {
+                        "sharpe": p.objectives[0],
+                        "max_drawdown": p.objectives[1],
+                    },
+                }
+                for p in front.front
+            ],
+            "dominated": [
+                {
+                    "trial_id": p.trial_id,
+                    "params": p.params,
+                    "objectives": {
+                        "sharpe": p.objectives[0],
+                        "max_drawdown": p.objectives[1],
+                    },
+                }
+                for p in front.dominated
+            ],
+        }
+
+    best_metrics: dict[str, float] = {}
+    for row in history:
+        if row["trial_id"] == result.best.trial_id:
+            raw_m = row.get("metrics") or {}
+            if isinstance(raw_m, dict):
+                best_metrics = {
+                    str(k): float(v)
+                    for k, v in raw_m.items()
+                    if isinstance(v, (int, float))
+                }
+            break
+
+    payload: dict[str, Any] = {
         "ok": True,
         "kind": "optimize",
         "method": result.method,
+        "n_bars": n_bars,
+        "params": {
+            "lookbacks": list(lookbacks),
+            "quantities": list(quantities),
+        },
         "n_trials": len(result.history),
         "best": {
             "params": result.best.params,
             "score": result.best.score,
             "trial_id": result.best.trial_id,
+            "metrics": best_metrics,
         },
-        "history": [
-            {"params": t.params, "score": t.score, "trial_id": t.trial_id} for t in result.history
-        ],
+        "history": history,
+        "pareto": pareto_payload,
+        "persisted": False,
+        "run_id": None,
+        "path": None,
         "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
     }
+
+    if persist:
+        if optimizer_root is None:
+            raise ValidationError("optimizer_root requerido para persist=True")
+        if not LIVE_BLOCKED:
+            raise ValidationError("LIVE_BLOCKED debe ser True; abortando optimizer persist")
+        payload = persist_optimizer_run(Path(optimizer_root), payload)
+    return payload
 
 
 def run_lab_montecarlo(

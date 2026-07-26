@@ -141,7 +141,7 @@
 
   function openOptimize() {
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", "Optimizer", pane, mergeOpts("optimize", { x: 140, y: 70, w: 460, h: 380 }));
+    wm.open("optimize", "Optimizer", pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
   }
 
   function openMonteCarlo() {

@@ -22,9 +22,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F30 | Universe Watchlist + Data Catalog · **APROBADO_INTERNO** · v0.22.0 |
 | F31 | Feature Store Browser + Pipeline Runner · **APROBADO_INTERNO** · v0.23.0 |
 | F32 | Validation / Walk-Forward Runner · **APROBADO_INTERNO** · v0.24.0 |
+| F33 | Optimizer History + Pareto Panel · **APROBADO_INTERNO** · v0.25.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F32](docs/audit/INTERNAL_AUDIT_F19_F32_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F33](docs/audit/INTERNAL_AUDIT_F19_F33_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

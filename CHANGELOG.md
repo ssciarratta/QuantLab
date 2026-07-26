@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.25.0] — 2026-07-26
+
+### Fase 33 — Optimizer History + Pareto Panel
+
+#### Added
+- `workbench/optimizer_runs.py` — persist session `optimizer/<run_id>/summary.json`
+- API `GET /api/lab/optimize/history` (+ `/{run_id}`) · POST `/api/lab/optimize` enriquecido
+- Pareto multi-objetivo simple (sharpe↑ / MDD↓) + panel Optimizer (tabla + SVG)
+- Tests `test_optimizer_f33.py` · DEC-077
+- Docs: `FASE_33_OPTIMIZER_UI.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); path externo de optimizer rechazado
+
+---
+
 ## [0.24.0] — 2026-07-26
 
 ### Fase 32 — Validation / Walk-Forward Runner UI

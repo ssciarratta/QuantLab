@@ -26,6 +26,13 @@ from quantlab.workbench import lab_services
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.layout import load_layout, save_layout
+from quantlab.workbench.optimizer_runs import (
+    get_optimizer_run,
+    list_optimizer_runs,
+)
+from quantlab.workbench.optimizer_runs import (
+    validate_run_id as validate_optimizer_run_id,
+)
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
@@ -136,6 +143,11 @@ class WorkbenchState:
         session = self.ensure_session()
         session.validation_dir.mkdir(parents=True, exist_ok=True)
         return session.validation_dir
+
+    def ensure_lab_optimizer_dir(self) -> Path:
+        session = self.ensure_session()
+        session.optimizer_dir.mkdir(parents=True, exist_ok=True)
+        return session.optimizer_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
@@ -1018,24 +1030,79 @@ def handle_post_lab_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict
 
 
 def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/optimize — grid + Pareto + persist session/optimizer (F33)."""
     lookbacks_raw = body.get("lookbacks", [2, 3])
     quantities_raw = body.get("quantities", ["1"])
     n_bars = body.get("n_bars", 20)
+    persist = body.get("persist", True)
     if not isinstance(lookbacks_raw, list) or not lookbacks_raw:
         raise ApiError(400, "lookbacks debe ser lista no vacía")
     if not isinstance(quantities_raw, list) or not quantities_raw:
         raise ApiError(400, "quantities debe ser lista no vacía")
     if not isinstance(n_bars, int):
         raise ApiError(400, "n_bars debe ser int")
+    if not isinstance(persist, bool):
+        raise ApiError(400, "persist debe ser bool")
+    # Path-safe: solo sandbox de sesión.
+    if "path" in body or "optimizer_root" in body or "target_path" in body:
+        raise ApiError(400, "path externo no permitido; optimizer solo a sandbox de sesión")
     try:
         lookbacks = tuple(int(x) for x in lookbacks_raw)
         quantities = tuple(str(x) for x in quantities_raw)
         result = lab_services.run_lab_optimize(
-            lookbacks=lookbacks, quantities=quantities, n_bars=n_bars
+            lookbacks=lookbacks,
+            quantities=quantities,
+            n_bars=n_bars,
+            persist=persist,
+            optimizer_root=state.ensure_lab_optimizer_dir() if persist else None,
         )
     except (ValidationError, TypeError, ValueError) as exc:
         raise ApiError(400, str(exc)) from exc
+    result["session_id"] = state.ensure_session().session_id
     return state.store_lab_result(result)
+
+
+def handle_get_lab_optimize_history(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/optimize/history — lista corridas + latest (F33)."""
+    try:
+        listed = list_optimizer_runs(state.ensure_lab_optimizer_dir())
+        listed["session_id"] = state.ensure_session().session_id
+        latest = listed.get("latest")
+        if isinstance(latest, dict):
+            listed["kind"] = "optimize_history"
+            listed["ok"] = True
+            listed["method"] = latest.get("method")
+            listed["n_trials"] = latest.get("n_trials")
+            listed["n_bars"] = latest.get("n_bars")
+            listed["best"] = latest.get("best")
+            listed["history"] = latest.get("history")
+            listed["pareto"] = latest.get("pareto")
+            listed["persisted"] = True
+            listed["run_id"] = latest.get("run_id")
+            return listed
+        listed["kind"] = "optimize_history"
+        listed["ok"] = True
+        listed["persisted"] = False
+        listed["best"] = None
+        listed["history"] = []
+        listed["pareto"] = None
+        return listed
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_get_lab_optimize_run(state: WorkbenchState, run_id: str) -> dict[str, Any]:
+    """GET /api/lab/optimize/history/{run_id} — summary persistido."""
+    try:
+        rid = validate_optimizer_run_id(run_id)
+        payload = get_optimizer_run(state.ensure_lab_optimizer_dir(), rid)
+        payload["session_id"] = state.ensure_session().session_id
+        return payload
+    except ValidationError as exc:
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
 
 
 def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:

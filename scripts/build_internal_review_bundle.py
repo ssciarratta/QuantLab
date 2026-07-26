@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Empaqueta evidencia INTERNAL F19–F32 para Meta-Auditor externo.
+"""Empaqueta evidencia INTERNAL F19–F33 para Meta-Auditor externo.
 
 NO emite ni incluye certificados ``FASE_*_APPROVED.md``.
 NO corre el Review Package oficial (pesado). Solo evidencia documental.
 
 Uso:
   uv run python scripts/build_internal_review_bundle.py
-  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 32
+  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 33
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from pathlib import Path
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 32
+DEFAULT_TO_PHASE = 33
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")
@@ -349,7 +349,7 @@ def build_bundle(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Empaqueta evidencia INTERNAL (docs/audit) F19–F32 para Meta-Auditor. "
+            "Empaqueta evidencia INTERNAL (docs/audit) F19–F33 para Meta-Auditor. "
             "No emite FASE_*_APPROVED.md ni corre el Review Package oficial."
         )
     )

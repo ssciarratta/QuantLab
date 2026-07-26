@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-077 — Optimizer History + Pareto Panel
+  Decisión: F33 = POST /api/lab/optimize corre grid mini (lookback×qty →
+  sharpe) y, con ≥2 trials, calcula frente Pareto sharpe↑/MDD↓ vía
+  pareto_from_trials; persiste summary en session/optimizer/<run_id>/;
+  GET /api/lab/optimize/history lista/latest (+ GET /{run_id}); panel
+  Optimizer enriquecido (tabla + Pareto texto/JSON + SVG simple).
+  LIVE_BLOCKED=True; sin flip; sin venue submit; sin path externo.
+  Fase: 33.
+
 [2026-07-26] DEC-076 — Validation / Walk-Forward Runner UI
   Decisión: F32 = POST /api/lab/validation/run genera train/val/OOS +
   walk-forward sobre barras sintéticas; reporta índices de segmentos +

@@ -91,6 +91,10 @@ class WorkbenchSession:
     def validation_dir(self) -> Path:
         return self._root / "validation"
 
+    @property
+    def optimizer_dir(self) -> Path:
+        return self._root / "optimizer"
+
     def ensure_layout(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
@@ -98,6 +102,7 @@ class WorkbenchSession:
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         self.features_dir.mkdir(parents=True, exist_ok=True)
         self.validation_dir.mkdir(parents=True, exist_ok=True)
+        self.optimizer_dir.mkdir(parents=True, exist_ok=True)
         if not self.journal_path.exists():
             self.journal_path.touch()
         if not self.chat_audit_path.exists():
@@ -146,6 +151,7 @@ class WorkbenchSession:
             "reports": str(self.reports_dir),
             "features": str(self.features_dir),
             "validation": str(self.validation_dir),
+            "optimizer": str(self.optimizer_dir),
             "chat_audit": str(self.chat_audit_path),
             "meta_payload": meta,
         }

@@ -494,6 +494,45 @@ def check_f32_validation_runner() -> None:
     assert listed["live_blocked"] is True
 
 
+def check_f33_optimizer_history() -> None:
+    """F33: optimize + Pareto + persist history + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_lab_optimize_history,
+        handle_post_lab_optimize,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f33-optimizer")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke33")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    empty = handle_get_lab_optimize_history(state)
+    assert empty["ok"] is True
+    assert empty["kind"] == "optimize_history"
+
+    run = handle_post_lab_optimize(
+        state, {"lookbacks": [2, 3], "quantities": ["1"], "n_bars": 16}
+    )
+    assert run["ok"] is True
+    assert run["persisted"] is True
+    assert run["live_routing"] is False
+    assert run["pareto"] is not None
+    assert run["pareto"]["n_front"] >= 1
+    assert Path(run["path"]).is_file()
+
+    listed = handle_get_lab_optimize_history(state)
+    assert listed["count"] >= 1
+    assert listed["persisted"] is True
+    assert listed["live_blocked"] is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -514,6 +553,7 @@ def main() -> int:
         ("F30 universe watchlist + catalog", check_f30_universe_catalog),
         ("F31 features store + pipeline", check_f31_features_store),
         ("F32 validation walk-forward runner", check_f32_validation_runner),
+        ("F33 optimizer history + pareto", check_f33_optimizer_history),
     ]
     ok = True
     for name, fn in checks:
