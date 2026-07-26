@@ -1,4 +1,14 @@
 
+[2026-07-26] DEC-088 — E2E Paper Workflow Integration Test
+  Decisión: F44 = test de integración (sin browser) que ejercita el
+  flujo paper completo vía API workbench en thread loopback:
+  mode paper → connect binance/a3 tester → submit → positions/book →
+  paper session buy_once+step → backtest+reports → validation +
+  optimize + mc (mini) → export HB → session zip → LIVE reject;
+  tests test_e2e_paper_workflow_f44.py. LIVE_BLOCKED=True; sin flip;
+  sin FASE_44_APPROVED; sin LIVE; sin browser E2E.
+  Fase: 44.
+
 [2026-07-26] DEC-087 — Red-team Workbench Hardening
   Decisión: F43 = auditoría red-team APIs workbench + remediación
   fail-closed: zip_path sandbox (session parent), create_server

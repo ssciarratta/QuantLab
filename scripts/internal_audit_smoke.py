@@ -1073,6 +1073,129 @@ def check_f43_redteam() -> None:
         assert exc.status == 400
 
 
+def check_f44_e2e_paper_workflow() -> None:
+    """F44: flujo paper E2E vía handlers (sin browser) + LIVE reject."""
+    import shutil
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        ApiError,
+        WorkbenchState,
+        handle_get_health,
+        handle_get_lab_reports,
+        handle_get_paper_book,
+        handle_get_positions,
+        handle_get_session_export,
+        handle_post_broker_connect,
+        handle_post_lab_backtest,
+        handle_post_lab_export_hb,
+        handle_post_lab_montecarlo,
+        handle_post_lab_optimize,
+        handle_post_lab_validation_run,
+        handle_post_mode,
+        handle_post_paper_session_start,
+        handle_post_paper_session_step,
+        handle_post_paper_session_stop,
+        handle_post_paper_submit,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+
+    root = Path("/tmp/quantlab-smoke-f44-e2e")
+    if root.exists():
+        shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root / "sessions", "smoke44")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    health = handle_get_health(state)
+    assert health.get("ok") is True or health.get("live_blocked") is True
+    assert health["live_blocked"] is True
+
+    mode = handle_post_mode(state, {"mode": "paper"})
+    assert mode["mode"] == "paper"
+
+    connect = handle_post_broker_connect(state, {"venue": "binance", "mode": "tester"})
+    assert connect["ok"] is True
+    assert connect["paper_broker"] is True
+
+    connect_a3 = handle_post_broker_connect(
+        state, {"venue": "a3", "mode": "tester", "md_source": "fake"}
+    )
+    assert connect_a3["paper_broker"] is True
+
+    # Reconnect binance for submit path
+    handle_post_broker_connect(state, {"venue": "binance", "mode": "tester"})
+    broker = state.broker
+    assert broker is not None
+    symbol = broker.list_instruments()[0].symbol
+
+    submit = handle_post_paper_submit(
+        state,
+        {
+            "intent_type": "place_order",
+            "instrument_id": symbol,
+            "side": "buy",
+            "quantity": "1",
+            "order_type": "market",
+        },
+    )
+    assert submit["ack"]["status"] == "FILLED"
+
+    positions = handle_get_positions(state)
+    assert len(positions["positions"]) >= 1
+    book = handle_get_paper_book(state)
+    assert "cash" in book["book"]
+
+    start = handle_post_paper_session_start(
+        state,
+        {"strategy_id": "buy_once", "symbol": symbol, "max_steps": 3},
+    )
+    assert start["ok"] is True
+    step = handle_post_paper_session_step(state)
+    assert step["step"] == 1
+    handle_post_paper_session_stop(state)
+
+    bt = handle_post_lab_backtest(
+        state,
+        {
+            "strategy_id": "momentum",
+            "n_bars": 16,
+            "params": {"lookback": 2, "quantity": "1"},
+            "experiment_id": "smoke44-bt",
+        },
+    )
+    assert bt["ok"] is True
+    reports = handle_get_lab_reports(state)
+    assert reports.get("count", 0) >= 1 or len(reports.get("reports", [])) >= 1
+
+    val = handle_post_lab_validation_run(state, {"n_bars": 40, "train_size": 10, "test_size": 5})
+    assert val["ok"] is True
+    opt = handle_post_lab_optimize(state, {"lookbacks": [2], "quantities": ["1"], "n_bars": 16})
+    assert opt["ok"] is True
+    mc = handle_post_lab_montecarlo(state, {"n_scenarios": 2, "n_bars": 12, "persist": True})
+    assert mc["ok"] is True
+
+    hb = handle_post_lab_export_hb(
+        state, {"experiment_id": "smoke44-hb", "strategy_version": "demo"}
+    )
+    assert hb["ok"] is True
+
+    exported = handle_get_session_export(state)
+    assert exported["ok"] is True
+    assert Path(str(exported["path"])).is_file()
+
+    try:
+        handle_post_mode(state, {"mode": "live"})
+        raise AssertionError("LIVE mode should be rejected")
+    except ApiError as exc:
+        assert exc.status == 400
+    assert LIVE_BLOCKED is True
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -1104,6 +1227,7 @@ def main() -> int:
         ("F41 activity log + toasts API", check_f41_activity_log),
         ("F42 ops metrics panel API", check_f42_ops_metrics),
         ("F43 red-team workbench hardening", check_f43_redteam),
+        ("F44 e2e paper workflow integration", check_f44_e2e_paper_workflow),
     ]
     ok = True
     for name, fn in checks:

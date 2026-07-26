@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.36.0] — 2026-07-26
+
+### Fase 44 — E2E Paper Workflow Integration Test
+
+#### Added
+- Test integración `test_e2e_paper_workflow_f44.py` (API loopback, sin browser)
+- Flujo: mode paper → connect binance/a3 tester → submit → positions/book →
+  paper session buy_once+step → backtest+reports → validation+optimize+mc →
+  export HB → session zip → LIVE reject
+- Docs: `FASE_44_E2E_WORKFLOW.md` · implementation report · DEC-088
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); modo live rechazado al cierre del flujo
+
+---
+
 ## [0.35.0] — 2026-07-26
 
 ### Fase 43 — Red-team Workbench Hardening

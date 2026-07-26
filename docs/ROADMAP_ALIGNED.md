@@ -571,6 +571,20 @@
 **Spec:** `docs/FASE_43_REDTEAM.md`  
 **Implementation report:** `docs/audit/FASE_43_IMPLEMENTATION_REPORT.md`
 
+### Fase 44 — E2E Paper Workflow Integration Test
+**Módulos:**
+- Test integración HTTP loopback (sin browser) del flujo paper completo
+- Encadena mode/connect/submit/session/lab/export/zip + LIVE reject
+- DEC-088; bump 0.36.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F44.md`, 2026-07-26) — certificado externo `FASE_44_APPROVED.md` **NO emitido**  
+**Versión:** 0.36.0 · implementación _(post-commit)_  
+**Review Package INTERNAL:** `docs/audit/FASE_44_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F44.md`  
+**Noche F19–F44:** `docs/audit/INTERNAL_AUDIT_F19_F44_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_44_E2E_WORKFLOW.md`  
+**Implementation report:** `docs/audit/FASE_44_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -615,6 +629,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F41 **APROBADO_INTERNO** (noche F19–F41).  
+1. F0–F18 certificados externos; F19–F44 **APROBADO_INTERNO** (noche F19–F44).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.
