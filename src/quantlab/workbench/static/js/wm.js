@@ -196,6 +196,11 @@
     win.style.top = (opts.y != null ? opts.y : 40) + "px";
     win.style.width = (opts.w != null ? opts.w : 420) + "px";
     win.style.height = (opts.h != null ? opts.h : 320) + "px";
+    if (opts.z != null) {
+      const savedZ = Math.max(0, opts.z | 0);
+      win.style.zIndex = String(savedZ);
+      if (savedZ > zCounter) zCounter = savedZ;
+    }
 
     const titlebar = document.createElement("div");
     titlebar.className = "win-titlebar";
@@ -254,6 +259,17 @@
       if (ev.target.closest(".win-controls")) return;
       self._startDrag(win, ev);
     });
+    /* F85: dblclick titlebar focuses (bring to front); context menu for z-order */
+    titlebar.addEventListener("dblclick", function (ev) {
+      if (ev.target.closest(".win-controls")) return;
+      self.bringToFront(id);
+    });
+    titlebar.addEventListener("contextmenu", function (ev) {
+      if (ev.target.closest(".win-controls")) return;
+      ev.preventDefault();
+      self.focus(id);
+      self._showWindowContextMenu(id, ev.clientX, ev.clientY);
+    });
     resize.addEventListener("mousedown", function (ev) {
       self._startResize(win, ev);
     });
@@ -284,7 +300,21 @@
     requestAnimationFrame(function () {
       win.classList.add("open");
     });
-    this.focus(id);
+    if (opts.z != null) {
+      /* Restore saved z without bumping past layout order (F85). */
+      this.windows.forEach(function (w) {
+        w.el.classList.remove("focused");
+        w.taskBtn.classList.remove("active");
+      });
+      win.classList.add("focused");
+      taskBtn.classList.add("active");
+      this.focusedId = id;
+      const restoredZ = Math.max(0, opts.z | 0);
+      win.style.zIndex = String(restoredZ);
+      if (restoredZ > zCounter) zCounter = restoredZ;
+    } else {
+      this.focus(id);
+    }
     if (opts.minimized) {
       this.minimize(id);
     }
@@ -308,6 +338,102 @@
     rec.el.classList.add("focused");
     rec.taskBtn.classList.add("active");
     this.focusedId = id;
+  };
+
+  /**
+   * Bring window to front (raise z + focus) and persist layout (F85).
+   * Defaults to focused window when id omitted.
+   */
+  WindowManager.prototype.bringToFront = function (id, opts) {
+    opts = opts || {};
+    const target = id != null && id !== "" ? id : this.focusedId;
+    if (!target) return false;
+    const rec = this.windows.get(target);
+    if (!rec) return false;
+    if (rec.el.classList.contains("minimized")) {
+      this.restore(target);
+    } else {
+      this.focus(target);
+    }
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+    return true;
+  };
+
+  /**
+   * Send window behind all siblings and persist layout (F85).
+   * Defaults to focused window when id omitted. Keeps focus styling.
+   */
+  WindowManager.prototype.sendToBack = function (id, opts) {
+    opts = opts || {};
+    const target = id != null && id !== "" ? id : this.focusedId;
+    if (!target) return false;
+    const rec = this.windows.get(target);
+    if (!rec) return false;
+    let minZ = Infinity;
+    this.windows.forEach(function (w) {
+      if (w.id === target) return;
+      const z = parseInt(w.el.style.zIndex, 10) || 0;
+      if (z < minZ) minZ = z;
+    });
+    if (!isFinite(minZ)) minZ = 10;
+    const newZ = Math.max(1, minZ - 1);
+    rec.el.style.zIndex = String(newZ);
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+    return true;
+  };
+
+  WindowManager.prototype._hideWindowContextMenu = function () {
+    const menu = document.getElementById("ql-win-ctx-menu");
+    if (menu) menu.remove();
+    if (this._ctxCloser) {
+      document.removeEventListener("mousedown", this._ctxCloser, true);
+      document.removeEventListener("keydown", this._ctxCloser, true);
+      this._ctxCloser = null;
+    }
+  };
+
+  WindowManager.prototype._showWindowContextMenu = function (id, x, y) {
+    const self = this;
+    self._hideWindowContextMenu();
+    const menu = document.createElement("div");
+    menu.id = "ql-win-ctx-menu";
+    menu.className = "win-ctx-menu";
+    menu.setAttribute("role", "menu");
+    menu.style.left = (x | 0) + "px";
+    menu.style.top = (y | 0) + "px";
+
+    function addItem(label, action) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.setAttribute("role", "menuitem");
+      btn.textContent = label;
+      btn.addEventListener("click", function (ev) {
+        ev.stopPropagation();
+        self._hideWindowContextMenu();
+        action();
+      });
+      menu.appendChild(btn);
+    }
+
+    addItem("Bring to Front", function () {
+      self.bringToFront(id);
+    });
+    addItem("Send to Back", function () {
+      self.sendToBack(id);
+    });
+
+    document.body.appendChild(menu);
+    self._ctxCloser = function (ev) {
+      if (ev.type === "keydown" && ev.key !== "Escape") return;
+      if (ev.type === "mousedown" && menu.contains(ev.target)) return;
+      self._hideWindowContextMenu();
+    };
+    document.addEventListener("mousedown", self._ctxCloser, true);
+    document.addEventListener("keydown", self._ctxCloser, true);
   };
 
   WindowManager.prototype.minimize = function (id) {

@@ -1074,6 +1074,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 85 — Bring to Front / Send to Back
+
+**Versión:** 0.77.0 · **DEC-129** · **APROBADO_INTERNO** (sin `FASE_85_APPROVED.md`)
+
+- Command palette + menú + context titlebar: Bring to Front / Send to Back
+- `wm.js` `bringToFront` / `sendToBack` + `scheduleSave` (persist `z`)
+- Restore `z` on open via `mergeOpts` / layout
+- Suite/smoke F85; bundle INTERNAL default F19–F85
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

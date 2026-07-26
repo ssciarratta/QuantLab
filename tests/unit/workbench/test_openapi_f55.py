@@ -27,8 +27,8 @@ from quantlab.workbench.session import WorkbenchSession
 
 def test_live_blocked_and_version_f55() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.76.0"
-    assert PHASES_SUMMARY == "F19–F84 INTERNAL"
+    assert __version__ == "0.77.0"
+    assert PHASES_SUMMARY == "F19–F85 INTERNAL"
 
 
 def test_catalog_has_health_and_livez() -> None:
@@ -42,7 +42,7 @@ def test_catalog_has_health_and_livez() -> None:
 def test_schema_has_health_livez_no_live_trading() -> None:
     schema = build_openapi_schema()
     assert schema["openapi"] == OPENAPI_VERSION
-    assert schema["info"]["version"] == "0.76.0"
+    assert schema["info"]["version"] == "0.77.0"
     paths = schema["paths"]
     assert "/api/health" in paths
     assert "get" in paths["/api/health"]

@@ -530,6 +530,36 @@ body {
   color: var(--amber);
 }
 
+/* F85: titlebar context menu (Bring to Front / Send to Back) */
+.win-ctx-menu {
+  position: fixed;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-win);
+  z-index: 240;
+  padding: 0.2rem;
+  animation: menu-in 120ms ease;
+}
+
+.win-ctx-menu button {
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 0.4rem 0.7rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.win-ctx-menu button:hover {
+  background: var(--amber-soft);
+  color: var(--amber);
+}
+
 .custom-preset-row {
   display: flex;
   align-items: stretch;

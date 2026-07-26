@@ -2882,3 +2882,46 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F84: **0.76.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 85 — Bring to Front / Send to Back
+
+**Código:** 0.77.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-129  
+**Qué es:** Bring to Front / Send to Back para la ventana enfocada. `wm.js` `bringToFront`/`sendToBack` + context menu titlebar + command palette + menú Inicio; `z` persistido/restaurado en layout. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] Commands `action.bring_to_front` + `action.send_to_back` en `/api/commands`
+- [ ] `bringToFront`/`sendToBack` en `wm.js` + persist `z`
+- [ ] Context menu titlebar + menú grupo Ventanas
+- [ ] Restore `z` vía `mergeOpts` / `open`
+- [ ] Sin `FASE_85_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F85
+- [ ] Bump 0.77.0
+
+### Lista A F85
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | bring/send + ctx menu | `static/js/wm.js` |
+| A2 | Commands | `workbench/commands.py` |
+| A3 | Palette + shell + i18n | `command_palette.js` · `shell.js` · `i18n.js` |
+| A4 | Spec | `docs/FASE_85_ZORDER.md` |
+| A5 | DEC-129 | `learning/decisiones.txt` |
+| A6 | Version 0.77.0 | `pyproject.toml` |
+| A7 | Smoke F85 | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 85 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F85 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F85: **0.77.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

@@ -299,6 +299,41 @@ _ACTION_COMMANDS: tuple[dict[str, Any], ...] = (
             "layout",
         ),
     },
+    {
+        "id": "action.bring_to_front",
+        "kind": "action",
+        "label": "Bring to Front",
+        "action": "bring_to_front",
+        "keywords": (
+            "bring",
+            "front",
+            "adelante",
+            "frente",
+            "z-order",
+            "zorder",
+            "windows",
+            "ventanas",
+            "raise",
+        ),
+    },
+    {
+        "id": "action.send_to_back",
+        "kind": "action",
+        "label": "Send to Back",
+        "action": "send_to_back",
+        "keywords": (
+            "send",
+            "back",
+            "atrás",
+            "detras",
+            "detrás",
+            "z-order",
+            "zorder",
+            "windows",
+            "ventanas",
+            "lower",
+        ),
+    },
 )
 
 

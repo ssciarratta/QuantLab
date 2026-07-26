@@ -1,3 +1,7 @@
+[2026-07-26] F85 — Bring to Front / Send to Back (v0.77.0)
+  wm.js bringToFront/sendToBack + context titlebar + palette/menú + persist z.
+  DEC-129 · APROBADO_INTERNO · sin FASE_85_APPROVED · LIVE_BLOCKED.
+
 [2026-07-26] F84 — Cascade / Tile Windows (v0.76.0)
   wm.js cascadeWindows/tileWindows + pure rects + palette/menú + persist.
   DEC-128 · APROBADO_INTERNO · sin FASE_84_APPROVED · LIVE_BLOCKED.

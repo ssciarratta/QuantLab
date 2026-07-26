@@ -1,3 +1,10 @@
+[2026-07-26] DEC-129 — Bring to Front / Send to Back (z-order)
+  Decisión: F85 = wm.js bringToFront/sendToBack; command palette
+  action.bring_to_front / action.send_to_back; menú Inicio + context
+  menu titlebar; snapshotLayout ya persiste z; open/mergeOpts restauran z;
+  bump 0.77.0. LIVE_BLOCKED=True; sin flip; sin FASE_85_APPROVED.
+  Fase: 85.
+
 [2026-07-26] DEC-128 — Cascade / Tile Windows
   Decisión: F84 = wm.js cascadeWindows/tileWindows; pure cascadeRects/
   tileRects + espejo Python window_layout; command palette

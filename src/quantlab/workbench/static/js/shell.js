@@ -36,13 +36,15 @@
   function mergeOpts(id, defaults) {
     const g = savedGeom[id];
     if (!g) return defaults;
-    return {
+    const out = {
       x: g.x != null ? g.x : defaults.x,
       y: g.y != null ? g.y : defaults.y,
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
       minimized: !!g.minimized,
     };
+    if (g.z != null) out.z = g.z;
+    return out;
   }
 
   function applyTheme(theme) {
@@ -516,6 +518,10 @@
         wm.cascadeWindows();
       } else if (action === "tile_windows" && wm.tileWindows) {
         wm.tileWindows();
+      } else if (action === "bring_to_front" && wm.bringToFront) {
+        wm.bringToFront();
+      } else if (action === "send_to_back" && wm.sendToBack) {
+        wm.sendToBack();
       }
       startMenu.setAttribute("hidden", "");
       startMenu.classList.add("hidden");

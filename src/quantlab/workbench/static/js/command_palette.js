@@ -299,6 +299,14 @@
       }
       if (cmd.action === "tile_windows" && this.wm && this.wm.tileWindows) {
         this.wm.tileWindows();
+        return;
+      }
+      if (cmd.action === "bring_to_front" && this.wm && this.wm.bringToFront) {
+        this.wm.bringToFront();
+        return;
+      }
+      if (cmd.action === "send_to_back" && this.wm && this.wm.sendToBack) {
+        this.wm.sendToBack();
       }
     }
   };

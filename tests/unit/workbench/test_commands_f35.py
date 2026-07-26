@@ -59,6 +59,8 @@ def test_list_commands_registry() -> None:
     assert "action.restore_all" in ids
     assert "action.cascade_windows" in ids
     assert "action.tile_windows" in ids
+    assert "action.bring_to_front" in ids
+    assert "action.send_to_back" in ids
 
     for cmd in payload["commands"]:
         assert cmd["safe"] is True

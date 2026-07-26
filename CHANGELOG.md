@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.77.0] — 2026-07-26
+
+### Fase 85 — Bring to Front / Send to Back
+
+#### Added
+- `wm.js`: `bringToFront(id)` / `sendToBack(id)` + titlebar context menu
+- Command palette: `action.bring_to_front` · `action.send_to_back`
+- Menú Inicio: grupo **Ventanas** (bring / send)
+- Restore `z` from layout on `open` / `mergeOpts`
+- Docs: `FASE_85_ZORDER.md` · implementation report · DEC-129
+- Suite `test_zorder_f85.py` + smoke F85
+
+#### Changed
+- `phases_summary` → `F19–F85 INTERNAL`
+- Bundle INTERNAL default F19–F85
+- Bump **0.77.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_85_APPROVED.md`
+
+---
+
 ## [0.76.0] — 2026-07-26
 
 ### Fase 84 — Cascade / Tile Windows
