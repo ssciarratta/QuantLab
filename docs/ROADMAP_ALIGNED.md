@@ -686,7 +686,7 @@
 - DEC-096; bump 0.44.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F52.md`, 2026-07-26) — certificado externo `FASE_52_APPROVED.md` **NO emitido**  
-**Versión:** 0.44.0 · implementación *(tip)*  
+**Versión:** 0.44.0 · implementación `feace00`  
 **Noche F19–F52:** `docs/audit/INTERNAL_AUDIT_F19_F52_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_52_SHUTDOWN.md`  
 **Implementation report:** `docs/audit/FASE_52_IMPLEMENTATION_REPORT.md`

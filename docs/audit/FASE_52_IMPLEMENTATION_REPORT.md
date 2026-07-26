@@ -4,7 +4,7 @@
 **Versión:** 0.44.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F51 APROBADO_INTERNO  
-**Impl SHA:** *(tip post-commit)*  
+**Impl SHA:** `feace00`  
 **Alcance:** graceful shutdown workbench — **sin flip LIVE**
 
 ---
