@@ -25,7 +25,15 @@ from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.feature_store_browser import list_feature_store
+from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.layout import load_layout, save_layout
+from quantlab.workbench.montecarlo_runs import (
+    get_montecarlo_run,
+    list_montecarlo_runs,
+)
+from quantlab.workbench.montecarlo_runs import (
+    validate_run_id as validate_montecarlo_run_id,
+)
 from quantlab.workbench.optimizer_runs import (
     get_optimizer_run,
     list_optimizer_runs,
@@ -148,6 +156,11 @@ class WorkbenchState:
         session = self.ensure_session()
         session.optimizer_dir.mkdir(parents=True, exist_ok=True)
         return session.optimizer_dir
+
+    def ensure_lab_montecarlo_dir(self) -> Path:
+        session = self.ensure_session()
+        session.montecarlo_dir.mkdir(parents=True, exist_ok=True)
+        return session.montecarlo_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
@@ -1115,15 +1128,69 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         raise ApiError(400, "n_bars debe ser int")
     if not isinstance(noise_bps, (int, float)):
         raise ApiError(400, "noise_bps debe ser número")
+    persist = body.get("persist", True)
+    if not isinstance(persist, bool):
+        raise ApiError(400, "persist debe ser bool")
+    if "path" in body or "montecarlo_root" in body or "target_path" in body:
+        raise ApiError(400, "path externo no permitido; montecarlo solo a sandbox de sesión")
     try:
         result = lab_services.run_lab_montecarlo(
             n_scenarios=n_scenarios,
             n_bars=n_bars,
             noise_bps=float(noise_bps),
+            persist=persist,
+            montecarlo_root=state.ensure_lab_montecarlo_dir() if persist else None,
         )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
+    result["session_id"] = state.ensure_session().session_id
     return state.store_lab_result(result)
+
+
+def handle_get_lab_montecarlo_history(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/montecarlo/history — lista corridas + latest (F34)."""
+    try:
+        listed = list_montecarlo_runs(state.ensure_lab_montecarlo_dir())
+        listed["session_id"] = state.ensure_session().session_id
+        latest = listed.get("latest")
+        if isinstance(latest, dict):
+            listed["kind"] = "montecarlo_history"
+            listed["ok"] = True
+            listed["n_scenarios"] = latest.get("n_scenarios")
+            listed["n_bars"] = latest.get("n_bars")
+            listed["seed"] = latest.get("seed")
+            listed["mean_equity"] = latest.get("mean_equity")
+            listed["std_equity"] = latest.get("std_equity")
+            listed["ci_low"] = latest.get("ci_low")
+            listed["ci_high"] = latest.get("ci_high")
+            listed["ci_level"] = latest.get("ci_level", 0.95)
+            listed["final_equities"] = latest.get("final_equities")
+            listed["persisted"] = True
+            listed["run_id"] = latest.get("run_id")
+            return listed
+        listed["kind"] = "montecarlo_history"
+        listed["ok"] = True
+        listed["persisted"] = False
+        listed["mean_equity"] = None
+        listed["ci_low"] = None
+        listed["ci_high"] = None
+        return listed
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_get_lab_montecarlo_run(state: WorkbenchState, run_id: str) -> dict[str, Any]:
+    """GET /api/lab/montecarlo/history/{run_id} — summary persistido."""
+    try:
+        rid = validate_montecarlo_run_id(run_id)
+        payload = get_montecarlo_run(state.ensure_lab_montecarlo_dir(), rid)
+        payload["session_id"] = state.ensure_session().session_id
+        return payload
+    except ValidationError as exc:
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
 
 
 def handle_post_lab_features(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -1170,7 +1237,7 @@ def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> di
     if not isinstance(strategy_version, str) or not strategy_version.strip():
         raise ApiError(400, "strategy_version inválido")
     # Path-safe: solo sandbox de sesión; rechazar override externo.
-    if "path" in body or "target_path" in body:
+    if "path" in body or "target_path" in body or "export_root" in body:
         raise ApiError(400, "path externo no permitido; export solo a sandbox de sesión")
     try:
         experiment_id = lab_services.validate_experiment_id(experiment_id)
@@ -1181,7 +1248,28 @@ def handle_post_lab_export_hb(state: WorkbenchState, body: dict[str, Any]) -> di
         )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
+    result["session_id"] = state.ensure_session().session_id
     return state.store_lab_result(result)
+
+
+def handle_get_lab_exports(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/exports — lista exports HB previos en session/exports (F34)."""
+    listed = list_hb_exports(state.ensure_lab_export_dir())
+    listed["session_id"] = state.ensure_session().session_id
+    return listed
+
+
+def handle_get_lab_export(state: WorkbenchState, export_id: str) -> dict[str, Any]:
+    """GET /api/lab/exports/{export_id} — payload de un export."""
+    try:
+        payload = get_hb_export(state.ensure_lab_export_dir(), export_id)
+        payload["session_id"] = state.ensure_session().session_id
+        return payload
+    except ValidationError as exc:
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
 
 
 def handle_get_chat_tools(state: WorkbenchState) -> dict[str, Any]:

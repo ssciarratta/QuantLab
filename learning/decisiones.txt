@@ -1,4 +1,15 @@
 
+[2026-07-26] DEC-078 — Monte Carlo History + Hummingbot Export Wizard
+  Decisión: F34 = POST /api/lab/montecarlo persiste summary en
+  session/montecarlo/<run_id>/ (CI 95% mean/std/ci_low/ci_high);
+  GET /api/lab/montecarlo/history lista/latest (+ GET /{run_id});
+  panel MC enriquecido. Export HB wizard: lista experiments, pasos
+  validate→build→export path-safe a session/exports (snapshot único +
+  alias latest); GET /api/lab/exports lista previos; banner
+  live_routing:false. LIVE_BLOCKED=True; sin flip; sin venue submit;
+  sin path externo.
+  Fase: 34.
+
 [2026-07-26] DEC-077 — Optimizer History + Pareto Panel
   Decisión: F33 = POST /api/lab/optimize corre grid mini (lookback×qty →
   sharpe) y, con ≥2 trials, calcula frente Pareto sharpe↑/MDD↓ vía

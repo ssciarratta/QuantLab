@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.26.0] — 2026-07-26
+
+### Fase 34 — Monte Carlo History + Hummingbot Export Wizard
+
+#### Added
+- `workbench/montecarlo_runs.py` — persist session `montecarlo/<run_id>/summary.json`
+- API `GET /api/lab/montecarlo/history` (+ `/{run_id}`) · POST `/api/lab/montecarlo` enriquecido (CI)
+- `workbench/hb_exports.py` · `GET /api/lab/exports` (+ `/{id}`) · export wizard steps
+- Panel MC (historial + intervalos) · panel Export HB (experiments + banner live_routing:false)
+- Tests `test_mc_export_f34.py` · DEC-078
+- Docs: `FASE_34_MC_EXPORT.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); path externo MC/export rechazado; export siempre `live_routing:false`
+
+---
+
 ## [0.25.0] — 2026-07-26
 
 ### Fase 33 — Optimizer History + Pareto Panel

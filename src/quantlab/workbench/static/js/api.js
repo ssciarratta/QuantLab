@@ -162,6 +162,12 @@
     labMonteCarlo: function (body) {
       return request("POST", "/api/lab/montecarlo", body || {});
     },
+    labMonteCarloHistory: function () {
+      return request("GET", "/api/lab/montecarlo/history");
+    },
+    labMonteCarloGet: function (runId) {
+      return request("GET", "/api/lab/montecarlo/history/" + encodeURIComponent(runId));
+    },
     labFeatures: function (body) {
       return request("POST", "/api/lab/features/run", body || {});
     },
@@ -173,6 +179,12 @@
     },
     labExportHb: function (body) {
       return request("POST", "/api/lab/export-hb", body || {});
+    },
+    labExports: function () {
+      return request("GET", "/api/lab/exports");
+    },
+    labExportGet: function (exportId) {
+      return request("GET", "/api/lab/exports/" + encodeURIComponent(exportId));
     },
     labReports: function () {
       return request("GET", "/api/lab/reports");

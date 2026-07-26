@@ -1,3 +1,3 @@
 """QuantLab — laboratorio de investigación cuantitativa."""
 
-__version__ = "0.25.0"
+__version__ = "0.26.0"

@@ -2,7 +2,7 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.25.0 (F33) · F32 INTERNAL 0.24.0 · F31 INTERNAL 0.23.0  
+**Código actual:** 0.26.0 (F34) · F33 INTERNAL 0.25.0 · F32 INTERNAL 0.24.0 · F31 INTERNAL 0.23.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
 **Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` (**APROBADO_INTERNO**)  
@@ -747,10 +747,63 @@ Versión código F33: **0.25.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 34 — Monte Carlo History + Hummingbot Export Wizard (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.26.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** historial Monte Carlo en session `montecarlo/` + intervalos CI; wizard Hummingbot export (experiments → validate/build/export) + `GET /api/lab/exports` + banner `live_routing:false`.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_34_MC_EXPORT.md` |
+| Implementation report | `docs/audit/FASE_34_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F34.md` |
+| Review Package INTERNAL | `docs/audit/FASE_34_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F34.md` |
+| Noche F19–F34 | `docs/audit/INTERNAL_AUDIT_F19_F34_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 34** |
+
+**Certificado externo:** **NO** emitido (`FASE_34_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F34 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persist MC runs | `workbench/montecarlo_runs.py` |
+| A2 | List HB exports | `workbench/hb_exports.py` |
+| A3 | Session `montecarlo_dir` | `workbench/session.py` |
+| A4 | Lab runners MC + export | `workbench/lab_services.py` |
+| A5 | API history + exports | `api.py` + `server.py` |
+| A6 | Panel MC enriquecido | `static/js/panes/montecarlo.js` |
+| A7 | Panel Export wizard | `static/js/panes/export_hb.js` |
+| A8 | LIVE gate | `execution/live_gate.py` |
+| A9 | DEC-078 | `learning/decisiones.txt` |
+| A10 | Suite F34 | `tests/unit/workbench/test_mc_export_f34.py` |
+| A11 | Smoke F34 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F34 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F34: **0.26.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F33 **APROBADO_INTERNO**.  
-2. QuantLab v0.25.0: Optimizer History + Pareto (session + API + UI).  
-3. **LIVE sigue BLOQUEADO**; optimizer persist path-safe.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F33 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F34 **APROBADO_INTERNO**.  
+2. QuantLab v0.26.0: Monte Carlo History + Hummingbot Export Wizard.  
+3. **LIVE sigue BLOQUEADO**; MC/export persist path-safe; export `live_routing:false`.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F34 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

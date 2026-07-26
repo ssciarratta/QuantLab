@@ -19,8 +19,12 @@ from quantlab.workbench.api import (
     handle_get_instruments,
     handle_get_lab_capabilities,
     handle_get_lab_experiments,
+    handle_get_lab_export,
+    handle_get_lab_exports,
     handle_get_lab_features_store,
     handle_get_lab_metrics,
+    handle_get_lab_montecarlo_history,
+    handle_get_lab_montecarlo_run,
     handle_get_lab_optimize_history,
     handle_get_lab_optimize_run,
     handle_get_lab_report,
@@ -217,6 +221,26 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         self._send_error_json(400, "run_id inválido")
                         return
                     self._send_json(handle_get_lab_optimize_run(state, run_id))
+                    return
+                if path == "/api/lab/montecarlo/history":
+                    self._send_json(handle_get_lab_montecarlo_history(state))
+                    return
+                if path.startswith("/api/lab/montecarlo/history/"):
+                    run_id = unquote(path[len("/api/lab/montecarlo/history/") :]).strip("/")
+                    if not run_id or "/" in run_id:
+                        self._send_error_json(400, "run_id inválido")
+                        return
+                    self._send_json(handle_get_lab_montecarlo_run(state, run_id))
+                    return
+                if path == "/api/lab/exports":
+                    self._send_json(handle_get_lab_exports(state))
+                    return
+                if path.startswith("/api/lab/exports/"):
+                    export_id = unquote(path[len("/api/lab/exports/") :]).strip("/")
+                    if not export_id or "/" in export_id:
+                        self._send_error_json(400, "export_id inválido")
+                        return
+                    self._send_json(handle_get_lab_export(state, export_id))
                     return
                 if path == "/api/lab/reports":
                     self._send_json(handle_get_lab_reports(state))

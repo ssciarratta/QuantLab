@@ -422,6 +422,23 @@
 **Spec:** `docs/FASE_33_OPTIMIZER_UI.md`  
 **Implementation report:** `docs/audit/FASE_33_IMPLEMENTATION_REPORT.md`
 
+### Fase 34 — Monte Carlo History + Hummingbot Export Wizard
+**Módulos:**
+- `workbench/montecarlo_runs.py` — persist session `montecarlo/`
+- `workbench/hb_exports.py` — listado path-safe `exports/`
+- `lab_services.run_lab_montecarlo` / `run_lab_export_hb` enriquecidos
+- API `POST /api/lab/montecarlo`, `GET /api/lab/montecarlo/history`, `GET /api/lab/exports`
+- Paneles MC (CI) + Export HB wizard (banner live_routing:false)
+- DEC-078; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F34.md`, 2026-07-26) — certificado externo `FASE_34_APPROVED.md` **NO emitido**  
+**Versión:** 0.26.0  
+**Review Package INTERNAL:** `docs/audit/FASE_34_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F34.md`  
+**Noche F19–F34:** `docs/audit/INTERNAL_AUDIT_F19_F34_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_34_MC_EXPORT.md`  
+**Implementation report:** `docs/audit/FASE_34_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

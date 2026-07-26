@@ -517,9 +517,7 @@ def check_f33_optimizer_history() -> None:
     assert empty["ok"] is True
     assert empty["kind"] == "optimize_history"
 
-    run = handle_post_lab_optimize(
-        state, {"lookbacks": [2, 3], "quantities": ["1"], "n_bars": 16}
-    )
+    run = handle_post_lab_optimize(state, {"lookbacks": [2, 3], "quantities": ["1"], "n_bars": 16})
     assert run["ok"] is True
     assert run["persisted"] is True
     assert run["live_routing"] is False
@@ -531,6 +529,56 @@ def check_f33_optimizer_history() -> None:
     assert listed["count"] >= 1
     assert listed["persisted"] is True
     assert listed["live_blocked"] is True
+
+
+def check_f34_mc_export() -> None:
+    """F34: montecarlo history + HB exports list + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_lab_exports,
+        handle_get_lab_montecarlo_history,
+        handle_post_lab_export_hb,
+        handle_post_lab_montecarlo,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f34-mc-export")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke34")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    empty = handle_get_lab_montecarlo_history(state)
+    assert empty["ok"] is True
+    assert empty["kind"] == "montecarlo_history"
+
+    run = handle_post_lab_montecarlo(state, {"n_scenarios": 3, "n_bars": 12})
+    assert run["ok"] is True
+    assert run["persisted"] is True
+    assert run["live_routing"] is False
+    assert run["ci_low"] is not None
+    assert Path(run["path"]).is_file()
+
+    listed = handle_get_lab_montecarlo_history(state)
+    assert listed["count"] >= 1
+    assert listed["persisted"] is True
+    assert listed["live_blocked"] is True
+
+    exp = handle_post_lab_export_hb(
+        state, {"experiment_id": "wb-hb-export", "strategy_version": "demo-1"}
+    )
+    assert exp["ok"] is True
+    assert exp["live_routing"] is False
+    assert Path(exp["path"]).is_file()
+
+    exports = handle_get_lab_exports(state)
+    assert exports["ok"] is True
+    assert exports["count"] >= 1
+    assert exports["live_routing"] is False
 
 
 def main() -> int:
@@ -554,6 +602,7 @@ def main() -> int:
         ("F31 features store + pipeline", check_f31_features_store),
         ("F32 validation walk-forward runner", check_f32_validation_runner),
         ("F33 optimizer history + pareto", check_f33_optimizer_history),
+        ("F34 montecarlo history + HB export", check_f34_mc_export),
     ]
     ok = True
     for name, fn in checks:

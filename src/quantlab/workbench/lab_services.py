@@ -21,7 +21,7 @@ from quantlab.core.types.market import Bar
 from quantlab.core.types.results import SimulationResult
 from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
-from quantlab.execution_export.hummingbot import HummingbotExporter
+from quantlab.execution_export.hummingbot import ExecutionPackage, HummingbotExporter
 from quantlab.experiments.registry import ExperimentRegistry
 from quantlab.features.pipeline import build_pipeline
 from quantlab.features.serialization import feature_frame_to_dict
@@ -39,6 +39,7 @@ from quantlab.research.strategies.buy_once import BuyOnceStrategy
 from quantlab.research.strategies.simple_momentum import SimpleMomentumStrategy
 from quantlab.validation.leakage import check_temporal_leakage
 from quantlab.validation.splits import train_val_oos_split, walk_forward
+from quantlab.workbench.montecarlo_runs import persist_montecarlo_run
 from quantlab.workbench.optimizer_runs import persist_optimizer_run
 from quantlab.workbench.strategy_catalog import (
     CANONICAL_STRATEGY_IDS,
@@ -108,6 +109,12 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "path": "/api/lab/montecarlo",
     },
     {
+        "id": "montecarlo_history",
+        "label": "Monte Carlo history (session)",
+        "method": "GET",
+        "path": "/api/lab/montecarlo/history",
+    },
+    {
         "id": "features",
         "label": "Features pipeline demo",
         "method": "POST",
@@ -124,6 +131,12 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "label": "Hummingbot export",
         "method": "POST",
         "path": "/api/lab/export-hb",
+    },
+    {
+        "id": "exports",
+        "label": "Hummingbot exports (session)",
+        "method": "GET",
+        "path": "/api/lab/exports",
     },
     {
         "id": "validation",
@@ -424,9 +437,7 @@ def run_lab_optimize(
             raw_m = row.get("metrics") or {}
             if isinstance(raw_m, dict):
                 best_metrics = {
-                    str(k): float(v)
-                    for k, v in raw_m.items()
-                    if isinstance(v, (int, float))
+                    str(k): float(v) for k, v in raw_m.items() if isinstance(v, (int, float))
                 }
             break
 
@@ -469,6 +480,8 @@ def run_lab_montecarlo(
     n_scenarios: int = 5,
     n_bars: int = 16,
     noise_bps: float = 10.0,
+    persist: bool = True,
+    montecarlo_root: Path | None = None,
 ) -> dict[str, Any]:
     if n_scenarios < 2 or n_scenarios > 20:
         raise ValidationError("n_scenarios debe estar entre 2 y 20 (mini)")
@@ -482,19 +495,32 @@ def run_lab_montecarlo(
 
     mc = MonteCarloSimulator(seed=42)
     result = mc.run(bars, runner, n_scenarios=n_scenarios, noise_bps=noise_bps)
-    return {
+    payload: dict[str, Any] = {
         "ok": True,
         "kind": "montecarlo",
         "n_scenarios": result.n_scenarios,
+        "n_bars": n_bars,
+        "noise_bps": float(noise_bps),
         "seed": result.seed,
         "mean_equity": result.mean_equity,
         "std_equity": result.std_equity,
         "ci_low": result.ci_low,
         "ci_high": result.ci_high,
+        "ci_level": 0.95,
         "final_equities": list(result.final_equities),
+        "persisted": False,
+        "run_id": None,
+        "path": None,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
     }
+    if persist:
+        if montecarlo_root is None:
+            raise ValidationError("montecarlo_root requerido para persist=True")
+        if not LIVE_BLOCKED:
+            raise ValidationError("LIVE_BLOCKED debe ser True; abortando montecarlo persist")
+        payload = persist_montecarlo_run(Path(montecarlo_root), payload)
+    return payload
 
 
 def _demo_feature_version() -> str:
@@ -578,23 +604,41 @@ def run_lab_export_hb(
     *,
     experiment_id: str = "wb-hb-export",
     strategy_version: str = "demo-1",
+    dataset_id: str = "wb-synthetic",
 ) -> dict[str, Any]:
-    """Validate + build + export a path bajo export_root (path-safe). LIVE routing false."""
+    """Validate + build + export a path bajo export_root (path-safe). LIVE routing false.
+
+    Escribe:
+    - ``{experiment_id}.json`` — alias latest (compat F21)
+    - ``{export_id}.json`` — snapshot histórico único (F34)
+    """
     if not LIVE_BLOCKED:
         raise ValidationError("LIVE_BLOCKED debe ser True; abortando export")
     experiment_id = validate_experiment_id(experiment_id)
+    dataset_id = validate_experiment_id(dataset_id) if dataset_id else "wb-synthetic"
     export_root = export_root.resolve()
     export_root.mkdir(parents=True, exist_ok=True)
-    target = (export_root / f"{experiment_id}.json").resolve()
-    try:
-        target.relative_to(export_root)
-    except ValueError as exc:
-        raise ValidationError("path de export fuera de sandbox") from exc
 
     now = datetime.now(tz=UTC)
+    stamp = now.strftime("%Y%m%dT%H%M%S%f")[:-3] + "Z"
+    export_id_raw = f"hb-{stamp}-{experiment_id}"
+    export_id = export_id_raw[:120]
+    # Fail-closed: stems path-safe
+    for stem in (experiment_id, export_id):
+        if "/" in stem or "\\" in stem or ".." in stem:
+            raise ValidationError(f"export stem inválido: {stem!r}")
+
+    latest_target = (export_root / f"{experiment_id}.json").resolve()
+    hist_target = (export_root / f"{export_id}.json").resolve()
+    for target in (latest_target, hist_target):
+        try:
+            target.relative_to(export_root)
+        except ValueError as exc:
+            raise ValidationError("path de export fuera de sandbox") from exc
+
     manifest = ExperimentManifest(
         experiment_id=experiment_id,
-        dataset_id="wb-synthetic",
+        dataset_id=dataset_id,
         dataset_version="v1",
         resolved_config={"source": "workbench", "live_routing": False},
         seed=42,
@@ -621,18 +665,49 @@ def run_lab_export_hb(
     package = exporter.build_execution_package(manifest)
     if package.payload.get("live_routing") is not False:
         raise ValidationError("export debe tener live_routing=false")
-    result = exporter.export_configuration(package, target)
+
+    # Enrich package payload for listing / wizard.
+    enriched = dict(package.payload)
+    enriched["export_id"] = export_id
+    enriched["created_at"] = now.isoformat()
+    enriched["strategy_version"] = strategy_version
+    enriched["live_routing"] = False
+    enriched["blocked"] = True
+
+    hist_package = ExecutionPackage(
+        experiment_id=package.experiment_id,
+        strategy_version=package.strategy_version,
+        payload=enriched,
+    )
+    latest_package = ExecutionPackage(
+        experiment_id=package.experiment_id,
+        strategy_version=package.strategy_version,
+        payload={**enriched, "export_id": experiment_id, "is_latest_alias": True},
+    )
+    hist_result = exporter.export_configuration(hist_package, hist_target)
+    latest_result = exporter.export_configuration(latest_package, latest_target)
     return {
         "ok": True,
         "kind": "export_hb",
-        "path": result.path,
-        "checksum_note": result.checksum_note,
+        "path": hist_result.path,
+        "latest_path": latest_result.path,
+        "export_id": export_id,
+        "checksum_note": hist_result.checksum_note,
         "live_routing": False,
         "blocked": True,
         "live_blocked": LIVE_BLOCKED is True,
         "validation_ok": validation.ok,
+        "validation_issues": list(validation.issues),
         "experiment_id": package.experiment_id,
-        "payload_keys": sorted(package.payload.keys()),
+        "strategy_version": strategy_version,
+        "created_at": now.isoformat(),
+        "payload_keys": sorted(enriched.keys()),
+        "banner": "live_routing:false — sin order routing LIVE",
+        "steps": {
+            "validate": {"ok": validation.ok, "issues": list(validation.issues)},
+            "build": {"ok": True, "keys": sorted(enriched.keys())},
+            "export": {"ok": True, "path": hist_result.path, "latest_path": latest_result.path},
+        },
     }
 
 
