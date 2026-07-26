@@ -112,14 +112,14 @@ uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase
 | Campo | Valor |
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F30_v0.22.0.zip` |
-| SHA256 | `a5d8715d8790b952afded1e3cf94fa80307e8bcfff106365b2e623b7276e2c75` |
+| SHA256 | `b5e8ce993f381d9c92c047decf7b890646bbf8bba14ec313721af580af91fb55` |
 | Default script | `DEFAULT_TO_PHASE = 30` |
 | Incluye APPROVED | **NO** |
 
 ### Bundle SHA256
 
 ```
-a5d8715d8790b952afded1e3cf94fa80307e8bcfff106365b2e623b7276e2c75  QuantLab_Internal_Review_F19_F30_v0.22.0.zip
+b5e8ce993f381d9c92c047decf7b890646bbf8bba14ec313721af580af91fb55  QuantLab_Internal_Review_F19_F30_v0.22.0.zip
 ```
 
 > Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).  
