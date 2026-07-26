@@ -94,3 +94,23 @@
    excepciones o payloads del proveedor puede filtrar identidad/secretos.
 5. Production se rechaza antes de connect y sandbox se aísla en subprocess con
    timeout y entorno mínimo.
+
+---
+
+## Portabilidad Windows post-F88 (2026-07-26)
+
+La rama se desarrolló en Linux (cloud); al correr en Windows aparecieron 4
+fallos que la suite Linux no podía detectar:
+
+1. `with sqlite3.Connection` delimita transacción pero **no cierra** la
+   conexión; en Windows el archivo queda bloqueado (WinError 32) y rompe el
+   cleanup de `TemporaryDirectory`. Usar `contextlib.closing()` siempre.
+2. Validar path traversal con prefijo string `"/"` es POSIX-only. Comparar
+   `Path.parent == root` (o `Path.is_relative_to`) es portable.
+3. `os.fsync` sobre un handle abierto `"rb"` falla en Windows (exige acceso
+   de escritura). Abrir `"rb+"`.
+4. `/tmp` hardcodeado no existe en Windows; usar `tempfile.gettempdir()` o
+   el fixture `tmp_path`.
+
+Regla futura: todo smoke/test nuevo usa paths temporales portables y toda
+conexión sqlite se cierra explícitamente.

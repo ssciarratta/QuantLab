@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.79.0** (F87 Broker Plugin Contract v1)
+**Versión tip:** **0.80.0** (F88 Paper Journal authoritative + reconciliation)
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
@@ -39,9 +39,10 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F85 | Bring to Front / Send to Back · **0.77.0** |
 | F86 | Maximize / Restore Window · **0.78.0** |
 | F87 | Broker Plugin Contract v1 · **0.79.0** |
+| F88 | Paper Journal authoritative + reconciliation · **0.80.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F87 | `docs/audit/INTERNAL_AUDIT_F19_F87_NIGHT.md` |
+| Noche F19–F88 | `docs/audit/INTERNAL_AUDIT_F19_F88_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
@@ -120,6 +121,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 85 | Bring to Front / Send to Back | 0.77.0 | c1b6d43 |
 | 86 | Maximize / Restore Window | 0.78.0 | b82485c |
 | 87 | Broker Plugin Contract v1 | 0.79.0 | e0ff1d9 |
+| 88 | Paper Journal authoritative + reconciliation | 0.80.0 | 54161f5 (+ 27dd0e2 Windows) |
 
 ---
 
@@ -133,11 +135,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 6. Session paths fail-closed (`validate_session_id`, zip-slip)
 7. PaperBroker / Paper Session: fills simulados; sin venue submit
 8. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-9. Sin emitir `FASE_19`…`FASE_87_APPROVED.md` desde INTERNAL
-10. `phases_summary` tip: `F19–F87 INTERNAL`
-11. About / health `version` ≡ `__version__` y startswith `0.79`
+9. Sin emitir `FASE_19`…`FASE_88_APPROVED.md` desde INTERNAL
+10. `phases_summary` tip: `F19–F88 INTERNAL`
+11. About / health `version` ≡ `__version__` y startswith `0.80`
+12. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
 
 ## Próximo
 
-- Certificados externos F19–F87 solo con Meta-Auditor externo
+- Certificados externos F19–F88 solo con Meta-Auditor externo
+- F89: Milestone Freeze Docs v0.80 (0.81.0) → F90 Reconciliation UI (0.82.0)
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

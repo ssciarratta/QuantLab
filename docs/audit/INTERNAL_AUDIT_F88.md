@@ -47,3 +47,17 @@ internal_audit_smoke.py                73/73 PASS
 ```
 
 No se emitió certificado externo ni `FASE_88_APPROVED.md`.
+
+## Addendum — verificación Windows (PC, mismo día)
+
+El tip fue verificado además en Windows; se remediaron 4 bugs de portabilidad
+que la suite Linux no podía detectar (commit `fix: portabilidad Windows`):
+
+- `ExperimentRegistry` no cerraba conexiones SQLite (`with conn` ≠ close) →
+  WinError 32 en cleanup de temporales.
+- `i18n_json_path` validaba traversal con prefijo POSIX `"/"`.
+- `reconcile_paper_session` hacía `fsync` sobre handle read-only (EBADF).
+- Smoke y tests de launch usaban `/tmp` hardcodeado.
+
+QA post-remediación en Windows: mypy strict · ruff · pytest verde · health ok ·
+smoke 73/73. Detalle en `LESSONS_LEARNED.md`.
