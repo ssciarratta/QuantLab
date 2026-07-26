@@ -124,7 +124,7 @@ uv run python scripts/internal_audit_smoke.py  # 28/28
 | Manifest | `reports/QuantLab_Internal_Review_F19_F42_v0.34.0_MANIFEST.json` |
 
 ```text
-9d7d03b523865a5d0007afd4d523e05ab9583663a61d31c3ef2498f12402025a  QuantLab_Internal_Review_F19_F42_v0.34.0.zip
+39f679f569ff2689435727eb58feb6b80328a42c0363f495357447a918abc193  QuantLab_Internal_Review_F19_F42_v0.34.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F42_v0.34.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
