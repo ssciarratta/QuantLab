@@ -111,6 +111,22 @@ def is_secret_arcname(arcname: str) -> bool:
     return bool(_SECRET_BASENAME_RE.match(base))
 
 
+def _is_sqlite_ephemeral(path: Path) -> bool:
+    """Omite sidecars SQLite WAL/SHM/journal (efímeros / race en export)."""
+    name = path.name.lower()
+    return (
+        name.endswith("-wal")
+        or name.endswith("-shm")
+        or name.endswith("-journal")
+        or name.endswith(".db-wal")
+        or name.endswith(".db-shm")
+        or name.endswith(".sqlite-wal")
+        or name.endswith(".sqlite-shm")
+        or name.endswith(".sqlite3-wal")
+        or name.endswith(".sqlite3-shm")
+    )
+
+
 def _sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -133,6 +149,8 @@ def _iter_export_files(session_root: Path) -> list[tuple[Path, str]]:
             continue
         for path in sorted(dpath.rglob("*")):
             if not path.is_file():
+                continue
+            if _is_sqlite_ephemeral(path):
                 continue
             try:
                 rel = path.relative_to(root).as_posix()
@@ -214,7 +232,11 @@ def export_session(
         for path, arcname in files:
             # Defensa zip-slip en escritura: arcname no puede salir.
             _assert_safe_zip_member(arcname, root)
-            zf.write(path, arcname=arcname)
+            try:
+                zf.write(path, arcname=arcname)
+            except FileNotFoundError:
+                # Race: sidecar SQLite / archivo borrado entre listado y write.
+                continue
             count += 1
 
     digest = _sha256_file(archive)
