@@ -478,7 +478,7 @@
 - DEC-081; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F37.md`, 2026-07-26) — certificado externo `FASE_37_APPROVED.md` **NO emitido**  
-**Versión:** 0.29.0 · implementación *(tip commit F37)*  
+**Versión:** 0.29.0 · implementación `81ff9b1`  
 **Review Package INTERNAL:** `docs/audit/FASE_37_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F37.md`  
 **Noche F19–F37:** `docs/audit/INTERNAL_AUDIT_F19_F37_NIGHT.md` = **APROBADO_INTERNO**  
