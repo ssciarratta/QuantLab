@@ -89,6 +89,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         "Paper PnL summary (realized/unrealized/equity/cash)",
         ("paper",),
     ),
+    ApiRoute(
+        "/api/paper/reconciliation",
+        "GET",
+        "Read-only paper journal/book reconciliation status",
+        ("paper",),
+    ),
     ApiRoute("/api/paper/submit", "POST", "Submit paper order (simulated fills)", ("paper",)),
     ApiRoute("/api/paper/kill", "GET", "Paper kill switch status", ("paper", "risk")),
     ApiRoute(

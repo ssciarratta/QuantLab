@@ -96,8 +96,8 @@ class _FakeMd:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.79.0"
-    assert PHASES_SUMMARY == "F19–F87 INTERNAL"
+    assert __version__ == "0.80.0"
+    assert PHASES_SUMMARY == "F19–F88 INTERNAL"
     assert not Path("docs/audit/FASE_67_APPROVED.md").exists()
 
 
@@ -147,7 +147,9 @@ def test_handle_get_paper_pnl_no_broker(tmp_path: Path) -> None:
     state = WorkbenchState(session=session, session_parent=tmp_path)
     state.ensure_session()
     book = PaperBook(initial_cash=Decimal("5000"))
-    book.apply_fill(_fill(side="buy", qty="1", price="100", symbol="AAA"))
+    fill = _fill(side="buy", qty="1", price="100", symbol="AAA")
+    state.ensure_journal().append(fill)
+    book.apply_fill(fill)
     state.book = book
     state.persist_book()
     out = handle_get_paper_pnl(state)
@@ -199,7 +201,9 @@ def test_http_get_paper_pnl(tmp_path: Path) -> None:
     state = WorkbenchState(session=session, session_parent=tmp_path)
     state.ensure_session()
     book = PaperBook(initial_cash=Decimal("1000"))
-    book.apply_fill(_fill(side="buy", qty="1", price="100"))
+    fill = _fill(side="buy", qty="1", price="100")
+    state.ensure_journal().append(fill)
+    book.apply_fill(fill)
     state.book = book
     state.persist_book()
 

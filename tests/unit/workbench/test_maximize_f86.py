@@ -30,8 +30,8 @@ _I18N = _STATIC / "js" / "i18n.js"
 
 def test_live_blocked_and_version_f86() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.79.0"
-    assert PHASES_SUMMARY == "F19–F87 INTERNAL"
+    assert __version__ == "0.80.0"
+    assert PHASES_SUMMARY == "F19–F88 INTERNAL"
     assert not Path("docs/audit/FASE_86_APPROVED.md").exists()
 
 

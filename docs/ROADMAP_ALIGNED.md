@@ -1110,6 +1110,20 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 88 — Paper Journal authoritative + Book reconciliation
+
+**Versión:** 0.80.0 · **DEC-132** · implementación completa, auditoría INTERNAL en curso
+
+- `journal.jsonl` append-only es source of truth; reader estricto y duplicados rechazados
+- `book.json` v2 es proyección atómica ligada a checkpoint SHA-256
+- PaperBroker hace preview y commit journal → book → persist; falla post-journal bloquea
+- Boot fail-closed: journal-ahead/mismatch/corrupción requieren rebuild explícito
+- CLI offline `--check|--rebuild`, con backup de book y journal inmutable
+- `GET /api/paper/reconciliation` es exclusivamente read-only
+- Suite fault-injection + smoke F88; bundle INTERNAL default F19–F88
+- `LIVE_BLOCKED=True`; sin flip LIVE; sin `FASE_88_APPROVED.md`
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

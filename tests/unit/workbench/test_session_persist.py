@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.types import PaperFill
 from quantlab.core.exceptions import ValidationError
 from quantlab.workbench.session import WorkbenchSession, validate_session_id
@@ -43,17 +44,17 @@ def test_session_id_path_traversal_rejected(tmp_path: Path) -> None:
 def test_session_book_persist_reload(tmp_path: Path) -> None:
     session = WorkbenchSession.create_or_load(tmp_path, "persist")
     book = session.load_book()
-    book.apply_fill(
-        PaperFill(
-            fill_id="f",
-            order_id="o",
-            symbol="X",
-            side="buy",
-            quantity=Decimal("1"),
-            price=Decimal("10"),
-            ts=datetime(2024, 1, 1, tzinfo=UTC),
-        )
+    fill = PaperFill(
+        fill_id="f",
+        order_id="o",
+        symbol="X",
+        side="buy",
+        quantity=Decimal("1"),
+        price=Decimal("10"),
+        ts=datetime(2024, 1, 1, tzinfo=UTC),
     )
+    PaperFillJournal(session.journal_path).append(fill)
+    book.apply_fill(fill)
     session.save_book(book)
 
     again = WorkbenchSession.create_or_load(tmp_path, "persist")

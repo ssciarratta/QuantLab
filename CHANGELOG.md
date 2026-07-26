@@ -19,6 +19,28 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.80.0] — 2026-07-26
+
+### Fase 88 — Paper Journal authoritative + Book reconciliation
+
+#### Added
+- Reconciliación frozen, replay exacto y checkpoint SHA-256 del journal
+- Reader JSONL estricto con línea, duplicate IDs, timezone y Decimal finito
+- CLI offline `--check|--rebuild` con backup del book
+- `GET /api/paper/reconciliation` read-only y fault-injection suite
+
+#### Changed
+- `book.json` schema v2 atómico; loader flat legado compatible
+- PaperBroker confirma journal antes de mutar/persistir la proyección
+- Drift/corrupción/falla post-journal bloquea nuevos submits
+- Bump **0.80.0**
+
+#### Security
+- Rebuild no se expone por HTTP y nunca modifica el journal
+- `LIVE_BLOCKED is True`; sin `FASE_88_APPROVED.md`
+
+---
+
 ## [0.79.0] — 2026-07-26
 
 ### Fase 87 — Broker Plugin Contract v1

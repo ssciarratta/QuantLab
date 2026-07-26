@@ -63,3 +63,19 @@
    revisión de confianza.
 4. La metadata versionada y un allowlist de capabilities hacen explícita la
    compatibilidad y rechazan ejecución por default.
+
+---
+
+## Fase 88 — Paper Journal authoritative + reconciliation (2026-07-26)
+
+1. Persistir primero una proyección mutable crea un estado durable que el log no
+   puede explicar. El único commit seguro es append+fsync del journal antes del
+   book.
+2. Una copia de preview evita descubrir cash/short inválido después de haber
+   escrito el fill autoritativo.
+3. Atomic replace protege la integridad física del book, pero no su integridad
+   lógica; el checkpoint y el replay exacto cubren esa segunda dimensión.
+4. La recuperación automática oculta incidentes. Para PAPER se prefirió
+   fail-closed + backup + rebuild CLI offline, aun en journal-ahead demostrable.
+5. Un reader “tolerante” de JSONL convierte corrupción en pérdida silenciosa:
+   línea, tipos, timezone, finitud, source y duplicados deben validarse.

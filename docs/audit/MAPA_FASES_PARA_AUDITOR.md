@@ -3017,3 +3017,40 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F87: **0.79.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 88 — Paper Journal authoritative + Book reconciliation
+
+**Código:** 0.80.0 · branch `cursor/modo-real-workbench-aafd`
+**DEC:** DEC-132
+**Qué es:** `journal.jsonl` autoritativo append-only; `book.json` v2 como
+proyección atómica reconstruible, con check/rebuild offline.
+
+**DoD auditor:**
+- [x] Reader estricto numerado, finite Decimal, aware timestamp, source y duplicados
+- [x] Checkpoint/report frozen y replay exacto
+- [x] Preview + commit journal→book→persist bajo lock
+- [x] Falla post-journal deja broker bloqueado
+- [x] Boot detecta journal-ahead/book-ahead/mismatch/corrupción
+- [x] CLI rebuild crea backup y no modifica journal
+- [x] HTTP reconciliation sólo GET
+- [x] Book flat migra únicamente si reconcilia
+- [x] Sin `FASE_88_APPROVED.md`; `LIVE_BLOCKED is True`
+- [x] `phases_summary` F19–F88; bump 0.80.0
+
+### Lista A F88
+
+| ID | Artefacto | Path |
+|---|---|---|
+| A1 | Reconciliation core | `src/quantlab/brokers/paper/reconciliation.py` |
+| A2 | Journal/broker/book v2 | `brokers/paper/*` · `workbench/session.py` |
+| A3 | Boot/API | `workbench/api.py` · `server.py` · `api_catalog.py` |
+| A4 | CLI | `scripts/reconcile_paper_session.py` |
+| A5 | Fault injection | `tests/unit/brokers/test_paper_reconciliation_f88.py` |
+| A6 | Spec + runbook | `docs/FASE_88_PAPER_RECONCILIATION.md` · `docs/ops/PAPER_RECONCILIATION.md` |
+| A7 | DEC-132 + version | `learning/decisiones.txt` · `pyproject.toml` |
+| A8 | Smoke F88 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 88 | `scripts/build_internal_review_bundle.py` |
+
+Versión código F88: **0.80.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

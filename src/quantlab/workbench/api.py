@@ -16,6 +16,10 @@ from quantlab.brokers.mode import REAL_ALIAS, OperatingMode, default_mode, resol
 from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH, PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.paper.journal import PaperFillJournal
+from quantlab.brokers.paper.reconciliation import (
+    ReconciliationReport,
+    reconcile_book,
+)
 from quantlab.brokers.port import BrokerPort
 from quantlab.brokers.registry import BrokerRegistry, get_default_registry
 from quantlab.core.exceptions import ValidationError
@@ -152,6 +156,7 @@ class WorkbenchState:
     last_lab_result: dict[str, Any] | None = None
     paper_session: PaperSessionRunner | None = None
     paper_kill_engaged: bool = False
+    paper_reconciliation: ReconciliationReport | None = None
     bind_host: str = "127.0.0.1"
     allow_non_loopback: bool = False
     session_parent: Path | None = None
@@ -200,11 +205,144 @@ class WorkbenchState:
         self.session.ensure_layout()
         self.session_parent = self.session.root.parent.resolve()
         self.journal = PaperFillJournal(self.session.journal_path)
-        self.book = self.session.load_book(default_cash=self.initial_cash)
+        try:
+            loaded = self.session.load_book_state(default_cash=self.initial_cash)
+        except ValidationError as exc:
+            self.book = PaperBook(initial_cash=self.initial_cash)
+            try:
+                checkpoint = self.journal.checkpoint()
+                record_count = checkpoint.record_count
+            except ValidationError:
+                checkpoint = None
+                record_count = 0
+            self.paper_reconciliation = ReconciliationReport(
+                ok=False,
+                status="book_corrupt",
+                record_count=record_count,
+                issues=(str(exc),),
+                expected_book=None,
+                persisted_book={},
+                checkpoint=checkpoint,
+            )
+        else:
+            self.book = loaded.book
+            self.paper_reconciliation = self._reconcile_loaded_book(
+                stored_checkpoint=loaded.checkpoint,
+                schema_version=loaded.schema_version,
+            )
         self._lab_registry_path = self.session.experiments_dir / "experiments.sqlite"
         self._lab_export_dir = self.session.exports_dir
         lab_services.ensure_demo_experiment(self._lab_registry_path)
         self.paper_kill_engaged = is_paper_kill_engaged(self.session.load_meta())
+
+    def _reconcile_loaded_book(
+        self,
+        *,
+        stored_checkpoint: Any,
+        schema_version: int,
+    ) -> ReconciliationReport:
+        if self.book is None or self.journal is None:
+            raise ValidationError("book/journal no hidratados")
+        report = reconcile_book(self.book, self.journal)
+        if not report.ok:
+            issues = list(report.issues)
+            if stored_checkpoint is not None and report.checkpoint is not None:
+                if (
+                    stored_checkpoint.record_count < report.checkpoint.record_count
+                    and self.journal.contains_checkpoint(stored_checkpoint)
+                ):
+                    issues.insert(0, "journal_ahead")
+                elif stored_checkpoint.record_count > report.checkpoint.record_count:
+                    issues.insert(0, "book_ahead")
+                elif stored_checkpoint != report.checkpoint:
+                    issues.insert(0, "checkpoint_mismatch")
+            elif schema_version == 1:
+                issues.insert(0, "legacy_book_mismatch")
+            return ReconciliationReport(
+                ok=False,
+                status=report.status,
+                record_count=report.record_count,
+                issues=tuple(dict.fromkeys(issues)),
+                expected_book=report.expected_book,
+                persisted_book=report.persisted_book,
+                checkpoint=report.checkpoint,
+            )
+
+        if schema_version == 2 and stored_checkpoint != report.checkpoint:
+            issue = "checkpoint_mismatch"
+            if report.checkpoint is not None and stored_checkpoint is not None:
+                if (
+                    stored_checkpoint.record_count < report.checkpoint.record_count
+                    and self.journal.contains_checkpoint(stored_checkpoint)
+                ):
+                    issue = "journal_ahead"
+                elif stored_checkpoint.record_count > report.checkpoint.record_count:
+                    issue = "book_ahead"
+            return ReconciliationReport(
+                ok=False,
+                status="rebuild_required",
+                record_count=report.record_count,
+                issues=(issue,),
+                expected_book=report.expected_book,
+                persisted_book=report.persisted_book,
+                checkpoint=report.checkpoint,
+            )
+
+        # Migración flat -> v2 sólo si replay y book coinciden exactamente.
+        if schema_version in {0, 1} and report.checkpoint is not None and self.session is not None:
+            self.session.save_book(self.book, report.checkpoint)
+            return ReconciliationReport(
+                ok=True,
+                status="ok",
+                record_count=report.record_count,
+                issues=("legacy_book_migrated",) if schema_version == 1 else (),
+                expected_book=report.expected_book,
+                persisted_book=report.persisted_book,
+                checkpoint=report.checkpoint,
+            )
+        return report
+
+    def check_paper_reconciliation(self) -> ReconciliationReport:
+        """Check read-only del estado durable actual; nunca reconstruye."""
+        session = self.ensure_session()
+        if self.book is None or self.journal is None:
+            raise ValidationError("book/journal no hidratados")
+        # Un book corrupto detectado al boot no debe reemplazarse por el fallback.
+        if (
+            self.paper_reconciliation is not None
+            and self.paper_reconciliation.status == "book_corrupt"
+        ):
+            return self.paper_reconciliation
+
+        def _check_durable() -> ReconciliationReport:
+            try:
+                loaded = session.load_book_state(default_cash=self.initial_cash)
+            except ValidationError as exc:
+                return ReconciliationReport(
+                    ok=False,
+                    status="book_corrupt",
+                    record_count=0,
+                    issues=(str(exc),),
+                    expected_book=None,
+                    persisted_book={},
+                    checkpoint=None,
+                )
+            live_book = self.book
+            try:
+                self.book = loaded.book
+                return self._reconcile_loaded_book(
+                    stored_checkpoint=loaded.checkpoint,
+                    schema_version=loaded.schema_version,
+                )
+            finally:
+                self.book = live_book
+
+        if isinstance(self.broker, PaperBroker):
+            report = self.broker.inspect_reconciliation(_check_durable)
+        else:
+            report = _check_durable()
+        self.paper_reconciliation = report
+        return report
 
     def _teardown_session_runtime(self) -> None:
         """Detiene runner paper, persiste book y limpia estado atado a sesión."""
@@ -213,13 +351,14 @@ class WorkbenchState:
             self.paper_session = None
         if self.session is not None and self.book is not None:
             with contextlib.suppress(OSError, ValidationError):
-                self.session.save_book(self.book)
+                self.persist_book()
         self.broker = None
         self.venue = None
         self.md_provider = None
         self.md_source = None
         self.journal = None
         self.book = None
+        self.paper_reconciliation = None
         self.last_lab_result = None
         self._chat = None
         self._lab_registry_path = None
@@ -263,9 +402,17 @@ class WorkbenchState:
 
     def persist_book(self) -> None:
         session = self.ensure_session()
-        if self.book is None:
+        if self.book is None or self.journal is None:
             return
-        session.save_book(self.book)
+        report = reconcile_book(self.book, self.journal)
+        if not report.ok or report.checkpoint is None:
+            self.paper_reconciliation = report
+            raise ValidationError(
+                "book no se persiste: journal/book requieren reconciliación "
+                f"({'; '.join(report.issues)})"
+            )
+        session.save_book(self.book, report.checkpoint)
+        self.paper_reconciliation = report
 
     def assert_paper_kill_clear(self) -> None:
         """Fail-closed: ValidationError si paper kill switch engaged."""
@@ -1502,6 +1649,10 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
             book=book,
             slippage_bps=slippage_bps,
             on_book_change=_on_book_change,
+            reconciliation_required=not bool(
+                state.paper_reconciliation is not None
+                and state.paper_reconciliation.ok
+            ),
         )
 
         connect_info = broker.connect()
@@ -1719,6 +1870,18 @@ def handle_get_paper_book(state: WorkbenchState) -> dict[str, Any]:
         "account": account,
         "session_id": state.ensure_session().session_id,
     }
+
+
+def handle_get_paper_reconciliation(state: WorkbenchState) -> dict[str, Any]:
+    """GET read-only: reporta drift/corrupción; nunca reconstruye archivos."""
+    try:
+        report = state.check_paper_reconciliation()
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload = report.to_dict()
+    payload["session_id"] = state.ensure_session().session_id
+    payload["rebuild_via"] = "scripts/reconcile_paper_session.py --session PATH --rebuild"
+    return payload
 
 
 def _parse_order_intent(body: dict[str, Any]) -> OrderIntent:

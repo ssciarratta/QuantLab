@@ -57,6 +57,7 @@ from quantlab.workbench.api import (
     handle_get_paper_fills_csv,
     handle_get_paper_kill,
     handle_get_paper_pnl,
+    handle_get_paper_reconciliation,
     handle_get_paper_session_status,
     handle_get_positions,
     handle_get_presets,
@@ -360,6 +361,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/paper/pnl":
                     self._send_json(handle_get_paper_pnl(state))
+                    return
+                if path == "/api/paper/reconciliation":
+                    self._send_json(handle_get_paper_reconciliation(state))
                     return
                 if path == "/api/paper/fills.csv":
                     body, filename = handle_get_paper_fills_csv(state)

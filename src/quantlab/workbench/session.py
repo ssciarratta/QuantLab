@@ -5,18 +5,31 @@ from __future__ import annotations
 import json
 import re
 import uuid
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH, PaperBook
+from quantlab.brokers.paper.journal import PaperFillJournal
+from quantlab.brokers.paper.reconciliation import JournalCheckpoint, reconcile_book
 from quantlab.core.exceptions import ValidationError
+from quantlab.data.atomic_io import atomic_write_text
 
 DEFAULT_SESSION_PARENT = Path("data/runtime/workbench")
 
 # Fail-closed: session_id es segmento de path; sin separators / traversal.
 _SESSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+
+
+@dataclass(frozen=True, slots=True)
+class LoadedPaperBook:
+    """Book cargado junto con metadatos de durabilidad."""
+
+    book: PaperBook
+    checkpoint: JournalCheckpoint | None
+    schema_version: int
 
 
 def validate_session_id(session_id: str) -> str:
@@ -212,17 +225,69 @@ class WorkbenchSession:
         self.meta_path.write_text(text, encoding="utf-8")
 
     def load_book(self, *, default_cash: Decimal = DEFAULT_INITIAL_CASH) -> PaperBook:
+        return self.load_book_state(default_cash=default_cash).book
+
+    def load_book_state(
+        self, *, default_cash: Decimal = DEFAULT_INITIAL_CASH
+    ) -> LoadedPaperBook:
+        """Carga v2 o el formato flat legado sin ocultar su provenance."""
         if self.book_path.exists():
-            raw = json.loads(self.book_path.read_text(encoding="utf-8"))
+            try:
+                raw = json.loads(self.book_path.read_text(encoding="utf-8"))
+            except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+                raise ValidationError(f"book.json inválido: {exc}") from exc
             if not isinstance(raw, dict):
                 raise ValidationError("book.json inválido")
-            return PaperBook.from_dict(raw)
-        return PaperBook(initial_cash=default_cash)
+            if raw.get("schema_version") == 2:
+                book_payload = raw.get("book")
+                checkpoint_payload = raw.get("journal_checkpoint")
+                if not isinstance(book_payload, dict):
+                    raise ValidationError("book.json v2 requiere objeto book")
+                if not isinstance(checkpoint_payload, dict):
+                    raise ValidationError("book.json v2 requiere journal_checkpoint")
+                return LoadedPaperBook(
+                    book=PaperBook.from_dict(book_payload),
+                    checkpoint=JournalCheckpoint.from_dict(checkpoint_payload),
+                    schema_version=2,
+                )
+            if "schema_version" in raw:
+                raise ValidationError(
+                    f"book.json schema_version no soportada: {raw.get('schema_version')!r}"
+                )
+            return LoadedPaperBook(
+                book=PaperBook.from_dict(raw),
+                checkpoint=None,
+                schema_version=1,
+            )
+        return LoadedPaperBook(
+            book=PaperBook(initial_cash=default_cash),
+            checkpoint=None,
+            schema_version=0,
+        )
 
-    def save_book(self, book: PaperBook) -> None:
+    def save_book(
+        self,
+        book: PaperBook,
+        checkpoint: JournalCheckpoint | None = None,
+    ) -> None:
+        """Persiste proyección v2 atómicamente, ligada al journal durable."""
         self.ensure_layout()
-        text = json.dumps(book.to_dict(), ensure_ascii=False, sort_keys=True, indent=2) + "\n"
-        self.book_path.write_text(text, encoding="utf-8")
+        journal = PaperFillJournal(self.journal_path)
+        report = reconcile_book(book, journal)
+        if not report.ok or report.checkpoint is None:
+            raise ValidationError(
+                f"book no reconciliado; persist rechazado: {'; '.join(report.issues)}"
+            )
+        resolved_checkpoint = checkpoint or report.checkpoint
+        if resolved_checkpoint != report.checkpoint:
+            raise ValidationError("checkpoint provisto no coincide con journal actual")
+        payload = {
+            "schema_version": 2,
+            "book": book.to_dict(),
+            "journal_checkpoint": resolved_checkpoint.to_dict(),
+        }
+        text = json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        atomic_write_text(self.book_path, text)
 
     def to_dict(self) -> dict[str, Any]:
         meta = self.load_meta()

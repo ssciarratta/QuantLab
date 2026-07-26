@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Empaqueta evidencia INTERNAL F19–F87 para Meta-Auditor externo.
+"""Empaqueta evidencia INTERNAL F19–F88 para Meta-Auditor externo.
 
 NO emite ni incluye certificados ``FASE_*_APPROVED.md``.
 NO corre el Review Package oficial (pesado). Solo evidencia documental.
@@ -25,7 +25,7 @@ from pathlib import Path
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 87
+DEFAULT_TO_PHASE = 88
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")
@@ -236,6 +236,7 @@ def collect_bundle_files(
     # Context docs (full)
     for rel in (
         "RESUMEN_PROYECTO.txt",
+        "PROJECT_MEMORY.md",
         "docs/audit/MAPA_FASES_PARA_AUDITOR.md",
         "docs/ROADMAP_ALIGNED.md",
         "docs/ops/LIVE_FLIP_CHECKLIST.md",

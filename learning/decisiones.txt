@@ -1,3 +1,12 @@
+[2026-07-26] DEC-132 — Journal PAPER autoritativo; book como proyección
+  Decisión: F88 define journal.jsonl append-only como source of truth y
+  book.json v2 como proyección atómica reconstruible, ligada por checkpoint
+  record_count/last_fill_id/SHA-256. Commit: preview, append+fsync, apply,
+  persist atómico. Drift/corrupción bloquea submits. No auto-rebuild al boot
+  ni rebuild HTTP; sólo CLI offline con backup. Bump 0.80.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_88_APPROVED.
+  Fase: 88.
+
 [2026-07-26] DEC-131 — Broker Plugin Contract v1 fail-closed
   Decisión: F87 versiona plugins externos con BrokerPluginSpec API "1";
   capabilities permitidas sólo market_data/account_read; registry aplica

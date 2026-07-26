@@ -1,3 +1,8 @@
+[2026-07-26] F88 — Paper Journal authoritative + reconciliation (v0.80.0)
+  journal.jsonl source of truth; book v2 atómico/checkpoint; commit order
+  journal→book→persist; drift bloquea; CLI rebuild con backup. DEC-132.
+  Sin FASE_88_APPROVED · LIVE_BLOCKED.
+
 [2026-07-26] F86 — Maximize / Restore Window (v0.78.0)
   wm.js maximize/restoreFromMaximize + titlebar btn/dblclick + palette/menú
   + persist maximized. DEC-130 · APROBADO_INTERNO · sin FASE_86_APPROVED · LIVE_BLOCKED.

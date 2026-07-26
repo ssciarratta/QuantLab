@@ -26,23 +26,26 @@ class PaperBook:
         cash: Decimal | None = None,
         positions: dict[str, tuple[Decimal, Decimal]] | None = None,
     ) -> None:
-        if initial_cash < 0:
-            raise ValidationError("initial_cash no puede ser negativo")
+        if not initial_cash.is_finite() or initial_cash < 0:
+            raise ValidationError("initial_cash debe ser finito y no negativo")
         resolved_cash = Decimal(cash) if cash is not None else Decimal(initial_cash)
-        if resolved_cash < 0:
-            raise ValidationError("cash no puede ser negativo")
+        if not resolved_cash.is_finite() or resolved_cash < 0:
+            raise ValidationError("cash no puede ser negativo ni no-finito")
+        if not currency.strip():
+            raise ValidationError("currency no puede ser vacío")
         self._initial_cash = Decimal(initial_cash)
         self._cash = resolved_cash
         self._currency = currency
         self._allow_short = allow_short
         # symbol -> (quantity, avg_price)
         raw_positions = dict(positions or {})
-        if not allow_short:
-            for sym, (qty, _avg) in raw_positions.items():
-                if qty < 0:
-                    raise ValidationError(
-                        f"short no permitido: posición {sym} qty={qty} (allow_short=False)"
-                    )
+        for sym, (qty, avg) in raw_positions.items():
+            if not sym.strip() or not qty.is_finite() or not avg.is_finite() or avg < 0:
+                raise ValidationError(f"posición inválida para {sym!r}")
+            if not allow_short and qty < 0:
+                raise ValidationError(
+                    f"short no permitido: posición {sym} qty={qty} (allow_short=False)"
+                )
         self._positions: dict[str, tuple[Decimal, Decimal]] = raw_positions
 
     @property
@@ -180,7 +183,10 @@ class PaperBook:
         except Exception as exc:
             raise ValidationError(f"cash inválido en book: {exc}") from exc
         currency = str(data.get("currency", "USD"))
-        allow_short = bool(data.get("allow_short", False))
+        allow_short_raw = data.get("allow_short", False)
+        if not isinstance(allow_short_raw, bool):
+            raise ValidationError("allow_short debe ser bool")
+        allow_short = allow_short_raw
         raw_pos = data.get("positions") or {}
         if not isinstance(raw_pos, dict):
             raise ValidationError("positions debe ser objeto")
