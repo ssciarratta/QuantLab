@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F30):** *(post-commit)* · **v0.22.0** (Universe Watchlist + Data Catalog)  
+**Tip código (impl F30):** `7d8bf88` · **v0.22.0** (Universe Watchlist + Data Catalog)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F29_NIGHT.md` con **F30**.  
@@ -22,7 +22,7 @@
 | Veredicto | **APROBADO_INTERNO** (todas las fases del arco) |
 | CRITICAL/HIGH abiertos | **Ninguno** |
 | Versión tip | **0.22.0** |
-| QA tip | mypy · ruff · pytest · health ok · smoke 16 PASS |
+| QA tip | mypy 162 · ruff · **627** pytest · health ok · smoke 16 PASS |
 
 ---
 
@@ -41,7 +41,7 @@
 | **27** | Strategy Catalog (MM + AS) | 0.19.0 | `244a3fb` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F27.md` |
 | **28** | Layout persistence + Journal | 0.20.0 | `86517cf` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F28.md` |
 | **29** | Report Viewer + Metrics History | 0.21.0 | `2f37bf7` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F29.md` |
-| **30** | Universe Watchlist + Data Catalog | 0.22.0 | *(tip)* | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F30.md` |
+| **30** | Universe Watchlist + Data Catalog | 0.22.0 | `7d8bf88` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F30.md` |
 
 ### Arcos
 
@@ -85,27 +85,56 @@
 
 ## QA tip (noche)
 
-```text
-uv run mypy --strict src/quantlab
-uv run ruff check src/quantlab tests scripts
-uv run pytest -q
-uv run quantlab-health
-uv run python scripts/internal_audit_smoke.py
 ```
+export PATH="$HOME/.local/bin:$PATH"
+cd /workspace
+uv run mypy --strict src/quantlab     # Success · 162 files
+uv run ruff check src/quantlab tests scripts  # All checks passed
+uv run pytest -q                      # 627 passed
+uv run quantlab-health                # 0.22.0 · live_blocked=true
+uv run python scripts/internal_audit_smoke.py  # PASS · 16 checks
+```
+
+Universe: `GET/PUT /api/watchlist` · `GET /api/universe` · `GET /api/catalog` · docs `FASE_30_UNIVERSE_CATALOG.md`
 
 ---
 
-## Bundle INTERNAL
+## Bundle INTERNAL F19–F30
 
-```text
-uv run python scripts/build_internal_review_bundle.py
-# → reports/QuantLab_Internal_Review_F19_F30_v0.22.0.zip
+Regenerado (no commitear ZIP):
+
+```
+export PATH="$HOME/.local/bin:$PATH"
+cd /workspace
+uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 30
 ```
 
+| Campo | Valor |
+|-------|-------|
+| Artifact | `reports/QuantLab_Internal_Review_F19_F30_v0.22.0.zip` |
+| SHA256 | `a5d8715d8790b952afded1e3cf94fa80307e8bcfff106365b2e623b7276e2c75` |
+| Default script | `DEFAULT_TO_PHASE = 30` |
+| Incluye APPROVED | **NO** |
+
+### Bundle SHA256
+
+```
+a5d8715d8790b952afded1e3cf94fa80307e8bcfff106365b2e623b7276e2c75  QuantLab_Internal_Review_F19_F30_v0.22.0.zip
+```
+
+> Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).  
 > Path: `reports/QuantLab_Internal_Review_F19_F30_v0.22.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 
-## Firma INTERNAL noche
+## Límites
+
+- Cierra la **noche F19–F30** a nivel INTERNAL.  
+- **No** autoriza certificados externos ni flip LIVE.  
+- Meta-Auditor externo debe revisar por fase (o lote) antes de `FASE_*_APPROVED.md`.
+
+---
+
+## Firma INTERNAL (noche)
 
 Meta-Auditor INTERNO Zero-Trust · 2026-07-26 · QuantLab noche F19–F30 · **APROBADO_INTERNO**

@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Repo:** `/workspace` · branch `cursor/modo-real-workbench-aafd`  
-**Código implementación:** *(tip post-impl)* · **v0.22.0**  
+**Código implementación:** `7d8bf88` · **v0.22.0**  
 **Docs de trabajo:** `AUTO_AUDIT_2026-07-26_F30.md`, `FASE_30_IMPLEMENTATION_REPORT.md`, `FASE_30_REVIEW_PACKAGE.md`
 
 ---
@@ -27,7 +27,7 @@
 1. Criterios fail hard: todos **PASS**.  
 2. DoD F30 (`docs/FASE_30_UNIVERSE_CATALOG.md`): cubierto; LIVE / auth WAN / upsert catalog fuera de alcance (correcto).  
 3. DEC-074 alineada con código.  
-4. QA: mypy strict · ruff · pytest · quantlab-health **0.22.0** · smoke **16/16 PASS**.  
+4. QA: mypy strict · ruff · pytest **627** · quantlab-health **0.22.0** · smoke **16/16 PASS**.  
 5. Residuales MEDIUM/LOW heredados no bloquean F30.
 
 ---
