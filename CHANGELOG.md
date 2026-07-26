@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.22.0] — 2026-07-26
+
+### Fase 30 — Universe Watchlist + Data Catalog Browser
+
+#### Added
+- `workbench/watchlist.py` — `watchlist.json` por sesión (add/remove)
+- `workbench/catalog_browser.py` — list read-only vía `quantlab.data.catalog`
+- API `GET`/`PUT` `/api/watchlist`, `GET /api/universe`, `GET /api/catalog`
+- Paneles UI Universe + Catalog; click símbolo → Market/Session
+- Tests `test_universe_catalog_f30.py` · DEC-074
+- Docs: `FASE_30_UNIVERSE_CATALOG.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); symbol charset fail-closed; catalog no crea DB si falta
+
+---
+
 ## [0.21.0] — 2026-07-26
 
 ### Fase 29 — Report Viewer + Metrics History

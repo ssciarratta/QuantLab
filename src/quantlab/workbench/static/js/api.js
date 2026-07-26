@@ -99,6 +99,18 @@
     putLayout: function (layout) {
       return request("PUT", "/api/layout", layout || {});
     },
+    watchlist: function () {
+      return request("GET", "/api/watchlist");
+    },
+    putWatchlist: function (body) {
+      return request("PUT", "/api/watchlist", body || {});
+    },
+    universe: function () {
+      return request("GET", "/api/universe");
+    },
+    catalog: function () {
+      return request("GET", "/api/catalog");
+    },
     paperSessionStart: function (body) {
       return request("POST", "/api/paper/session/start", body || {});
     },

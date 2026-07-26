@@ -79,6 +79,10 @@ class WorkbenchSession:
     def reports_dir(self) -> Path:
         return self._root / "reports"
 
+    @property
+    def watchlist_path(self) -> Path:
+        return self._root / "watchlist.json"
+
     def ensure_layout(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
@@ -126,6 +130,7 @@ class WorkbenchSession:
             "book": str(self.book_path),
             "meta": str(self.meta_path),
             "layout": str(self.layout_path),
+            "watchlist": str(self.watchlist_path),
             "experiments": str(self.experiments_dir),
             "exports": str(self.exports_dir),
             "reports": str(self.reports_dir),

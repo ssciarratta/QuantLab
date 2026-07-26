@@ -358,6 +358,22 @@
 **Spec:** `docs/FASE_29_REPORTS.md`  
 **Implementation report:** `docs/audit/FASE_29_IMPLEMENTATION_REPORT.md`
 
+### Fase 30 — Universe Watchlist + Data Catalog Browser
+**Módulos:**
+- `workbench/watchlist.py` — `watchlist.json` por sesión (add/remove)
+- `workbench/catalog_browser.py` — list read-only vía `quantlab.data.catalog`
+- API `GET`/`PUT` `/api/watchlist`, `GET /api/universe`, `GET /api/catalog`
+- Paneles UI Universe + Catalog; click símbolo → Market/Session
+- DEC-074; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F30.md`, 2026-07-26) — certificado externo `FASE_30_APPROVED.md` **NO emitido**  
+**Versión:** 0.22.0 · implementación *(tip)*  
+**Review Package INTERNAL:** `docs/audit/FASE_30_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F30.md`  
+**Noche F19–F30:** `docs/audit/INTERNAL_AUDIT_F19_F30_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_30_UNIVERSE_CATALOG.md`  
+**Implementation report:** `docs/audit/FASE_30_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -402,6 +418,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F29 **APROBADO_INTERNO** (noche F19–F29).  
+1. F0–F18 certificados externos; F19–F30 **APROBADO_INTERNO** (noche F19–F30).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

@@ -371,6 +371,53 @@ def check_f29_reports() -> None:
     assert detail["live_routing"] is False
 
 
+def check_f30_universe_catalog() -> None:
+    """F30: watchlist + universe + catalog empty-ok + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_catalog,
+        handle_get_universe,
+        handle_get_watchlist,
+        handle_put_watchlist,
+    )
+    from quantlab.workbench.catalog_browser import list_catalog_datasets
+    from quantlab.workbench.session import WorkbenchSession
+    from quantlab.workbench.watchlist import load_watchlist, save_watchlist
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f30-universe")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke30")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    saved = save_watchlist(session.watchlist_path, {"version": 1, "symbols": ["SMOKE"]})
+    assert load_watchlist(session.watchlist_path) == saved
+    put = handle_put_watchlist(state, {"add": ["QLAB"]})
+    assert put["ok"] is True
+    assert put["live_blocked"] is True
+    assert "QLAB" in put["symbols"]
+    got = handle_get_watchlist(state)
+    assert "SMOKE" in got["symbols"]
+
+    uni = handle_get_universe(state)
+    assert uni["ok"] is True
+    assert uni["live_blocked"] is True
+    assert any(s["symbol"] == "QLAB" for s in uni["symbols"])
+
+    cat = handle_get_catalog(state)
+    assert cat["ok"] is True
+    assert cat["read_only"] is True
+    assert isinstance(cat["datasets"], list)
+    # Empty-ok si no hay archivo local (no crea DB).
+    offline = list_catalog_datasets(catalog_path=Path("/tmp/quantlab-no-such-catalog.sqlite"))
+    assert offline["available"] is False
+    assert offline["datasets"] == []
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -388,6 +435,7 @@ def main() -> int:
         ("F27 strategy catalog", check_f27_strategy_catalog),
         ("F28 layout + journal API", check_f28_layout_journal),
         ("F29 reports + metrics history", check_f29_reports),
+        ("F30 universe watchlist + catalog", check_f30_universe_catalog),
     ]
     ok = True
     for name, fn in checks:

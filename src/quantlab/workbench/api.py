@@ -23,11 +23,18 @@ from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
+from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
+from quantlab.workbench.watchlist import (
+    add_symbols,
+    load_watchlist,
+    remove_symbols,
+    save_watchlist,
+)
 
 if TYPE_CHECKING:
     from quantlab.workbench.chat.orchestrator import ChatOrchestrator
@@ -231,6 +238,142 @@ def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, 
         "session_id": session.session_id,
         "live_blocked": LIVE_BLOCKED is True,
     }
+
+
+def handle_get_watchlist(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/watchlist — símbolos persistidos en sesión."""
+    session = state.ensure_session()
+    try:
+        watchlist = load_watchlist(session.watchlist_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "watchlist": watchlist,
+        "symbols": list(watchlist["symbols"]),
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_put_watchlist(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """PUT /api/watchlist — replace / add / remove símbolos en ``watchlist.json``.
+
+    Body aceptado:
+    - ``{"symbols": [...]}`` o ``{"watchlist": {"symbols": [...]}}`` → replace
+    - ``{"add": [...]}`` → add
+    - ``{"remove": [...]}`` → remove
+    """
+    session = state.ensure_session()
+    try:
+        current = load_watchlist(session.watchlist_path)
+        if "add" in body or "remove" in body:
+            next_wl = current
+            if "add" in body:
+                add_raw = body["add"]
+                if not isinstance(add_raw, list):
+                    raise ValidationError("watchlist.add debe ser lista")
+                next_wl = add_symbols(next_wl, [str(x) for x in add_raw])
+            if "remove" in body:
+                rem_raw = body["remove"]
+                if not isinstance(rem_raw, list):
+                    raise ValidationError("watchlist.remove debe ser lista")
+                next_wl = remove_symbols(next_wl, [str(x) for x in rem_raw])
+            saved = save_watchlist(session.watchlist_path, next_wl)
+        elif "symbols" in body:
+            saved = save_watchlist(
+                session.watchlist_path,
+                {"version": 1, "symbols": body["symbols"]},
+            )
+        elif "watchlist" in body and isinstance(body["watchlist"], dict):
+            saved = save_watchlist(session.watchlist_path, body["watchlist"])
+        else:
+            raise ApiError(
+                400,
+                "body debe incluir symbols, watchlist, add y/o remove",
+            )
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    return {
+        "ok": True,
+        "watchlist": saved,
+        "symbols": list(saved["symbols"]),
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def handle_get_universe(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/universe — broker instruments + watchlist (F30)."""
+    session = state.ensure_session()
+    try:
+        watchlist = load_watchlist(session.watchlist_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+    broker_connected = state.broker is not None
+    broker_symbols: list[dict[str, Any]] = []
+    broker_message: str | None = None
+    if broker_connected:
+        assert state.broker is not None
+        try:
+            broker_symbols = [dataclass_to_dict(i) for i in state.broker.list_instruments()]
+        except Exception as exc:  # noqa: BLE001
+            broker_message = f"broker.list_instruments falló: {exc}"
+            broker_symbols = []
+    else:
+        broker_message = "broker no conectado; POST /api/broker/connect primero"
+
+    wl_set = set(watchlist["symbols"])
+    merged: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in broker_symbols:
+        sym = str(item.get("symbol") or "").strip().upper()
+        if not sym or sym in seen:
+            continue
+        seen.add(sym)
+        merged.append(
+            {
+                "symbol": sym,
+                "source": "broker",
+                "in_watchlist": sym in wl_set,
+                "description": item.get("description"),
+                "currency": item.get("currency"),
+            }
+        )
+    for sym in watchlist["symbols"]:
+        if sym in seen:
+            continue
+        seen.add(sym)
+        merged.append(
+            {
+                "symbol": sym,
+                "source": "watchlist",
+                "in_watchlist": True,
+                "description": None,
+                "currency": None,
+            }
+        )
+
+    return {
+        "ok": True,
+        "session_id": session.session_id,
+        "live_blocked": LIVE_BLOCKED is True,
+        "broker_connected": broker_connected,
+        "broker_message": broker_message,
+        "watchlist": list(watchlist["symbols"]),
+        "broker_symbols": broker_symbols,
+        "symbols": merged,
+        "count": len(merged),
+    }
+
+
+def handle_get_catalog(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/catalog — datasets del Data Catalog local (read-only, F30)."""
+    session = state.ensure_session()
+    payload = list_catalog_datasets()
+    payload["session_id"] = session.session_id
+    return payload
 
 
 def handle_get_risk(state: WorkbenchState) -> dict[str, Any]:

@@ -155,7 +155,21 @@
 
     root.refresh = async function () {
       await loadVenues();
+      try {
+        const saved = sessionStorage.getItem("ql_active_symbol");
+        const input = root.querySelector("#md-symbol");
+        if (saved && input && !input.value) input.value = saved;
+      } catch (err) {
+        /* ignore */
+      }
     };
+
+    document.addEventListener("ql:set-symbol", function (ev) {
+      const sym = ev.detail && ev.detail.symbol;
+      if (!sym) return;
+      const input = root.querySelector("#md-symbol");
+      if (input) input.value = sym;
+    });
 
     return root;
   }

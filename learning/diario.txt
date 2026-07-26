@@ -2,6 +2,15 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 30 — Universe Watchlist + Data Catalog Browser
+---------------------------------------------------------------
+- v0.22.0 · DEC-074.
+- watchlist.json por sesión; GET/PUT /api/watchlist; GET /api/universe;
+  GET /api/catalog (DataCatalog read-only; empty-ok).
+- Paneles Universe (set symbol) + Catalog.
+- INTERNAL APROBADO_INTERNO; FASE_30_APPROVED.md NO emitido.
+- Noche F19–F30 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 29 — Report Viewer + Metrics History
 ------------------------------------------------------
 - v0.21.0 · impl SHA 2f37bf7 · DEC-073.

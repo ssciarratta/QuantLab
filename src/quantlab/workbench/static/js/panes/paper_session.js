@@ -230,13 +230,39 @@
         const instruments = await QLApi.instruments();
         const list = instruments.instruments || [];
         const input = root.querySelector("#ps-symbol");
-        if (input && !input.value && list.length) {
-          input.value = list[0].symbol || "";
+        if (input && !input.value) {
+          let saved = null;
+          try {
+            saved = sessionStorage.getItem("ql_active_symbol");
+          } catch (err) {
+            /* ignore */
+          }
+          if (saved) {
+            input.value = saved;
+          } else if (list.length) {
+            input.value = list[0].symbol || "";
+          }
         }
       } catch (err) {
         /* broker puede no estar conectado aún */
+        const input = root.querySelector("#ps-symbol");
+        if (input && !input.value) {
+          try {
+            const saved = sessionStorage.getItem("ql_active_symbol");
+            if (saved) input.value = saved;
+          } catch (e2) {
+            /* ignore */
+          }
+        }
       }
     };
+
+    document.addEventListener("ql:set-symbol", function (ev) {
+      const sym = ev.detail && ev.detail.symbol;
+      if (!sym) return;
+      const input = root.querySelector("#ps-symbol");
+      if (input) input.value = sym;
+    });
 
     loadCatalog();
     return root;

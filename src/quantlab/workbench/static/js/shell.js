@@ -59,6 +59,18 @@
     pane.refresh().catch(function () {});
   }
 
+  function openUniverse() {
+    const pane = QLPanes.createUniversePane();
+    wm.open("universe", "Universe", pane, mergeOpts("universe", { x: 40, y: 60, w: 480, h: 420 }));
+    pane.refresh().catch(function () {});
+  }
+
+  function openCatalog() {
+    const pane = QLPanes.createCatalogPane();
+    wm.open("catalog", "Data Catalog", pane, mergeOpts("catalog", { x: 80, y: 80, w: 560, h: 400 }));
+    pane.refresh().catch(function () {});
+  }
+
   function openBlotter() {
     const pane = QLPanes.createBlotterPane();
     wm.open("blotter", "Paper Blotter", pane, mergeOpts("blotter", { x: 120, y: 120, w: 520, h: 400 }));
@@ -177,6 +189,8 @@
   const openers = {
     health: openHealth,
     market: openMarket,
+    universe: openUniverse,
+    catalog: openCatalog,
     blotter: openBlotter,
     journal: openJournal,
     paper_session: openPaperSession,

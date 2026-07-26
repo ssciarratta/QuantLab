@@ -471,6 +471,28 @@ button.btn.secondary:hover {
   color: var(--danger);
 }
 
+.status-warn {
+  color: var(--warn, #c4a35a);
+}
+
+.universe-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.28rem 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.universe-row .universe-sym {
+  min-width: 5.5rem;
+  text-align: left;
+}
+
+.catalog-table {
+  width: 100%;
+  font-size: 0.72rem;
+}
+
 .mono {
   font-family: var(--mono);
 }

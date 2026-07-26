@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-074 — Universe Watchlist + Data Catalog Browser
+  Decisión: F30 = watchlist.json por sesión (GET/PUT /api/watchlist add/remove);
+  GET /api/universe (broker ∪ watchlist); GET /api/catalog read-only vía
+  quantlab.data.catalog (SQLite/DuckDB; empty-ok si no hay archivo);
+  paneles Universe (click → set symbol Market/Session) + Catalog UI mínimo.
+  LIVE_BLOCKED=True; sin flip; sin venue submit; sin upsert catalog.
+  Fase: 30.
+
 [2026-07-26] DEC-073 — Lab Report Viewer + Metrics History
   Decisión: F29 = tras backtest lab exitoso persistir MetricsResult/summary
   JSON (+ HTML via ReportGenerator) en session reports/; API GET

@@ -13,6 +13,7 @@ from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
     handle_get_account,
+    handle_get_catalog,
     handle_get_chat_tools,
     handle_get_health,
     handle_get_instruments,
@@ -32,7 +33,9 @@ from quantlab.workbench.api import (
     handle_get_risk,
     handle_get_session,
     handle_get_snapshot,
+    handle_get_universe,
     handle_get_venues,
+    handle_get_watchlist,
     handle_post_broker_connect,
     handle_post_chat,
     handle_post_lab_backtest,
@@ -47,6 +50,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_stop,
     handle_post_paper_submit,
     handle_put_layout,
+    handle_put_watchlist,
 )
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -165,6 +169,15 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/layout":
                     self._send_json(handle_get_layout(state))
                     return
+                if path == "/api/watchlist":
+                    self._send_json(handle_get_watchlist(state))
+                    return
+                if path == "/api/universe":
+                    self._send_json(handle_get_universe(state))
+                    return
+                if path == "/api/catalog":
+                    self._send_json(handle_get_catalog(state))
+                    return
                 if path == "/api/risk":
                     self._send_json(handle_get_risk(state))
                     return
@@ -270,6 +283,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 body = _read_json(self)
                 if path == "/api/layout":
                     self._send_json(handle_put_layout(state, body))
+                    return
+                if path == "/api/watchlist":
+                    self._send_json(handle_put_watchlist(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

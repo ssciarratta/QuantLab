@@ -1,6 +1,6 @@
-# Internal Review Bundle — evidencia F19–F29 (Meta-Auditor)
+# Internal Review Bundle — evidencia F19–F30 (Meta-Auditor)
 
-Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–29.
+Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–30.
 **No** emite `FASE_*_APPROVED.md`. **No** sustituye el Review Package oficial
 (`scripts/build_review_package.py`), que es más pesado (tests/coverage/calidad).
 
@@ -11,16 +11,16 @@ Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–29.
 ```bash
 uv run python scripts/build_internal_review_bundle.py
 # equivalente:
-uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 29
+uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 30
 ```
 
 Salida (fuera de `src/`, en `reports/`):
 
 | Artefacto | Descripción |
 |-----------|-------------|
-| `reports/QuantLab_Internal_Review_F19_F29_v{version}.zip` | Bundle documental |
-| `reports/QuantLab_Internal_Review_F19_F29_v{version}.zip.sha256` | Sidecar SHA-256 |
-| `reports/QuantLab_Internal_Review_F19_F29_v{version}_MANIFEST.json` | Manifest JSON |
+| `reports/QuantLab_Internal_Review_F19_F30_v{version}.zip` | Bundle documental |
+| `reports/QuantLab_Internal_Review_F19_F30_v{version}.zip.sha256` | Sidecar SHA-256 |
+| `reports/QuantLab_Internal_Review_F19_F30_v{version}_MANIFEST.json` | Manifest JSON |
 
 `{version}` se lee de `quantlab.__version__` (`src/quantlab/__init__.py`).
 
@@ -40,16 +40,10 @@ Salida (fuera de `src/`, en `reports/`):
 ## Exclusiones
 
 - Cualquier `FASE_*_APPROVED.md`
-- `.env`, secretos, `data/`, caches, `__pycache__`
-- Artefactos de build pesados
-
-## Defaults
-
-- `--from-phase 19`
-- `--to-phase 29` (`DEFAULT_TO_PHASE`)
+- `.env`, secretos, `data/`
+- caches (`__pycache__`, `.pytest_cache`, …)
 
 ## Notas
 
-`reports/*` ya está en `.gitignore` (salvo `.gitkeep`). **No** commitear el ZIP
-si supera ~5 MB. El sidecar `.sha256` también queda bajo `reports/` (ignorado);
-el digest se documenta en `INTERNAL_AUDIT_F19_F29_NIGHT.md`.
+- Default `--to-phase` = **30** (`DEFAULT_TO_PHASE`).
+- Bundle INTERNAL ≠ certificado externo.
