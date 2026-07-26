@@ -96,10 +96,10 @@ uv run python scripts/internal_audit_smoke.py  # 66/66 PASS
 
 | Artifact | `reports/QuantLab_Internal_Review_F19_F82_v0.74.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F82_v0.74.0_MANIFEST.json` |
-| Digest | `e310514c272fba286ed709e3dcf31b6126b715903c8cf6b4486a4bd04ad6ea62` |
+| Digest | `be3ec1f398d4bb70dab34e7d64e255a9339570a78746d2924895867d62b5ded8` |
 
 ```text
-e310514c272fba286ed709e3dcf31b6126b715903c8cf6b4486a4bd04ad6ea62  QuantLab_Internal_Review_F19_F82_v0.74.0.zip
+be3ec1f398d4bb70dab34e7d64e255a9339570a78746d2924895867d62b5ded8  QuantLab_Internal_Review_F19_F82_v0.74.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F82_v0.74.0.zip` · tip código `bb57bed`; re-generar puede cambiar SHA (`created_at_utc`).
