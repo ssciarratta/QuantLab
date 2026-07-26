@@ -4,7 +4,7 @@
 **Versión:** 0.74.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F81 Custom Preset Delete v0.73  
-**Impl SHA:** _(tip feat commit)_  
+**Impl SHA:** `bb57bed`  
 **Alcance:** Snap bordes viewport al soltar drag — **sin flip LIVE**
 
 ---
