@@ -23,6 +23,7 @@
 | A8 | Suite F45 | `tests/unit/workbench/test_about_f45.py` |
 | A9 | Smoke F45 | `scripts/internal_audit_smoke.py` |
 | A10 | Bundle to-phase 45 | `scripts/build_internal_review_bundle.py` |
+| A11 | Impl SHA | `a103236` |
 
 ## QA esperado
 
