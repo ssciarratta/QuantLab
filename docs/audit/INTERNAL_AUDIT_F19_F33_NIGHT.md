@@ -102,15 +102,39 @@ uv run python scripts/internal_audit_smoke.py  # 19/19 PASS
 
 ---
 
-## Bundle INTERNAL
+## Bundle INTERNAL F19–F33
+
+Regenerado (no commitear ZIP):
+
+```
+export PATH="$HOME/.local/bin:$PATH"
+cd /workspace
+uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 33
+```
 
 | Campo | Valor |
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F33_v0.25.0.zip` |
+| SHA256 | `7e7c4b53c22ed86a761cf820925aed89a29d7d6ad9b82625403e0ae96a1ca80d` |
 | Default script | `DEFAULT_TO_PHASE = 33` |
-| Incluye APPROVED externos | **NO** |
+| Incluye APPROVED | **NO** |
 
-SHA256 se completa tras generar el bundle en el commit de auditoría.
+### Bundle SHA256
+
+```
+7e7c4b53c22ed86a761cf820925aed89a29d7d6ad9b82625403e0ae96a1ca80d  QuantLab_Internal_Review_F19_F33_v0.25.0.zip
+```
+
+> Digest del artifact regenerado en auditoría INTERNAL (no commitear ZIP).  
+> Path: `reports/QuantLab_Internal_Review_F19_F33_v0.25.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
+
+---
+
+## Límites
+
+- Cierra la **noche F19–F33** a nivel INTERNAL.  
+- **No** autoriza certificados externos ni flip LIVE.  
+- **No** emite `FASE_19`…`FASE_33_APPROVED.md`.
 
 ---
 
