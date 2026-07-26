@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-073 — Lab Report Viewer + Metrics History
+  Decisión: F29 = tras backtest lab exitoso persistir MetricsResult/summary
+  JSON (+ HTML via ReportGenerator) en session reports/; API GET
+  /api/lab/reports y GET /api/lab/reports/{id}; panel UI Reports
+  (lista + preview HTML|JSON). POST implícito en /api/lab/backtest.
+  LIVE_BLOCKED=True; sin flip; sin venue submit.
+  Fase: 29.
+
 [2026-07-26] DEC-072 — Workbench layout persistence + Journal viewer
   Decisión: F28 = layout.json por sesión (save/load geometría MDI);
   API GET/PUT /api/layout; wm.js debounce save en move/resize + restore

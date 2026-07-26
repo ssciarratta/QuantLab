@@ -25,6 +25,7 @@ from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
+from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
 
@@ -105,6 +106,11 @@ class WorkbenchState:
         if self._lab_export_dir is None:
             raise ValidationError("lab export dir no hidratado")
         return self._lab_export_dir
+
+    def ensure_lab_reports_dir(self) -> Path:
+        session = self.ensure_session()
+        session.reports_dir.mkdir(parents=True, exist_ok=True)
+        return session.reports_dir
 
     def store_lab_result(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.last_lab_result = payload
@@ -705,6 +711,27 @@ def handle_get_lab_validation(_state: WorkbenchState) -> dict[str, Any]:
         raise _lab_validation_error(exc) from exc
 
 
+def handle_get_lab_reports(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/reports — historial de reports persistidos (F29)."""
+    try:
+        return list_lab_reports(state.ensure_lab_reports_dir())
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_get_lab_report(state: WorkbenchState, report_id: str) -> dict[str, Any]:
+    """GET /api/lab/reports/{id} — summary + HTML preview payload."""
+    try:
+        rid = validate_report_id(report_id)
+        return get_lab_report(state.ensure_lab_reports_dir(), rid, include_html=True)
+    except ValidationError as exc:
+        # 404 si no existe; 400 si id inválido.
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
+
+
 def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     strategy_id = body.get("strategy_id", "momentum")
     if not isinstance(strategy_id, str) or not strategy_id.strip():
@@ -729,6 +756,7 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
             params=params_dict,
             n_bars=n_bars,
             experiment_id=experiment_id,
+            reports_dir=state.ensure_lab_reports_dir(),
         )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc

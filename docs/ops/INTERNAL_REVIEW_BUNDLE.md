@@ -1,6 +1,6 @@
-# Internal Review Bundle — evidencia F19–F28 (Meta-Auditor)
+# Internal Review Bundle — evidencia F19–F29 (Meta-Auditor)
 
-Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–28.
+Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–29.
 **No** emite `FASE_*_APPROVED.md`. **No** sustituye el Review Package oficial
 (`scripts/build_review_package.py`), que es más pesado (tests/coverage/calidad).
 
@@ -11,16 +11,16 @@ Tooling **ligero** para empaquetar evidencia INTERNAL de fases 19–28.
 ```bash
 uv run python scripts/build_internal_review_bundle.py
 # equivalente:
-uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 28
+uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 29
 ```
 
 Salida (fuera de `src/`, en `reports/`):
 
 | Artefacto | Descripción |
 |-----------|-------------|
-| `reports/QuantLab_Internal_Review_F19_F28_v{version}.zip` | Bundle documental |
-| `reports/QuantLab_Internal_Review_F19_F28_v{version}.zip.sha256` | Sidecar SHA-256 |
-| `reports/QuantLab_Internal_Review_F19_F28_v{version}_MANIFEST.json` | Manifest JSON |
+| `reports/QuantLab_Internal_Review_F19_F29_v{version}.zip` | Bundle documental |
+| `reports/QuantLab_Internal_Review_F19_F29_v{version}.zip.sha256` | Sidecar SHA-256 |
+| `reports/QuantLab_Internal_Review_F19_F29_v{version}_MANIFEST.json` | Manifest JSON |
 
 `{version}` se lee de `quantlab.__version__` (`src/quantlab/__init__.py`).
 
@@ -39,41 +39,17 @@ Salida (fuera de `src/`, en `reports/`):
 
 ## Exclusiones
 
-- `FASE_*_APPROVED.md` (nunca; este bundle no certifica)
-- `.env`, `*.secret`, tokens de sync
-- `data/`
-- `__pycache__` y caches de tooling
+- Cualquier `FASE_*_APPROVED.md`
+- `.env`, secretos, `data/`, caches, `__pycache__`
+- Artefactos de build pesados
 
-## Manifest
+## Defaults
 
-Campos relevantes:
+- `--from-phase 19`
+- `--to-phase 29` (`DEFAULT_TO_PHASE`)
 
-- `bundle_kind`: `INTERNAL_REVIEW`
-- `quantlab_version`
-- `git_tip_sha`
-- `from_phase` / `to_phase`
-- `files`: lista de rutas relativas incluidas
-
-## Git / tamaño
+## Notas
 
 `reports/*` ya está en `.gitignore` (salvo `.gitkeep`). **No** commitear el ZIP
 si supera ~5 MB. El sidecar `.sha256` también queda bajo `reports/` (ignorado);
-regeneralo con el comando de arriba.
-
-## Tests
-
-```bash
-uv run pytest tests/unit/scripts/test_internal_review_bundle.py -q
-```
-
-## Relación con el Review Package oficial
-
-| | Internal Review Bundle | Review Package oficial |
-|--|------------------------|------------------------|
-| Propósito | Evidencia INTERNAL rápida | Entrega auditable completa |
-| Tests/coverage | No | Sí (autoritativo) |
-| Emite `FASE_*_APPROVED` | **No** | No (lo emite Meta-Auditor) |
-| Tiempo | Segundos | Minutos |
-
-Para Meta-Auditor externo: usar este ZIP como paquete de evidencia INTERNAL;
-el certificado `FASE_*_APPROVED.md` lo emite solo el Meta-Auditor.
+el digest se documenta en `INTERNAL_AUDIT_F19_F29_NIGHT.md`.

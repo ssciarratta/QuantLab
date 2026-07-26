@@ -337,6 +337,40 @@ def check_f28_layout_journal() -> None:
     assert got["layout"]["windows"]["journal"]["w"] == 400
 
 
+def check_f29_reports() -> None:
+    """F29: persist report tras backtest + list/get + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_lab_report,
+        handle_get_lab_reports,
+        handle_post_lab_backtest,
+    )
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    root = Path("/tmp/quantlab-smoke-f29-reports")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke29")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+    body = handle_post_lab_backtest(
+        state,
+        {"strategy_id": "momentum", "n_bars": 10, "experiment_id": "wb-smoke29"},
+    )
+    assert body["ok"] is True
+    assert body["live_blocked"] is True
+    assert body["report_id"]
+    listed = handle_get_lab_reports(state)
+    assert listed["ok"] is True
+    assert listed["count"] >= 1
+    detail = handle_get_lab_report(state, body["report_id"])
+    assert detail["has_html"] is True
+    assert detail["live_routing"] is False
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -353,6 +387,7 @@ def main() -> int:
         ("F26 paper session runner", check_f26_paper_session),
         ("F27 strategy catalog", check_f27_strategy_catalog),
         ("F28 layout + journal API", check_f28_layout_journal),
+        ("F29 reports + metrics history", check_f29_reports),
     ]
     ok = True
     for name, fn in checks:

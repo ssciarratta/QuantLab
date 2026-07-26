@@ -493,6 +493,45 @@ button.btn.secondary:hover {
   word-break: break-word;
 }
 
+.report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.report-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  text-align: left;
+  width: 100%;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: var(--bg-deep);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.report-row:hover,
+.report-row.active {
+  border-color: var(--accent, #3d9cf0);
+}
+
+.report-preview-frame {
+  width: 100%;
+  min-height: 220px;
+  height: 240px;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius);
+  background: #0f1419;
+  margin-top: 0.4rem;
+}
+
 .kv {
   display: grid;
   grid-template-columns: auto 1fr;

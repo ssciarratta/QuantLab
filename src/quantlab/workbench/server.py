@@ -19,6 +19,8 @@ from quantlab.workbench.api import (
     handle_get_lab_capabilities,
     handle_get_lab_experiments,
     handle_get_lab_metrics,
+    handle_get_lab_report,
+    handle_get_lab_reports,
     handle_get_lab_strategies,
     handle_get_lab_validation,
     handle_get_layout,
@@ -180,6 +182,16 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/validation":
                     self._send_json(handle_get_lab_validation(state))
+                    return
+                if path == "/api/lab/reports":
+                    self._send_json(handle_get_lab_reports(state))
+                    return
+                if path.startswith("/api/lab/reports/"):
+                    report_id = unquote(path[len("/api/lab/reports/") :]).strip("/")
+                    if not report_id or "/" in report_id:
+                        self._send_error_json(400, "report_id inválido")
+                        return
+                    self._send_json(handle_get_lab_report(state, report_id))
                     return
                 if path == "/api/chat/tools":
                     self._send_json(handle_get_chat_tools(state))

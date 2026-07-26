@@ -110,6 +110,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openReports() {
+    const pane = QLPanes.createReportsPane();
+    wm.open("reports", "Reports", pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
+    pane.refresh().catch(function () {});
+  }
+
   function openExperiments() {
     const pane = QLPanes.createExperimentsPane();
     wm.open(
@@ -180,6 +186,7 @@
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,
+    reports: openReports,
     experiments: openExperiments,
     optimize: openOptimize,
     montecarlo: openMonteCarlo,

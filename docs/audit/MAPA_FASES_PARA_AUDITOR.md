@@ -2,7 +2,7 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.20.0 (F28) · F27 INTERNAL 0.19.0 · F26 INTERNAL 0.18.0  
+**Código actual:** 0.21.0 (F29) · F28 INTERNAL 0.20.0 · F27 INTERNAL 0.19.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
 **Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` (**APROBADO_INTERNO**)  
@@ -10,24 +10,27 @@
 **Noche F19–F26:** `docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md` (**APROBADO_INTERNO**)  
 **Noche F19–F27:** `docs/audit/INTERNAL_AUDIT_F19_F27_NIGHT.md` (**APROBADO_INTERNO**)  
 **Noche F19–F28:** `docs/audit/INTERNAL_AUDIT_F19_F28_NIGHT.md` (**APROBADO_INTERNO**)  
+**Noche F19–F29:** `docs/audit/INTERNAL_AUDIT_F19_F29_NIGHT.md` (**APROBADO_INTERNO**)  
 **F23:** `docs/audit/INTERNAL_AUDIT_F23.md` (**APROBADO_INTERNO**)  
 **F24:** `docs/audit/INTERNAL_AUDIT_F24.md` (**APROBADO_INTERNO**)  
 **F25:** `docs/audit/INTERNAL_AUDIT_F25.md` (**APROBADO_INTERNO**)  
 **F26:** `docs/audit/INTERNAL_AUDIT_F26.md` (**APROBADO_INTERNO**)  
 **F27:** `docs/audit/INTERNAL_AUDIT_F27.md` (**APROBADO_INTERNO**)  
-**F28:** `docs/audit/INTERNAL_AUDIT_F28.md` (**APROBADO_INTERNO**)
+**F28:** `docs/audit/INTERNAL_AUDIT_F28.md` (**APROBADO_INTERNO**)  
+**F29:** `docs/audit/INTERNAL_AUDIT_F29.md` (**APROBADO_INTERNO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
 > **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
 > **F21** = Lab Panels; **F22** = Chat IA; **F23** = Paper Book + sesión + risk;  
 > **F24** = venue plugins + MD read-only; **F25** = Ops Desk 1-click + hardening;  
 > **F26** = Paper Session Runner; **F27** = Strategy Catalog;  
-> **F28** = Layout persistence + Journal viewer.  
+> **F28** = Layout persistence + Journal viewer;  
+> **F29** = Report Viewer + Metrics History.  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
 
-## Tabla F0–F28 (verificar certificados)
+## Tabla F0–F29 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -60,6 +63,7 @@
 | **26** | **Paper Session Runner** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F26.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **27** | **Strategy Catalog** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F27.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **28** | **Layout + Journal** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F28.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **29** | **Report Viewer + Metrics History** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F29.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -498,10 +502,55 @@ Versión código F28: **0.20.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 29 — Report Viewer + Metrics History
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_29_REPORTS.md` |
+| Implementation report | `docs/audit/FASE_29_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F29.md` |
+| Review Package INTERNAL | `docs/audit/FASE_29_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F29.md` |
+| Noche F19–F29 | `docs/audit/INTERNAL_AUDIT_F19_F29_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 29** |
+
+**Certificado externo:** **NO** emitido (`FASE_29_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F29 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Persist reports | `workbench/reports.py` |
+| A2 | Session `reports_dir` | `workbench/session.py` |
+| A3 | Backtest wire | `lab_services.run_lab_backtest` |
+| A4 | `GET /api/lab/reports` + `/{id}` | `api.py` + `server.py` |
+| A5 | Panel Reports | `static/js/panes/reports.js` |
+| A6 | LIVE gate | `execution/live_gate.py` |
+| A7 | DEC-073 | `learning/decisiones.txt` |
+| A8 | Suite F29 | `tests/unit/workbench/test_reports_f29.py` |
+| A9 | Smoke F29 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F29 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F29: **0.21.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F28 **APROBADO_INTERNO**.  
-2. QuantLab v0.20.0: Layout MDI persistido + Journal fills/CSV sobre paper session.  
-3. **LIVE sigue BLOQUEADO**; layout fail-closed; Journal solo lectura fills paper.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F28 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F29 **APROBADO_INTERNO**.  
+2. QuantLab v0.21.0: Report Viewer + Metrics History (session `reports/` + API + UI).  
+3. **LIVE sigue BLOQUEADO**; report_id fail-closed; persistencia solo tras backtest lab.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F29 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

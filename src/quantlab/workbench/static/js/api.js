@@ -144,6 +144,12 @@
     labExportHb: function (body) {
       return request("POST", "/api/lab/export-hb", body || {});
     },
+    labReports: function () {
+      return request("GET", "/api/lab/reports");
+    },
+    labReport: function (reportId) {
+      return request("GET", "/api/lab/reports/" + encodeURIComponent(reportId));
+    },
     chat: function (message) {
       return request("POST", "/api/chat", { message: message });
     },

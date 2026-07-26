@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.21.0] — 2026-07-26
+
+### Fase 29 — Report Viewer + Metrics History
+
+#### Added
+- `workbench/reports.py` — persist MetricsResult/summary (+ HTML ReportGenerator) en session `reports/`
+- API `GET /api/lab/reports`, `GET /api/lab/reports/{id}` (POST implícito en backtest)
+- Panel UI Reports: lista + preview HTML|JSON
+- Tests `test_reports_f29.py` · DEC-073
+- Docs: `FASE_29_REPORTS.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); report_id fail-closed (charset / sandbox)
+
+---
+
 ## [0.20.0] — 2026-07-26
 
 ### Fase 28 — Workbench Layout Persistence + Journal Viewer

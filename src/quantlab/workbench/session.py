@@ -75,10 +75,15 @@ class WorkbenchSession:
     def layout_path(self) -> Path:
         return self._root / "layout.json"
 
+    @property
+    def reports_dir(self) -> Path:
+        return self._root / "reports"
+
     def ensure_layout(self) -> None:
         self._root.mkdir(parents=True, exist_ok=True)
         self.experiments_dir.mkdir(parents=True, exist_ok=True)
         self.exports_dir.mkdir(parents=True, exist_ok=True)
+        self.reports_dir.mkdir(parents=True, exist_ok=True)
         if not self.journal_path.exists():
             self.journal_path.touch()
         if not self.chat_audit_path.exists():
@@ -123,6 +128,7 @@ class WorkbenchSession:
             "layout": str(self.layout_path),
             "experiments": str(self.experiments_dir),
             "exports": str(self.exports_dir),
+            "reports": str(self.reports_dir),
             "chat_audit": str(self.chat_audit_path),
             "meta_payload": meta,
         }

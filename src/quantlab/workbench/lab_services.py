@@ -115,6 +115,12 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "method": "GET",
         "path": "/api/lab/strategies",
     },
+    {
+        "id": "reports",
+        "label": "Reports / Metrics history",
+        "method": "GET",
+        "path": "/api/lab/reports",
+    },
     {"id": "health", "label": "Health / Mode", "method": "GET", "path": "/api/health"},
     {"id": "market", "label": "Market Data", "method": "GET", "path": "/api/broker/snapshot"},
     {"id": "blotter", "label": "Paper Blotter", "method": "POST", "path": "/api/paper/submit"},
@@ -171,8 +177,13 @@ def run_lab_backtest(
     params: dict[str, Any] | None = None,
     n_bars: int = 24,
     experiment_id: str = "wb-lab-backtest",
+    reports_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """Corre BarBacktester 5A sobre barras sintéticas."""
+    """Corre BarBacktester 5A sobre barras sintéticas.
+
+    Si ``reports_dir`` está set, persiste MetricsResult/summary (+ HTML) en
+    sesión (F29 Report Viewer / Metrics History).
+    """
     experiment_id = validate_experiment_id(experiment_id)
     if n_bars < 4 or n_bars > 120:
         raise ValidationError("n_bars debe estar entre 4 y 120")
@@ -209,6 +220,18 @@ def run_lab_backtest(
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
     }
+    if reports_dir is not None:
+        from quantlab.workbench.reports import persist_backtest_report
+
+        persisted = persist_backtest_report(
+            reports_dir,
+            metrics=result.metrics,
+            simulation=result.simulation,
+            summary=summary,
+        )
+        summary["report_id"] = persisted["report_id"]
+        summary["report_path"] = persisted["path"]
+        summary["report_has_html"] = persisted["has_html"]
     converted = to_jsonable(summary)
     if not isinstance(converted, dict):
         raise ValidationError("serialización backtest inválida")
