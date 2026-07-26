@@ -1,6 +1,20 @@
-/** Panel Paper Blotter. */
+/** Panel Paper Blotter + PnL header (F67). */
 (function (global) {
   "use strict";
+
+  function formatPnlHeader(pnl) {
+    if (!pnl) return "PnL —";
+    return (
+      "realized " +
+      (pnl.realized != null ? pnl.realized : "—") +
+      " · unrealized " +
+      (pnl.unrealized != null ? pnl.unrealized : "—") +
+      " · equity " +
+      (pnl.equity != null ? pnl.equity : "—") +
+      " · cash " +
+      (pnl.cash != null ? pnl.cash : "—")
+    );
+  }
 
   function createBlotterPane() {
     const root = document.createElement("div");
@@ -8,8 +22,8 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Cuenta</h3>" +
-      '<p class="mono" id="bl-equity">equity —</p>' +
+      "<h3>Cuenta / PnL</h3>" +
+      '<p class="mono" id="bl-equity">PnL —</p>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Enviar orden paper</h3>" +
@@ -42,13 +56,18 @@
 
     async function refreshEquity() {
       try {
-        const data = await QLApi.paperBook();
-        const acct = data.account || {};
-        const eq = acct.equity != null ? acct.equity : "—";
-        const cash = acct.cash != null ? acct.cash : "—";
-        equityEl.textContent = "cash " + cash + " · equity " + eq;
+        const pnl = await QLApi.paperPnl();
+        equityEl.textContent = formatPnlHeader(pnl);
       } catch (err) {
-        equityEl.textContent = "equity —";
+        try {
+          const data = await QLApi.paperBook();
+          const acct = data.account || {};
+          const eq = acct.equity != null ? acct.equity : "—";
+          const cash = acct.cash != null ? acct.cash : "—";
+          equityEl.textContent = "cash " + cash + " · equity " + eq;
+        } catch (_err2) {
+          equityEl.textContent = "PnL —";
+        }
       }
     }
 
@@ -114,12 +133,7 @@
         ackEl.textContent =
           (ack.status || "?") + " · " + (ack.order_id || "") + " · " + (ack.message || "");
         ackEl.className = "mono status-ok";
-        if (res.account && res.account.equity != null) {
-          equityEl.textContent =
-            "cash " + res.account.cash + " · equity " + res.account.equity;
-        } else {
-          await refreshEquity();
-        }
+        await refreshEquity();
         await refreshFills();
       } catch (err) {
         ackEl.textContent = "Error: " + err.message;

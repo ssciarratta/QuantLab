@@ -1,4 +1,4 @@
-/** Panel Posiciones paper (book + MTM) + equity curve (F66). */
+/** Panel Posiciones paper (book + MTM) + PnL (F67) + equity curve (F66). */
 (function (global) {
   "use strict";
 
@@ -56,7 +56,8 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Cuenta paper</h3>" +
-      '<p class="muted" style="margin-top:0">Cash + equity MTM desde PaperBook (sesión durable).</p>' +
+      '<p class="muted" style="margin-top:0">Cash + equity MTM + PnL (GET /api/paper/pnl).</p>' +
+      '<p class="mono" id="pos-pnl-header">PnL —</p>' +
       '<dl class="kv" id="pos-acct"></dl>' +
       '<div class="pane-row">' +
       '<button type="button" class="btn secondary" id="pos-refresh">Actualizar</button>' +
@@ -76,26 +77,56 @@
       "</div>";
 
     const acctEl = root.querySelector("#pos-acct");
+    const pnlHeaderEl = root.querySelector("#pos-pnl-header");
     const tableEl = root.querySelector("#pos-table");
     const sessionEl = root.querySelector("#pos-session");
     const sparkEl = root.querySelector("#pos-equity-spark");
     const countEl = root.querySelector("#pos-equity-count");
     const listEl = root.querySelector("#pos-equity-list");
 
-    function renderAcct(account) {
-      if (!account) {
+    function renderPnlHeader(pnl) {
+      if (!pnl) {
+        pnlHeaderEl.textContent = "PnL —";
+        return;
+      }
+      pnlHeaderEl.textContent =
+        "realized " +
+        (pnl.realized != null ? pnl.realized : "—") +
+        " · unrealized " +
+        (pnl.unrealized != null ? pnl.unrealized : "—") +
+        " · equity " +
+        (pnl.equity != null ? pnl.equity : "—") +
+        " · cash " +
+        (pnl.cash != null ? pnl.cash : "—");
+    }
+
+    function renderAcct(account, pnl) {
+      if (!account && !pnl) {
         acctEl.innerHTML = '<dt>estado</dt><dd class="muted">sin datos</dd>';
         return;
       }
+      const cash = (pnl && pnl.cash) || (account && account.cash) || "—";
+      const equity =
+        (pnl && pnl.equity) ||
+        (account && account.equity != null ? account.equity : null) ||
+        "—";
+      const currency =
+        (pnl && pnl.currency) || (account && account.currency) || "—";
       acctEl.innerHTML =
         "<dt>cash</dt><dd class=\"mono num\">" +
-        (account.cash || "—") +
+        cash +
         "</dd>" +
         "<dt>equity</dt><dd class=\"mono num\">" +
-        (account.equity != null ? account.equity : "—") +
+        equity +
+        "</dd>" +
+        "<dt>realized</dt><dd class=\"mono num\">" +
+        (pnl && pnl.realized != null ? pnl.realized : "—") +
+        "</dd>" +
+        "<dt>unrealized</dt><dd class=\"mono num\">" +
+        (pnl && pnl.unrealized != null ? pnl.unrealized : "—") +
         "</dd>" +
         "<dt>currency</dt><dd class=\"mono\">" +
-        (account.currency || "—") +
+        currency +
         "</dd>";
     }
 
@@ -166,7 +197,14 @@
     async function refresh() {
       const bookData = await QLApi.paperBook();
       sessionEl.textContent = "session " + (bookData.session_id || "?");
-      renderAcct(bookData.account);
+      let pnl = null;
+      try {
+        pnl = await QLApi.paperPnl();
+        renderPnlHeader(pnl);
+      } catch (err) {
+        renderPnlHeader(null);
+      }
+      renderAcct(bookData.account, pnl);
       let positions = [];
       try {
         const posData = await QLApi.positions();

@@ -62,6 +62,7 @@ from quantlab.workbench.optimizer_runs import (
 from quantlab.workbench.optimizer_runs import (
     validate_run_id as validate_optimizer_run_id,
 )
+from quantlab.workbench.paper_pnl import pnl_from_book, pnl_from_broker
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
 from quantlab.workbench.presets import apply_preset, list_presets
 from quantlab.workbench.probes import livez_payload, readyz_payload
@@ -1687,6 +1688,19 @@ def handle_get_paper_equity(state: WorkbenchState, query: str = "") -> dict[str,
         raise ApiError(400, str(exc)) from exc
     payload["session_id"] = session.session_id
     payload["limit"] = clamp_equity_limit(limit)
+    return payload
+
+
+def handle_get_paper_pnl(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/paper/pnl — realized/unrealized/equity/cash desde book + marks (F67)."""
+    session = state.ensure_session()
+    session.ensure_layout()
+    book = state.ensure_book()
+    if state.broker is not None and isinstance(state.broker, PaperBroker):
+        payload = pnl_from_broker(state.broker)
+    else:
+        payload = pnl_from_book(book)
+    payload["session_id"] = session.session_id
     return payload
 
 

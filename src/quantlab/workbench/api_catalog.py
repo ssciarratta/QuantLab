@@ -65,6 +65,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/paper/fills", "GET", "Paper fills journal", ("paper",)),
     ApiRoute("/api/paper/fills.csv", "GET", "Paper fills journal as CSV download", ("paper",)),
     ApiRoute("/api/paper/equity", "GET", "Paper equity curve snapshots (JSONL)", ("paper",)),
+    ApiRoute(
+        "/api/paper/pnl",
+        "GET",
+        "Paper PnL summary (realized/unrealized/equity/cash)",
+        ("paper",),
+    ),
     ApiRoute("/api/paper/submit", "POST", "Submit paper order (simulated fills)", ("paper",)),
     ApiRoute("/api/paper/session/status", "GET", "Paper session runner status", ("paper",)),
     ApiRoute("/api/paper/session/start", "POST", "Start paper session runner", ("paper",)),

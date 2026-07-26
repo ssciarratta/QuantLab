@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.59.0] — 2026-07-26
+
+### Fase 67 — Paper PnL Summary
+
+#### Added
+- `PaperBook.get_pnl` — realized/unrealized/equity/cash desde book + marks
+- `GET /api/paper/pnl` — marks PaperBroker (mid/last) o avg fallback
+- Headers PnL en Positions y Blotter
+- Suite `tests/unit/workbench/test_paper_pnl_f67.py`
+- Docs: `FASE_67_PNL.md` · implementation report · DEC-111
+- Bundle INTERNAL default F19–F67
+
+#### Changed
+- `phases_summary` → `F19–F67 INTERNAL`
+- Bump **0.59.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_67_APPROVED.md`
+
+---
+
 ## [0.58.0] — 2026-07-26
 
 ### Fase 66 — Equity Curve Snapshot
@@ -48,6 +69,7 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - `GET /api/paper/fills.csv` — `text/csv` de fills del journal paper (attachment)
 - `PaperFillJournal.export_csv` / `fills_to_csv` — header estable + escape CSV
 - Botón **Descargar CSV** en Blotter y Journal (`QLApi.paperFillsCsvUrl`)
+
 - Suite `tests/unit/workbench/test_fills_csv_f65.py`
 - Docs: `FASE_65_BLOTTER_CSV.md` · implementation report · DEC-109
 - Bundle INTERNAL default F19–F65

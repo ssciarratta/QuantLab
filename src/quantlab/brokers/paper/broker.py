@@ -124,11 +124,19 @@ class PaperBroker:
         return self._md.get_snapshot(symbol)
 
     def get_account(self) -> BrokerAccount:
-        marks = self._mark_prices()
+        marks = self.mark_prices()
         return self._book.get_account(marks)
 
     def get_positions(self) -> list[BrokerPosition]:
         return self._book.get_positions()
+
+    def mark_prices(self) -> dict[str, Decimal]:
+        """Marks MTM por símbolo abierto (mid/last MD; fallback avg)."""
+        return self._mark_prices()
+
+    def get_pnl(self) -> dict[str, Decimal]:
+        """PnL summary realized/unrealized/equity/cash con marks MD (F67)."""
+        return self._book.get_pnl(self.mark_prices())
 
     def submit(self, intent: OrderIntent) -> BrokerAck:
         if intent.intent_type is IntentType.NO_ACTION:

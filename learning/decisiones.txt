@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-111 — Paper PnL Summary
+  Decisión: F67 = PaperBook.get_pnl (realized/unrealized/equity/cash)
+  desde book + marks; GET /api/paper/pnl (marks PaperBroker mid/last
+  o avg fallback); headers PnL en Positions y Blotter; suite
+  test_paper_pnl_f67.py; bump 0.59.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_67_APPROVED.
+  Fase: 67.
+
 [2026-07-26] DEC-110 — Equity Curve Snapshot
   Decisión: F66 = equity.jsonl append-only (ts, equity, cash) al aplicar
   fills paper (on_book_change) y en cada paper session step (on_step);

@@ -130,6 +130,34 @@ class PaperBook:
         equity = self._cash + mtm
         return BrokerAccount(cash=self._cash, currency=self._currency, equity=equity)
 
+    def get_pnl(self, mark_prices: dict[str, Decimal] | None = None) -> dict[str, Decimal]:
+        """PnL summary: realized / unrealized / equity / cash (F67).
+
+        Convención (sin fees en PnL bruto, alineado TD-17):
+        - ``cost`` = Σ(qty × avg_price) de posiciones abiertas
+        - ``mtm`` = Σ(qty × mark) (fallback avg)
+        - ``unrealized`` = mtm − cost
+        - ``realized`` = cash + cost − initial_cash
+        - ``equity`` = cash + mtm = initial_cash + realized + unrealized
+        """
+        marks = mark_prices or {}
+        cost = Decimal("0")
+        mtm = Decimal("0")
+        for sym, (qty, avg) in self._positions.items():
+            mark = marks.get(sym, avg)
+            cost += qty * avg
+            mtm += qty * mark
+        unrealized = mtm - cost
+        realized = self._cash + cost - self._initial_cash
+        equity = self._cash + mtm
+        return {
+            "cash": self._cash,
+            "equity": equity,
+            "realized": realized,
+            "unrealized": unrealized,
+            "initial_cash": self._initial_cash,
+        }
+
     def to_dict(self) -> dict[str, Any]:
         positions: dict[str, dict[str, str]] = {}
         for sym, (qty, avg) in sorted(self._positions.items()):

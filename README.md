@@ -56,9 +56,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F64 | Backups Panel UI · **APROBADO_INTERNO** · v0.56.0 |
 | F65 | Blotter CSV Server Export · **APROBADO_INTERNO** · v0.57.0 |
 | F66 | Equity Curve Snapshot · **APROBADO_INTERNO** · v0.58.0 |
+| F67 | Paper PnL Summary · **APROBADO_INTERNO** · v0.59.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Noche F19–F66](docs/audit/INTERNAL_AUDIT_F19_F66_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Noche F19–F67](docs/audit/INTERNAL_AUDIT_F19_F67_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

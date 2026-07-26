@@ -116,6 +116,9 @@
         limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=200";
       return request("GET", "/api/paper/equity" + q);
     },
+    paperPnl: function () {
+      return request("GET", "/api/paper/pnl");
+    },
     session: function () {
       return request("GET", "/api/session");
     },

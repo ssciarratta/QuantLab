@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 67 — Paper PnL Summary
+-------------------------------------------------------
+- v0.59.0 · DEC-111 · LIVE_BLOCKED intacto · sin FASE_67_APPROVED.
+- PaperBook.get_pnl; GET /api/paper/pnl; headers Positions/Blotter;
+  suite test_paper_pnl_f67.py.
+- Smoke F67; bundle F19–F67.
+- Noche F19–F67 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 66 — Equity Curve Snapshot
 -------------------------------------------------------
 - v0.58.0 · DEC-110 · LIVE_BLOCKED intacto · sin FASE_66_APPROVED.

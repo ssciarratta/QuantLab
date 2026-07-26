@@ -872,6 +872,19 @@
 **Spec:** `docs/FASE_66_EQUITY.md`  
 **Implementation report:** `docs/audit/FASE_66_IMPLEMENTATION_REPORT.md`
 
+### Fase 67 — Paper PnL Summary
+**Alcance:**
+- `PaperBook.get_pnl` — realized/unrealized/equity/cash desde book + marks
+- `GET /api/paper/pnl` — marks broker o avg fallback
+- Headers PnL en Positions y Blotter
+- DEC-111; bump 0.59.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F67.md`, 2026-07-26) — certificado externo `FASE_67_APPROVED.md` **NO emitido**  
+**Versión:** 0.59.0  
+**Noche F19–F67:** `docs/audit/INTERNAL_AUDIT_F19_F67_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_67_PNL.md`  
+**Implementation report:** `docs/audit/FASE_67_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -916,6 +929,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F65 **APROBADO_INTERNO** (noche F19–F65; freeze v0.40 + v0.50).  
+1. F0–F18 certificados externos; F19–F67 **APROBADO_INTERNO** (noche F19–F67; freeze v0.40 + v0.50).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

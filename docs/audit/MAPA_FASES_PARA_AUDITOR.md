@@ -2106,3 +2106,41 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F66: **0.58.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 67 — Paper PnL Summary
+
+**Código:** 0.59.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Resumen PnL paper (realized/unrealized/equity/cash) desde `PaperBook` + marks; `GET /api/paper/pnl`; headers en Positions y Blotter.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_67_PNL.md` |
+| Implementation report | `docs/audit/FASE_67_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F67.md` |
+| Noche F19–F67 | `docs/audit/INTERNAL_AUDIT_F19_F67_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 67** |
+| DEC | DEC-111 |
+
+### Lista A F67 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | PaperBook.get_pnl | `brokers/paper/book.py` |
+| A2 | GET pnl | `/api/paper/pnl` · `paper_pnl.py` |
+| A3 | UI headers | `positions.js` · `blotter.js` |
+| A4 | Suite | `tests/unit/workbench/test_paper_pnl_f67.py` |
+| A5 | Version 0.59.0 | `pyproject.toml` |
+
+### Lista B F67 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F67: **0.59.0** · LIVE: **BLOQUEADO** · flip: **NO**.
