@@ -86,7 +86,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 56 | Security Headers | 0.48.0 | `6246a74` |
 | 57 | Content-Security-Policy | 0.49.0 | `fbb0355` |
 | 58 | Milestone Freeze Docs + CHANGELOG (v0.50) | 0.50.0 | `7f6c440` |
-| 59 | A11y Basics (focus + aria) | 0.51.0 | *(tip)* |
+| 59 | A11y Basics (focus + aria) | 0.51.0 | `6a1823a` |
 
 ---
 

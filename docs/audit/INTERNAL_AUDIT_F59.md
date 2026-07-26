@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Código tip:** *(post-commit)* · **v0.51.0** · F59 A11y Basics  
+**Código tip:** `6a1823a` · **v0.51.0** · F59 A11y Basics  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado  
 **Certificado externo:** `FASE_59_APPROVED.md` **NO** emitido
 
