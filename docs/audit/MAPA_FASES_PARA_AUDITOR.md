@@ -1874,3 +1874,42 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F60: **0.52.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 61 — Workbench Request Access Log
+
+**Código:** 0.53.0 · branch `cursor/modo-real-workbench-aafd`  
+**Qué es:** Access log HTTP append-only por sesión (`access.jsonl`: method, path, status, ms) sin bodies/secrets; settings `access_log` default true; `GET /api/access-log?limit=100`; middleware server.
+
+| Artefacto | Path |
+|-----------|------|
+| Spec | `docs/FASE_61_ACCESS_LOG.md` |
+| Implementation report | `docs/audit/FASE_61_IMPLEMENTATION_REPORT.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F61.md` |
+| Noche F19–F61 | `docs/audit/INTERNAL_AUDIT_F19_F61_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 61** |
+| DEC | DEC-105 |
+
+### Lista A F61 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | AccessLog module | `workbench/access_log.py` |
+| A2 | Session + ZIP | `access.jsonl` |
+| A3 | Settings toggle | `settings.access_log` |
+| A4 | API + middleware | `/api/access-log` · `server.py` |
+| A5 | Suite access log | `tests/unit/workbench/test_access_log_f61.py` |
+| A6 | Version 0.53.0 | `pyproject.toml` |
+
+### Lista B F61 (QA)
+
+```bash
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F61: **0.53.0** · LIVE: **BLOQUEADO** · flip: **NO**.

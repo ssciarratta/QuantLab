@@ -128,6 +128,11 @@
         limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";
       return request("GET", "/api/activity" + q);
     },
+    getAccessLog: function (limit) {
+      const q =
+        limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";
+      return request("GET", "/api/access-log" + q);
+    },
     getOpsMetrics: function () {
       return request("GET", "/api/ops/metrics");
     },

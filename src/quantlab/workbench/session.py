@@ -127,6 +127,10 @@ class WorkbenchSession:
         return self._root / "activity.jsonl"
 
     @property
+    def access_path(self) -> Path:
+        return self._root / "access.jsonl"
+
+    @property
     def layout_path(self) -> Path:
         return self._root / "layout.json"
 
@@ -173,6 +177,8 @@ class WorkbenchSession:
             self.chat_audit_path.touch()
         if not self.activity_path.exists():
             self.activity_path.touch()
+        if not self.access_path.exists():
+            self.access_path.touch()
 
     def load_meta(self) -> dict[str, Any]:
         if not self.meta_path.exists():
@@ -222,6 +228,7 @@ class WorkbenchSession:
             "montecarlo": str(self.montecarlo_dir),
             "chat_audit": str(self.chat_audit_path),
             "activity": str(self.activity_path),
+            "access": str(self.access_path),
             "meta_payload": meta,
         }
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import mimetypes
+import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
     handle_get_about,
+    handle_get_access_log,
     handle_get_account,
     handle_get_activity,
     handle_get_catalog,
@@ -84,6 +86,7 @@ from quantlab.workbench.api import (
     handle_put_layout,
     handle_put_settings,
     handle_put_watchlist,
+    record_http_access,
 )
 from quantlab.workbench.rate_limit import rate_limit_error_payload
 from quantlab.workbench.security_headers import (
@@ -194,6 +197,28 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             # Silencioso en tests; útil en CLI vía print override opcional.
             pass
 
+        def _begin_access(self, method: str, path: str) -> None:
+            """F61: marca inicio de request para access.jsonl."""
+            self._ql_access_t0 = time.perf_counter()
+            self._ql_access_method = method
+            self._ql_access_path = path
+            self._ql_access_logged = False
+
+        def _finish_access(self, status: int) -> None:
+            """F61: append method/path/status/ms (sin bodies/secrets)."""
+            if getattr(self, "_ql_access_logged", False):
+                return
+            self._ql_access_logged = True
+            t0 = getattr(self, "_ql_access_t0", None)
+            ms = round((time.perf_counter() - t0) * 1000.0, 3) if t0 is not None else 0.0
+            record_http_access(
+                state,
+                method=str(getattr(self, "_ql_access_method", self.command or "GET")),
+                path=str(getattr(self, "_ql_access_path", getattr(self, "_ql_path", "/"))),
+                status=int(status),
+                ms=ms,
+            )
+
         def _apply_security_headers(self, path: str) -> None:
             """F56/F57: nosniff / DENY / no-referrer / CSP; no-store en /api/*; CORS fail-closed."""
             for name, value in SECURITY_HEADERS.items():
@@ -216,6 +241,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
+            self._finish_access(status)
 
         def _send_download(
             self, body: bytes, *, filename: str, content_type: str, path: str | None = None
@@ -228,6 +254,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
+            self._finish_access(200)
 
         def _send_json(self, payload: dict[str, Any], status: int = 200) -> None:
             st, body, ctype = _json_bytes(payload, status)
@@ -251,12 +278,14 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self.send_header("Retry-After", str(retry))
             self.end_headers()
             self.wfile.write(body)
+            self._finish_access(429)
             return False
 
         def do_GET(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path
             self._ql_path = path
+            self._begin_access("GET", path)
             if not self._check_rate_limit(path):
                 return
 
@@ -316,6 +345,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/activity":
                     self._send_json(handle_get_activity(state, parsed.query))
+                    return
+                if path == "/api/access-log":
+                    self._send_json(handle_get_access_log(state, parsed.query))
                     return
                 if path == "/api/ops/metrics":
                     self._send_json(handle_get_ops_metrics(state))
@@ -469,6 +501,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             parsed = urlparse(self.path)
             path = parsed.path
             self._ql_path = path
+            self._begin_access("POST", path)
             if not self._check_rate_limit(path):
                 return
             try:
@@ -557,6 +590,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             parsed = urlparse(self.path)
             path = parsed.path
             self._ql_path = path
+            self._begin_access("PUT", path)
             if not self._check_rate_limit(path):
                 return
             try:

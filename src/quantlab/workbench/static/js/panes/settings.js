@@ -21,6 +21,9 @@
       '<option value="es">es</option>' +
       '<option value="en">en</option>' +
       "</select></label>" +
+      '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
+      '<input id="set-access-log" type="checkbox" checked /> Access log (access.jsonl)' +
+      "</label>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn" id="set-save" data-i18n="btn.save">Guardar</button>' +
       '<button type="button" class="btn secondary" id="set-refresh" data-i18n="btn.refresh">Recargar</button>' +
@@ -58,6 +61,7 @@
     const strategyEl = root.querySelector("#set-strategy");
     const slipEl = root.querySelector("#set-slip");
     const localeEl = root.querySelector("#set-locale");
+    const accessLogEl = root.querySelector("#set-access-log");
     const statusEl = root.querySelector("#set-status");
     const metaEl = root.querySelector("#set-meta");
     const zipStatusEl = root.querySelector("#set-zip-status");
@@ -106,6 +110,7 @@
       venueEl.value = s.default_venue || "paper";
       slipEl.value = s.slippage_bps != null ? String(s.slippage_bps) : "0";
       localeEl.value = s.locale === "en" ? "en" : "es";
+      accessLogEl.checked = s.access_log !== false;
       fillStrategies(
         (data.strategy_ids || []).length
           ? data.strategy_ids
@@ -161,6 +166,7 @@
         default_strategy: strategyEl.value,
         slippage_bps: slipEl.value.trim() || "0",
         locale: localeEl.value === "en" ? "en" : "es",
+        access_log: !!accessLogEl.checked,
       };
       const data = await QLApi.putSettings(body);
       render(data);

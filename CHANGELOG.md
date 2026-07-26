@@ -19,6 +19,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.53.0] — 2026-07-26
+
+### Fase 61 — Workbench Request Access Log
+
+#### Added
+- `workbench/access_log.py` — `AccessLog` JSONL append-only (method, path, status, ms)
+- Session `access.jsonl` (+ ZIP export F39)
+- Settings `access_log: true` (default) · checkbox UI
+- Middleware server `_begin_access` / `_finish_access`
+- `GET /api/access-log?limit=100` · OpenAPI catalog
+- Suite `tests/unit/workbench/test_access_log_f61.py`
+- Docs: `FASE_61_ACCESS_LOG.md` · implementation report · DEC-105
+- Bundle INTERNAL default F19–F61
+
+#### Changed
+- `phases_summary` → `F19–F61 INTERNAL`
+- Bump **0.53.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_61_APPROVED.md`; sin bodies/secrets en el log
+
+---
+
 ## [0.52.0] — 2026-07-26
 
 ### Fase 60 — i18n Scaffold (es default)

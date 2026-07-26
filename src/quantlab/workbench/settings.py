@@ -1,6 +1,6 @@
-"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36.
+"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61.
 
-Campos: theme, default_venue, default_strategy, slippage_bps, locale.
+Campos: theme, default_venue, default_strategy, slippage_bps, locale, access_log.
 Sin LIVE / auth WAN.
 """
 
@@ -23,13 +23,14 @@ DEFAULT_VENUE = "paper"
 DEFAULT_STRATEGY = "momentum"
 DEFAULT_SLIPPAGE_BPS = Decimal("0")
 DEFAULT_LOCALE = "es"
+DEFAULT_ACCESS_LOG = True
 
 _VENUE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,31}$")
 _MAX_SLIPPAGE_BPS = Decimal("9999.9999")
 
 
 def default_settings() -> dict[str, Any]:
-    """Settings canónicos por defecto (locale es)."""
+    """Settings canónicos por defecto (locale es · access_log on)."""
     return {
         "version": SETTINGS_VERSION,
         "theme": DEFAULT_THEME,
@@ -37,6 +38,7 @@ def default_settings() -> dict[str, Any]:
         "default_strategy": DEFAULT_STRATEGY,
         "slippage_bps": str(DEFAULT_SLIPPAGE_BPS),
         "locale": DEFAULT_LOCALE,
+        "access_log": DEFAULT_ACCESS_LOG,
     }
 
 
@@ -112,6 +114,10 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
             f"settings.locale inválido: {locale!r} (válidos: es|en; default es)"
         )
 
+    access_log_raw = payload.get("access_log", DEFAULT_ACCESS_LOG)
+    if not isinstance(access_log_raw, bool):
+        raise ValidationError("settings.access_log debe ser bool")
+
     venue = _validate_venue(payload.get("default_venue", DEFAULT_VENUE))
     strategy = _validate_strategy(payload.get("default_strategy", DEFAULT_STRATEGY))
     slip = _parse_slippage(payload.get("slippage_bps", DEFAULT_SLIPPAGE_BPS))
@@ -123,6 +129,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
         "default_strategy": strategy,
         "slippage_bps": format(slip, "f"),
         "locale": locale,
+        "access_log": access_log_raw,
     }
 
 

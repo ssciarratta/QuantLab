@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 61 — Workbench Request Access Log
+-------------------------------------------------------
+- v0.53.0 · DEC-105 · LIVE_BLOCKED intacto · sin FASE_61_APPROVED.
+- access.jsonl append-only (method/path/status/ms); settings.access_log default true;
+  GET /api/access-log; middleware server; ZIP incluye access.jsonl.
+- Suite test_access_log_f61.py; smoke F61; bundle F19–F61.
+- Noche F19–F61 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 60 — i18n Scaffold (es default)
 -------------------------------------------------------
 - v0.52.0 · DEC-104 · LIVE_BLOCKED intacto · sin FASE_60_APPROVED.

@@ -27,6 +27,8 @@ from quantlab.infra.health import run_health_checks
 from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.about import build_about_payload
+from quantlab.workbench.access_log import AccessLog, list_access_log
+from quantlab.workbench.access_log import clamp_limit as clamp_access_limit
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.api_catalog import openapi_payload
 from quantlab.workbench.catalog_browser import list_catalog_datasets
@@ -351,6 +353,54 @@ def handle_get_activity(state: WorkbenchState, query: str = "") -> dict[str, Any
     payload["session_id"] = session.session_id
     payload["limit"] = clamp_limit(limit)
     return payload
+
+
+def handle_get_access_log(state: WorkbenchState, query: str = "") -> dict[str, Any]:
+    """GET /api/access-log?limit=100 — últimos requests HTTP de sesión (F61)."""
+    session = state.ensure_session()
+    session.ensure_layout()
+    params = parse_qs(query, keep_blank_values=False)
+    limit: int | None = None
+    raw_limit = params.get("limit")
+    if raw_limit and raw_limit[0].strip():
+        try:
+            limit = int(raw_limit[0].strip())
+        except ValueError as exc:
+            raise ApiError(400, "limit debe ser int") from exc
+    try:
+        payload = list_access_log(session.access_path, limit=limit)
+        settings = load_settings(session.settings_path)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload["session_id"] = session.session_id
+    payload["limit"] = clamp_access_limit(limit)
+    payload["access_log_enabled"] = bool(settings.get("access_log", True))
+    return payload
+
+
+def record_http_access(
+    state: WorkbenchState,
+    *,
+    method: str,
+    path: str,
+    status: int,
+    ms: float,
+) -> None:
+    """Append-only a ``access.jsonl`` si settings.access_log (best-effort)."""
+    try:
+        session = state.ensure_session()
+        session.ensure_layout()
+        settings = load_settings(session.settings_path)
+        if settings.get("access_log", True) is not True:
+            return
+        AccessLog(session.access_path).append(
+            method=method,
+            path=path,
+            status=status,
+            ms=ms,
+        )
+    except Exception:  # noqa: BLE001 — access log nunca debe tumbar la API
+        return
 
 
 def handle_get_ops_metrics(state: WorkbenchState) -> dict[str, Any]:
@@ -796,7 +846,7 @@ def handle_get_docs_content(state: WorkbenchState, query: str) -> dict[str, Any]
 
 
 def handle_get_settings(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/settings — preferencias de sesión (theme/venue/strategy/slip/locale)."""
+    """GET /api/settings — preferencias (theme/venue/strategy/slip/locale/access_log)."""
     session = state.ensure_session()
     try:
         settings = load_settings(session.settings_path)
@@ -840,7 +890,15 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
         payload = body["settings"]
     elif any(
         k in body
-        for k in ("theme", "default_venue", "default_strategy", "slippage_bps", "locale", "version")
+        for k in (
+            "theme",
+            "default_venue",
+            "default_strategy",
+            "slippage_bps",
+            "locale",
+            "access_log",
+            "version",
+        )
     ):
         payload = body
     else:
@@ -856,6 +914,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "default_strategy",
             "slippage_bps",
             "locale",
+            "access_log",
         ):
             if key in payload:
                 merged[key] = payload[key]
