@@ -372,10 +372,41 @@
     });
   });
 
-  document.addEventListener("click", function () {
+  function closeStartMenu() {
     startMenu.setAttribute("hidden", "");
     startMenu.classList.add("hidden");
     startBtn.classList.remove("active");
+  }
+
+  function applyWorkspacePreset(name) {
+    if (!QLApi || !QLApi.applyPreset || !name) return;
+    QLApi.applyPreset(name)
+      .then(function (payload) {
+        if (!payload || !payload.ok || !payload.layout) return;
+        const windows = payload.layout.windows || {};
+        savedGeom = windows;
+        if (wm.closeAll) {
+          wm.closeAll({ silent: true });
+        }
+        const ids =
+          (payload.preset && payload.preset.window_ids) || Object.keys(windows);
+        ids.forEach(function (id) {
+          if (openers[id]) openers[id]();
+        });
+      })
+      .catch(function () {});
+  }
+
+  startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const name = btn.getAttribute("data-preset");
+      closeStartMenu();
+      applyWorkspacePreset(name);
+    });
+  });
+
+  document.addEventListener("click", function () {
+    closeStartMenu();
   });
 
   function tickClock() {

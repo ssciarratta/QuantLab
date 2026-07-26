@@ -1,4 +1,11 @@
 
+[2026-07-26] DEC-084 — Workspace Presets
+  Decisión: F40 = presets built-in research / trading_paper / ops;
+  GET /api/presets lista; POST /api/presets/apply {name} reemplaza
+  layout.json con ventanas del preset; UI menú Inicio → Espacios de
+  trabajo. LIVE_BLOCKED=True; sin flip; sin FASE_40_APPROVED; sin LIVE.
+  Fase: 40.
+
 [2026-07-26] DEC-083 — Session Export/Import ZIP
   Decisión: F39 = export sesión durable a ZIP research-safe (journal,
   book, layout, settings, reports, optimizer, etc.) sin secretos;

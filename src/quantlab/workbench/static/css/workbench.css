@@ -384,8 +384,8 @@ body[data-theme="high-contrast"] .top-banner {
   position: absolute;
   left: 0.4rem;
   bottom: calc(var(--status-bar-h) + var(--taskbar-h) + 0.35rem);
-  min-width: 220px;
-  max-height: min(70vh, 520px);
+  min-width: 240px;
+  max-height: min(78vh, 620px);
   overflow-y: auto;
   display: flex;
   flex-direction: column;

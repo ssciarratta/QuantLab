@@ -1056,10 +1056,61 @@ Versión código F39: **0.31.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 40 — Workspace Presets (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.32.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** presets MDI built-in (`research` / `trading_paper` / `ops`); `GET /api/presets` + `POST /api/presets/apply` reescribe `layout.json`; UI menú Inicio → Espacios de trabajo.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_40_PRESETS.md` |
+| Implementation report | `docs/audit/FASE_40_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F40.md` |
+| Review Package INTERNAL | `docs/audit/FASE_40_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F40.md` |
+| Noche F19–F40 | `docs/audit/INTERNAL_AUDIT_F19_F40_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 40** |
+
+**Certificado externo:** **NO** emitido (`FASE_40_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F40 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Presets | `workbench/presets.py` |
+| A2 | API + server | `api.py` · `server.py` |
+| A3 | Start menu Espacios | `static/index.html` · `shell.js` |
+| A4 | API client | `static/js/api.js` |
+| A5 | Spec | `docs/FASE_40_PRESETS.md` |
+| A6 | Implementation report | `docs/audit/FASE_40_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-084 | `learning/decisiones.txt` |
+| A8 | Suite F40 | `tests/unit/workbench/test_presets_f40.py` |
+| A9 | Version 0.32.0 | `pyproject.toml` |
+
+### Lista B F40 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F39 **APROBADO_INTERNO**.  
-2. QuantLab v0.31.0: Session Export/Import ZIP.  
-3. **LIVE sigue BLOQUEADO**; ZIP sin secretos · zip-slip fail-closed.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F39 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F40 **APROBADO_INTERNO**.  
+2. QuantLab v0.32.0: Workspace Presets.  
+3. **LIVE sigue BLOQUEADO**; apply preset → layout.json fail-closed.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F40 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

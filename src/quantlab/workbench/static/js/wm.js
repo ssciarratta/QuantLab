@@ -212,6 +212,18 @@
     return true;
   };
 
+  WindowManager.prototype.closeAll = function (opts) {
+    opts = opts || {};
+    const ids = Array.from(this.windows.keys());
+    for (let i = 0; i < ids.length; i++) {
+      this.close(ids[i]);
+    }
+    this.focusedId = null;
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+  };
+
   WindowManager.prototype.getFocusedId = function () {
     return this.focusedId;
   };

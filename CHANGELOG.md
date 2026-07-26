@@ -19,6 +19,38 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.32.0] — 2026-07-26
+
+### Fase 40 — Workspace Presets
+
+#### Added
+- `workbench/presets.py` — presets `research` / `trading_paper` / `ops`
+- API `GET /api/presets` + `POST /api/presets/apply`
+- Menú Inicio → Espacios de trabajo (aplica layout.json)
+- Tests `test_presets_f40.py` · DEC-084
+- Docs: `FASE_40_PRESETS.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); nombre de preset fail-closed; sin place_order venue
+
+---
+
+## [0.31.0] — 2026-07-26
+
+### Fase 39 — Session Export/Import ZIP
+
+#### Added
+- `workbench/session_zip.py` — export/import ZIP sin secretos + zip-slip fail-closed
+- API `GET /api/session/export` (+ `?download=1`) + `POST /api/session/import`
+- UI Export/Import en panel Settings
+- Tests `test_session_zip_f39.py` · DEC-083
+- Docs: `FASE_39_SESSION_ZIP.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); secretos denylist; zip-slip fail-closed
+
+---
+
 ## [0.30.0] — 2026-07-26
 
 ### Fase 38 — Docs / Help Browser

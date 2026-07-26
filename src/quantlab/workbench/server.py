@@ -42,6 +42,7 @@ from quantlab.workbench.api import (
     handle_get_paper_fills,
     handle_get_paper_session_status,
     handle_get_positions,
+    handle_get_presets,
     handle_get_risk,
     handle_get_session,
     handle_get_session_export,
@@ -65,6 +66,7 @@ from quantlab.workbench.api import (
     handle_post_paper_session_step,
     handle_post_paper_session_stop,
     handle_post_paper_submit,
+    handle_post_presets_apply,
     handle_post_session_import,
     handle_put_layout,
     handle_put_settings,
@@ -221,6 +223,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/layout":
                     self._send_json(handle_get_layout(state))
+                    return
+                if path == "/api/presets":
+                    self._send_json(handle_get_presets(state))
                     return
                 if path == "/api/settings":
                     self._send_json(handle_get_settings(state))
@@ -385,6 +390,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/session/import":
                     self._send_json(handle_post_session_import(state, body))
+                    return
+                if path == "/api/presets/apply":
+                    self._send_json(handle_post_presets_apply(state, body))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

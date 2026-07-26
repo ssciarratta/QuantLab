@@ -514,6 +514,20 @@
 **Spec:** `docs/FASE_39_SESSION_ZIP.md`  
 **Implementation report:** `docs/audit/FASE_39_IMPLEMENTATION_REPORT.md`
 
+### Fase 40 — Workspace Presets
+**Módulos:**
+- `workbench/presets.py` — presets built-in research / trading_paper / ops
+- API `GET /api/presets` + `POST /api/presets/apply` → `layout.json`
+- UI menú Inicio → Espacios de trabajo; DEC-084; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F40.md`, 2026-07-26) — certificado externo `FASE_40_APPROVED.md` **NO emitido**  
+**Versión:** 0.32.0  
+**Review Package INTERNAL:** `docs/audit/FASE_40_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F40.md`  
+**Noche F19–F40:** `docs/audit/INTERNAL_AUDIT_F19_F40_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_40_PRESETS.md`  
+**Implementation report:** `docs/audit/FASE_40_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -558,6 +572,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F38 **APROBADO_INTERNO** (noche F19–F38).  
+1. F0–F18 certificados externos; F19–F40 **APROBADO_INTERNO** (noche F19–F40).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

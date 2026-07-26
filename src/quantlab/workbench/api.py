@@ -45,6 +45,7 @@ from quantlab.workbench.optimizer_runs import (
     validate_run_id as validate_optimizer_run_id,
 )
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
+from quantlab.workbench.presets import apply_preset, list_presets
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
 from quantlab.workbench.session import WorkbenchSession
@@ -366,6 +367,28 @@ def handle_put_layout(state: WorkbenchState, body: dict[str, Any]) -> dict[str, 
         "session_id": session.session_id,
         "live_blocked": LIVE_BLOCKED is True,
     }
+
+
+def handle_get_presets(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/presets — catálogo de espacios de trabajo (F40)."""
+    session = state.ensure_session()
+    payload = list_presets()
+    payload["session_id"] = session.session_id
+    return payload
+
+
+def handle_post_presets_apply(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/presets/apply — aplica preset a ``layout.json`` (F40)."""
+    session = state.ensure_session()
+    name = body.get("name")
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError(400, "body.name requerido (research|trading_paper|ops)")
+    try:
+        result = apply_preset(session.layout_path, name.strip())
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    return result
 
 
 def handle_get_onboarding(state: WorkbenchState) -> dict[str, Any]:

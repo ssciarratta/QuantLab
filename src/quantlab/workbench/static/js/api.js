@@ -99,6 +99,12 @@
     putLayout: function (layout) {
       return request("PUT", "/api/layout", layout || {});
     },
+    getPresets: function () {
+      return request("GET", "/api/presets");
+    },
+    applyPreset: function (name) {
+      return request("POST", "/api/presets/apply", { name: name });
+    },
     watchlist: function () {
       return request("GET", "/api/watchlist");
     },

@@ -787,6 +787,10 @@ def check_f39_session_zip() -> None:
 
     assert LIVE_BLOCKED is True
     root = Path("/tmp/quantlab-smoke-f39-zip")
+    if root.exists():
+        import shutil
+
+        shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke39")
     (session.reports_dir / "smoke.json").write_text('{"ok":true}\n', encoding="utf-8")
@@ -836,6 +840,61 @@ def check_f39_session_zip() -> None:
     assert got["session_id"] == "smoke39c"
 
 
+def check_f40_workspace_presets() -> None:
+    """F40: presets research/trading_paper/ops + apply → layout.json."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_presets,
+        handle_post_presets_apply,
+    )
+    from quantlab.workbench.layout import load_layout
+    from quantlab.workbench.presets import PRESET_NAMES, apply_preset, list_presets
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    catalog = list_presets()
+    assert catalog["count"] == 3
+    assert set(PRESET_NAMES) == {"research", "trading_paper", "ops"}
+    assert catalog["live_blocked"] is True
+
+    root = Path("/tmp/quantlab-smoke-f40-presets")
+    if root.exists():
+        import shutil
+
+        shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke40")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    listed = handle_get_presets(state)
+    assert listed["ok"] is True
+    assert listed["count"] == 3
+
+    applied = handle_post_presets_apply(state, {"name": "research"})
+    assert applied["ok"] is True
+    assert applied["preset"]["name"] == "research"
+    assert set(applied["layout"]["windows"].keys()) == {
+        "health",
+        "backtest",
+        "reports",
+        "chat",
+    }
+    loaded = load_layout(session.layout_path)
+    assert "backtest" in loaded["windows"]
+
+    ops = apply_preset(session.layout_path, "ops")
+    assert set(ops["layout"]["windows"].keys()) == {
+        "health",
+        "settings",
+        "docs",
+        "catalog",
+    }
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -863,6 +922,7 @@ def main() -> int:
         ("F37 first-run onboarding wizard", check_f37_onboarding),
         ("F38 docs / help browser", check_f38_docs_help),
         ("F39 session export/import ZIP", check_f39_session_zip),
+        ("F40 workspace presets", check_f40_workspace_presets),
     ]
     ok = True
     for name, fn in checks:
