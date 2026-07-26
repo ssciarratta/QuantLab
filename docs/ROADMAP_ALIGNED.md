@@ -463,7 +463,7 @@
 - DEC-080; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F36.md`, 2026-07-26) — certificado externo `FASE_36_APPROVED.md` **NO emitido**  
-**Versión:** 0.28.0 · implementación _(SHA post-commit)_  
+**Versión:** 0.28.0 · implementación `2c0cb11`  
 **Review Package INTERNAL:** `docs/audit/FASE_36_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F36.md`  
 **Noche F19–F36:** `docs/audit/INTERNAL_AUDIT_F19_F36_NIGHT.md` = **APROBADO_INTERNO**  

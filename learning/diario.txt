@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 36 — Settings + Status Bar
+-------------------------------------------------------
+- v0.28.0 · impl SHA 2c0cb11 · DEC-080.
+- QA: mypy 169 · ruff · pytest 680 · smoke 22 PASS.
+- settings.json: theme slate|high-contrast, default_venue/strategy,
+  slippage_bps, locale=es; GET/PUT /api/settings; panel Settings;
+  status bar fija (mode, live, session, venue, md, clock).
+- INTERNAL APROBADO_INTERNO; FASE_36_APPROVED.md NO emitido.
+- Noche F19–F36 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 33 — Optimizer History + Pareto Panel
 -------------------------------------------------------
 - v0.25.0 · impl SHA c39a57f · DEC-077.
