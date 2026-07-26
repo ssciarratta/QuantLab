@@ -957,6 +957,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 74 — Status Bar Clock Timezone
+
+**Versión:** 0.66.0 · **DEC-118** · **APROBADO_INTERNO** (sin `FASE_74_APPROVED.md`)
+
+- Settings `timezone` (default **UTC**; opciones `UTC` / `local`) · select UI
+- Status bar clock respeta setting (JS `toLocaleTimeString` + `timeZone`)
+- Smoke F74; bundle INTERNAL default F19–F74
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

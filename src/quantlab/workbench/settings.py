@@ -1,7 +1,7 @@
-"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61/F63/F72/F73.
+"""Persistencia de settings del workbench (``settings.json`` por sesión) — F36/F61/F63/F72/F73/F74.
 
 Campos: theme, default_venue, default_strategy, slippage_bps, locale, access_log,
-auto_backup_minutes, desktop_notifications, sound_alerts.
+auto_backup_minutes, desktop_notifications, sound_alerts, timezone.
 Sin LIVE / auth WAN.
 """
 
@@ -19,6 +19,7 @@ from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS, normaliz
 SETTINGS_VERSION = 1
 ALLOWED_THEMES: frozenset[str] = frozenset({"slate", "high-contrast"})
 ALLOWED_LOCALES: frozenset[str] = frozenset({"es", "en"})
+ALLOWED_TIMEZONES: frozenset[str] = frozenset({"UTC", "local"})
 DEFAULT_THEME = "slate"
 DEFAULT_VENUE = "paper"
 DEFAULT_STRATEGY = "momentum"
@@ -28,6 +29,7 @@ DEFAULT_ACCESS_LOG = True
 DEFAULT_AUTO_BACKUP_MINUTES = 0
 DEFAULT_DESKTOP_NOTIFICATIONS = False
 DEFAULT_SOUND_ALERTS = False
+DEFAULT_TIMEZONE = "UTC"
 MIN_AUTO_BACKUP_MINUTES = 0
 MAX_AUTO_BACKUP_MINUTES = 24 * 60  # 1 día
 
@@ -56,7 +58,7 @@ def parse_auto_backup_minutes(raw: Any) -> int:
 
 
 def default_settings() -> dict[str, Any]:
-    """Settings canónicos (locale es · access_log on · auto_backup off · notif/sound off)."""
+    """Settings canónicos (locale es · TZ UTC · access_log on · auto_backup/notif/sound off)."""
     return {
         "version": SETTINGS_VERSION,
         "theme": DEFAULT_THEME,
@@ -68,6 +70,7 @@ def default_settings() -> dict[str, Any]:
         "auto_backup_minutes": DEFAULT_AUTO_BACKUP_MINUTES,
         "desktop_notifications": DEFAULT_DESKTOP_NOTIFICATIONS,
         "sound_alerts": DEFAULT_SOUND_ALERTS,
+        "timezone": DEFAULT_TIMEZONE,
     }
 
 
@@ -157,6 +160,12 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
     if not isinstance(sound_alerts_raw, bool):
         raise ValidationError("settings.sound_alerts debe ser bool")
 
+    timezone = payload.get("timezone", DEFAULT_TIMEZONE)
+    if not isinstance(timezone, str) or timezone not in ALLOWED_TIMEZONES:
+        raise ValidationError(
+            f"settings.timezone inválido: {timezone!r} (válidos: UTC|local; default UTC)"
+        )
+
     auto_backup_minutes = parse_auto_backup_minutes(
         payload.get("auto_backup_minutes", DEFAULT_AUTO_BACKUP_MINUTES)
     )
@@ -176,6 +185,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
         "auto_backup_minutes": auto_backup_minutes,
         "desktop_notifications": desktop_notifications_raw,
         "sound_alerts": sound_alerts_raw,
+        "timezone": timezone,
     }
 
 

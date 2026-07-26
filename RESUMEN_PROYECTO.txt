@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.65.0 (F73 Optional Sound Alerts)
+Versión código actual: 0.66.0 (F74 Status Bar Clock Timezone)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -30,6 +30,7 @@ Auditoría INTERNAL F70: código 0.62.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F71: código 0.63.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F72: código 0.64.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F73: código 0.65.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F74: código 0.66.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -57,6 +58,7 @@ Noche F19–F70: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F70_NIGHT.md)
 Noche F19–F71: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F71_NIGHT.md)
 Noche F19–F72: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F72_NIGHT.md)
 Noche F19–F73: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F73_NIGHT.md)
+Noche F19–F74: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F74_NIGHT.md)
 Noche F19–F69: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F69_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
@@ -65,19 +67,19 @@ Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F73: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- F19–F74: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
 - Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61–F62 access log + F63–F64 backups + F65 blotter CSV + F66 equity + F67 PnL + F68 freeze v0.60 + F69 risk util + F70 kill + F71 health + F72 notif + F73 sound
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F73 Optional Sound Alerts (0.65.0) — APROBADO_INTERNO:
-- Settings sound_alerts default false; WebAudio beep on toast error / kill engage
-- DEC-117; suite test_sound_alerts_f73.py; bundle F19–F73
-- FASE_73_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F74 Status Bar Clock Timezone (0.66.0) — APROBADO_INTERNO:
+- Settings timezone default UTC (UTC|local); status bar clock respects setting (JS)
+- DEC-118; suite test_clock_timezone_f74.py; bundle F19–F74
+- FASE_74_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F73 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F74 solo con APROBADO Meta-Auditor externo
 - Flip LIVE solo con checklist + Meta-Auditor + dueño + commit dedicado

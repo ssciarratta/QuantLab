@@ -2416,3 +2416,47 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F73: **0.65.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 74 — Status Bar Clock Timezone
+
+**Código:** 0.66.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-118  
+**Qué es:** Settings `timezone` (default UTC; opciones UTC|local); status bar clock respeta la preferencia vía JS `toLocaleTimeString` (`timeZone: "UTC"` o local del navegador); sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_74_CLOCK_TZ.md` |
+| Implementation report | `docs/audit/FASE_74_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F74.md` |
+| Review Package INTERNAL | `docs/audit/FASE_74_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F74.md` |
+| Noche F19–F74 | `docs/audit/INTERNAL_AUDIT_F19_F74_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 74** |
+
+**Certificado externo:** **NO** emitido (`FASE_74_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F74 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Settings field | `settings.py` · `api.py` |
+| A2 | Settings select | `panes/settings.js` |
+| A3 | Status bar clock TZ | `shell.js` |
+| A4 | Spec | `docs/FASE_74_CLOCK_TZ.md` |
+| A5 | Implementation report | `docs/audit/FASE_74_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-118 | `learning/decisiones.txt` |
+| A7 | Version 0.66.0 | `pyproject.toml` |
+| A8 | Suite + smoke F74 | `test_clock_timezone_f74.py` · smoke |
+
+### Lista B F74 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F74: **0.66.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

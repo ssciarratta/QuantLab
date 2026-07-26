@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.66.0] — 2026-07-26
+
+### Fase 74 — Status Bar Clock Timezone
+
+#### Added
+- Settings `timezone` (default **UTC**; opciones `UTC` / `local`) · select UI
+- Status bar clock respects timezone via JS `toLocaleTimeString` (`timeZone: "UTC"` or local)
+- Docs: `FASE_74_CLOCK_TZ.md` · implementation report · DEC-118
+- Suite `test_clock_timezone_f74.py` + smoke F74
+
+#### Changed
+- `phases_summary` → `F19–F74 INTERNAL`
+- Bump **0.66.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_74_APPROVED.md`
+
 ## [0.65.0] — 2026-07-26
 
 ### Fase 73 — Optional Sound Alerts

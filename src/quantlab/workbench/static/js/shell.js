@@ -21,6 +21,7 @@
   let savedGeom = {};
   let cachedSessionId = "—";
   let cachedVersion = null;
+  let clockTimezone = "UTC"; /* F74: settings.timezone UTC|local */
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
 
@@ -286,6 +287,7 @@
         if (window.QLToasts && QLToasts.setSoundAlerts) {
           QLToasts.setSoundAlerts(data.settings.sound_alerts === true);
         }
+        setClockTimezone(data.settings.timezone);
       }
     });
     wm.open("settings", tr("pane.settings", "Settings"), pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
@@ -541,6 +543,12 @@
     closeStartMenu();
   });
 
+  function setClockTimezone(tz) {
+    /* F74: status bar clock · UTC (default) | local */
+    clockTimezone = tz === "local" ? "local" : "UTC";
+    tickClock();
+  }
+
   function tickClock() {
     if (!clockEl) return;
     const now = new Date();
@@ -548,11 +556,18 @@
       window.QLi18n && QLi18n.getLocale && QLi18n.getLocale() === "en"
         ? "en-US"
         : "es-AR";
-    clockEl.textContent = now.toLocaleTimeString(loc, {
+    const opts = {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
-    });
+      hour12: false,
+    };
+    if (clockTimezone === "UTC") {
+      opts.timeZone = "UTC";
+      clockEl.textContent = now.toLocaleTimeString(loc, opts) + " UTC";
+    } else {
+      clockEl.textContent = now.toLocaleTimeString(loc, opts);
+    }
   }
   tickClock();
   setInterval(tickClock, 1000);
@@ -620,6 +635,7 @@
       if (window.QLToasts && QLToasts.setSoundAlerts) {
         QLToasts.setSoundAlerts(settingsData.settings.sound_alerts === true);
       }
+      setClockTimezone(settingsData.settings.timezone);
       updateStatusBar(settingsData);
       // Opcional: hidratar mensajes desde API (parity static JSON)
       if (QLApi.getI18n) {

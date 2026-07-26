@@ -21,6 +21,10 @@
       '<option value="es">es</option>' +
       '<option value="en">en</option>' +
       "</select></label>" +
+      '<label class="field">Timezone<select id="set-timezone">' +
+      '<option value="UTC">UTC</option>' +
+      '<option value="local">local</option>' +
+      "</select></label>" +
       '<label class="field" style="display:flex;align-items:center;gap:0.5rem">' +
       '<input id="set-access-log" type="checkbox" checked /> Access log (access.jsonl)' +
       "</label>" +
@@ -67,6 +71,7 @@
     const strategyEl = root.querySelector("#set-strategy");
     const slipEl = root.querySelector("#set-slip");
     const localeEl = root.querySelector("#set-locale");
+    const timezoneEl = root.querySelector("#set-timezone");
     const accessLogEl = root.querySelector("#set-access-log");
     const desktopNotifEl = root.querySelector("#set-desktop-notif");
     const soundAlertsEl = root.querySelector("#set-sound-alerts");
@@ -118,6 +123,7 @@
       venueEl.value = s.default_venue || "paper";
       slipEl.value = s.slippage_bps != null ? String(s.slippage_bps) : "0";
       localeEl.value = s.locale === "en" ? "en" : "es";
+      timezoneEl.value = s.timezone === "local" ? "local" : "UTC";
       accessLogEl.checked = s.access_log !== false;
       desktopNotifEl.checked = s.desktop_notifications === true;
       soundAlertsEl.checked = s.sound_alerts === true;
@@ -182,6 +188,7 @@
         default_strategy: strategyEl.value,
         slippage_bps: slipEl.value.trim() || "0",
         locale: localeEl.value === "en" ? "en" : "es",
+        timezone: timezoneEl.value === "local" ? "local" : "UTC",
         access_log: !!accessLogEl.checked,
         desktop_notifications: !!desktopNotifEl.checked,
         sound_alerts: !!soundAlertsEl.checked,

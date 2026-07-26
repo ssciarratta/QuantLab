@@ -162,6 +162,8 @@ def test_api_handlers_put_get(tmp_path: Path) -> None:
     assert got["settings"]["theme"] == "high-contrast"
     assert got["allowed_themes"] == ["slate", "high-contrast"]
     assert got["allowed_locales"] == ["en", "es"]
+    assert got["allowed_timezones"] == ["UTC", "local"]
+    assert got["settings"]["timezone"] == "UTC"
 
 
 def test_api_put_nested_settings_key(tmp_path: Path) -> None:

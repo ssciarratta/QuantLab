@@ -1,3 +1,10 @@
+[2026-07-26] DEC-118 — Status Bar Clock Timezone
+  Decisión: F74 = settings.timezone default "UTC" (opciones UTC|local);
+  el reloj de la status bar respeta la preferencia (JS timeZone);
+  bump 0.66.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_74_APPROVED.
+  Fase: 74.
+
 [2026-07-26] DEC-117 — Optional Sound Alerts
   Decisión: F73 = settings.sound_alerts default false (opt-in);
   cuando true, WebAudio beep corto en toast errors y kill engage;
