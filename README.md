@@ -8,18 +8,14 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 
 ## Estado del proyecto
 
-| Fase | Nombre | Estado |
-|------|--------|--------|
-| 0 | Fundación | Completada |
-| 1 | Diseño de arquitectura | Completada (v1.1 aprobada) |
-| 2 | Fundación del dominio | Completada (v1.3) |
-| 3 | Data Layer + A3 | Completada y Aprobada v1.0 |
-| 4 | Motor de Simulación / Backtesting & Alpha Scanner | Completada y Aprobada v1.0 |
-| 5 | Ejecución avanzada (slippage/latencia/fees/artifacts) | En Desarrollo — M1–M3 listos (v0.5.0) |
+| Rango | Estado |
+|-------|--------|
+| F0–F18 | Certificados externos (`docs/audit/FASE_*_APPROVED.md`) · research-prod |
+| F19–F22 | **APROBADO_INTERNO** (modos TESTER/REAL, workbench, lab panels, chat IA) · v0.14.0 |
+| LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Certificados: [F3](docs/audit/FASE_03_APPROVED.md) · [F4](docs/audit/FASE_04_APPROVED.md)  
-> Roadmaps: [F4](docs/FASE_04_ROADMAP.md) · [F5](docs/FASE_05_ROADMAP.md)  
-> **ORDER ROUTING REAL — BLOQUEADO** (independiente del gating de fases de investigación).
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md)  
+> **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---
 
