@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 from contextlib import redirect_stderr
+from pathlib import Path
 
 import pytest
 
@@ -45,7 +46,9 @@ def test_main_aborts_non_loopback_without_flag() -> None:
     assert "--allow-non-loopback" in err.getvalue()
 
 
-def test_main_allows_loopback_default(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_main_allows_loopback_default(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     """Smoke: parse + gate pass; stop before serve_forever."""
 
     class _FakeServer:
@@ -64,12 +67,12 @@ def test_main_allows_loopback_default(monkeypatch: pytest.MonkeyPatch) -> None:
         "quantlab.workbench.launch.create_server",
         lambda **_kwargs: _FakeServer(),
     )
-    code = main(["--no-browser", "--session-root", "/tmp/ql-wb-test-loopback"])
+    code = main(["--no-browser", "--session-root", str(tmp_path / "ql-wb-test-loopback")])
     assert code == 0
 
 
 def test_main_allows_non_loopback_with_flag_and_warns(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     """DoD F25: --allow-non-loopback permite bind + WARNING stderr."""
 
@@ -98,7 +101,7 @@ def test_main_allows_non_loopback_with_flag_and_warns(
                 "--allow-non-loopback",
                 "--no-browser",
                 "--session-root",
-                "/tmp/ql-wb-test-non-loopback",
+                str(tmp_path / "ql-wb-test-non-loopback"),
             ]
         )
     assert code == 0

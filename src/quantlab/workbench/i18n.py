@@ -41,7 +41,8 @@ def i18n_json_path(locale: str) -> Path:
     loc = normalize_locale(locale)
     path = (_I18N_DIR / f"{loc}.json").resolve()
     root = _I18N_DIR.resolve()
-    if not str(path).startswith(str(root) + "/") and path != root:
+    # Comparación por Path (portable Windows/POSIX), no por prefijo string.
+    if path.parent != root:
         raise ValidationError("i18n path traversal bloqueado")
     return path
 

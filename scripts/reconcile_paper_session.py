@@ -80,7 +80,8 @@ def rebuild_session(root: Path) -> tuple[ReconciliationReport, Path | None]:
         stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%S%fZ")
         backup = session.book_path.with_name(f"{session.book_path.name}.bak-{stamp}")
         shutil.copy2(session.book_path, backup)
-        with backup.open("rb") as handle:
+        # "rb+" (no "rb"): en Windows fsync exige handle con acceso de escritura.
+        with backup.open("rb+") as handle:
             os.fsync(handle.fileno())
 
     session.save_book(rebuilt, checkpoint)

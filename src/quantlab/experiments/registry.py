@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from collections.abc import Iterator
-from contextlib import contextmanager
+from contextlib import closing, contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -68,7 +68,9 @@ class ExperimentRegistry:
             conn.close()
 
     def _init(self) -> None:
-        with self._connect() as conn:
+        # closing(): "with conn" solo delimita transacción; en Windows la
+        # conexión viva mantiene lock sobre el .sqlite (WinError 32).
+        with closing(self._connect()) as conn:
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS experiments (
@@ -165,7 +167,7 @@ class ExperimentRegistry:
         return prepared
 
     def get(self, experiment_id: str) -> ExperimentRecord | None:
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             row = conn.execute(
                 "SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,)
             ).fetchone()
@@ -174,7 +176,7 @@ class ExperimentRegistry:
         return self._row(row)
 
     def list(self, *, status: ExperimentStatus | None = None) -> list[ExperimentRecord]:
-        with self._connect() as conn:
+        with closing(self._connect()) as conn:
             if status is None:
                 rows = conn.execute("SELECT * FROM experiments ORDER BY created_at DESC").fetchall()
             else:

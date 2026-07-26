@@ -10,7 +10,14 @@ Exit 0 = all PASS; exit 1 = algún FAIL.
 from __future__ import annotations
 
 import sys
+import tempfile
 from collections.abc import Callable
+from pathlib import Path
+
+
+def _smoke_tmp(name: str) -> Path:
+    """Path temporal portable: Windows no tiene /tmp."""
+    return Path(tempfile.gettempdir()) / name
 
 
 def _check(name: str, fn: Callable[[], None]) -> bool:
@@ -155,7 +162,6 @@ def check_health_dict() -> None:
 
 def check_about_version_matches() -> None:
     """F49: About / health version ≡ quantlab.__version__."""
-    from pathlib import Path
 
     from quantlab import __version__
     from quantlab.infra.health import run_health_checks
@@ -175,7 +181,7 @@ def check_about_version_matches() -> None:
     health = run_health_checks().to_dict()
     assert health.get("version") == __version__
 
-    root = Path("/tmp/quantlab-smoke-f49-about-ver")
+    root = _smoke_tmp("quantlab-smoke-f49-about-ver")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke49")
     state = WorkbenchState(session=session)
@@ -1898,7 +1904,6 @@ def check_f27_strategy_catalog() -> None:
 
 def check_f28_layout_journal() -> None:
     """F28: layout save/load + API handlers + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import WorkbenchState, handle_get_layout, handle_put_layout
@@ -1906,7 +1911,7 @@ def check_f28_layout_journal() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f28-layout")
+    root = _smoke_tmp("quantlab-smoke-f28-layout")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke28")
     path = session.layout_path
@@ -1929,7 +1934,6 @@ def check_f28_layout_journal() -> None:
 
 def check_f29_reports() -> None:
     """F29: persist report tras backtest + list/get + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import (
@@ -1941,7 +1945,7 @@ def check_f29_reports() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f29-reports")
+    root = _smoke_tmp("quantlab-smoke-f29-reports")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke29")
     state = WorkbenchState(session=session)
@@ -1963,7 +1967,6 @@ def check_f29_reports() -> None:
 
 def check_f30_universe_catalog() -> None:
     """F30: watchlist + universe + catalog empty-ok + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import (
@@ -1978,7 +1981,7 @@ def check_f30_universe_catalog() -> None:
     from quantlab.workbench.watchlist import load_watchlist, save_watchlist
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f30-universe")
+    root = _smoke_tmp("quantlab-smoke-f30-universe")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke30")
     state = WorkbenchState(session=session)
@@ -2003,7 +2006,7 @@ def check_f30_universe_catalog() -> None:
     assert cat["read_only"] is True
     assert isinstance(cat["datasets"], list)
     # Empty-ok si no hay archivo local (no crea DB).
-    offline = list_catalog_datasets(catalog_path=Path("/tmp/quantlab-no-such-catalog.sqlite"))
+    offline = list_catalog_datasets(catalog_path=_smoke_tmp("quantlab-no-such-catalog.sqlite"))
     assert offline["available"] is False
     assert offline["datasets"] == []
 
@@ -2021,7 +2024,7 @@ def check_f31_features_store() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f31-features")
+    root = _smoke_tmp("quantlab-smoke-f31-features")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke31")
     state = WorkbenchState(session=session)
@@ -2059,7 +2062,7 @@ def check_f32_validation_runner() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f32-validation")
+    root = _smoke_tmp("quantlab-smoke-f32-validation")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke32")
     state = WorkbenchState(session=session)
@@ -2097,7 +2100,7 @@ def check_f33_optimizer_history() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f33-optimizer")
+    root = _smoke_tmp("quantlab-smoke-f33-optimizer")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke33")
     state = WorkbenchState(session=session)
@@ -2136,7 +2139,7 @@ def check_f34_mc_export() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f34-mc-export")
+    root = _smoke_tmp("quantlab-smoke-f34-mc-export")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke34")
     state = WorkbenchState(session=session)
@@ -2173,7 +2176,6 @@ def check_f34_mc_export() -> None:
 
 def check_f35_commands() -> None:
     """F35: /api/commands registry + LIVE_BLOCKED + no live actions."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import WorkbenchState, handle_get_commands
@@ -2200,7 +2202,7 @@ def check_f35_commands() -> None:
         assert cmd["safe"] is True
         assert cmd["live"] is False
 
-    root = Path("/tmp/quantlab-smoke-f35-commands")
+    root = _smoke_tmp("quantlab-smoke-f35-commands")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke35")
     state = WorkbenchState(session=session)
@@ -2211,7 +2213,6 @@ def check_f35_commands() -> None:
 
 def check_f36_settings() -> None:
     """F36: settings.json + GET/PUT /api/settings + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import (
@@ -2227,7 +2228,7 @@ def check_f36_settings() -> None:
     assert defaults["locale"] == "es"
     assert defaults["theme"] == "slate"
 
-    root = Path("/tmp/quantlab-smoke-f36-settings")
+    root = _smoke_tmp("quantlab-smoke-f36-settings")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke36")
     state = WorkbenchState(session=session)
@@ -2261,7 +2262,6 @@ def check_f36_settings() -> None:
 
 def check_f37_onboarding() -> None:
     """F37: onboarding meta + GET/POST /api/onboarding + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import (
@@ -2275,7 +2275,7 @@ def check_f37_onboarding() -> None:
     assert LIVE_BLOCKED is True
     assert len(ONBOARDING_STEPS) == 4
 
-    root = Path("/tmp/quantlab-smoke-f37-onboarding")
+    root = _smoke_tmp("quantlab-smoke-f37-onboarding")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke37")
     # Reset flag for idempotent smoke reruns
@@ -2302,7 +2302,6 @@ def check_f37_onboarding() -> None:
 
 def check_f38_docs_help() -> None:
     """F38: docs list/content + path traversal fail-closed + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab.core.exceptions import ValidationError
     from quantlab.execution.live_gate import LIVE_BLOCKED
@@ -2337,7 +2336,7 @@ def check_f38_docs_help() -> None:
         else:
             raise AssertionError(f"expected ValidationError for {bad!r}")
 
-    root = Path("/tmp/quantlab-smoke-f38-docs")
+    root = _smoke_tmp("quantlab-smoke-f38-docs")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke38")
     state = WorkbenchState(session=session)
@@ -2367,7 +2366,6 @@ def check_f38_docs_help() -> None:
 def check_f39_session_zip() -> None:
     """F39: session export/import ZIP + zip-slip fail-closed + LIVE_BLOCKED."""
     import zipfile
-    from pathlib import Path
 
     from quantlab.core.exceptions import ValidationError
     from quantlab.execution.live_gate import LIVE_BLOCKED
@@ -2380,7 +2378,7 @@ def check_f39_session_zip() -> None:
     from quantlab.workbench.session_zip import MANIFEST_NAME, export_session, import_session_zip
 
     assert LIVE_BLOCKED is True
-    root = Path("/tmp/quantlab-smoke-f39-zip")
+    root = _smoke_tmp("quantlab-smoke-f39-zip")
     if root.exists():
         import shutil
 
@@ -2436,7 +2434,6 @@ def check_f39_session_zip() -> None:
 
 def check_f40_workspace_presets() -> None:
     """F40: presets research/trading_paper/ops + apply → layout.json."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.api import (
@@ -2454,7 +2451,7 @@ def check_f40_workspace_presets() -> None:
     assert set(PRESET_NAMES) == {"research", "trading_paper", "ops"}
     assert catalog["live_blocked"] is True
 
-    root = Path("/tmp/quantlab-smoke-f40-presets")
+    root = _smoke_tmp("quantlab-smoke-f40-presets")
     if root.exists():
         import shutil
 
@@ -2491,7 +2488,6 @@ def check_f40_workspace_presets() -> None:
 
 def check_f41_activity_log() -> None:
     """F41: activity.jsonl append-only + GET /api/activity + hooks."""
-    from pathlib import Path
 
     from quantlab.execution.live_gate import LIVE_BLOCKED
     from quantlab.workbench.activity import ACTIVITY_EVENT_TYPES, ActivityLog, list_activity
@@ -2514,7 +2510,7 @@ def check_f41_activity_log() -> None:
         "error",
     } == ACTIVITY_EVENT_TYPES
 
-    root = Path("/tmp/quantlab-smoke-f41-activity")
+    root = _smoke_tmp("quantlab-smoke-f41-activity")
     if root.exists():
         import shutil
 
@@ -2559,7 +2555,6 @@ def check_f41_activity_log() -> None:
 
 def check_f42_ops_metrics() -> None:
     """F42: ops metrics JSON + prometheus text + live_gate.blocked."""
-    from pathlib import Path
 
     from quantlab.core.exceptions import ValidationError
     from quantlab.execution.live_gate import LIVE_BLOCKED, assert_live_routing_blocked
@@ -2582,7 +2577,7 @@ def check_f42_ops_metrics() -> None:
     except ValidationError:
         pass
 
-    root = Path("/tmp/quantlab-smoke-f42-ops")
+    root = _smoke_tmp("quantlab-smoke-f42-ops")
     if root.exists():
         import shutil
 
@@ -2612,7 +2607,6 @@ def check_f42_ops_metrics() -> None:
 
 def check_f43_redteam() -> None:
     """F43: zip sandbox, create_server loopback gate, body 2MiB, LIVE reject."""
-    from pathlib import Path
 
     from quantlab.core.exceptions import ValidationError
     from quantlab.execution.live_gate import LIVE_BLOCKED
@@ -2636,7 +2630,7 @@ def check_f43_redteam() -> None:
     except ValidationError:
         pass
 
-    root = Path("/tmp/quantlab-smoke-f43-rt")
+    root = _smoke_tmp("quantlab-smoke-f43-rt")
     if root.exists():
         import shutil
 
@@ -2697,7 +2691,7 @@ def check_f44_e2e_paper_workflow() -> None:
 
     assert LIVE_BLOCKED is True
 
-    root = Path("/tmp/quantlab-smoke-f44-e2e")
+    root = _smoke_tmp("quantlab-smoke-f44-e2e")
     if root.exists():
         shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True, exist_ok=True)
@@ -2792,7 +2786,6 @@ def check_f44_e2e_paper_workflow() -> None:
 
 def check_f45_about() -> None:
     """F45: GET /api/about + version badge UI assets + LIVE_BLOCKED."""
-    from pathlib import Path
 
     from quantlab import __version__
     from quantlab.execution.live_gate import LIVE_BLOCKED
@@ -2806,7 +2799,7 @@ def check_f45_about() -> None:
     assert __version__ == "0.81.0"
     assert PHASES_SUMMARY == "F19–F89 INTERNAL"
 
-    root = Path("/tmp/quantlab-smoke-f45-about")
+    root = _smoke_tmp("quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
     session = WorkbenchSession.create_or_load(root, "smoke45")
     state = WorkbenchState(session=session, bind_host="127.0.0.1", allow_non_loopback=False)
