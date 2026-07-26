@@ -19,6 +19,26 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.44.0] — 2026-07-26
+
+### Fase 52 — Graceful Shutdown + Paper Session Safety
+
+#### Added
+- `quantlab.workbench.shutdown` — stop paper + flush layout/settings/book
+- SIGINT/SIGTERM handlers en `launch.py` → graceful shutdown
+- `POST /api/shutdown` loopback-only (tests/automatización)
+- Suite `tests/unit/workbench/test_shutdown_f52.py`
+- Docs: `FASE_52_SHUTDOWN.md` · implementation report · DEC-096
+- Bundle INTERNAL default F19–F52
+
+#### Changed
+- `phases_summary` → `F19–F52 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_52_APPROVED.md`
+
+---
+
 ## [0.43.0] — 2026-07-26
 
 ### Fase 51 — API Rate Limit (loopback soft)

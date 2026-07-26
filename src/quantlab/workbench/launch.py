@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import signal
 import sys
 import threading
 import time
@@ -18,6 +20,7 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.workbench.api import WorkbenchState
 from quantlab.workbench.server import create_server, is_loopback_host
 from quantlab.workbench.session import DEFAULT_SESSION_PARENT, WorkbenchSession
+from quantlab.workbench.shutdown import perform_graceful_shutdown
 
 # Re-export para tests / callers F25.
 __all__ = (
@@ -177,7 +180,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     print(f"session_id={session.session_id}  root={session.root}")
     print(f"slippage_bps={slippage_bps}")
     print("Chat: asistente research (safe-mode) — no envía órdenes.")
-    print("Ctrl+C para detener.")
+    print("Ctrl+C / SIGTERM: graceful shutdown (paper stop + flush layout/settings).")
 
     if not args.no_browser:
 
@@ -187,13 +190,29 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         threading.Thread(target=_open, daemon=True).start()
 
+    def _on_signal(signum: int, _frame: object | None) -> None:
+        print(f"\nSeñal {signum}: graceful shutdown…", file=sys.stderr)
+        perform_graceful_shutdown(
+            state,
+            reason=f"signal:{signum}",
+            stop_server=True,
+        )
+
+    # SIGINT/SIGTERM → stop paper + flush + server.shutdown (F52).
+    # serve_forever() retorna cuando el flag/API dispara server.shutdown().
+    signal.signal(signal.SIGINT, _on_signal)
+    signal.signal(signal.SIGTERM, _on_signal)
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nDeteniendo workbench…")
+        perform_graceful_shutdown(state, reason="keyboard-interrupt", stop_server=True)
     finally:
-        server.shutdown()
-        server.server_close()
+        # Idempotente: paper stop + flush layout/settings + server.shutdown.
+        perform_graceful_shutdown(state, reason="finally", stop_server=True)
+        with contextlib.suppress(Exception):
+            server.server_close()
     return 0
 
 

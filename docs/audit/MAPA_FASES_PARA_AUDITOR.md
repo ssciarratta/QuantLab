@@ -1460,3 +1460,49 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F51: **0.43.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 52 — Graceful Shutdown + Paper Session Safety
+
+**Código:** 0.44.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-096  
+**Qué es:** Apagado ordenado del workbench (SIGINT/SIGTERM + `POST /api/shutdown` loopback): detiene paper session runner, flushea layout/settings/book y apaga el HTTPServer; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_52_SHUTDOWN.md` |
+| Implementation report | `docs/audit/FASE_52_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F52.md` |
+| Review Package INTERNAL | `docs/audit/FASE_52_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F52.md` |
+| Noche F19–F52 | `docs/audit/INTERNAL_AUDIT_F19_F52_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 52** |
+
+**Certificado externo:** **NO** emitido (`FASE_52_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F52 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Módulo shutdown | `src/quantlab/workbench/shutdown.py` |
+| A2 | Suite F52 | `tests/unit/workbench/test_shutdown_f52.py` |
+| A3 | Spec | `docs/FASE_52_SHUTDOWN.md` |
+| A4 | Implementation report | `docs/audit/FASE_52_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-096 | `learning/decisiones.txt` |
+| A6 | Smoke F52 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 52 | `scripts/build_internal_review_bundle.py` |
+| A8 | Version 0.44.0 | `pyproject.toml` |
+
+### Lista B F52 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F52: **0.44.0** · LIVE: **BLOQUEADO** · flip: **NO**.

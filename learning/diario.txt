@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 52 — Graceful Shutdown + Paper Session Safety
+-------------------------------------------------------
+- v0.44.0 · DEC-096 · LIVE_BLOCKED intacto · sin FASE_52_APPROVED.
+- SIGINT/SIGTERM + POST /api/shutdown (loopback): stop paper + flush
+  layout/settings + server.shutdown; módulo shutdown.py.
+- Suite test_shutdown_f52.py; smoke F52.
+- Noche F19–F52 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 51 — API Rate Limit (loopback soft)
 -------------------------------------------------------
 - v0.43.0 · impl SHA 2451802 · DEC-095 · LIVE_BLOCKED intacto · sin FASE_51_APPROVED.

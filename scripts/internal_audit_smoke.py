@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,8 +163,8 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -1299,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.43.0"
+    assert about["version"] == "0.44.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1353,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1416,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1481,8 +1481,8 @@ def check_f50_perf_baseline() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -1530,8 +1530,8 @@ def check_f51_rate_limit() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.43.0"
-    assert PHASES_SUMMARY == "F19–F51 INTERNAL"
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
     assert DEFAULT_RATE_LIMIT_RPS >= 120.0
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
@@ -1570,6 +1570,110 @@ def check_f51_rate_limit() -> None:
         server.server_close()
         thread.join(timeout=2.0)
 
+
+
+def check_f52_shutdown() -> None:
+    """F52: graceful shutdown stops paper session; /api/shutdown loopback-only."""
+    import tempfile
+    from datetime import UTC, datetime
+    from decimal import Decimal
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.brokers.paper.book import PaperBook
+    from quantlab.brokers.paper.broker import PaperBroker
+    from quantlab.brokers.types import (
+        BrokerAccount,
+        BrokerAck,
+        BrokerInstrument,
+        BrokerPosition,
+        BrokerSnapshot,
+    )
+    from quantlab.core.types.orders import OrderIntent
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import ApiError, WorkbenchState, handle_post_shutdown
+    from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
+    from quantlab.workbench.risk import PaperRiskLimits
+    from quantlab.workbench.session import WorkbenchSession
+    from quantlab.workbench.shutdown import perform_graceful_shutdown
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.44.0"
+    assert PHASES_SUMMARY == "F19–F52 INTERNAL"
+
+    class _Md:
+        symbol = "TEST"
+
+        @property
+        def venue_id(self) -> str:
+            return "md"
+
+        def connect(self) -> dict[str, object]:
+            return {"ok": True}
+
+        def close(self) -> dict[str, object]:
+            return {"ok": True}
+
+        def health(self) -> dict[str, object]:
+            return {"ok": True}
+
+        def list_instruments(self) -> list[BrokerInstrument]:
+            return [
+                BrokerInstrument(
+                    symbol="TEST",
+                    description="t",
+                    currency="USD",
+                    status="ACTIVE",
+                )
+            ]
+
+        def get_snapshot(self, symbol: str) -> BrokerSnapshot:
+            return BrokerSnapshot(
+                symbol=symbol,
+                bid=Decimal("99"),
+                ask=Decimal("101"),
+                last=Decimal("100"),
+                ts=datetime(2024, 1, 1, tzinfo=UTC),
+            )
+
+        def get_account(self) -> BrokerAccount:
+            return BrokerAccount(cash=Decimal("1"), currency="USD")
+
+        def get_positions(self) -> list[BrokerPosition]:
+            return []
+
+        def submit(self, intent: OrderIntent) -> BrokerAck:
+            raise AssertionError("no md submit")
+
+        def cancel(self, order_id: str) -> BrokerAck:
+            raise AssertionError("no md cancel")
+
+    root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f52-"))
+    session = WorkbenchSession.create_or_load(root, "smoke52")
+    state = WorkbenchState(session=session, slippage_bps=Decimal("3"))
+    state.ensure_session()
+    book = PaperBook(initial_cash=Decimal("10000"))
+    broker = PaperBroker(_Md(), book=book)  # type: ignore[arg-type]
+    state.broker = broker
+    state.book = book
+    runner = PaperSessionRunner(broker, PaperRiskLimits(), book)
+    runner.start(PaperSessionConfig(strategy_id="buy_once", symbol="TEST", max_steps=10))
+    state.paper_session = runner
+    assert runner.status()["running"] is True
+
+    try:
+        handle_post_shutdown(state, client_ip="8.8.8.8", stop_server=False)
+        raise AssertionError("expected 403 for non-loopback")
+    except ApiError as exc:
+        assert exc.status == 403
+
+    result = perform_graceful_shutdown(state, reason="smoke-f52", stop_server=False)
+    assert result["ok"] is True
+    assert result["paper"]["stopped"] is True
+    assert state.paper_session is None
+    assert state.shutdown_requested is True
+    assert session.settings_path.is_file()
 
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
@@ -1610,6 +1714,7 @@ def main() -> int:
         ("F48 theme CSS slate + high-contrast", check_f48_themes),
         ("F50 workbench API perf baseline", check_f50_perf_baseline),
         ("F51 soft API rate limit", check_f51_rate_limit),
+        ("F52 graceful shutdown paper safety", check_f52_shutdown),
     ]
     ok = True
     for name, fn in checks:

@@ -1,4 +1,13 @@
 
+[2026-07-26] DEC-096 — Graceful Shutdown + Paper Session Safety
+  Decisión: F52 = SIGINT/SIGTERM en launch.py detienen PaperSessionRunner,
+  flushean layout.json/settings.json (+ book) y apagan el HTTPServer;
+  POST /api/shutdown solo loopback marca flag y dispara el mismo hook
+  (pensado para tests/automatización; camino normal = señales);
+  módulo quantlab.workbench.shutdown; suite test_shutdown_f52.py;
+  bump 0.44.0. LIVE_BLOCKED=True; sin flip; sin FASE_52_APPROVED.
+  Fase: 52.
+
 [2026-07-26] DEC-095 — API Rate Limit (loopback soft)
   Decisión: F51 = soft rate limit in-process del workbench HTTP (token bucket
   keyed por IP+path); default 120 req/s · burst 120 para no romper tests;

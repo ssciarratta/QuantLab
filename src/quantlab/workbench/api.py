@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import threading
 import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -71,6 +72,7 @@ from quantlab.workbench.session_zip import (
     write_export_sidecar_sha,
 )
 from quantlab.workbench.settings import load_settings, save_settings
+from quantlab.workbench.shutdown import is_loopback_client, perform_graceful_shutdown
 from quantlab.workbench.validation_runs import (
     get_validation_run,
     list_validation_runs,
@@ -111,6 +113,11 @@ class WorkbenchState:
     allow_non_loopback: bool = False
     session_parent: Path | None = None
     rate_limiter: RateLimiter = field(default_factory=RateLimiter)
+    shutdown_requested: bool = False
+    shutdown_reason: str | None = None
+    shutdown_done: bool = False
+    _http_server: Any = field(default=None, repr=False)
+    _shutdown_lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
@@ -1402,6 +1409,31 @@ def handle_post_paper_session_stop(state: WorkbenchState) -> dict[str, Any]:
         }
     status = state.paper_session.stop()
     return {"ok": True, "status": status, "live_blocked": LIVE_BLOCKED is True}
+
+
+def handle_post_shutdown(
+    state: WorkbenchState,
+    *,
+    client_ip: str = "127.0.0.1",
+    stop_server: bool = True,
+) -> dict[str, Any]:
+    """POST /api/shutdown — solo loopback; marca flag y dispara graceful shutdown.
+
+    Pensado para tests/automatización. El camino normal de usuario es
+    SIGINT/SIGTERM en ``quantlab-workbench`` (``launch.py``).
+    """
+    if not is_loopback_client(client_ip):
+        raise ApiError(403, "POST /api/shutdown solo permitido desde loopback")
+    if not LIVE_BLOCKED:
+        raise ApiError(400, "LIVE_BLOCKED debe ser True")
+    result = perform_graceful_shutdown(
+        state,
+        reason="api:/api/shutdown",
+        stop_server=stop_server,
+    )
+    result["client_ip"] = client_ip
+    result["shutdown_requested"] = state.shutdown_requested is True
+    return result
 
 
 def handle_post_paper_session_step(state: WorkbenchState) -> dict[str, Any]:

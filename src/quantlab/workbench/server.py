@@ -76,11 +76,13 @@ from quantlab.workbench.api import (
     handle_post_session_import,
     handle_post_sessions_new,
     handle_post_sessions_switch,
+    handle_post_shutdown,
     handle_put_layout,
     handle_put_settings,
     handle_put_watchlist,
 )
 from quantlab.workbench.rate_limit import rate_limit_error_payload
+from quantlab.workbench.shutdown import bind_http_server, is_loopback_client
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
 
@@ -485,6 +487,17 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/presets/apply":
                     self._send_json(handle_post_presets_apply(state, body))
                     return
+                if path == "/api/shutdown":
+                    client_ip = _client_ip(self)
+                    if not is_loopback_client(client_ip):
+                        self._send_error_json(
+                            403, "POST /api/shutdown solo permitido desde loopback"
+                        )
+                        return
+                    self._send_json(
+                        handle_post_shutdown(state, client_ip=client_ip, stop_server=True)
+                    )
+                    return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:
                 self._send_error_json(exc.status, exc.message)
@@ -536,6 +549,7 @@ def create_server(
     app_state.allow_non_loopback = bool(allow_non_loopback)
     handler = make_handler(app_state)
     server = ThreadingHTTPServer((host, port), handler)
-    # Exponer estado para tests
+    # Exponer estado para tests + graceful shutdown (F52)
     server.workbench_state = app_state  # type: ignore[attr-defined]
+    bind_http_server(app_state, server)
     return server
