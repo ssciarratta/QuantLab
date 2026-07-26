@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Versión código (impl F46):** 0.38.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Impl SHA:** _(post-commit)_  
+**Impl SHA:** `ce9cbdd`  
 **LIVE:** BLOQUEADO  
 **Certificado externo:** **NO** (`FASE_46_APPROVED.md` no emitido)
 

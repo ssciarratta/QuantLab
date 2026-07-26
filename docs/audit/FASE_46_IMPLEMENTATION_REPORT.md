@@ -4,7 +4,7 @@
 **Versión:** 0.38.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F45 About Dialog + Version Badge  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `ce9cbdd`  
 **Alcance:** list/switch/new sessions — **sin flip LIVE** · **sin browser**
 
 ---

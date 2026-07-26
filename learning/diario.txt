@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 46 — Multi-Session Switcher
 -------------------------------------------------------
-- v0.38.0 · DEC-090 · LIVE_BLOCKED intacto.
+- v0.38.0 · impl SHA ce9cbdd · DEC-090 · LIVE_BLOCKED intacto.
 - QA: mypy 175 · ruff · pytest 827 · smoke 32 PASS.
 - GET /api/sessions + POST /api/sessions/switch + POST /api/sessions/new;
   UI panel Sessions (Inicio / open.sessions); validate_session_id
