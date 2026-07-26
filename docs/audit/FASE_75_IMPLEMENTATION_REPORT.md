@@ -4,7 +4,7 @@
 **Versión:** 0.67.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F74 Status Bar Clock Timezone · F36 Settings + Status Bar  
-**Impl SHA:** _(feat commit)_  
+**Impl SHA:** `c506ab6`  
 **Alcance:** GET `/api/broker/heartbeat` + status bar ok/fail + poll N=5s — **sin flip LIVE**
 
 ---
