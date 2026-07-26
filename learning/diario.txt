@@ -2,6 +2,15 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 42 — Ops Metrics Panel
+-------------------------------------------------------
+- v0.34.0 · impl SHA 34bfac5 · DEC-086.
+- QA: mypy 174 · ruff · pytest 752 · smoke 28 PASS.
+- GET /api/ops/metrics + /api/ops/prometheus; panel Ops Metrics
+  con highlight live_gate.blocked.
+- INTERNAL APROBADO_INTERNO; FASE_42_APPROVED.md NO emitido.
+- Noche F19–F42 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 41 — Activity Log + Toasts
 -------------------------------------------------------
 - v0.33.0 · impl SHA f1db945 · DEC-085.

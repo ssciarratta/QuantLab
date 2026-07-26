@@ -549,7 +549,7 @@
 - UI panel Ops Metrics (tabla + highlight `live_gate.blocked`); DEC-086; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F42.md`, 2026-07-26) — certificado externo `FASE_42_APPROVED.md` **NO emitido**  
-**Versión:** 0.34.0 · implementación *(pendiente SHA tip)*  
+**Versión:** 0.34.0 · implementación `34bfac5`  
 **Review Package INTERNAL:** `docs/audit/FASE_42_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F42.md`  
 **Noche F19–F42:** `docs/audit/INTERNAL_AUDIT_F19_F42_NIGHT.md` = **APROBADO_INTERNO**  
