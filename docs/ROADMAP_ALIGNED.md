@@ -447,7 +447,7 @@
 - DEC-079; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F35.md`, 2026-07-26) — certificado externo `FASE_35_APPROVED.md` **NO emitido**  
-**Versión:** 0.27.0  
+**Versión:** 0.27.0 · implementación `314b2cd`  
 **Review Package INTERNAL:** `docs/audit/FASE_35_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F35.md`  
 **Noche F19–F35:** `docs/audit/INTERNAL_AUDIT_F19_F35_NIGHT.md` = **APROBADO_INTERNO**  
