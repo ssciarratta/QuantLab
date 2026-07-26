@@ -194,7 +194,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             pass
 
         def _apply_security_headers(self, path: str) -> None:
-            """F56: nosniff / DENY / no-referrer; no-store en /api/*; CORS fail-closed."""
+            """F56/F57: nosniff / DENY / no-referrer / CSP; no-store en /api/*; CORS fail-closed."""
             for name, value in SECURITY_HEADERS.items():
                 self.send_header(name, value)
             if wants_api_no_store(path):

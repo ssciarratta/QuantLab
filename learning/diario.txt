@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 57 — Content-Security-Policy
+-------------------------------------------------------
+- v0.49.0 · DEC-101 · LIVE_BLOCKED intacto · sin FASE_57_APPROVED.
+- CSP: default-src/script-src/connect-src 'self'; style-src 'self'
+  'unsafe-inline'; frame-ancestors 'none'; sin unsafe-eval.
+- Scripts HTML ya externos (/static/js); suite test_csp_f57.py; smoke F57.
+- Noche F19–F57 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 56 — Security Headers
 -------------------------------------------------------
 - v0.48.0 · DEC-100 · LIVE_BLOCKED intacto · sin FASE_56_APPROVED.

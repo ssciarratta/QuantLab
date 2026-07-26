@@ -743,6 +743,19 @@
 **Spec:** `docs/FASE_56_SECURITY_HEADERS.md`  
 **Implementation report:** `docs/audit/FASE_56_IMPLEMENTATION_REPORT.md`
 
+### Fase 57 — Content-Security-Policy
+**Módulos:**
+- `quantlab.workbench.security_headers.CONTENT_SECURITY_POLICY` — CSP restrictiva SPA local
+- Política: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'`
+- Sin `unsafe-eval`; HTML sin scripts inline (externos `/static/js`)
+- DEC-101; bump 0.49.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F57.md`, 2026-07-26) — certificado externo `FASE_57_APPROVED.md` **NO emitido**  
+**Versión:** 0.49.0 · implementación _(tip)_  
+**Noche F19–F57:** `docs/audit/INTERNAL_AUDIT_F19_F57_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_57_CSP.md`  
+**Implementation report:** `docs/audit/FASE_57_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

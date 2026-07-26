@@ -51,4 +51,6 @@ curl -sSI http://127.0.0.1:8765/api/health | grep -Ei 'x-content-type|x-frame|re
 
 ## Fuera de alcance
 
-LIVE · auth WAN · TLS · CSP completa · HSTS · certificado externo `FASE_56_APPROVED.md` · flip LIVE
+LIVE · auth WAN · TLS · HSTS · certificado externo `FASE_56_APPROVED.md` · flip LIVE
+
+> CSP completa → **Fase 57** (`docs/FASE_57_CSP.md`).

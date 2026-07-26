@@ -1,9 +1,10 @@
-"""Security headers + CORS hardening for workbench HTTP (F56).
+"""Security headers + CORS + CSP hardening for workbench HTTP (F56/F57).
 
 Fail-closed:
 - Never emit ``Access-Control-Allow-Origin: *``.
 - Reflect ``Origin`` only when its host is loopback; non-loopback Origins
   are not echoed.
+- CSP restrictiva SPA local: sin ``unsafe-eval``; scripts solo ``'self'``.
 """
 
 from __future__ import annotations
@@ -11,11 +12,23 @@ from __future__ import annotations
 from collections.abc import Mapping
 from urllib.parse import urlparse
 
+# F57 — Content-Security-Policy (SPA local loopback).
+# style-src incluye 'unsafe-inline' por atributos style= generados en panes JS.
+# Sin unsafe-eval. Scripts solo archivos bajo /static/js (sin inline en HTML).
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; "
+    "script-src 'self'; "
+    "style-src 'self' 'unsafe-inline'; "
+    "connect-src 'self'; "
+    "frame-ancestors 'none'"
+)
+
 # Canonical response headers applied to every workbench response.
 SECURITY_HEADERS: dict[str, str] = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
 }
 
 CACHE_CONTROL_NO_STORE = "no-store"

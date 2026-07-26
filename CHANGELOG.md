@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.49.0] — 2026-07-26
+
+### Fase 57 — Content-Security-Policy
+
+#### Added
+- Header `Content-Security-Policy` en respuestas workbench (SPA local)
+- Política: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; frame-ancestors 'none'`
+- Suite `tests/unit/workbench/test_csp_f57.py`
+- Docs: `FASE_57_CSP.md` · implementation report · DEC-101
+- Bundle INTERNAL default F19–F57
+
+#### Changed
+- `phases_summary` → `F19–F57 INTERNAL`
+- `security_headers.SECURITY_HEADERS` incluye CSP (F56 headers intactos)
+
+#### Security
+- Sin `unsafe-eval`; scripts solo externos `/static/js/*`
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_57_APPROVED.md`
+
+---
+
 ## [0.48.0] — 2026-07-26
 
 ### Fase 56 — Security Headers

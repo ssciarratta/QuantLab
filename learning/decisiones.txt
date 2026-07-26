@@ -1,4 +1,14 @@
 
+[2026-07-26] DEC-101 — Content-Security-Policy
+  Decisión: F57 = CSP restrictiva en respuestas del workbench compatible
+  con SPA local: default-src 'self'; script-src 'self'; style-src 'self'
+  'unsafe-inline' (atributos style= en panes JS); connect-src 'self';
+  frame-ancestors 'none'; sin unsafe-eval; HTML sin scripts inline
+  (todos externos /static/js); CONTENT_SECURITY_POLICY en
+  quantlab.workbench.security_headers; suite test_csp_f57.py; bump 0.49.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_57_APPROVED.
+  Fase: 57.
+
 [2026-07-26] DEC-100 — Security Headers
   Decisión: F56 = headers de seguridad en respuestas del workbench
   (X-Content-Type-Options nosniff, X-Frame-Options DENY,

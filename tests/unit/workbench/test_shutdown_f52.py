@@ -121,8 +121,8 @@ def test_live_blocked_invariant_f52() -> None:
 
 
 def test_version_and_phases_f52() -> None:
-    assert __version__ == "0.48.0"
-    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
+    assert __version__ == "0.49.0"
+    assert PHASES_SUMMARY == "F19–F57 INTERNAL"
 
 
 def test_is_loopback_client() -> None:

@@ -1699,3 +1699,50 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F56: **0.48.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 57 — Content-Security-Policy
+
+**Código:** 0.49.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-101  
+**Qué es:** `Content-Security-Policy` restrictiva para SPA local (`default-src`/`script-src`/`connect-src 'self'`; `style-src 'self' 'unsafe-inline'`; `frame-ancestors 'none'`; sin `unsafe-eval`).
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_57_CSP.md` |
+| Implementation report | `docs/audit/FASE_57_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F57.md` |
+| Review Package INTERNAL | `docs/audit/FASE_57_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F57.md` |
+| Noche F19–F57 | `docs/audit/INTERNAL_AUDIT_F19_F57_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 57** |
+
+**Certificado externo:** **NO** emitido (`FASE_57_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F57 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | CSP en security_headers | `src/quantlab/workbench/security_headers.py` |
+| A2 | Server integration | `_apply_security_headers` (hereda SECURITY_HEADERS) |
+| A3 | Suite F57 | `tests/unit/workbench/test_csp_f57.py` |
+| A4 | Spec | `docs/FASE_57_CSP.md` |
+| A5 | Implementation report | `docs/audit/FASE_57_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-101 | `learning/decisiones.txt` |
+| A7 | Smoke F57 | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 57 | `scripts/build_internal_review_bundle.py` |
+| A9 | Version 0.49.0 | `pyproject.toml` |
+
+### Lista B F57 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F57: **0.49.0** · LIVE: **BLOQUEADO** · flip: **NO**.
