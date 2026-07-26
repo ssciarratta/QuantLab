@@ -1,9 +1,10 @@
 # Fase 27 — Strategy Catalog (Workbench)
 
-**Estado:** 📦 implementado (v0.19.0) — certificado externo `FASE_27_APPROVED.md` **NO** emitido  
+**Estado:** ✅ **APROBADO_INTERNO** (v0.19.0) — certificado externo `FASE_27_APPROVED.md` **NO** emitido  
 **Base:** v0.18.0 · F26 APROBADO_INTERNO  
 **LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
-**DEC:** DEC-071
+**DEC:** DEC-071  
+**INTERNAL:** `docs/audit/INTERNAL_AUDIT_F27.md` · noche `INTERNAL_AUDIT_F19_F27_NIGHT.md`
 
 ## Objetivo
 Ampliar el catálogo de estrategias usables desde workbench (paper session + lab backtest) con las research existentes `InventoryMMStrategy` y `AvellanedaStoikovStrategy`, más metadata para UI/API.

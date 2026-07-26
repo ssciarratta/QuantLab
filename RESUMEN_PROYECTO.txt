@@ -12,28 +12,28 @@ Auditoría INTERNAL F23: código 0.15.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F24: código 0.16.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F25: código 0.17.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F26: código 0.18.0 — APROBADO_INTERNO (externo pendiente)
-F27 Strategy Catalog: código 0.19.0 — implementado (certificado externo pendiente)
+Auditoría INTERNAL F27: código 0.19.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F25_NIGHT.md)
 Noche F19–F26: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F26_NIGHT.md)
+Noche F19–F27: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F27_NIGHT.md)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F26: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- F27: Strategy Catalog workbench (InventoryMM + Avellaneda–Stoikov + metadata API/UI)
-- Workbench Ops Desk + Paper Session + Lab + Chat IA + PaperBook + venue plugins
+- F19–F27: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench Ops Desk + Paper Session + Strategy Catalog + Lab + Chat IA + PaperBook + plugins
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F27 Strategy Catalog (v0.19.0):
+F27 Strategy Catalog (v0.19.0) — APROBADO_INTERNO:
 - Catálogo strategy_catalog (dummy/buy_once/momentum/inventory_mm/avellaneda_stoikov)
 - Wire paper_session + lab backtest; GET /api/lab/strategies; UI params
 - BarSyntheticBookAdapter para MM en bar-backtest; DEC-071
-- Docs: FASE_27_STRATEGY_CATALOG · FASE_27_IMPLEMENTATION_REPORT
+- Docs: FASE_27_STRATEGY_CATALOG · REVIEW_PACKAGE · INTERNAL_AUDIT_F27 · noche F19–F27
 - FASE_27_APPROVED.md NO emitido
 
 PRÓXIMO PASO

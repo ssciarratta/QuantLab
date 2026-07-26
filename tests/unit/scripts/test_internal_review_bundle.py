@@ -1,4 +1,4 @@
-"""Tests mínimos del bundle INTERNAL de evidencia F19–F26."""
+"""Tests mínimos del bundle INTERNAL de evidencia F19–F27."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
 from build_internal_review_bundle import (  # noqa: E402
+    DEFAULT_TO_PHASE,
     InternalBundleError,
     build_bundle,
     collect_bundle_files,
@@ -29,7 +30,7 @@ def _seed_project(tmp: Path) -> Path:
     (tmp / "reports").mkdir(parents=True)
     (tmp / "data").mkdir(parents=True)
     (tmp / "src" / "quantlab" / "__init__.py").write_text(
-        '__version__ = "0.18.0"\n',
+        '__version__ = "0.19.0"\n',
         encoding="utf-8",
     )
 
@@ -38,6 +39,7 @@ def _seed_project(tmp: Path) -> Path:
         (19, "OPERATING_MODES"),
         (20, "WORKBENCH"),
         (26, "PAPER_SESSION"),
+        (27, "STRATEGY_CATALOG"),
     ):
         (tmp / "docs" / f"FASE_{phase:02d}_{slug}.md").write_text(
             f"# F{phase}\n", encoding="utf-8"
@@ -47,18 +49,24 @@ def _seed_project(tmp: Path) -> Path:
     for name, body in (
         ("AUTO_AUDIT_2026-07-26_F19.md", "# auto F19\n"),
         ("AUTO_AUDIT_2026-07-26_F26.md", "# auto F26\n"),
+        ("AUTO_AUDIT_2026-07-26_F27.md", "# auto F27\n"),
         ("INTERNAL_AUDIT_F19.md", "# internal F19\n"),
         ("INTERNAL_AUDIT_F26.md", "# internal F26\n"),
-        ("INTERNAL_AUDIT_F19_F26_NIGHT.md", "# night\n"),
+        ("INTERNAL_AUDIT_F27.md", "# internal F27\n"),
+        ("INTERNAL_AUDIT_F19_F26_NIGHT.md", "# night 26\n"),
+        ("INTERNAL_AUDIT_F19_F27_NIGHT.md", "# night 27\n"),
         ("INTERNAL_AUDIT_F23_F25_ARC.md", "# arc\n"),
         ("FASE_19_REVIEW_PACKAGE.md", "# review pkg\n"),
         ("FASE_19_IMPLEMENTATION_REPORT.md", "# impl\n"),
         ("FASE_26_REVIEW_PACKAGE.md", "# review pkg 26\n"),
         ("FASE_26_IMPLEMENTATION_REPORT.md", "# impl 26\n"),
+        ("FASE_27_REVIEW_PACKAGE.md", "# review pkg 27\n"),
+        ("FASE_27_IMPLEMENTATION_REPORT.md", "# impl 27\n"),
         ("MAPA_FASES_PARA_AUDITOR.md", "# mapa\n"),
         # Must NEVER be included
         ("FASE_19_APPROVED.md", "# SHOULD NOT SHIP\n"),
         ("FASE_26_APPROVED.md", "# SHOULD NOT SHIP\n"),
+        ("FASE_27_APPROVED.md", "# SHOULD NOT SHIP\n"),
         # Outside range
         ("AUTO_AUDIT_2026-07-26_F18.md", "# F18 out\n"),
         ("INTERNAL_AUDIT_F18.md", "# F18 out\n"),
@@ -81,17 +89,25 @@ def _seed_project(tmp: Path) -> Path:
     return tmp
 
 
+def test_default_to_phase_is_27() -> None:
+    assert DEFAULT_TO_PHASE == 27
+
+
 def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
-    files = collect_bundle_files(root, from_phase=19, to_phase=26)
+    files = collect_bundle_files(root, from_phase=19, to_phase=27)
     names = {relative_arcname(p, root) for p in files}
 
     assert "docs/FASE_19_OPERATING_MODES.md" in names
     assert "docs/FASE_26_PAPER_SESSION.md" in names
+    assert "docs/FASE_27_STRATEGY_CATALOG.md" in names
     assert "docs/audit/AUTO_AUDIT_2026-07-26_F19.md" in names
+    assert "docs/audit/AUTO_AUDIT_2026-07-26_F27.md" in names
+    assert "docs/audit/INTERNAL_AUDIT_F19_F27_NIGHT.md" in names
     assert "docs/audit/INTERNAL_AUDIT_F19_F26_NIGHT.md" in names
     assert "docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md" in names
     assert "docs/audit/FASE_19_IMPLEMENTATION_REPORT.md" in names
+    assert "docs/audit/FASE_27_REVIEW_PACKAGE.md" in names
     assert "docs/ops/LIVE_FLIP_CHECKLIST.md" in names
     assert "RESUMEN_PROYECTO.txt" in names
     assert "docs/ROADMAP_ALIGNED.md" in names
@@ -100,6 +116,7 @@ def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None
     # Exclusions
     assert "docs/audit/FASE_19_APPROVED.md" not in names
     assert "docs/audit/FASE_26_APPROVED.md" not in names
+    assert "docs/audit/FASE_27_APPROVED.md" not in names
     assert "docs/audit/AUTO_AUDIT_2026-07-26_F18.md" not in names
     assert ".env" not in names
     assert "data/secret.bin" not in names
@@ -108,13 +125,13 @@ def test_collect_includes_expected_and_excludes_approved(tmp_path: Path) -> None
 
 def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
-    result = build_bundle(root, from_phase=19, to_phase=26)
+    result = build_bundle(root, from_phase=19, to_phase=27)
 
-    assert result.version == "0.18.0"
+    assert result.version == "0.19.0"
     assert result.zip_path.exists()
     assert result.sha256_path.exists()
     assert result.manifest_path.exists()
-    assert result.zip_path.name == "QuantLab_Internal_Review_F19_F26_v0.18.0.zip"
+    assert result.zip_path.name == "QuantLab_Internal_Review_F19_F27_v0.19.0.zip"
 
     digest_line = result.sha256_path.read_text(encoding="utf-8").strip()
     assert digest_line.endswith(result.zip_path.name)
@@ -123,16 +140,17 @@ def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
 
     manifest = json.loads(result.manifest_path.read_text(encoding="utf-8"))
     assert manifest["bundle_kind"] == "INTERNAL_REVIEW"
-    assert manifest["quantlab_version"] == "0.18.0"
+    assert manifest["quantlab_version"] == "0.19.0"
     assert "git_tip_sha" in manifest
     assert manifest["from_phase"] == 19
-    assert manifest["to_phase"] == 26
+    assert manifest["to_phase"] == 27
     assert isinstance(manifest["files"], list)
     assert all("APPROVED" not in Path(f).name for f in manifest["files"])
 
     with zipfile.ZipFile(result.zip_path, "r") as zf:
         members = zf.namelist()
     assert "docs/FASE_19_OPERATING_MODES.md" in members
+    assert "docs/FASE_27_STRATEGY_CATALOG.md" in members
     assert "docs/ops/LIVE_FLIP_CHECKLIST.md" in members
     assert any(m.endswith("_MANIFEST.json") for m in members)
     assert not any("APPROVED" in m for m in members)
@@ -143,4 +161,4 @@ def test_build_bundle_zip_manifest_and_sha(tmp_path: Path) -> None:
 def test_invalid_phase_range(tmp_path: Path) -> None:
     root = _seed_project(tmp_path)
     with pytest.raises(InternalBundleError):
-        collect_bundle_files(root, from_phase=26, to_phase=19)
+        collect_bundle_files(root, from_phase=27, to_phase=19)

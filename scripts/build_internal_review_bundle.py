@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Empaqueta evidencia INTERNAL F19–F26 para Meta-Auditor externo.
+"""Empaqueta evidencia INTERNAL F19–F27 para Meta-Auditor externo.
 
 NO emite ni incluye certificados ``FASE_*_APPROVED.md``.
 NO corre el Review Package oficial (pesado). Solo evidencia documental.
 
 Uso:
   uv run python scripts/build_internal_review_bundle.py
-  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 26
+  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 27
 """
 
 from __future__ import annotations
@@ -18,14 +18,14 @@ import re
 import subprocess
 import sys
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Iterable
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 26
+DEFAULT_TO_PHASE = 27
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")
@@ -136,9 +136,7 @@ def _is_excluded_path(path: Path, root: Path) -> bool:
     if EXCLUDE_APPROVED_RE.search(path.name):
         return True
     # Nunca incluir data/ ni .env en cualquier profundidad.
-    if parts and parts[0] == "data":
-        return True
-    return False
+    return bool(parts and parts[0] == "data")
 
 
 def _safe_add(candidates: set[Path], path: Path, root: Path) -> None:
@@ -225,11 +223,12 @@ def collect_bundle_files(
                     include = True
 
             # FASE_XX_REVIEW_PACKAGE* / IMPLEMENTATION_REPORT*
-            if upper.startswith("FASE_") and (
-                "REVIEW_PACKAGE" in upper or "IMPLEMENTATION_REPORT" in upper
+            if (
+                upper.startswith("FASE_")
+                and ("REVIEW_PACKAGE" in upper or "IMPLEMENTATION_REPORT" in upper)
+                and _matches_phase_token(name, from_phase, to_phase)
             ):
-                if _matches_phase_token(name, from_phase, to_phase):
-                    include = True
+                include = True
 
             if include:
                 _safe_add(candidates, path, root)
@@ -353,7 +352,7 @@ def build_bundle(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Empaqueta evidencia INTERNAL (docs/audit) F19–F26 para Meta-Auditor. "
+            "Empaqueta evidencia INTERNAL (docs/audit) F19–F27 para Meta-Auditor. "
             "No emite FASE_*_APPROVED.md ni corre el Review Package oficial."
         )
     )
