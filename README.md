@@ -45,9 +45,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F53 | Dockerfile Workbench (opt-in) · **APROBADO_INTERNO** · v0.45.0 |
 | F54 | Readiness / Liveness Probes · **APROBADO_INTERNO** · v0.46.0 |
 | F55 | OpenAPI / API Catalog · **APROBADO_INTERNO** · v0.47.0 |
+| F56 | Security Headers · **APROBADO_INTERNO** · v0.48.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Noche F19–F55](docs/audit/INTERNAL_AUDIT_F19_F55_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Noche F19–F56](docs/audit/INTERNAL_AUDIT_F19_F56_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

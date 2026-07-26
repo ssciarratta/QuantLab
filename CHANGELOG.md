@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.48.0] — 2026-07-26
+
+### Fase 56 — Security Headers
+
+#### Added
+- Headers workbench: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`
+- `Cache-Control: no-store` en `/api/*`
+- Módulo `quantlab.workbench.security_headers` (CORS fail-closed)
+- Suite `tests/unit/workbench/test_security_headers_f56.py`
+- Docs: `FASE_56_SECURITY_HEADERS.md` · implementation report · DEC-100
+- Bundle INTERNAL default F19–F56
+
+#### Changed
+- `phases_summary` → `F19–F56 INTERNAL`
+
+#### Security
+- Nunca `Access-Control-Allow-Origin: *`; Origin non-loopback no se refleja
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_56_APPROVED.md`
+
+---
+
 ## [0.47.0] — 2026-07-26
 
 ### Fase 55 — OpenAPI / API Catalog

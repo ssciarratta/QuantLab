@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,8 +163,8 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -1299,8 +1299,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1311,7 +1311,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.47.0"
+    assert about["version"] == "0.48.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1353,8 +1353,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1416,8 +1416,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1481,8 +1481,8 @@ def check_f50_perf_baseline() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -1530,8 +1530,8 @@ def check_f51_rate_limit() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
     assert DEFAULT_RATE_LIMIT_RPS >= 120.0
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
@@ -1599,8 +1599,8 @@ def check_f52_shutdown() -> None:
     from quantlab.workbench.shutdown import perform_graceful_shutdown
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     class _Md:
         symbol = "TEST"
@@ -1686,8 +1686,8 @@ def check_f53_dockerfile() -> None:
     from quantlab.workbench.about import PHASES_SUMMARY
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     dockerfile = root / "Dockerfile.workbench"
@@ -1727,8 +1727,8 @@ def check_f54_probes() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f54-"))
     session = WorkbenchSession.create_or_load(root, "smoke54")
@@ -1768,8 +1768,8 @@ def check_f55_openapi() -> None:
     )
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.47.0"
-    assert PHASES_SUMMARY == "F19–F55 INTERNAL"
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
 
     routes = catalog_routes()
     paths = {(r.method, r.path) for r in routes}
@@ -1787,6 +1787,33 @@ def check_f55_openapi() -> None:
     assert_no_live_trading_routes()
     assert schema["x-quantlab"]["live_blocked"] is True
     assert schema["x-quantlab"]["phases_summary"] == PHASES_SUMMARY
+
+
+def check_f56_security_headers() -> None:
+    """F56: security headers + CORS fail-closed (no ACAO *)."""
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.security_headers import (
+        SECURITY_HEADERS,
+        cors_allow_origin,
+        security_header_items,
+        wants_api_no_store,
+    )
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.48.0"
+    assert PHASES_SUMMARY == "F19–F56 INTERNAL"
+    assert SECURITY_HEADERS["X-Content-Type-Options"] == "nosniff"
+    assert SECURITY_HEADERS["X-Frame-Options"] == "DENY"
+    assert SECURITY_HEADERS["Referrer-Policy"] == "no-referrer"
+    assert wants_api_no_store("/api/health") is True
+    assert cors_allow_origin("*") is None
+    assert cors_allow_origin("https://evil.example") is None
+    assert cors_allow_origin("http://127.0.0.1:8765") == "http://127.0.0.1:8765"
+    items = dict(security_header_items(path="/api/about", origin="https://evil.example"))
+    assert items["Cache-Control"] == "no-store"
+    assert "Access-Control-Allow-Origin" not in items
 
 
 def main() -> int:
@@ -1832,6 +1859,7 @@ def main() -> int:
         ("F53 Dockerfile workbench opt-in", check_f53_dockerfile),
         ("F54 readiness / liveness probes", check_f54_probes),
         ("F55 OpenAPI / API catalog", check_f55_openapi),
+        ("F56 security headers + CORS", check_f56_security_headers),
     ]
     ok = True
     for name, fn in checks:

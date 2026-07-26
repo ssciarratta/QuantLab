@@ -85,6 +85,13 @@ from quantlab.workbench.api import (
     handle_put_watchlist,
 )
 from quantlab.workbench.rate_limit import rate_limit_error_payload
+from quantlab.workbench.security_headers import (
+    ACCESS_CONTROL_ALLOW_ORIGIN,
+    CACHE_CONTROL_NO_STORE,
+    SECURITY_HEADERS,
+    cors_allow_origin,
+    wants_api_no_store,
+)
 from quantlab.workbench.shutdown import bind_http_server, is_loopback_client
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -186,20 +193,38 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             # Silencioso en tests; útil en CLI vía print override opcional.
             pass
 
-        def _send(self, status: int, body: bytes, content_type: str) -> None:
+        def _apply_security_headers(self, path: str) -> None:
+            """F56: nosniff / DENY / no-referrer; no-store en /api/*; CORS fail-closed."""
+            for name, value in SECURITY_HEADERS.items():
+                self.send_header(name, value)
+            if wants_api_no_store(path):
+                self.send_header("Cache-Control", CACHE_CONTROL_NO_STORE)
+            origin = self.headers.get("Origin")
+            allow = cors_allow_origin(origin)
+            # Nunca Access-Control-Allow-Origin: * ; no reflejar Origin non-loopback.
+            if allow is not None:
+                self.send_header(ACCESS_CONTROL_ALLOW_ORIGIN, allow)
+
+        def _send(
+            self, status: int, body: bytes, content_type: str, *, path: str | None = None
+        ) -> None:
+            route = path if path is not None else getattr(self, "_ql_path", "/api/")
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
 
-        def _send_download(self, body: bytes, *, filename: str, content_type: str) -> None:
+        def _send_download(
+            self, body: bytes, *, filename: str, content_type: str, path: str | None = None
+        ) -> None:
+            route = path if path is not None else getattr(self, "_ql_path", "/api/")
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
-            self.send_header("Cache-Control", "no-store")
+            self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
 
@@ -220,7 +245,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self.send_response(429)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            self._apply_security_headers(path)
             retry = max(1, int(decision.retry_after_s + 0.999))
             self.send_header("Retry-After", str(retry))
             self.end_headers()
@@ -230,6 +255,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
         def do_GET(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path
+            self._ql_path = path
             if not self._check_rate_limit(path):
                 return
 
@@ -434,6 +460,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
         def do_POST(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path
+            self._ql_path = path
             if not self._check_rate_limit(path):
                 return
             try:
@@ -521,6 +548,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
         def do_PUT(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
             path = parsed.path
+            self._ql_path = path
             if not self._check_rate_limit(path):
                 return
             try:

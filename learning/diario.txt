@@ -2,6 +2,14 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 56 — Security Headers
+-------------------------------------------------------
+- v0.48.0 · DEC-100 · LIVE_BLOCKED intacto · sin FASE_56_APPROVED.
+- Headers: nosniff / DENY / no-referrer; Cache-Control no-store en /api/*.
+- CORS: nunca ACAO *; Origin non-loopback no se refleja.
+- Módulo security_headers; suite test_security_headers_f56.py; smoke F56.
+- Noche F19–F56 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 55 — OpenAPI / API Catalog
 -------------------------------------------------------
 - v0.47.0 · DEC-099 · LIVE_BLOCKED intacto · sin FASE_55_APPROVED.

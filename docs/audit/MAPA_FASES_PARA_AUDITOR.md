@@ -1652,3 +1652,50 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F55: **0.47.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 56 — Security Headers
+
+**Código:** 0.48.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-100  
+**Qué es:** Headers de seguridad en respuestas workbench (`nosniff` / `DENY` / `no-referrer`; `Cache-Control: no-store` en `/api/*`); CORS fail-closed (nunca `ACAO *`; Origin non-loopback no se refleja).
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_56_SECURITY_HEADERS.md` |
+| Implementation report | `docs/audit/FASE_56_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F56.md` |
+| Review Package INTERNAL | `docs/audit/FASE_56_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F56.md` |
+| Noche F19–F56 | `docs/audit/INTERNAL_AUDIT_F19_F56_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 56** |
+
+**Certificado externo:** **NO** emitido (`FASE_56_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F56 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Security headers module | `src/quantlab/workbench/security_headers.py` |
+| A2 | Server integration | `_apply_security_headers` en `server.py` |
+| A3 | Suite F56 | `tests/unit/workbench/test_security_headers_f56.py` |
+| A4 | Spec | `docs/FASE_56_SECURITY_HEADERS.md` |
+| A5 | Implementation report | `docs/audit/FASE_56_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-100 | `learning/decisiones.txt` |
+| A7 | Smoke F56 | `scripts/internal_audit_smoke.py` |
+| A8 | Bundle to-phase 56 | `scripts/build_internal_review_bundle.py` |
+| A9 | Version 0.48.0 | `pyproject.toml` |
+
+### Lista B F56 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F56: **0.48.0** · LIVE: **BLOQUEADO** · flip: **NO**.

@@ -1,4 +1,14 @@
 
+[2026-07-26] DEC-100 — Security Headers
+  Decisión: F56 = headers de seguridad en respuestas del workbench
+  (X-Content-Type-Options nosniff, X-Frame-Options DENY,
+  Referrer-Policy no-referrer; Cache-Control no-store en /api/*);
+  CORS fail-closed: nunca Access-Control-Allow-Origin *; si Origin
+  presente y no loopback → no reflejar; módulo
+  quantlab.workbench.security_headers; suite test_security_headers_f56.py;
+  bump 0.48.0. LIVE_BLOCKED=True; sin flip; sin FASE_56_APPROVED.
+  Fase: 56.
+
 [2026-07-26] DEC-099 — OpenAPI / API Catalog
   Decisión: F55 = GET /api/openapi.json genera schema OpenAPI 3 mínimo
   desde catálogo estático quantlab.workbench.api_catalog (sin FastAPI);
