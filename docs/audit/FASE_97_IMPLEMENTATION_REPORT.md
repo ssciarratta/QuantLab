@@ -3,7 +3,7 @@
 **Fase:** F97 Support Bundle ZIP (read-only)
 **Versión:** 0.89.0 · **DEC:** DEC-141 · **Fecha:** 2026-07-26
 **Branch:** `cursor/modo-real-workbench-aafd` · **LIVE_BLOCKED:** True
-**Estado:** implementada · cierre formal pendiente de auditoría (sin `FASE_97_APPROVED.md`)
+**Estado:** **APROBADO_INTERNO** (`INTERNAL_AUDIT_F97.md`) · cierre externo pendiente (sin `FASE_97_APPROVED.md`)
 
 ---
 

@@ -1217,7 +1217,7 @@
 
 ## Fase 97 — Support Bundle ZIP (read-only)
 
-**Version:** 0.89.0 · **DEC-141** · implementada, auditoría INTERNAL en curso
+**Version:** 0.89.0 · **DEC-141** · **APROBADO_INTERNO** (noche F19–F97)
 
 - `GET /api/support-bundle.zip` empaqueta diagnostics/about/openapi/venues/recon
 - Botón Support ZIP en pane Diagnostics; sin journal/book
