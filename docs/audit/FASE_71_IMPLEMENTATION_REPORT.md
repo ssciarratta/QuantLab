@@ -4,6 +4,7 @@
 **Versión:** 0.63.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F70 Paper Kill · F63 Auto-backup · F61 Access log  
+**Impl SHA:** `c81a49c`  
 **Alcance:** health/about flags + hito **≥1000 pytest** — **sin flip LIVE**
 
 ---

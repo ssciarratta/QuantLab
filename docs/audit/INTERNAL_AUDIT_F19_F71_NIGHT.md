@@ -1,6 +1,8 @@
 # INTERNAL AUDIT NOCHE F19–F71
 
 **Fecha:** 2026-07-26  
+
+**Tip código:** `c81a49c` · **v0.63.0** (Health Extended F71)  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **0.63.0** (Health Extended F71)  
 **LIVE_BLOCKED:** True  

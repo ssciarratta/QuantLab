@@ -1,6 +1,6 @@
 # FASE 71 — Review Package INTERNAL (Health Extended + 1000 Tests)
 
-**Versión:** 0.63.0  
+**Versión:** 0.63.0 · tip `c81a49c`  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Fecha:** 2026-07-26  
 **Veredicto INTERNAL:** **APROBADO_INTERNO**  

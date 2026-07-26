@@ -1,6 +1,8 @@
 # INTERNAL AUDIT F71 — Health Extended + 1000 Tests Milestone
 
 **Fecha:** 2026-07-26  
+
+**Código tip:** `c81a49c` · **v0.63.0** · F71 Health Extended  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión:** **0.63.0** · F71 Health Extended  
 **LIVE_BLOCKED:** True  
