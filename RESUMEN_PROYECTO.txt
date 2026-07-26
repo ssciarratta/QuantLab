@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.60.0 (F68 Milestone Freeze Docs — hito v0.60)
+Versión código actual: 0.61.0 (F69 Risk Utilization Report)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -25,6 +25,7 @@ Auditoría INTERNAL F65: código 0.57.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F66: código 0.58.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F67: código 0.59.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F68: código 0.60.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.60.0
+Auditoría INTERNAL F69: código 0.61.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
@@ -48,6 +49,7 @@ Noche F19–F65: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F65_NIGHT.md)
 Noche F19–F66: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F66_NIGHT.md)
 Noche F19–F67: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F67_NIGHT.md)
 Noche F19–F68: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F68_NIGHT.md)
+Noche F19–F69: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F69_NIGHT.md)
 Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
 Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
 Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
@@ -55,20 +57,20 @@ Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F68: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61–F62 access log + F63–F64 backups + F65 blotter CSV + F66 equity + F67 PnL + F68 freeze v0.60
+- F19–F69: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49–F58 ops/milestones + F59 a11y + F60 i18n + F61–F62 access log + F63–F64 backups + F65 blotter CSV + F66 equity + F67 PnL + F68 freeze v0.60 + F69 risk util
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F68 Milestone Freeze Docs + CHANGELOG Sync (0.60.0) — APROBADO_INTERNO:
-- MILESTONE_V060_FREEZE.md (inventario F19–F67/F68); smoke starts with 0.60
-- Sync CHANGELOG / RESUMEN / PROJECT_MEMORY / README; DEC-112; bundle F19–F68
-- FASE_68_APPROVED.md NO emitido · LIVE_BLOCKED intacto
+F69 Risk Utilization Report (0.61.0) — APROBADO_INTERNO:
+- GET /api/risk/utilization (% max_qty/notional vs book); panel Risk Utilización
+- DEC-113; suite test_risk_utilization_f69.py; bundle F19–F69
+- FASE_69_APPROVED.md NO emitido · LIVE_BLOCKED intacto
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F68 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F69 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL

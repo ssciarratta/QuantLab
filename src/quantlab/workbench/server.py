@@ -59,6 +59,7 @@ from quantlab.workbench.api import (
     handle_get_presets,
     handle_get_readyz,
     handle_get_risk,
+    handle_get_risk_utilization,
     handle_get_session,
     handle_get_session_export,
     handle_get_sessions,
@@ -436,6 +437,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/risk":
                     self._send_json(handle_get_risk(state))
+                    return
+                if path == "/api/risk/utilization":
+                    self._send_json(handle_get_risk_utilization(state))
                     return
                 if path == "/api/lab/capabilities":
                     self._send_json(handle_get_lab_capabilities(state))

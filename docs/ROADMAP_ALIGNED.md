@@ -899,6 +899,18 @@
 **Spec:** `docs/FASE_68_MILESTONE_V060.md`  
 **Implementation report:** `docs/audit/FASE_68_IMPLEMENTATION_REPORT.md`
 
+### Fase 69 — Risk Utilization Report
+**Alcance:**
+- `GET /api/risk/utilization` — % used max_qty/notional vs PaperBook posiciones
+- Sección Utilización en panel Risk (peak qty + gross notional)
+- DEC-113; bump 0.61.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F69.md`, 2026-07-26) — certificado externo `FASE_69_APPROVED.md` **NO emitido**  
+**Versión:** 0.61.0  
+**Noche F19–F69:** `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_69_RISK_UTIL.md`  
+**Implementation report:** `docs/audit/FASE_69_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

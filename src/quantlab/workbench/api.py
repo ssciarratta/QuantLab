@@ -69,6 +69,10 @@ from quantlab.workbench.probes import livez_payload, readyz_payload
 from quantlab.workbench.rate_limit import RateLimitConfig, RateLimiter
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
 from quantlab.workbench.risk import PaperRiskLimits
+from quantlab.workbench.risk_utilization import (
+    utilization_from_book,
+    utilization_from_broker,
+)
 from quantlab.workbench.session import (
     DEFAULT_SESSION_PARENT,
     WorkbenchSession,
@@ -1180,6 +1184,19 @@ def handle_get_risk(state: WorkbenchState) -> dict[str, Any]:
         "live_blocked": LIVE_BLOCKED is True,
         "mode": state.mode.value,
     }
+
+
+def handle_get_risk_utilization(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/risk/utilization — % used max_qty/notional vs book (F69)."""
+    session = state.ensure_session()
+    session.ensure_layout()
+    book = state.ensure_book()
+    if state.broker is not None and isinstance(state.broker, PaperBroker):
+        payload = utilization_from_broker(state.broker, state.risk)
+    else:
+        payload = utilization_from_book(book, state.risk)
+    payload["session_id"] = session.session_id
+    return payload
 
 
 def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:

@@ -101,8 +101,8 @@ def check_f47_chat_context() -> None:
     from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -163,9 +163,9 @@ def check_about_version_matches() -> None:
     from quantlab.workbench.api import WorkbenchState, handle_get_about
     from quantlab.workbench.session import WorkbenchSession
 
-    assert __version__ == "0.60.0"
-    assert __version__.startswith("0.60")
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert __version__.startswith("0.61")
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -185,16 +185,16 @@ def check_about_version_matches() -> None:
     assert body["version"] == about["version"]
 
 
-def check_version_starts_with_060() -> None:
-    """F68: tip version on 0.60.x line (milestone v0.60 freeze)."""
+def check_version_starts_with_061() -> None:
+    """F69: tip version on 0.61.x line (Risk Utilization)."""
     from quantlab import __version__
     from quantlab.workbench.about import PHASES_SUMMARY, build_about_payload
 
-    assert __version__.startswith("0.60")
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__.startswith("0.61")
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     about = build_about_payload()
-    assert about["version"].startswith("0.60")
+    assert about["version"].startswith("0.61")
     assert about["version"] == __version__
     assert about["live_blocked"] is True
 
@@ -208,8 +208,8 @@ def check_f59_a11y() -> None:
     from quantlab.workbench.about import PHASES_SUMMARY
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     static = root / "src" / "quantlab" / "workbench" / "static"
@@ -235,8 +235,8 @@ def check_f60_i18n() -> None:
     from quantlab.workbench.i18n import DEFAULT_LOCALE, build_i18n_payload, load_messages
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert DEFAULT_LOCALE == "es"
 
     es = load_messages("es")
@@ -275,8 +275,8 @@ def check_f61_access_log() -> None:
     from quantlab.workbench.settings import default_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert default_settings()["access_log"] is True
 
     root = Path(__file__).resolve().parents[1]
@@ -310,8 +310,8 @@ def check_f62_access_log_ui() -> None:
     from quantlab.workbench.commands import list_commands
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_62_APPROVED.md").exists()
@@ -345,8 +345,8 @@ def check_f63_auto_backup() -> None:
     from quantlab.workbench.settings import default_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert MAX_BACKUPS == 5
     assert default_settings()["auto_backup_minutes"] == 0
 
@@ -383,8 +383,8 @@ def check_f64_backups_ui() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_64_APPROVED.md").exists()
@@ -432,8 +432,8 @@ def check_f65_fills_csv() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_65_APPROVED.md").exists()
@@ -497,8 +497,8 @@ def check_f66_equity_curve() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_66_APPROVED.md").exists()
@@ -570,8 +570,8 @@ def check_f67_paper_pnl() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_67_APPROVED.md").exists()
@@ -637,6 +637,91 @@ def check_f67_paper_pnl() -> None:
             "cash",
             "live_blocked",
         }
+
+
+def check_f69_risk_utilization() -> None:
+    """F69: GET /api/risk/utilization + Risk panel utilization section."""
+    import tempfile
+    from datetime import UTC, datetime
+    from decimal import Decimal
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.brokers.paper.book import PaperBook
+    from quantlab.brokers.types import PaperFill
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+    from quantlab.workbench.api import WorkbenchState, handle_get_risk_utilization
+    from quantlab.workbench.api_catalog import openapi_payload
+    from quantlab.workbench.risk import PaperRiskLimits
+    from quantlab.workbench.risk_utilization import compute_risk_utilization
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
+
+    root = Path(__file__).resolve().parents[1]
+    assert not (root / "docs" / "audit" / "FASE_69_APPROVED.md").exists()
+
+    static = root / "src" / "quantlab" / "workbench" / "static"
+    risk_js = (static / "js" / "panes" / "risk.js").read_text(encoding="utf-8")
+    api_js = (static / "js" / "api.js").read_text(encoding="utf-8")
+    assert "riskUtilization" in api_js
+    assert "/api/risk/utilization" in api_js
+    assert "risk-utilization" in risk_js
+    assert "QLApi.riskUtilization" in risk_js
+    assert "/api/risk/utilization" in openapi_payload()["paths"]
+
+    book = PaperBook(initial_cash=Decimal("10000"))
+    book.apply_fill(
+        PaperFill(
+            fill_id="s1",
+            order_id="o1",
+            symbol="TEST",
+            side="buy",
+            quantity=Decimal("5"),
+            price=Decimal("100"),
+            ts=datetime(2026, 7, 26, tzinfo=UTC),
+        )
+    )
+    limits = PaperRiskLimits(max_qty=Decimal("10"), max_notional=Decimal("1000"))
+    util = compute_risk_utilization(
+        book, limits, mark_prices={"TEST": Decimal("110")}
+    )
+    assert util["used"]["qty"] == "5"
+    assert util["used"]["notional"] == "550"
+    assert Decimal(util["pct"]["qty"]) == Decimal("50")
+    assert Decimal(util["pct"]["notional"]) == Decimal("55")
+
+    with tempfile.TemporaryDirectory(prefix="ql-f69-") as tmp:
+        parent = Path(tmp)
+        session = WorkbenchSession.create_or_load(parent, "smoke69")
+        state = WorkbenchState(
+            session=session,
+            session_parent=parent,
+            risk=PaperRiskLimits(max_qty=Decimal("10"), max_notional=Decimal("5000")),
+        )
+        empty = handle_get_risk_utilization(state)
+        assert empty["ok"] is True
+        assert empty["kind"] == "risk_utilization"
+        assert empty["used"]["qty"] == "0"
+        assert empty["live_blocked"] is True
+        state.ensure_book().apply_fill(
+            PaperFill(
+                fill_id="s2",
+                order_id="o2",
+                symbol="AAA",
+                side="buy",
+                quantity=Decimal("2"),
+                price=Decimal("100"),
+                ts=datetime(2026, 7, 26, tzinfo=UTC),
+            )
+        )
+        filled = handle_get_risk_utilization(state)
+        assert filled["session_id"] == "smoke69"
+        assert filled["used"]["qty"] == "2"
+        assert Decimal(filled["pct"]["qty"]) == Decimal("20")
 
 
 def check_paper_book_session() -> None:
@@ -1754,8 +1839,8 @@ def check_f45_about() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path("/tmp/quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -1766,7 +1851,7 @@ def check_f45_about() -> None:
     about = handle_get_about(state)
     assert about["ok"] is True
     assert about["kind"] == "about"
-    assert about["version"] == "0.60.0"
+    assert about["version"] == "0.61.0"
     assert about["live_blocked"] is True
     assert about["phases_summary"] == PHASES_SUMMARY
     assert about["python_version"]
@@ -1808,8 +1893,8 @@ def check_f46_sessions() -> None:
     from quantlab.workbench.session import WorkbenchSession, list_sessions
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -1871,8 +1956,8 @@ def check_f48_themes() -> None:
     from quantlab.workbench.settings import load_settings
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -1936,8 +2021,8 @@ def check_f50_perf_baseline() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -1985,8 +2070,8 @@ def check_f51_rate_limit() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert DEFAULT_RATE_LIMIT_RPS >= 120.0
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
@@ -2054,8 +2139,8 @@ def check_f52_shutdown() -> None:
     from quantlab.workbench.shutdown import perform_graceful_shutdown
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     class _Md:
         symbol = "TEST"
@@ -2141,8 +2226,8 @@ def check_f53_dockerfile() -> None:
     from quantlab.workbench.about import PHASES_SUMMARY
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     dockerfile = root / "Dockerfile.workbench"
@@ -2182,8 +2267,8 @@ def check_f54_probes() -> None:
     from quantlab.workbench.session import WorkbenchSession
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f54-"))
     session = WorkbenchSession.create_or_load(root, "smoke54")
@@ -2223,8 +2308,8 @@ def check_f55_openapi() -> None:
     )
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
 
     routes = catalog_routes()
     paths = {(r.method, r.path) for r in routes}
@@ -2257,8 +2342,8 @@ def check_f56_security_headers() -> None:
     )
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     assert SECURITY_HEADERS["X-Content-Type-Options"] == "nosniff"
     assert SECURITY_HEADERS["X-Frame-Options"] == "DENY"
     assert SECURITY_HEADERS["Referrer-Policy"] == "no-referrer"
@@ -2283,8 +2368,8 @@ def check_f57_csp() -> None:
     )
 
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.60.0"
-    assert PHASES_SUMMARY == "F19–F68 INTERNAL"
+    assert __version__ == "0.61.0"
+    assert PHASES_SUMMARY == "F19–F69 INTERNAL"
     csp = CONTENT_SECURITY_POLICY
     assert "default-src 'self'" in csp
     assert "script-src 'self'" in csp
@@ -2306,7 +2391,7 @@ def main() -> int:
         ("chat allowlist + FakeProvider", check_chat_safe),
         ("quantlab-health live_blocked", check_health_dict),
         ("about version matches __version__", check_about_version_matches),
-        ("version starts with 0.60", check_version_starts_with_060),
+        ("version starts with 0.61", check_version_starts_with_061),
         ("paper book + session_id fail-closed", check_paper_book_session),
         ("F23 paper book import", check_f23_book_import),
         ("F24 plugins + generics", check_f24_plugins),
@@ -2352,6 +2437,7 @@ def main() -> int:
         ("F65 blotter fills CSV export", check_f65_fills_csv),
         ("F66 equity curve snapshot", check_f66_equity_curve),
         ("F67 paper PnL summary", check_f67_paper_pnl),
+        ("F69 risk utilization report", check_f69_risk_utilization),
     ]
     ok = True
     for name, fn in checks:

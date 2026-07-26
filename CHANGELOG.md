@@ -19,7 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.61.0] — 2026-07-26
+
+### Fase 69 — Risk Utilization Report
+
+#### Added
+- `GET /api/risk/utilization` — % used de `max_qty` / `max_notional` vs book/posiciones
+- Helpers `compute_risk_utilization` / marks broker o avg (`workbench/risk_utilization.py`)
+- Sección **Utilización** en panel Risk (peak qty + gross notional + breakdown)
+- Docs: `FASE_69_RISK_UTIL.md` · implementation report · DEC-113
+- Suite `test_risk_utilization_f69.py` + smoke F69
+- Bundle INTERNAL default F19–F69
+
+#### Changed
+- `phases_summary` → `F19–F69 INTERNAL`
+- Bump **0.61.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_69_APPROVED.md`
+
 ## [0.60.0] — 2026-07-26
+
 
 ### Fase 68 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
 

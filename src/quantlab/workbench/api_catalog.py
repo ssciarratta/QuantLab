@@ -113,6 +113,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/universe", "GET", "Universe symbols", ("universe",)),
     ApiRoute("/api/catalog", "GET", "Data catalog datasets", ("universe",)),
     ApiRoute("/api/risk", "GET", "Paper risk limits", ("risk",)),
+    ApiRoute(
+        "/api/risk/utilization",
+        "GET",
+        "Paper risk utilization vs book/positions",
+        ("risk",),
+    ),
     # Lab
     ApiRoute("/api/lab/capabilities", "GET", "Lab capabilities", ("lab",)),
     ApiRoute("/api/lab/strategies", "GET", "Strategy catalog", ("lab",)),

@@ -1,4 +1,4 @@
-/** Panel Riesgo — límites paper + path de sesión (F25). */
+/** Panel Riesgo — límites paper + utilización vs book (F25 / F69). */
 (function (global) {
   "use strict";
 
@@ -17,11 +17,19 @@
       "</div>" +
       "</div>" +
       '<div class="pane-section">' +
+      "<h3>Utilización</h3>" +
+      '<p class="muted" style="margin-top:0">% usado de max_qty / max_notional vs book.</p>' +
+      '<dl class="kv" id="risk-utilization"></dl>' +
+      '<div id="risk-util-positions" class="mono muted" style="margin-top:0.5rem;font-size:0.85em"></div>' +
+      "</div>" +
+      '<div class="pane-section">' +
       "<h3>Sesión</h3>" +
       '<dl class="kv" id="risk-session"></dl>' +
       "</div>";
 
     const limitsEl = root.querySelector("#risk-limits");
+    const utilEl = root.querySelector("#risk-utilization");
+    const utilPosEl = root.querySelector("#risk-util-positions");
     const sessionEl = root.querySelector("#risk-session");
     const statusEl = root.querySelector("#risk-status");
 
@@ -33,7 +41,13 @@
         .replace(/"/g, "&quot;");
     }
 
-    function render(data) {
+    function fmtPct(raw) {
+      var n = Number(raw);
+      if (!isFinite(n)) return esc(raw) + "%";
+      return n.toFixed(2) + "%";
+    }
+
+    function renderLimits(data) {
       const lim = data.limits || {};
       const symbols =
         lim.allowed_symbols == null
@@ -67,13 +81,65 @@
         "<dt>mode</dt><dd class=\"mono\">" +
         esc(data.mode) +
         "</dd>";
-      statusEl.textContent = "ok";
-      statusEl.className = "mono muted status-ok";
+    }
+
+    function renderUtilization(data) {
+      const used = data.used || {};
+      const pct = data.pct || {};
+      const lim = data.limits || {};
+      utilEl.innerHTML =
+        "<dt>used_qty (peak)</dt><dd class=\"mono num\">" +
+        esc(used.qty) +
+        " / " +
+        esc(lim.max_qty) +
+        "</dd>" +
+        "<dt>pct_qty</dt><dd class=\"mono num\">" +
+        esc(fmtPct(pct.qty)) +
+        "</dd>" +
+        "<dt>used_notional (gross)</dt><dd class=\"mono num\">" +
+        esc(used.notional) +
+        " / " +
+        esc(lim.max_notional) +
+        "</dd>" +
+        "<dt>pct_notional</dt><dd class=\"mono num\">" +
+        esc(fmtPct(pct.notional)) +
+        "</dd>" +
+        "<dt>symbols</dt><dd class=\"mono num\">" +
+        esc(used.symbols) +
+        "</dd>" +
+        "<dt>marks_source</dt><dd class=\"mono\">" +
+        esc(data.marks_source) +
+        "</dd>";
+      const rows = Array.isArray(data.positions) ? data.positions : [];
+      if (!rows.length) {
+        utilPosEl.textContent = "Sin posiciones abiertas.";
+        return;
+      }
+      utilPosEl.innerHTML = rows
+        .map(function (p) {
+          return (
+            esc(p.symbol) +
+            ": qty=" +
+            esc(p.qty) +
+            " notional=" +
+            esc(p.notional) +
+            " (" +
+            esc(fmtPct(p.pct_qty)) +
+            " qty / " +
+            esc(fmtPct(p.pct_notional)) +
+            " notional)"
+          );
+        })
+        .join("<br>");
     }
 
     async function refresh() {
       const data = await QLApi.risk();
-      render(data);
+      renderLimits(data);
+      const util = await QLApi.riskUtilization();
+      renderUtilization(util);
+      statusEl.textContent = "ok";
+      statusEl.className = "mono muted status-ok";
     }
 
     root.querySelector("#risk-refresh").addEventListener("click", function () {

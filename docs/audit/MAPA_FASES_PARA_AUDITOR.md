@@ -2190,3 +2190,50 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F68: **0.60.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 69 — Risk Utilization Report
+
+**Código:** 0.61.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-113  
+**Qué es:** Report % used de `max_qty` / `max_notional` vs book/posiciones paper; `GET /api/risk/utilization`; sección Utilización en panel Risk; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_69_RISK_UTIL.md` |
+| Implementation report | `docs/audit/FASE_69_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F69.md` |
+| Review Package INTERNAL | `docs/audit/FASE_69_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F69.md` |
+| Noche F19–F69 | `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 69** |
+
+**Certificado externo:** **NO** emitido (`FASE_69_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F69 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | risk_utilization helpers | `workbench/risk_utilization.py` |
+| A2 | GET /api/risk/utilization | `api.py` · `server.py` |
+| A3 | OpenAPI route | `api_catalog.py` |
+| A4 | Risk panel Utilización | `static/js/panes/risk.js` |
+| A5 | Spec | `docs/FASE_69_RISK_UTIL.md` |
+| A6 | Implementation report | `docs/audit/FASE_69_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-113 | `learning/decisiones.txt` |
+| A8 | Version 0.61.0 | `pyproject.toml` |
+| A9 | Suite + smoke F69 | `test_risk_utilization_f69.py` · smoke |
+
+### Lista B F69 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F69: **0.61.0** · LIVE: **BLOQUEADO** · flip: **NO**.

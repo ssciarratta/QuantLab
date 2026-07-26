@@ -153,6 +153,9 @@
     risk: function () {
       return request("GET", "/api/risk");
     },
+    riskUtilization: function () {
+      return request("GET", "/api/risk/utilization");
+    },
     paperSubmit: function (intent) {
       return request("POST", "/api/paper/submit", intent);
     },

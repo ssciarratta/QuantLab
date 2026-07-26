@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-113 — Risk Utilization Report
+  Decisión: F69 = GET /api/risk/utilization (% used max_qty/notional
+  vs PaperBook posiciones; peak qty + gross notional Decimal-safe);
+  sección Utilización en panel Risk; suite test_risk_utilization_f69.py;
+  bump 0.61.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_69_APPROVED.
+  Fase: 69.
+
 [2026-07-26] DEC-112 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
   Decisión: F68 = freeze documental del hito workbench v0.60.0:
   inventario F19–F67/F68, invariantes Zero-Trust, cómo operar research/paper,

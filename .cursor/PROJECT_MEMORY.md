@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.60.0** (F68 Milestone Freeze Docs — hito v0.60)  
+**Versión tip:** **0.61.0** (F69 Risk Utilization Report)  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
@@ -27,15 +27,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F58 | Milestone freeze docs + CHANGELOG sync (v0.50) · **0.50.0** |
 | F59–F67 | A11y / i18n / access / backups / paper analytics · **0.51–0.59** |
 | F68 | Milestone freeze docs + CHANGELOG sync (v0.60) · **0.60.0** |
+| F69 | Risk Utilization Report · **0.61.0** |
 | Arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
 | Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
-| Noche F19–F68 | `docs/audit/INTERNAL_AUDIT_F19_F68_NIGHT.md` |
+| Noche F19–F69 | `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F68 (SHAs impl) — tip v0.60.0
+## Arco nocturno F19–F69 (SHAs impl) — tip v0.61.0
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -89,6 +90,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 66 | Equity Curve Snapshot | 0.58.0 | `d10c1ce` |
 | 67 | Paper PnL Summary | 0.59.0 | `57b78fd` |
 | 68 | Milestone Freeze Docs + CHANGELOG (v0.60) | 0.60.0 | `140eb25` |
+| 69 | Risk Utilization Report | 0.61.0 | *(tip)* |
 
 ---
 
@@ -105,13 +107,14 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 9. Strategy Catalog: factory compartida paper+lab; MM bar-backtest sintético; sin LIVE
 10. Layout fail-closed (`layout.json`); Journal = lectura fills paper + CSV local
 11. Catalog / Feature Store: read-only list; persist features solo sandbox sesión
-12. About / health `version` ≡ `quantlab.__version__` (F49); tip **startswith 0.60** (F68)
+12. About / health `version` ≡ `quantlab.__version__` (F49); tip **startswith 0.61** (F69)
 13. Perf baseline F50: p95/max endpoints clave < 500ms loopback
 14. Soft rate limit F51: token bucket IP/path; default 120 rps; 429 JSON
 15. CSP F57 + security headers F56 + probes F54 intactos
 16. A11y F59: dialog roles + aria taskbar + focus trap palette + skip link
 17. i18n F60 es default; access log F61–F62; backups F63–F64
 18. Paper analytics F65–F67: fills CSV · equity curve · PnL summary
+19. Risk utilization F69: `%` max_qty/notional vs book en panel Risk
 
 ---
 
@@ -122,5 +125,5 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Freeze milestone v0.60: `docs/audit/MILESTONE_V060_FREEZE.md`
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
-- Noche tip: `docs/audit/INTERNAL_AUDIT_F19_F68_NIGHT.md`
+- Noche tip: `docs/audit/INTERNAL_AUDIT_F19_F69_NIGHT.md`
 - LIVE flip (NO ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`

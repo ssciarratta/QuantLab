@@ -2,6 +2,13 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 69 — Risk Utilization Report
+-------------------------------------------------------
+- v0.61.0 · DEC-113 · LIVE_BLOCKED intacto · sin FASE_69_APPROVED.
+- GET /api/risk/utilization (peak qty + gross notional % vs límites);
+  sección Utilización en panel Risk; suite test_risk_utilization_f69.py.
+- Noche F19–F69 APROBADO_INTERNO (post-QA).
+
 [2026-07-26] FASE 68 — Milestone Freeze Docs + CHANGELOG Sync (v0.60)
 -------------------------------------------------------
 - v0.60.0 · DEC-112 · LIVE_BLOCKED intacto · sin FASE_68_APPROVED.
