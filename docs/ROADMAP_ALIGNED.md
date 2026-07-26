@@ -791,7 +791,7 @@
 - DEC-104; bump 0.52.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F60.md`, 2026-07-26) — certificado externo `FASE_60_APPROVED.md` **NO emitido**  
-**Versión:** 0.52.0 · implementación _(pending)_  
+**Versión:** 0.52.0 · implementación `f7506c7`  
 **Noche F19–F60:** `docs/audit/INTERNAL_AUDIT_F19_F60_NIGHT.md` = **APROBADO_INTERNO**  
 **Spec:** `docs/FASE_60_I18N.md`  
 **Implementation report:** `docs/audit/FASE_60_IMPLEMENTATION_REPORT.md`

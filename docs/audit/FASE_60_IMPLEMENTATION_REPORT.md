@@ -4,7 +4,7 @@
 **Versión:** 0.52.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F59 A11y Basics  
-**Impl SHA:** _(pending commit)_  
+**Impl SHA:** `f7506c7`  
 **Alcance:** i18n scaffold es default + stub en — **sin flip LIVE**
 
 ---
