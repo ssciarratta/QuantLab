@@ -162,6 +162,35 @@ def check_f25_launch_parser() -> None:
     assert "--slippage-bps" in help_txt
 
 
+def check_f25_ops_desk_invariants() -> None:
+    """F25: experiment_id charset + slip adverso + risk payload."""
+    from decimal import Decimal
+
+    from quantlab.brokers.paper.broker import apply_paper_slippage
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.workbench.api import WorkbenchState, handle_get_risk
+    from quantlab.workbench.lab_services import validate_experiment_id
+
+    assert validate_experiment_id("wb-ok") == "wb-ok"
+    try:
+        validate_experiment_id("../evil")
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("expected reject experiment_id traversal")
+
+    assert apply_paper_slippage(Decimal("100"), "BUY", Decimal("100")) == Decimal("101")
+    assert apply_paper_slippage(Decimal("100"), "SELL", Decimal("100")) == Decimal("99")
+
+    state = WorkbenchState(slippage_bps=Decimal("3"))
+    state.ensure_session()
+    risk = handle_get_risk(state)
+    assert risk.get("ok") is True
+    assert risk.get("live_blocked") is True
+    assert risk.get("slippage_bps") == "3"
+    assert "max_qty" in risk.get("limits", {})
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -174,6 +203,7 @@ def main() -> int:
         ("F23 paper book import", check_f23_book_import),
         ("F24 plugins + generics", check_f24_plugins),
         ("F25 launch --allow-non-loopback", check_f25_launch_parser),
+        ("F25 ops desk slip/charset/risk", check_f25_ops_desk_invariants),
     ]
     ok = True
     for name, fn in checks:

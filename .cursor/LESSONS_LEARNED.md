@@ -1,7 +1,7 @@
 # QuantLab — Lessons Learned
 
 **Actualizado:** 2026-07-26  
-**Alcance:** arco nocturno F19–F22 (+ reglas permanentes)
+**Alcance:** noche F19–F25 (+ reglas permanentes)
 
 ---
 
@@ -17,7 +17,7 @@
 ### 2. Workbench = stdlib (F20–F21)
 
 - Stack elegido: `ThreadingHTTPServer` + SPA estática + window-manager MDI (**sin** Electron / deps UI nuevas).
-- Bind default **loopback** (`127.0.0.1`); `--host` no-loopback es riesgo consciente (MEDIUM abierto).
+- Bind default **loopback** (`127.0.0.1`); non-loopback exige `--allow-non-loopback` (F25).
 - Connect de broker en UI siempre envuelve **PaperBroker**; paneles lab usan adapters thin sobre research existente.
 - Una fase = un job: F20 shell → F21 lab → F22 chat (no mezclar en el mismo DoD).
 
@@ -38,8 +38,31 @@
 ### 5. QA del arco
 
 - Canónica: `mypy --strict` + `ruff` + `pytest -q` + `quantlab-health`.
-- Smoke barato: `scripts/internal_audit_smoke.py` (LIVE + imports brokers/workbench/chat).
-- Contar tests workbench por fase (F20 shell → F21 lab → F22 chat) ayuda a no regresar cobertura.
+- Smoke barato: `scripts/internal_audit_smoke.py` (LIVE + imports brokers/workbench/chat + F23–F25).
+- Contar tests workbench por fase ayuda a no regresar cobertura.
+
+---
+
+## F23–F25 — aprendizajes duros
+
+### 6. PaperBook + path segments (F23)
+
+- `session_id` es segmento de path: charset + anti-traversal + `is_relative_to` parent.
+- Cash/shorts fail-closed en load; short default rechazado.
+- Risk paper (`max_qty` / notional / symbols) en submit workbench — no en el MD venue.
+
+### 7. Plugins no sombrean builtins (F24)
+
+- Entry points `quantlab.brokers` deben ser **fail-soft** (warning + continue).
+- Plugin **no** puede registrar sobre `a3`/`paper`/… ya presentes (`has_venue` + refuse).
+- MD env opt-in (`QUANTLAB_A3_MD_READONLY=1`) **nunca** habilita submit venue.
+
+### 8. Ops desk ≠ bind abierto (F25)
+
+- 1-click launcher / `.desktop` no implica exposer WAN: default loopback; flag explícito + WARNING.
+- Residuales MEDIUM del arco temprano (charset `experiment_id`, `--host`) se cierran en Ops Desk, no en el shell inicial.
+- Slippage paper es **adverso** (BUY peor / SELL peor); default `0` = identidad.
+- Panel Riesgo es read-only de límites + sesión; no sustituye el gate LIVE.
 
 ---
 

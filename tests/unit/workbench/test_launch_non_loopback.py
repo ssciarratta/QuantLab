@@ -66,3 +66,43 @@ def test_main_allows_loopback_default(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     code = main(["--no-browser", "--session-root", "/tmp/ql-wb-test-loopback"])
     assert code == 0
+
+
+def test_main_allows_non_loopback_with_flag_and_warns(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """DoD F25: --allow-non-loopback permite bind + WARNING stderr."""
+
+    class _FakeServer:
+        server_address = ("0.0.0.0", 8765)
+
+        def serve_forever(self) -> None:
+            raise KeyboardInterrupt
+
+        def shutdown(self) -> None:
+            return None
+
+        def server_close(self) -> None:
+            return None
+
+    monkeypatch.setattr(
+        "quantlab.workbench.launch.create_server",
+        lambda **_kwargs: _FakeServer(),
+    )
+    err = io.StringIO()
+    with redirect_stderr(err):
+        code = main(
+            [
+                "--host",
+                "0.0.0.0",
+                "--allow-non-loopback",
+                "--no-browser",
+                "--session-root",
+                "/tmp/ql-wb-test-non-loopback",
+            ]
+        )
+    assert code == 0
+    stderr = err.getvalue()
+    assert "WARNING" in stderr
+    assert "non-loopback" in stderr
+    assert "0.0.0.0" in stderr

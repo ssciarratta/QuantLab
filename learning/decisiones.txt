@@ -1,4 +1,11 @@
 
+[2026-07-26] DEC-069 — Ops Desk 1-click + hardening loopback / experiment_id / slip
+  Decisión: F25 = launcher scripts/launch_workbench.sh + .desktop;
+  host no-loopback exige --allow-non-loopback (exit 2 + warning);
+  experiment_id charset ^[A-Za-z0-9_-]+$; PaperBroker slippage_bps adverso;
+  panel Riesgo GET /api/risk + banner session_id. LIVE_BLOCKED=True; sin Electron/auth WAN.
+  Fase: 25.
+
 [2026-07-26] DEC-068 — A3 MD read-only opt-in (env) + generics CSV/REST
   Decisión: md_source fake|env; env requiere QUANTLAB_A3_MD_READONLY=1 +
   QUANTLAB_A3_*; fallback fake; builtins generic_csv / generic_rest MD-only;

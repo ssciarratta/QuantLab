@@ -34,6 +34,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Host no-loopback abort exit 2 sin flag; warning si se permite
 - `LIVE_BLOCKED is True` (sin flip)
 
+#### Docs / audit (post-impl)
+- INTERNAL APROBADO_INTERNO F25 + arco F23–F25 + noche F19–F25
+- DEC-069; tests API risk + allow-non-loopback warning; smoke 11 checks
+
 ---
 
 ## [0.16.0] — 2026-07-26

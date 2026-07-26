@@ -1,8 +1,9 @@
 # Fase 25 — Ops desk (1-click + hardening)
 
-**Estado:** IMPLEMENTADO (v0.17.0)  
+**Estado:** APROBADO_INTERNO (v0.17.0) — externo pendiente  
 **Prerrequisito:** F23–F24  
-**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)
+**LIVE:** BLOQUEADO (`LIVE_BLOCKED=True`)  
+**INTERNAL:** `docs/audit/INTERNAL_AUDIT_F25.md` · arco `INTERNAL_AUDIT_F23_F25_ARC.md`
 
 ## Objetivo
 - `scripts/launch_workbench.sh` + `.desktop` 1-click

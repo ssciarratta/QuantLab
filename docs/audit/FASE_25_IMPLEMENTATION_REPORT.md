@@ -45,8 +45,12 @@ uv run quantlab-health
 uv run python scripts/internal_audit_smoke.py
 ```
 
+**Audit INTERNAL (2026-07-26):** mypy 156 · ruff · **552** pytest · health 0.17.0 · smoke 11 PASS · **APROBADO_INTERNO**  
+(`docs/audit/INTERNAL_AUDIT_F25.md`; sin `FASE_25_APPROVED.md`)
+
 ## Fuera de alcance (correcto)
 
 - Flip `LIVE_BLOCKED`
 - Electron / auth WAN
 - Órdenes venue / LIVE
+- DEC-069 registrada en `learning/decisiones.txt`

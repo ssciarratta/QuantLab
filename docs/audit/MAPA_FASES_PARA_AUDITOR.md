@@ -2,21 +2,24 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.16.0 (F24) · F23 audit INTERNAL 0.15.0  
+**Código actual:** 0.17.0 (F25) · F24 INTERNAL 0.16.0 · F23 INTERNAL 0.15.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
 **Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)  
+**Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` (**APROBADO_INTERNO**)  
+**Noche F19–F25:** `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` (**APROBADO_INTERNO**)  
 **F23:** `docs/audit/INTERNAL_AUDIT_F23.md` (**APROBADO_INTERNO**)  
-**F24:** `docs/audit/INTERNAL_AUDIT_F24.md` (**APROBADO_INTERNO**)
+**F24:** `docs/audit/INTERNAL_AUDIT_F24.md` (**APROBADO_INTERNO**)  
+**F25:** `docs/audit/INTERNAL_AUDIT_F25.md` (**APROBADO_INTERNO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
 > **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
 > **F21** = Lab Panels; **F22** = Chat IA; **F23** = Paper Book + sesión + risk;  
-> **F24** = venue plugins + MD read-only.  
+> **F24** = venue plugins + MD read-only; **F25** = Ops Desk 1-click + hardening.  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
 
-## Tabla F0–F24 (verificar certificados)
+## Tabla F0–F25 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -45,6 +48,7 @@
 | **22** | **Chat IA safe-by-default** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **23** | **Paper Book + Session + Risk** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F23.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **24** | **Venue plugins + MD read-only** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F24.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **25** | **Ops Desk 1-click + hardening** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F25.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -311,10 +315,55 @@ Versión impl F23: **0.15.0** (`9b89274`) · LIVE: **BLOQUEADO** · remediación
 
 ---
 
+## Fase 25 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / DoD | `docs/FASE_25_OPS_DESK.md` |
+| Ops 1-click | `docs/ops/WORKBENCH_1CLICK.md` |
+| Implementation report | `docs/audit/FASE_25_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F25.md` |
+| Review Package INTERNAL | `docs/audit/FASE_25_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F25.md` |
+| Arco F23–F25 | `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
+| Noche F19–F25 | `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 25** |
+
+**Certificado externo:** **NO** emitido (`FASE_25_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F25 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Launcher 1-click | `scripts/launch_workbench.sh` |
+| A2 | Desktop entry | `packaging/quantlab-workbench.desktop` |
+| A3 | Non-loopback gate + slip CLI | `workbench/launch.py` |
+| A4 | `validate_experiment_id` | `workbench/lab_services.py` |
+| A5 | Paper slippage adverso | `brokers/paper/broker.py` |
+| A6 | `GET /api/risk` + Risk UI | `workbench/api.py` + `static/js/panes/risk.js` |
+| A7 | LIVE gate intacto | `execution/live_gate.py` |
+| A8 | DEC-069 | `learning/decisiones.txt` |
+| A9 | Suite F25 | `tests/unit/workbench/test_launch_non_loopback.py`, `test_experiment_id_charset.py`, `test_api_risk.py`, `tests/unit/brokers/test_paper_slippage_bps.py` |
+
+### Lista B F25 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F25: **0.17.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F24 **APROBADO_INTERNO**.  
-2. QuantLab v0.16.0: venue plugins + A3 MD env opt-in + generics sobre F23 PaperBook.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; MD env no habilita submit venue.  
-4. Arco F19–F22 + F23 + F24 INTERNAL; remediación F24 H1 (no plugin shadow).  
+1. F0–F18 certificado formal externo; F19–F25 **APROBADO_INTERNO**.  
+2. QuantLab v0.17.0: Ops Desk 1-click + gates sobre F23 PaperBook + F24 plugins.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; non-loopback gated; charset/slip/Risk.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F25 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

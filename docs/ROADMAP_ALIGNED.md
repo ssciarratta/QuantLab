@@ -2,11 +2,14 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F24**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F25**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Arco nocturno F19–F22:** [`docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`](audit/INTERNAL_AUDIT_F19_F22_ARC.md) (**APROBADO_INTERNO**)  
+**Arco F23–F25:** [`docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md`](audit/INTERNAL_AUDIT_F23_F25_ARC.md) (**APROBADO_INTERNO**)  
+**Noche F19–F25:** [`docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md`](audit/INTERNAL_AUDIT_F19_F25_NIGHT.md) (**APROBADO_INTERNO**)  
 **F23 Paper Book:** [`docs/audit/INTERNAL_AUDIT_F23.md`](audit/INTERNAL_AUDIT_F23.md) (**APROBADO_INTERNO**)  
 **F24 Venue plugins:** [`docs/audit/INTERNAL_AUDIT_F24.md`](audit/INTERNAL_AUDIT_F24.md) (**APROBADO_INTERNO**)  
+**F25 Ops Desk:** [`docs/audit/INTERNAL_AUDIT_F25.md`](audit/INTERNAL_AUDIT_F25.md) (**APROBADO_INTERNO**)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
@@ -274,6 +277,23 @@
 **Remediación audit:** H1 plugins no sombrean builtins (`f8267e3`)  
 **Implementation report:** `docs/audit/FASE_24_IMPLEMENTATION_REPORT.md`
 
+### Fase 25 — Ops Desk (1-click + hardening)
+**Módulos:**
+- `scripts/launch_workbench.sh` + `packaging/quantlab-workbench.desktop` + `docs/ops/WORKBENCH_1CLICK.md`
+- CLI `--allow-non-loopback` (cierra M2 non-loopback) + warning stderr
+- `validate_experiment_id` charset `^[A-Za-z0-9_-]+$` (cierra M1)
+- PaperBroker `slippage_bps` adverso; CLI `--slippage-bps` + connect API
+- Panel Riesgo `GET /api/risk` + banner `session_id`; DEC-069
+- Sin flip LIVE; sin Electron / auth WAN
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F25.md`, 2026-07-26) — certificado externo `FASE_25_APPROVED.md` **NO emitido**  
+**Versión:** 0.17.0 · implementación `21fe144`  
+**Review Package INTERNAL:** `docs/audit/FASE_25_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F25.md`  
+**Arco F23–F25:** `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` = **APROBADO_INTERNO**  
+**Noche F19–F25:** `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` = **APROBADO_INTERNO**  
+**Implementation report:** `docs/audit/FASE_25_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -318,6 +338,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F24 **APROBADO_INTERNO**; F25 **IMPLEMENTADO** v0.17.0.  
+1. F0–F18 certificados externos; F19–F25 **APROBADO_INTERNO** (noche + arcos F19–F22 / F23–F25).  
 2. Certificados externos F19–F25 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

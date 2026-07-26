@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.14.0**  
+**Versión tip:** **0.17.0**  
 **LIVE:** `LIVE_BLOCKED = True` (flip **NO** ejecutado)
 
 ---
@@ -19,14 +19,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | Rango | Estado |
 |-------|--------|
 | F0–F18 | Certificados **externos** (`FASE_*_APPROVED.md`) |
-| F19–F22 | **APROBADO_INTERNO** Zero-Trust; externos **pendientes** |
+| F19–F25 | **APROBADO_INTERNO** Zero-Trust; externos **pendientes** |
 | Arco F19–F22 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
+| Arco F23–F25 | Cerrado INTERNAL → `docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md` |
+| Noche F19–F25 | `docs/audit/INTERNAL_AUDIT_F19_F25_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
 
 ---
 
-## Arco nocturno F19–F22 (SHAs impl)
+## Arco nocturno F19–F25 (SHAs impl)
 
 | Fase | Tema | Ver | Impl |
 |------|------|-----|------|
@@ -34,6 +36,9 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 20 | Workbench stdlib loopback + SPA WM | 0.12.0 | `cacf8e6` |
 | 21 | Lab panels `/api/lab/*` | 0.13.0 | `c397ffc` |
 | 22 | Chat IA allowlist + FakeProvider | 0.14.0 | `5ef9866` |
+| 23 | PaperBook + sesión + risk | 0.15.0 | `9b89274` |
+| 24 | Venue plugins + MD read-only | 0.16.0 | `c846e81` |
+| 25 | Ops Desk 1-click + hardening | 0.17.0 | `21fe144` |
 
 ---
 
@@ -41,10 +46,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 
 1. `LIVE_BLOCKED is True` en `execution/live_gate.py`
 2. **REAL ≠ LIVE** — alias producto `REAL = PAPER` (MD/cuenta pueden ser reales; fills simulados)
-3. Workbench bind default `127.0.0.1`; LIVE mode → 400 / CLI exit 2
+3. Workbench bind default `127.0.0.1`; non-loopback exige `--allow-non-loopback`
 4. Chat: solo tools allowlist read-only; mutaciones → `ValidationError`
 5. FakeProvider = default CI; LLM solo opt-in vía env (`DISABLED` por defecto)
-6. Lab demos sintéticos; export HB path-safe; `live_routing: false`
+6. Lab demos sintéticos; export HB path-safe; `experiment_id` charset `^[A-Za-z0-9_-]+$`
+7. PaperBroker no llama venue submit; slip paper adverso opcional
 
 ---
 
@@ -53,8 +59,9 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Roadmap: `docs/ROADMAP_ALIGNED.md`
 - Mapa auditor: `docs/audit/MAPA_FASES_PARA_AUDITOR.md`
 - Resumen: `RESUMEN_PROYECTO.txt`
-- DECs: `learning/decisiones.txt` (DEC-054…065)
+- DECs: `learning/decisiones.txt` (DEC-054…069)
 - Workbench: `src/quantlab/workbench/`
+- Launcher 1-click: `scripts/launch_workbench.sh` · `docs/ops/WORKBENCH_1CLICK.md`
 - Chat: `src/quantlab/workbench/chat/`
 - Smoke: `scripts/internal_audit_smoke.py`
 - Flip checklist (no ejecutar): `docs/ops/LIVE_FLIP_CHECKLIST.md`
@@ -77,6 +84,6 @@ uv run python scripts/internal_audit_smoke.py
 ## Entry points útiles
 
 - `quantlab-health` — ops / LIVE gate
-- `quantlab-workbench` — UI local F20–F22
+- `quantlab-workbench` / `./scripts/launch_workbench.sh` — UI local F20–F25
 - `quantlab-a3` — market data A3 (anticorrupción)
 - `quantlab-vertical-slice` — slice mínimo
