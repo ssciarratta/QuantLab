@@ -4,7 +4,7 @@
 **Versión:** 0.37.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F44 E2E Paper Workflow Integration  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `a103236`  
 **Alcance:** About API + badge + diálogo — **sin flip LIVE** · **sin browser**
 
 ---

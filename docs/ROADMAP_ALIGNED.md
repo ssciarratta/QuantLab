@@ -592,7 +592,7 @@
 - DEC-089; bump 0.37.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F45.md`, 2026-07-26) — certificado externo `FASE_45_APPROVED.md` **NO emitido**  
-**Versión:** 0.37.0 · tip post-impl  
+**Versión:** 0.37.0 · implementación `a103236`  
 **Review Package INTERNAL:** `docs/audit/FASE_45_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F45.md`  
 **Noche F19–F45:** `docs/audit/INTERNAL_AUDIT_F19_F45_NIGHT.md` = **APROBADO_INTERNO**  

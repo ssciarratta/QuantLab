@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F45):** `PENDING_SHA` · **v0.37.0** (About Dialog + Version Badge)  
+**Tip código (impl F45):** `a103236` · **v0.37.0** (About Dialog + Version Badge)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F44_NIGHT.md` con **F45**.  
@@ -56,7 +56,7 @@
 | **42** | Ops Metrics Panel | 0.34.0 | `34bfac5` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F42.md` |
 | **43** | Red-team Workbench Hardening | 0.35.0 | `2b90b1f` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F43.md` |
 | **44** | E2E Paper Workflow Integration | 0.36.0 | `df89295` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F44.md` |
-| **45** | About Dialog + Version Badge | 0.37.0 | `PENDING_SHA` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F45.md` |
+| **45** | About Dialog + Version Badge | 0.37.0 | `a103236` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F45.md` |
 
 ### Arcos
 
@@ -94,7 +94,7 @@ uv run pytest -q                        # 818
 | Manifest | `reports/QuantLab_Internal_Review_F19_F45_v0.37.0_MANIFEST.json` |
 
 ```text
-PENDING_BUNDLE_SHA256  QuantLab_Internal_Review_F19_F45_v0.37.0.zip
+65b287bccc59cd7fa03a5291f6d4de62c287c271c6ba32d32fbf36d698d196f6  QuantLab_Internal_Review_F19_F45_v0.37.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F45_v0.37.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).

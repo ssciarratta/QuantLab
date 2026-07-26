@@ -4,7 +4,7 @@ QUANTLAB — DIARIO DE PROYECTO
 
 [2026-07-26] FASE 45 — About Dialog + Version Badge
 -------------------------------------------------------
-- v0.37.0 · impl SHA PENDING_SHA · DEC-089.
+- v0.37.0 · impl SHA a103236 · DEC-089.
 - QA: mypy 175 · ruff · pytest 818 · smoke 31 PASS.
 - GET /api/about + badge versión status bar + diálogo Acerca de
   (Inicio / open.about); phases_summary F19–F45 INTERNAL; bind_policy.
