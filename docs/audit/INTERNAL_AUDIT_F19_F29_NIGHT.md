@@ -134,7 +134,7 @@ uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase
 | Campo | Valor |
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F29_v0.21.0.zip` |
-| SHA256 | `05a3720141a0971f1aa4aa8405ed16db2d3c0b79c6e96f011f266f8d901d110b` |
+| SHA256 | `0ee9c1708125df5ad02ed7959d7dc9a8ccc309d0ce46e0905820b9558cd3e9ee` |
 | Default script | `DEFAULT_TO_PHASE = 29` |
 | Incluye APPROVED | **NO** |
 
