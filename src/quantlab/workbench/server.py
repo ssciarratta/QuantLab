@@ -235,18 +235,21 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self, status: int, body: bytes, content_type: str, *, path: str | None = None
         ) -> None:
             route = path if path is not None else getattr(self, "_ql_path", "/api/")
+            # Log antes de enviar bytes: evita race keep-alive / 2ª conexión
+            # (cliente lee access-log antes de que termine append del request previo).
+            self._finish_access(status)
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
             self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
-            self._finish_access(status)
 
         def _send_download(
             self, body: bytes, *, filename: str, content_type: str, path: str | None = None
         ) -> None:
             route = path if path is not None else getattr(self, "_ql_path", "/api/")
+            self._finish_access(200)
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
@@ -254,7 +257,6 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self._apply_security_headers(route)
             self.end_headers()
             self.wfile.write(body)
-            self._finish_access(200)
 
         def _send_json(self, payload: dict[str, Any], status: int = 200) -> None:
             st, body, ctype = _json_bytes(payload, status)
@@ -270,6 +272,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 return True
             payload = rate_limit_error_payload(decision)
             status, body, ctype = _json_bytes(payload, 429)
+            self._finish_access(429)
             self.send_response(429)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
@@ -278,7 +281,6 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             self.send_header("Retry-After", str(retry))
             self.end_headers()
             self.wfile.write(body)
-            self._finish_access(429)
             return False
 
         def do_GET(self) -> None:  # noqa: N802
