@@ -28,12 +28,22 @@ class PaperBook:
     ) -> None:
         if initial_cash < 0:
             raise ValidationError("initial_cash no puede ser negativo")
+        resolved_cash = Decimal(cash) if cash is not None else Decimal(initial_cash)
+        if resolved_cash < 0:
+            raise ValidationError("cash no puede ser negativo")
         self._initial_cash = Decimal(initial_cash)
-        self._cash = Decimal(cash) if cash is not None else Decimal(initial_cash)
+        self._cash = resolved_cash
         self._currency = currency
         self._allow_short = allow_short
         # symbol -> (quantity, avg_price)
-        self._positions: dict[str, tuple[Decimal, Decimal]] = dict(positions or {})
+        raw_positions = dict(positions or {})
+        if not allow_short:
+            for sym, (qty, _avg) in raw_positions.items():
+                if qty < 0:
+                    raise ValidationError(
+                        f"short no permitido: posición {sym} qty={qty} (allow_short=False)"
+                    )
+        self._positions: dict[str, tuple[Decimal, Decimal]] = raw_positions
 
     @property
     def initial_cash(self) -> Decimal:

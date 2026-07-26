@@ -98,3 +98,19 @@ def test_to_dict_from_dict_roundtrip() -> None:
     assert restored.initial_cash == book.initial_cash
     assert restored.get_positions()[0].quantity == Decimal("1")
     assert restored.get_account().equity == book.get_account().equity
+
+
+def test_reject_negative_cash_on_init_and_from_dict() -> None:
+    with pytest.raises(ValidationError, match="cash no puede ser negativo"):
+        PaperBook(initial_cash=Decimal("100"), cash=Decimal("-1"))
+    with pytest.raises(ValidationError, match="cash no puede ser negativo"):
+        PaperBook.from_dict({"initial_cash": "100", "cash": "-50", "positions": {}})
+
+
+def test_reject_short_positions_when_allow_short_false() -> None:
+    with pytest.raises(ValidationError, match="short no permitido"):
+        PaperBook(
+            initial_cash=Decimal("1000"),
+            allow_short=False,
+            positions={"X": (Decimal("-1"), Decimal("10"))},
+        )

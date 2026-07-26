@@ -1,4 +1,16 @@
 
+[2026-07-26] DEC-068 — A3 MD read-only opt-in (env) + generics CSV/REST
+  Decisión: md_source fake|env; env requiere QUANTLAB_A3_MD_READONLY=1 +
+  QUANTLAB_A3_*; fallback fake; builtins generic_csv / generic_rest MD-only;
+  workbench reporta md_provider. Órdenes venue siguen gated.
+  Fase: 24.
+
+[2026-07-26] DEC-067 — Entry points quantlab.brokers para venues externos
+  Decisión: plugins vía importlib.metadata group quantlab.brokers;
+  load_entry_point_brokers no crashea (warning); get_default_registry carga
+  builtins + plugins. Ver docs/ops/BROKER_PLUGINS.md.
+  Fase: 24.
+
 [2026-07-26] DEC-066 — PaperBook + sesión durable + risk paper
   Decisión: F23 = PaperBook (cash/posiciones/avg/MTM, short fail-closed),
   WorkbenchSession bajo data/runtime/workbench/<id>/, PaperRiskLimits en

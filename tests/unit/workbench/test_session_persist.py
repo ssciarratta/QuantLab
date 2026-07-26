@@ -6,14 +6,17 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from quantlab.brokers.types import PaperFill
-from quantlab.workbench.session import WorkbenchSession
+from quantlab.core.exceptions import ValidationError
+from quantlab.workbench.session import WorkbenchSession, validate_session_id
 
 
 def test_create_or_load_layout(tmp_path: Path) -> None:
     session = WorkbenchSession.create_or_load(tmp_path, "s1", initial_cash=Decimal("25000"))
     assert session.session_id == "s1"
-    assert session.root == tmp_path / "s1"
+    assert session.root == (tmp_path / "s1").resolve()
     assert session.journal_path.is_file()
     assert session.book_path.is_file()
     assert session.meta_path.is_file()
@@ -25,6 +28,16 @@ def test_create_or_load_layout(tmp_path: Path) -> None:
     meta = session.load_meta()
     assert meta["session_id"] == "s1"
     assert meta["initial_cash"] == "25000"
+
+
+def test_session_id_path_traversal_rejected(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError, match="session_id"):
+        WorkbenchSession.create_or_load(tmp_path, "../escape-audit")
+    with pytest.raises(ValidationError, match="session_id"):
+        WorkbenchSession.create_or_load(tmp_path, "a/b")
+    with pytest.raises(ValidationError, match="session_id"):
+        validate_session_id("..")
+    assert validate_session_id("ok-session_1") == "ok-session_1"
 
 
 def test_session_book_persist_reload(tmp_path: Path) -> None:

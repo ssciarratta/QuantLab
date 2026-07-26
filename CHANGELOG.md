@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.16.0] — 2026-07-26
+
+### Fase 24 — Venue plugins + MD read-only multiplataforma
+
+#### Added
+- Entry points `quantlab.brokers` (`brokers/plugins.py`); `get_default_registry` carga plugins
+- A3 `md_source` fake|env (`QUANTLAB_A3_MD_READONLY=1` + creds; fallback fake)
+- Builtins `generic_csv` / `generic_rest` (MD-only skeletons)
+- Workbench: connect `md_source`; health/session `md_provider` / `plugin_venues`; UI Market provider
+- Docs: `docs/ops/BROKER_PLUGINS.md`; DEC-067/068
+
+#### Security
+- submit/cancel en A3 + generics → `assert_live_routing_blocked`
+- `LIVE_BLOCKED is True` (sin flip)
+
+---
+
 ## [0.15.0] — 2026-07-26
 
 ### Fase 23 — Paper Book + Session durable + Risk paper

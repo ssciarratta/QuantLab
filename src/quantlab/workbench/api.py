@@ -38,6 +38,8 @@ class WorkbenchState:
     registry: BrokerRegistry = field(default_factory=get_default_registry)
     broker: BrokerPort | None = None
     venue: str | None = None
+    md_provider: str | None = None
+    md_source: str | None = None
     journal: PaperFillJournal | None = None
     book: PaperBook | None = None
     session: WorkbenchSession | None = None
@@ -146,8 +148,20 @@ def _parse_mode(raw: str) -> OperatingMode:
     return mode
 
 
-def handle_get_health(_state: WorkbenchState) -> dict[str, Any]:
-    return run_health_checks().to_dict()
+def _md_info(state: WorkbenchState) -> dict[str, Any]:
+    return {
+        "md_provider": state.md_provider,
+        "md_source": state.md_source,
+        "venues": state.registry.list_venues(),
+        "plugin_venues": state.registry.list_plugin_venues(),
+        "connected_venue": state.venue,
+    }
+
+
+def handle_get_health(state: WorkbenchState) -> dict[str, Any]:
+    report = run_health_checks().to_dict()
+    report.update(_md_info(state))
+    return report
 
 
 def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
@@ -160,13 +174,15 @@ def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
 
 def handle_get_session(state: WorkbenchState) -> dict[str, Any]:
     session = state.ensure_session()
-    return {
+    out: dict[str, Any] = {
         "ok": True,
         "session": session.to_dict(),
         "live_blocked": LIVE_BLOCKED is True,
         "mode": state.mode.value,
         "initial_cash": str(state.initial_cash),
     }
+    out.update(_md_info(state))
+    return out
 
 
 def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -181,11 +197,28 @@ def handle_post_mode(state: WorkbenchState, body: dict[str, Any]) -> dict[str, A
             state.broker.close()
         state.broker = None
         state.venue = None
+        state.md_provider = None
+        state.md_source = None
     return handle_get_mode(state)
 
 
 def handle_get_venues(state: WorkbenchState) -> dict[str, Any]:
-    return {"venues": state.registry.list_venues()}
+    return {
+        "venues": state.registry.list_venues(),
+        "plugin_venues": state.registry.list_plugin_venues(),
+    }
+
+
+def _parse_md_source(body: dict[str, Any]) -> str | None:
+    raw = body.get("md_source")
+    if raw is None:
+        return None
+    if not isinstance(raw, str) or not raw.strip():
+        raise ApiError(400, "campo 'md_source' inválido (fake|env)")
+    key = raw.strip().lower()
+    if key not in ("fake", "env"):
+        raise ApiError(400, "campo 'md_source' inválido (fake|env)")
+    return key
 
 
 def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -205,8 +238,18 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
 
     _reject_live_mode(mode)
 
+    md_source = _parse_md_source(body)
+    create_opts: dict[str, Any] = {}
+    if md_source is not None:
+        create_opts["md_source"] = md_source
+    csv_path = body.get("csv_path")
+    if csv_path is not None:
+        if not isinstance(csv_path, str):
+            raise ApiError(400, "campo 'csv_path' debe ser string")
+        create_opts["csv_path"] = csv_path
+
     try:
-        created = state.registry.create(venue, mode)
+        created = state.registry.create(venue, mode, **create_opts)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
 
@@ -235,12 +278,20 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
     connect_info = broker.connect()
     state.broker = broker
     state.venue = venue
+    health = broker.health()
+    provider = health.get("md_provider") or health.get("provider") or venue
+    state.md_provider = str(provider)
+    state.md_source = str(
+        health.get("md_source") or md_source or create_opts.get("md_source") or "fake"
+    )
     return {
         "ok": True,
         "venue": venue,
         "mode": mode.value,
         "broker_venue_id": broker.venue_id,
         "paper_broker": True,
+        "md_provider": state.md_provider,
+        "md_source": state.md_source,
         "session_id": state.ensure_session().session_id,
         "connect": to_jsonable(connect_info),
     }

@@ -11,9 +11,14 @@
       "<h3>Conexión broker</h3>" +
       '<div class="pane-row">' +
       '<label class="field">Venue<select id="md-venue"></select></label>' +
+      '<label class="field">MD source<select id="md-source">' +
+      '<option value="fake">fake</option>' +
+      '<option value="env">env</option>' +
+      "</select></label>" +
       '<button type="button" class="btn" id="md-connect">Conectar</button>' +
       "</div>" +
       '<p class="muted mono" id="md-conn">sin conectar</p>' +
+      '<p class="muted mono" id="md-provider">provider: —</p>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Instrumentos</h3>" +
@@ -37,7 +42,9 @@
       "</div>";
 
     const venueSel = root.querySelector("#md-venue");
+    const sourceSel = root.querySelector("#md-source");
     const connEl = root.querySelector("#md-conn");
+    const providerEl = root.querySelector("#md-provider");
     const instList = root.querySelector("#md-inst-list");
     const snapOut = root.querySelector("#md-snap-out");
     const acctOut = root.querySelector("#md-acct-out");
@@ -59,17 +66,23 @@
     root.querySelector("#md-connect").addEventListener("click", async function () {
       try {
         const mode = getSessionMode ? getSessionMode() : "tester";
-        const res = await QLApi.connect(venueSel.value, mode);
+        const res = await QLApi.connect(venueSel.value, mode, {
+          md_source: sourceSel.value,
+        });
         connEl.textContent =
           "conectado · venue=" +
           res.venue +
           " · mode=" +
           res.mode +
           " · paper=" +
-          String(res.paper_broker);
+          String(res.paper_broker) +
+          " · md_source=" +
+          (res.md_source || sourceSel.value);
+        providerEl.textContent = "provider: " + (res.md_provider || "—");
         connEl.classList.remove("status-bad");
       } catch (err) {
         connEl.textContent = "Error: " + err.message;
+        providerEl.textContent = "provider: —";
         connEl.classList.add("status-bad");
       }
     });

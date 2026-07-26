@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -14,13 +15,29 @@ from quantlab.core.exceptions import ValidationError
 
 DEFAULT_SESSION_PARENT = Path("data/runtime/workbench")
 
+# Fail-closed: session_id es segmento de path; sin separators / traversal.
+_SESSION_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
+
+
+def validate_session_id(session_id: str) -> str:
+    """Valida ``session_id`` seguro para usar como segmento de path."""
+    sid = session_id.strip()
+    if not sid or sid in {".", ".."} or not _SESSION_ID_RE.fullmatch(sid):
+        raise ValidationError(
+            f"session_id inválido (solo [A-Za-z0-9._-], 1–64 chars, "
+            f"sin path separators): {session_id!r}"
+        )
+    if "/" in sid or "\\" in sid or ".." in sid:
+        raise ValidationError(f"session_id con path traversal rechazado: {session_id!r}")
+    return sid
+
 
 class WorkbenchSession:
     """Root durable: ``<parent>/<session_id>/`` con journal/book/meta/labs/audit."""
 
     def __init__(self, root: Path, session_id: str) -> None:
         self._root = root
-        self._session_id = session_id
+        self._session_id = validate_session_id(session_id)
 
     @property
     def root(self) -> Path:
@@ -114,9 +131,15 @@ class WorkbenchSession:
         initial_cash: Decimal | None = None,
     ) -> WorkbenchSession:
         parent = Path(root_parent) if root_parent is not None else DEFAULT_SESSION_PARENT
+        parent = parent.resolve()
         parent.mkdir(parents=True, exist_ok=True)
-        sid = (session_id or "").strip() or uuid.uuid4().hex[:12]
-        root = parent / sid
+        raw_sid = (session_id or "").strip() or uuid.uuid4().hex[:12]
+        sid = validate_session_id(raw_sid)
+        root = (parent / sid).resolve()
+        if not root.is_relative_to(parent):
+            raise ValidationError(
+                f"session root fuera de parent (path traversal): {root} vs {parent}"
+            )
         session = cls(root=root, session_id=sid)
         session.ensure_layout()
         cash = initial_cash if initial_cash is not None else DEFAULT_INITIAL_CASH

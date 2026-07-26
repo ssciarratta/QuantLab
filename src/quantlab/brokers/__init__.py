@@ -1,4 +1,4 @@
-"""quantlab.brokers — Operating Modes + BrokerPort multiplataforma (Fase 19)."""
+"""quantlab.brokers — Operating Modes + BrokerPort multiplataforma (Fase 19–24)."""
 
 from quantlab.brokers.mode import (
     REAL_ALIAS,
@@ -11,7 +11,11 @@ from quantlab.brokers.paper.book import PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
 from quantlab.brokers.paper.journal import PaperFillJournal
 from quantlab.brokers.port import BrokerPort
-from quantlab.brokers.registry import BrokerRegistry, get_default_registry
+from quantlab.brokers.registry import (
+    BrokerRegistry,
+    get_default_registry,
+    reset_default_registry,
+)
 
 __all__ = [
     "OperatingMode",
@@ -25,4 +29,5 @@ __all__ = [
     "PaperBroker",
     "PaperFillJournal",
     "get_default_registry",
+    "reset_default_registry",
 ]

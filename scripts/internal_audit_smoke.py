@@ -49,7 +49,7 @@ def check_brokers_imports() -> None:
     _ = ModeGuard
     reg = get_default_registry()
     venues = set(reg.list_venues())
-    assert {"a3", "binance", "paper"}.issubset(venues), venues
+    assert {"a3", "binance", "paper", "generic_csv", "generic_rest"}.issubset(venues), venues
 
 
 def check_workbench_imports() -> None:
@@ -85,11 +85,44 @@ def check_chat_safe() -> None:
 
 
 def check_health_dict() -> None:
+    from quantlab import __version__
     from quantlab.infra.health import run_health_checks
 
     report = run_health_checks().to_dict()
     assert report.get("ok") is True
     assert report.get("live_blocked") is True
+    assert report.get("version") == __version__
+
+
+def check_paper_book_session() -> None:
+    """F23: PaperBook fail-closed + session_id anti-traversal."""
+    from decimal import Decimal
+
+    from quantlab.brokers.paper.book import PaperBook
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.workbench.risk import PaperRiskLimits
+    from quantlab.workbench.session import WorkbenchSession, validate_session_id
+
+    book = PaperBook(initial_cash=Decimal("1000"))
+    assert book.cash == Decimal("1000")
+    assert book.allow_short is False
+    try:
+        PaperBook(initial_cash=Decimal("100"), cash=Decimal("-1"))
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("negative cash should raise")
+
+    validate_session_id("s1")
+    for bad in ("../escape", "a/b", "..", ""):
+        try:
+            validate_session_id(bad)
+        except ValidationError:
+            continue
+        raise AssertionError(f"expected reject session_id {bad!r}")
+
+    _ = PaperRiskLimits
+    _ = WorkbenchSession
 
 
 def main() -> int:
@@ -100,6 +133,7 @@ def main() -> int:
         ("workbench imports", check_workbench_imports),
         ("chat allowlist + FakeProvider", check_chat_safe),
         ("quantlab-health live_blocked", check_health_dict),
+        ("paper book + session_id fail-closed", check_paper_book_session),
     ]
     ok = True
     for name, fn in checks:

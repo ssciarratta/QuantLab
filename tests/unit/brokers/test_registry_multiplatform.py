@@ -27,6 +27,8 @@ def test_default_registry_has_builtin_venues() -> None:
     assert "a3" in venues
     assert "binance" in venues
     assert "paper" in venues
+    assert "generic_csv" in venues
+    assert "generic_rest" in venues
 
 
 def test_create_a3_tester() -> None:

@@ -97,11 +97,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     root_parent = Path(args.session_root) if args.session_root else None
-    session = WorkbenchSession.create_or_load(
-        root_parent,
-        args.session_id,
-        initial_cash=initial_cash,
-    )
+    try:
+        session = WorkbenchSession.create_or_load(
+            root_parent,
+            args.session_id,
+            initial_cash=initial_cash,
+        )
+    except ValidationError as exc:
+        print(f"sesión inválida: {exc}", file=sys.stderr)
+        return 2
 
     host = str(args.host)
     port = int(args.port)

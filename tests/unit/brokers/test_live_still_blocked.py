@@ -63,3 +63,26 @@ def test_a3_paper_mode_still_blocks_direct_submit() -> None:
                 order_type=OrderType.MARKET,
             )
         )
+
+
+def test_generic_venues_submit_still_blocked() -> None:
+    for venue in ("generic_csv", "generic_rest"):
+        broker = get_default_registry().create(venue, OperatingMode.TESTER)
+        with pytest.raises(ValidationError, match="BLOQUEADO"):
+            broker.submit(
+                OrderIntent(
+                    intent_id="g",
+                    intent_type=IntentType.PLACE_ORDER,
+                    instrument_id="X",
+                    side=OrderSide.BUY,
+                    quantity=Decimal("1"),
+                    order_type=OrderType.MARKET,
+                )
+            )
+        with pytest.raises(ValidationError, match="BLOQUEADO"):
+            broker.cancel("OID")
+
+
+def test_registry_rejects_live_for_generic() -> None:
+    with pytest.raises(ValidationError, match="LIVE_BLOCKED"):
+        get_default_registry().create("generic_rest", OperatingMode.LIVE)

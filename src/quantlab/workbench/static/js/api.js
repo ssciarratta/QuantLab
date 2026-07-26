@@ -50,8 +50,15 @@
     venues: function () {
       return request("GET", "/api/venues");
     },
-    connect: function (venue, mode) {
-      return request("POST", "/api/broker/connect", { venue: venue, mode: mode });
+    connect: function (venue, mode, opts) {
+      const body = { venue: venue, mode: mode };
+      if (opts && opts.md_source) {
+        body.md_source = opts.md_source;
+      }
+      if (opts && opts.csv_path) {
+        body.csv_path = opts.csv_path;
+      }
+      return request("POST", "/api/broker/connect", body);
     },
     instruments: function () {
       return request("GET", "/api/broker/instruments");
