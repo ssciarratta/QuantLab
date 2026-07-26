@@ -530,6 +530,33 @@ body {
   color: var(--amber);
 }
 
+.custom-preset-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.15rem;
+}
+
+.custom-preset-row > [data-preset] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.custom-preset-row > .preset-delete {
+  flex: 0 0 auto;
+  min-width: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+}
+
+.custom-preset-row > .preset-delete:hover {
+  color: var(--amber);
+  background: var(--amber-soft);
+}
+
 /* —— Command Palette (F35) —— */
 .command-palette {
   position: fixed;

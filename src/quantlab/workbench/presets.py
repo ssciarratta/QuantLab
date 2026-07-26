@@ -1,7 +1,8 @@
-"""Workspace presets — layouts MDI nombrados (F40) + custom de sesión (F80).
+"""Workspace presets — layouts MDI nombrados (F40) + custom de sesión (F80/F81).
 
 Presets built-in research-safe. Aplicar escribe ``layout.json`` de sesión.
 Custom: ``session/presets/{name}.json`` (copia del layout actual).
+Delete custom (F81): solo custom; built-ins inmutables.
 Sin flip LIVE · sin place_order venue.
 """
 
@@ -331,6 +332,29 @@ def save_custom_preset(
             "path": str(path),
         },
         "layout": normalized,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+
+
+def delete_custom_preset(presets_dir: Path, name: str) -> dict[str, Any]:
+    """Borra ``presets/{name}.json`` custom; fail-closed si built-in o inexistente."""
+    key = str(name or "").strip()
+    if key in BUILTIN_PRESET_NAMES:
+        raise ValidationError(f"no se puede borrar preset built-in: {key!r}")
+    path = custom_preset_path(presets_dir, key)
+    if not path.is_file():
+        raise ValidationError(f"preset custom no encontrado: {key!r}")
+    path.unlink()
+    return {
+        "ok": True,
+        "kind": "preset_deleted",
+        "preset": {
+            "name": key,
+            "custom": True,
+            "path": str(path),
+        },
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
         "research_safe": True,

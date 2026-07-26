@@ -1031,6 +1031,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 81 — Custom Preset Delete
+
+**Versión:** 0.73.0 · **DEC-125** · **APROBADO_INTERNO** (sin `FASE_81_APPROVED.md`)
+
+- `DELETE /api/presets/{name}` — borra solo presets custom de sesión
+- Built-ins `research|trading_paper|ops` protegidos (400)
+- UI Inicio: × en filas custom (`data-preset-delete`)
+- Smoke F81; bundle INTERNAL default F19–F81
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

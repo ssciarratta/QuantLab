@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.73.0] — 2026-07-26
+
+### Fase 81 — Custom Preset Delete
+
+#### Added
+- `DELETE /api/presets/{name}` — borra preset custom de sesión
+- UI Inicio: botón × en filas custom (`data-preset-delete`)
+- Docs: `FASE_81_PRESET_DELETE.md` · implementation report · DEC-125
+- Suite `test_preset_delete_f81.py` + smoke F81
+
+#### Changed
+- `phases_summary` → `F19–F81 INTERNAL`
+- Bundle INTERNAL default F19–F81
+- Bump **0.73.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_81_APPROVED.md`
+- Built-ins `research|trading_paper|ops` no borrables (400 fail-closed)
+
+---
+
 ## [0.72.0] — 2026-07-26
 
 ### Fase 80 — Custom Preset Save

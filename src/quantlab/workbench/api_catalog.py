@@ -125,6 +125,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/presets", "GET", "Workspace presets", ("workspace",)),
     ApiRoute("/api/presets/apply", "POST", "Apply workspace preset", ("workspace",)),
     ApiRoute("/api/presets/save", "POST", "Save current layout as custom preset", ("workspace",)),
+    ApiRoute(
+        "/api/presets/{name}",
+        "DELETE",
+        "Delete custom workspace preset (builtins protected)",
+        ("workspace",),
+    ),
     ApiRoute("/api/onboarding", "GET", "Onboarding status", ("workspace",)),
     ApiRoute(
         "/api/onboarding/complete",

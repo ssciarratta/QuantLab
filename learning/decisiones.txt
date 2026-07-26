@@ -1,3 +1,10 @@
+[2026-07-26] DEC-125 — Custom Preset Delete
+  Decisión: F81 = DELETE /api/presets/{name} borra solo presets custom
+  (session/presets/{name}.json); built-ins research|trading_paper|ops
+  inmutables (400); UI × en lista custom; bump 0.73.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_81_APPROVED.
+  Fase: 81.
+
 [2026-07-26] DEC-124 — Custom Preset Save
   Decisión: F80 = POST /api/presets/save {name} guarda layout.json
   actual en session/presets/{name}.json; GET /api/presets incluye

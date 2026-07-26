@@ -14,6 +14,7 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
+    handle_delete_presets,
     handle_get_about,
     handle_get_access_log,
     handle_get_account,
@@ -672,6 +673,27 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/watchlist":
                     self._send_json(handle_put_watchlist(state, body))
+                    return
+                self._send_error_json(404, f"ruta no encontrada: {path}")
+            except ApiError as exc:
+                self._send_error_json(exc.status, exc.message)
+            except Exception as exc:  # noqa: BLE001
+                self._send_error_json(500, str(exc))
+
+        def do_DELETE(self) -> None:  # noqa: N802
+            parsed = urlparse(self.path)
+            path = parsed.path
+            self._ql_path = path
+            self._begin_access("DELETE", path)
+            if not self._check_rate_limit(path):
+                return
+            try:
+                if path.startswith("/api/presets/"):
+                    name = unquote(path[len("/api/presets/") :]).strip("/")
+                    if not _path_segment_ok(name):
+                        self._send_error_json(400, "preset name inválido en DELETE")
+                        return
+                    self._send_json(handle_delete_presets(state, name))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

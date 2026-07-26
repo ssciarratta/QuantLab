@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Empaqueta evidencia INTERNAL F19–F80 para Meta-Auditor externo.
+"""Empaqueta evidencia INTERNAL F19–F81 para Meta-Auditor externo.
 
 NO emite ni incluye certificados ``FASE_*_APPROVED.md``.
 NO corre el Review Package oficial (pesado). Solo evidencia documental.
@@ -25,7 +25,7 @@ from pathlib import Path
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 80
+DEFAULT_TO_PHASE = 81
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")

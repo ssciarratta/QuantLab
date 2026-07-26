@@ -16,10 +16,14 @@
     "POST /api/watchlist/import": "Watchlist import",
     "POST /api/presets/apply": "Preset",
     "POST /api/presets/save": "Preset save",
+    "DELETE /api/presets/{name}": "Preset delete",
   };
 
   function toastKey(method, path) {
     const base = String(path || "").split("?")[0];
+    if (method === "DELETE" && /^\/api\/presets\/[^/]+$/.test(base)) {
+      return "DELETE /api/presets/{name}";
+    }
     return method + " " + base;
   }
 
@@ -212,6 +216,10 @@
     savePreset: function (name, extra) {
       const body = Object.assign({ name: name }, extra || {});
       return request("POST", "/api/presets/save", body);
+    },
+    deletePreset: function (name) {
+      const key = encodeURIComponent(String(name || "").trim());
+      return request("DELETE", "/api/presets/" + key);
     },
     watchlist: function () {
       return request("GET", "/api/watchlist");

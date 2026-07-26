@@ -554,13 +554,31 @@
       (window.QLi18n && QLi18n.t && QLi18n.t("preset.custom_group")) || "Custom";
     customPresetsHost.appendChild(group);
     customs.forEach(function (p) {
+      const row = document.createElement("div");
+      row.className = "custom-preset-row";
       const btn = document.createElement("button");
       btn.type = "button";
       btn.setAttribute("data-preset", p.name);
       btn.setAttribute("data-custom-preset", "1");
       btn.title = p.description || p.name;
       btn.textContent = p.label || p.name;
-      customPresetsHost.appendChild(btn);
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "preset-delete";
+      del.setAttribute("data-preset-delete", p.name);
+      del.setAttribute(
+        "aria-label",
+        ((window.QLi18n && QLi18n.t && QLi18n.t("preset.delete")) || "Delete") +
+          " " +
+          (p.label || p.name)
+      );
+      del.title =
+        (window.QLi18n && QLi18n.t && QLi18n.t("preset.delete_title")) ||
+        "Delete custom preset";
+      del.textContent = "×";
+      row.appendChild(btn);
+      row.appendChild(del);
+      customPresetsHost.appendChild(row);
     });
   }
 
@@ -591,6 +609,20 @@
       .catch(function () {});
   }
 
+  function deleteCustomPreset(name) {
+    if (!QLApi || !QLApi.deletePreset || !name) return;
+    const confirmMsg =
+      (window.QLi18n && QLi18n.t && QLi18n.t("preset.delete_confirm")) ||
+      "Delete custom preset?";
+    if (!window.confirm(confirmMsg + "\n" + name)) return;
+    QLApi.deletePreset(name)
+      .then(function (payload) {
+        if (!payload || !payload.ok) return;
+        refreshPresetsMenu();
+      })
+      .catch(function () {});
+  }
+
   startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
     btn.addEventListener("click", function () {
       const name = btn.getAttribute("data-preset");
@@ -601,6 +633,17 @@
 
   if (customPresetsHost) {
     customPresetsHost.addEventListener("click", function (ev) {
+      const delBtn =
+        ev.target && ev.target.closest
+          ? ev.target.closest("[data-preset-delete]")
+          : null;
+      if (delBtn && customPresetsHost.contains(delBtn)) {
+        ev.stopPropagation();
+        const delName = delBtn.getAttribute("data-preset-delete");
+        closeStartMenu();
+        deleteCustomPreset(delName);
+        return;
+      }
       const btn = ev.target && ev.target.closest
         ? ev.target.closest("[data-preset]")
         : null;

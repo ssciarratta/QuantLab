@@ -2716,3 +2716,44 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F80: **0.72.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 81 — Custom Preset Delete
+
+**Código:** 0.73.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-125  
+**Qué es:** `DELETE /api/presets/{name}` borra solo presets custom de sesión; built-ins `research|trading_paper|ops` inmutables; UI × en lista custom. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] DELETE custom → unlink `presets/{name}.json`
+- [ ] Built-ins → 400 (no borrables)
+- [ ] UI `data-preset-delete` / `deletePreset`
+- [ ] Sin `FASE_81_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F81
+- [ ] Bump 0.73.0
+
+### Lista A F81
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | `delete_custom_preset` | `workbench/presets.py` |
+| A2 | DELETE handler + `do_DELETE` | `api.py` + `server.py` |
+| A3 | UI × custom | `static/js/api.js` · `shell.js` · `workbench.css` |
+| A4 | DEC-125 | `learning/decisiones.txt` |
+| A5 | Version 0.73.0 | `pyproject.toml` |
+| A6 | Smoke F81 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 81 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F81 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F81: **0.73.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

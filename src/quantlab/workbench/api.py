@@ -79,7 +79,12 @@ from quantlab.workbench.paper_kill import (
 )
 from quantlab.workbench.paper_pnl import pnl_from_book, pnl_from_broker
 from quantlab.workbench.paper_session import PaperSessionConfig, PaperSessionRunner
-from quantlab.workbench.presets import apply_preset, list_presets, save_custom_preset
+from quantlab.workbench.presets import (
+    apply_preset,
+    delete_custom_preset,
+    list_presets,
+    save_custom_preset,
+)
 from quantlab.workbench.probes import livez_payload, readyz_payload
 from quantlab.workbench.rate_limit import RateLimitConfig, RateLimiter
 from quantlab.workbench.reports import get_lab_report, list_lab_reports, validate_report_id
@@ -952,6 +957,21 @@ def handle_post_presets_save(state: WorkbenchState, body: dict[str, Any]) -> dic
         )
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    return result
+
+
+def handle_delete_presets(state: WorkbenchState, name: str) -> dict[str, Any]:
+    """DELETE /api/presets/{name} — borra preset custom (F81); built-ins inmutables."""
+    session = state.ensure_session()
+    if not isinstance(name, str) or not name.strip():
+        raise ApiError(400, "preset name requerido en /api/presets/{name}")
+    try:
+        result = delete_custom_preset(session.presets_dir, name.strip())
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 404 if "no encontrado" in msg.lower() else 400
+        raise ApiError(status, msg) from exc
     result["session_id"] = session.session_id
     return result
 
