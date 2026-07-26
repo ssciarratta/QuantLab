@@ -101,7 +101,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 75 | Broker Heartbeat Status | 0.67.0 | `c506ab6` |
 | 76 | Broker Reconnect Button | 0.68.0 | `30ff7ec` |
 | 77 | Broker Disconnect + Milestone prep | 0.69.0 | `f782981` |
-| 78 | Milestone Freeze Docs + CHANGELOG (v0.70) | 0.70.0 | *(tip F78)* |
+| 78 | Milestone Freeze Docs + CHANGELOG (v0.70) | 0.70.0 | `77ea109` |
 
 ---
 

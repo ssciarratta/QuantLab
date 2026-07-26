@@ -4,7 +4,7 @@
 **Versión:** 0.70.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F77 Broker Disconnect + Milestone prep  
-**Impl SHA:** *(tip F78 — actualizar post-commit)*  
+**Impl SHA:** `77ea109`  
 **Alcance:** docs/milestone freeze F19–F77/F78 + sync tip — **sin flip LIVE**
 
 ---
