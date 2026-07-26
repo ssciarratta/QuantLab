@@ -19,6 +19,29 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.45.0] — 2026-07-26
+
+### Fase 53 — Dockerfile Workbench (opt-in)
+
+#### Added
+- `Dockerfile.workbench` — python 3.12-slim + `uv sync` · EXPOSE 8765
+- CMD `quantlab-workbench --host 0.0.0.0 --allow-non-loopback --no-browser`
+  (riesgo documentado; solo Docker Desktop port-map)
+- `.dockerignore` (sin `.env` / data secrets)
+- Ops: `docs/ops/DOCKER_WORKBENCH.md` (`-p 127.0.0.1:8765:8765`)
+- Suite `tests/unit/workbench/test_dockerfile_f53.py` (parse file; sin build obligatorio)
+- Docs: `FASE_53_DOCKER.md` · implementation report · DEC-097
+- Bundle INTERNAL default F19–F53
+
+#### Changed
+- `phases_summary` → `F19–F53 INTERNAL`
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_53_APPROVED.md`
+- Publish recomendado solo loopback host; sin auth HTTP
+
+---
+
 ## [0.44.0] — 2026-07-26
 
 ### Fase 52 — Graceful Shutdown + Paper Session Safety

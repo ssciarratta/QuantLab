@@ -691,6 +691,19 @@
 **Spec:** `docs/FASE_52_SHUTDOWN.md`  
 **Implementation report:** `docs/audit/FASE_52_IMPLEMENTATION_REPORT.md`
 
+### Fase 53 — Dockerfile Workbench (opt-in)
+**Módulos / artefactos:**
+- `Dockerfile.workbench` — python 3.12-slim + uv sync · EXPOSE 8765
+- CMD `--host 0.0.0.0 --allow-non-loopback --no-browser` (riesgo documentado; port-map)
+- `.dockerignore` · `docs/ops/DOCKER_WORKBENCH.md`
+- DEC-097; bump 0.45.0; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F53.md`, 2026-07-26) — certificado externo `FASE_53_APPROVED.md` **NO emitido**  
+**Versión:** 0.45.0  
+**Noche F19–F53:** `docs/audit/INTERNAL_AUDIT_F19_F53_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_53_DOCKER.md`  
+**Implementation report:** `docs/audit/FASE_53_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)
@@ -735,6 +748,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F52 **APROBADO_INTERNO** (noche F19–F52; freeze F19–F48).  
+1. F0–F18 certificados externos; F19–F53 **APROBADO_INTERNO** (noche F19–F53; freeze F19–F48).  
 2. Certificados externos F19+ solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

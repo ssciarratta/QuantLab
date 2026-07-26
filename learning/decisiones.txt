@@ -1,4 +1,14 @@
 
+[2026-07-26] DEC-097 — Dockerfile Workbench (opt-in)
+  Decisión: F53 = Dockerfile.workbench opt-in (python:3.12-slim + uv sync);
+  EXPOSE 8765; CMD quantlab-workbench --host 0.0.0.0 --allow-non-loopback
+  --no-browser (riesgo documentado: solo para Docker Desktop port-map;
+  publicar -p 127.0.0.1:8765:8765; sin auth HTTP; no WAN);
+  .dockerignore excluye .env / data secrets; docs/ops/DOCKER_WORKBENCH.md;
+  tests parsean Dockerfile (sin build obligatorio); bump 0.45.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_53_APPROVED.
+  Fase: 53.
+
 [2026-07-26] DEC-096 — Graceful Shutdown + Paper Session Safety
   Decisión: F52 = SIGINT/SIGTERM en launch.py detienen PaperSessionRunner,
   flushean layout.json/settings.json (+ book) y apagan el HTTPServer;

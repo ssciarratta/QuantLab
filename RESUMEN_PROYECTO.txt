@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.44.0 (F52 Graceful Shutdown + Paper Session Safety)
+Versión código actual: 0.45.0 (F53 Dockerfile Workbench opt-in)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -9,35 +9,34 @@ Auditoría INTERNAL F49: código 0.41.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F50: código 0.42.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F51: código 0.43.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F52: código 0.44.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F53: código 0.45.0 — APROBADO_INTERNO (externo pendiente)
 Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
 Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
 Noche F19–F49: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F49_NIGHT.md)
 Noche F19–F50: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F50_NIGHT.md)
-Noche F19–F52: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F51_NIGHT.md)
+Noche F19–F51: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F51_NIGHT.md)
 Noche F19–F52: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F52_NIGHT.md)
+Noche F19–F53: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F53_NIGHT.md)
 Freeze: docs/audit/MILESTONE_V040_FREEZE.md
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F52: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
-- Workbench F19–F48 + F49 freeze + F50 perf + F51 rate limit + F52 graceful shutdown
+- F19–F53: APROBADO_INTERNO Zero-Trust (externo pendiente; sin FASE_*_APPROVED.md)
+- Workbench F19–F48 + F49 freeze + F50 perf + F51 rate limit + F52 shutdown + F53 Docker
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F52 Graceful Shutdown + Paper Session Safety (v0.44.0) — APROBADO_INTERNO:
-- SIGINT/SIGTERM + POST /api/shutdown loopback; stop paper + flush; DEC-096
-- test_shutdown_f52.py; FASE_52_APPROVED.md NO emitido
+F53 Dockerfile Workbench opt-in (v0.45.0) — APROBADO_INTERNO:
+- Dockerfile.workbench + .dockerignore + DOCKER_WORKBENCH.md; DEC-097
+- CMD allow-non-loopback / no-browser (riesgo documentado; -p 127.0.0.1:8765:8765)
+- test_dockerfile_f53.py; FASE_53_APPROVED.md NO emitido
 
 PRÓXIMO PASO
 ------------
-- Certificados externos F19–F52 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F53 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 - No emitir FASE_*_APPROVED.md desde INTERNAL
-
-BLOQUEOS
---------
-- ORDER ROUTING REAL / LIVE A3: BLOQUEADO

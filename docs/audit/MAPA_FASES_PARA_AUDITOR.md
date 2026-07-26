@@ -1506,3 +1506,52 @@ uv run python scripts/internal_audit_smoke.py
 ```
 
 Versión código F52: **0.44.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
+## Fase 53 — Dockerfile Workbench (opt-in)
+
+**Código:** 0.45.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-097  
+**Qué es:** Imagen Docker opt-in del Workbench (`Dockerfile.workbench`: python 3.12-slim + uv sync; CMD `--host 0.0.0.0 --allow-non-loopback --no-browser`); publish seguro `-p 127.0.0.1:8765:8765`; sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_53_DOCKER.md` |
+| Ops | `docs/ops/DOCKER_WORKBENCH.md` |
+| Implementation report | `docs/audit/FASE_53_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F53.md` |
+| Review Package INTERNAL | `docs/audit/FASE_53_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F53.md` |
+| Noche F19–F53 | `docs/audit/INTERNAL_AUDIT_F19_F53_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 53** |
+
+**Certificado externo:** **NO** emitido (`FASE_53_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F53 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Dockerfile | `Dockerfile.workbench` |
+| A2 | Dockerignore | `.dockerignore` |
+| A3 | Ops guide | `docs/ops/DOCKER_WORKBENCH.md` |
+| A4 | Suite F53 | `tests/unit/workbench/test_dockerfile_f53.py` |
+| A5 | Spec | `docs/FASE_53_DOCKER.md` |
+| A6 | Implementation report | `docs/audit/FASE_53_IMPLEMENTATION_REPORT.md` |
+| A7 | DEC-097 | `learning/decisiones.txt` |
+| A8 | Smoke F53 | `scripts/internal_audit_smoke.py` |
+| A9 | Bundle to-phase 53 | `scripts/build_internal_review_bundle.py` |
+| A10 | Version 0.45.0 | `pyproject.toml` |
+
+### Lista B F53 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F53: **0.45.0** · LIVE: **BLOQUEADO** · flip: **NO**.

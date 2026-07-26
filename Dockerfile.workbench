@@ -1,0 +1,30 @@
+# QuantLab Workbench — opt-in Docker image (Fase 53)
+#
+# RISK: CMD binds 0.0.0.0 with --allow-non-loopback so Docker Desktop can
+# publish the port. There is NO HTTP auth. Only map to host loopback:
+#   docker run --rm -p 127.0.0.1:8765:8765 quantlab-workbench
+# Do NOT publish 0.0.0.0:8765:8765 on a shared / WAN-facing host.
+# LIVE_BLOCKED remains True inside the container (no LIVE flip).
+
+FROM python:3.12-slim-bookworm
+
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+WORKDIR /app
+
+ENV UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    PATH="/app/.venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1
+
+# Project metadata + lock first (better layer cache), then sources.
+COPY pyproject.toml uv.lock README.md ./
+COPY src ./src
+
+RUN uv sync --frozen --no-dev
+
+EXPOSE 8765
+
+# --allow-non-loopback: required for container bind 0.0.0.0 + host port map.
+# --no-browser: headless container (no display).
+CMD ["quantlab-workbench", "--host", "0.0.0.0", "--allow-non-loopback", "--no-browser"]

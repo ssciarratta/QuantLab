@@ -1,0 +1,76 @@
+# Git / VCS
+.git
+.gitignore
+.gitattributes
+
+# Local envs & secrets (never bake into image)
+.env
+.env.*
+!.env.example
+*.secret
+sync_token.txt
+sync_approved.txt
+
+# Python caches / venvs
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.hypothesis
+.tox
+.nox
+.coverage
+htmlcov
+dist
+build
+
+# Runtime / data / artifacts (may hold session or research secrets)
+data/
+artifacts/
+feature_store/
+reports/
+!reports/.gitkeep
+
+# IDE / OS / Cursor
+.cursor
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Heavy / generated review bundles
+*.zip
+QuantLab_Review_Fase_*
+QuantLab_Internal_Review_*
+REVIEW_PACKAGE_MANIFEST.json
+tree.txt
+PROJECT_STATUS.md
+review_staging/
+coverage.xml
+coverage.txt
+pytest_report.txt
+mypy_report.txt
+ruff_report.txt
+format_report.txt
+
+# Tests & docs not required to run the workbench image
+tests/
+docs/
+scripts/
+packaging/
+learning/
+experiments/
+config/
+.github/
+*.md
+!README.md
+CHANGELOG.md
+LICENSE
+IMPROVEMENTS.md
+LESSONS_LEARNED.md
+REVIEW_REQUEST.md
+RESUMEN_PROYECTO.txt

@@ -45,5 +45,5 @@ Salida (fuera de `src/`, en `reports/`):
 
 ## Notas
 
-- Default `--to-phase` = **33** (`DEFAULT_TO_PHASE`).
+- Default `--to-phase` = **53** (`DEFAULT_TO_PHASE`).
 - Bundle INTERNAL ≠ certificado externo.
