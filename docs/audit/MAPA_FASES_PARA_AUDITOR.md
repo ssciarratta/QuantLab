@@ -800,10 +800,62 @@ Versión código F34: **0.26.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 35 — Command Palette + Keyboard Shortcuts (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.27.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** command palette Windows-like (`Ctrl+K` / `Ctrl+Shift+P`) + atajos Ctrl+1..9 / Esc / Ctrl+W; `GET /api/commands` con paneles + acciones seguras (health refresh — sin LIVE).
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_35_COMMAND_PALETTE.md` |
+| Implementation report | `docs/audit/FASE_35_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F35.md` |
+| Review Package INTERNAL | `docs/audit/FASE_35_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F35.md` |
+| Noche F19–F35 | `docs/audit/INTERNAL_AUDIT_F19_F35_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 35** |
+
+**Certificado externo:** **NO** emitido (`FASE_35_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F35 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | Registry comandos | `workbench/commands.py` |
+| A2 | API GET /api/commands | `api.py` + `server.py` |
+| A3 | Command palette JS | `static/js/command_palette.js` |
+| A4 | Shell shortcuts | `static/js/shell.js` |
+| A5 | WM closeFocused | `static/js/wm.js` |
+| A6 | CSS palette | `static/css/workbench.css` |
+| A7 | LIVE gate | `execution/live_gate.py` |
+| A8 | DEC-079 | `learning/decisiones.txt` |
+| A9 | Suite F35 | `tests/unit/workbench/test_commands_f35.py` |
+| A10 | Smoke F35 | `scripts/internal_audit_smoke.py` |
+
+### Lista B F35 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F35: **0.27.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F34 **APROBADO_INTERNO**.  
-2. QuantLab v0.26.0: Monte Carlo History + Hummingbot Export Wizard.  
-3. **LIVE sigue BLOQUEADO**; MC/export persist path-safe; export `live_routing:false`.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F34 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F35 **APROBADO_INTERNO**.  
+2. QuantLab v0.27.0: Command Palette + Keyboard Shortcuts.  
+3. **LIVE sigue BLOQUEADO**; comandos solo safe (open pane / health refresh / close).  
+4. Arcos F19–F22 + F23–F25 + noche F19–F35 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.

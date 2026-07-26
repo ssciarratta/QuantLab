@@ -24,6 +24,7 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.catalog_browser import list_catalog_datasets
+from quantlab.workbench.commands import list_commands
 from quantlab.workbench.feature_store_browser import list_feature_store
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.layout import load_layout, save_layout
@@ -855,6 +856,11 @@ def handle_get_paper_fills(state: WorkbenchState) -> dict[str, Any]:
 
 def _lab_validation_error(exc: ValidationError) -> ApiError:
     return ApiError(400, str(exc))
+
+
+def handle_get_commands(_state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/commands — command palette: paneles + acciones seguras (F35)."""
+    return list_commands()
 
 
 def handle_get_lab_capabilities(_state: WorkbenchState) -> dict[str, Any]:

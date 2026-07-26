@@ -198,5 +198,8 @@
     chatTools: function () {
       return request("GET", "/api/chat/tools");
     },
+    commands: function () {
+      return request("GET", "/api/commands");
+    },
   };
 })(window);

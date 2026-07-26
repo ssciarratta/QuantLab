@@ -15,6 +15,7 @@ from quantlab.workbench.api import (
     handle_get_account,
     handle_get_catalog,
     handle_get_chat_tools,
+    handle_get_commands,
     handle_get_health,
     handle_get_instruments,
     handle_get_lab_capabilities,
@@ -144,6 +145,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             try:
                 if path == "/api/health":
                     self._send_json(handle_get_health(state))
+                    return
+                if path == "/api/commands":
+                    self._send_json(handle_get_commands(state))
                     return
                 if path == "/api/mode":
                     self._send_json(handle_get_mode(state))

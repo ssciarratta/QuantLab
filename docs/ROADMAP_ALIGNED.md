@@ -439,6 +439,21 @@
 **Spec:** `docs/FASE_34_MC_EXPORT.md`  
 **Implementation report:** `docs/audit/FASE_34_IMPLEMENTATION_REPORT.md`
 
+### Fase 35 — Command Palette + Keyboard Shortcuts
+**Módulos:**
+- `workbench/commands.py` — registry paneles + acciones seguras
+- API `GET /api/commands`
+- Command palette SPA (`Ctrl+K` / `Ctrl+Shift+P`) + atajos Ctrl+1..9 / Esc / Ctrl+W
+- DEC-079; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F35.md`, 2026-07-26) — certificado externo `FASE_35_APPROVED.md` **NO emitido**  
+**Versión:** 0.27.0  
+**Review Package INTERNAL:** `docs/audit/FASE_35_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F35.md`  
+**Noche F19–F35:** `docs/audit/INTERNAL_AUDIT_F19_F35_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_35_COMMAND_PALETTE.md`  
+**Implementation report:** `docs/audit/FASE_35_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

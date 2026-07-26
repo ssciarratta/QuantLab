@@ -209,6 +209,81 @@
     validation: openValidation,
   };
 
+  const palette = new QLCommandPalette({
+    openers: openers,
+    wm: wm,
+    onHealthRefresh: function () {
+      QLApi.getMode()
+        .then(updateBanner)
+        .catch(function () {});
+      QLApi.health().catch(function () {});
+    },
+  });
+  palette.load();
+
+  const PANE_SHORTCUT_ORDER = [
+    "health",
+    "market",
+    "universe",
+    "catalog",
+    "blotter",
+    "journal",
+    "paper_session",
+    "positions",
+    "risk",
+  ];
+
+  function isTypingTarget(el) {
+    if (!el) return false;
+    const tag = (el.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return true;
+    if (el.isContentEditable) return true;
+    return false;
+  }
+
+  document.addEventListener("keydown", function (ev) {
+    const key = ev.key;
+    const ctrl = ev.ctrlKey || ev.metaKey;
+
+    if (key === "Escape") {
+      if (palette.isOpen()) {
+        ev.preventDefault();
+        palette.hide();
+        return;
+      }
+    }
+
+    if (ctrl && (key === "k" || key === "K")) {
+      ev.preventDefault();
+      palette.toggle();
+      return;
+    }
+    if (ctrl && ev.shiftKey && (key === "p" || key === "P")) {
+      ev.preventDefault();
+      palette.toggle();
+      return;
+    }
+
+    if (palette.isOpen()) return;
+
+    if (ctrl && (key === "w" || key === "W")) {
+      if (isTypingTarget(ev.target) && !ev.target.closest(".win")) return;
+      ev.preventDefault();
+      wm.closeFocused();
+      return;
+    }
+
+    if (ctrl && !ev.altKey && !ev.shiftKey && key >= "1" && key <= "9") {
+      if (isTypingTarget(ev.target) && !ev.target.closest(".command-palette")) return;
+      const idx = parseInt(key, 10) - 1;
+      const paneId = PANE_SHORTCUT_ORDER[idx];
+      if (paneId && openers[paneId]) {
+        ev.preventDefault();
+        openers[paneId]();
+      }
+    }
+  });
+
   startBtn.addEventListener("click", function (ev) {
     ev.stopPropagation();
     const open = startMenu.hasAttribute("hidden");

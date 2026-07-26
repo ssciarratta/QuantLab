@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-079 — Command Palette + Keyboard Shortcuts
+  Decisión: F35 = command palette Windows-like (Ctrl+K / Ctrl+Shift+P)
+  con GET /api/commands (paneles + acciones seguras: health refresh,
+  close focused); atajos Ctrl+1..9 abren paneles; Esc cierra palette;
+  Ctrl+W cierra ventana enfocada. Sin acciones LIVE / place_order /
+  flip. LIVE_BLOCKED=True; sin flip.
+  Fase: 35.
+
 [2026-07-26] DEC-078 — Monte Carlo History + Hummingbot Export Wizard
   Decisión: F34 = POST /api/lab/montecarlo persiste summary en
   session/montecarlo/<run_id>/ (CI 95% mean/std/ci_low/ci_high);

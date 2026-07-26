@@ -9,6 +9,7 @@
     this.workspace = workspaceEl;
     this.taskbar = taskbarEl;
     this.windows = new Map();
+    this.focusedId = null;
     this._onLayoutChange = null;
     this._saveTimer = null;
   }
@@ -175,6 +176,7 @@
     });
     rec.el.classList.add("focused");
     rec.taskBtn.classList.add("active");
+    this.focusedId = id;
   };
 
   WindowManager.prototype.minimize = function (id) {
@@ -183,6 +185,7 @@
     rec.el.classList.add("minimized");
     rec.el.classList.remove("focused");
     rec.taskBtn.classList.remove("active");
+    if (this.focusedId === id) this.focusedId = null;
   };
 
   WindowManager.prototype.restore = function (id) {
@@ -198,6 +201,19 @@
     rec.el.remove();
     rec.taskBtn.remove();
     this.windows.delete(id);
+    if (this.focusedId === id) this.focusedId = null;
+  };
+
+  WindowManager.prototype.closeFocused = function () {
+    if (!this.focusedId) return false;
+    const id = this.focusedId;
+    this.close(id);
+    this.scheduleSave();
+    return true;
+  };
+
+  WindowManager.prototype.getFocusedId = function () {
+    return this.focusedId;
   };
 
   WindowManager.prototype._startDrag = function (win, ev) {

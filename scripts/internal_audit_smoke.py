@@ -581,6 +581,40 @@ def check_f34_mc_export() -> None:
     assert exports["live_routing"] is False
 
 
+def check_f35_commands() -> None:
+    """F35: /api/commands registry + LIVE_BLOCKED + no live actions."""
+    from pathlib import Path
+
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.api import WorkbenchState, handle_get_commands
+    from quantlab.workbench.commands import PANE_SHORTCUT_ORDER, list_commands
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    payload = list_commands()
+    assert payload["ok"] is True
+    assert payload["kind"] == "commands"
+    assert payload["live_blocked"] is True
+    assert payload["live_routing"] is False
+    assert payload["count"] >= 20
+    assert payload["pane_shortcut_order"] == list(PANE_SHORTCUT_ORDER)
+    ids = {c["id"] for c in payload["commands"]}
+    assert "open.health" in ids
+    assert "action.health_refresh" in ids
+    assert "action.close_focused" in ids
+    for cmd in payload["commands"]:
+        assert cmd["safe"] is True
+        assert cmd["live"] is False
+
+    root = Path("/tmp/quantlab-smoke-f35-commands")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke35")
+    state = WorkbenchState(session=session)
+    body = handle_get_commands(state)
+    assert body["ok"] is True
+    assert body["count"] == len(body["commands"])
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -603,6 +637,7 @@ def main() -> int:
         ("F32 validation walk-forward runner", check_f32_validation_runner),
         ("F33 optimizer history + pareto", check_f33_optimizer_history),
         ("F34 montecarlo history + HB export", check_f34_mc_export),
+        ("F35 command palette + /api/commands", check_f35_commands),
     ]
     ok = True
     for name, fn in checks:

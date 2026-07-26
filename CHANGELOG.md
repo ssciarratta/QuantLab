@@ -19,6 +19,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.27.0] — 2026-07-26
+
+### Fase 35 — Command Palette + Keyboard Shortcuts
+
+#### Added
+- `workbench/commands.py` — registry paneles + acciones seguras
+- API `GET /api/commands` (LIVE_BLOCKED, research_safe, sin LIVE)
+- Command palette JS (`Ctrl+K` / `Ctrl+Shift+P`) · atajos `Ctrl+1..9`, `Esc`, `Ctrl+W`
+- Tests `test_commands_f35.py` · DEC-079
+- Docs: `FASE_35_COMMAND_PALETTE.md` · implementation report
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); comandos solo safe (health refresh / open pane / close)
+
+---
+
 ## [0.26.0] — 2026-07-26
 
 ### Fase 34 — Monte Carlo History + Hummingbot Export Wizard
