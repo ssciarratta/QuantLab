@@ -55,6 +55,8 @@ def test_list_commands_registry() -> None:
     assert "open.validation" in ids
     assert "action.health_refresh" in ids
     assert "action.close_focused" in ids
+    assert "action.minimize_all" in ids
+    assert "action.restore_all" in ids
 
     for cmd in payload["commands"]:
         assert cmd["safe"] is True

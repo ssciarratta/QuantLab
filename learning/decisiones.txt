@@ -1,3 +1,10 @@
+[2026-07-26] DEC-127 — Minimize / Restore All windows
+  Decisión: F83 = wm.js minimizeAll/restoreAll; command palette
+  action.minimize_all / action.restore_all; menú Inicio grupo Ventanas;
+  scheduleSave persiste minimized en layout.json; bump 0.75.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_83_APPROVED.
+  Fase: 83.
+
 [2026-07-26] DEC-126 — Window Snap to Edges
   Decisión: F82 = al soltar drag en wm.js, snapPosition(x,y,w,h,vw,vh,12)
   alinea a bordes/viewport si distancia < 12px; scheduleSave persiste;

@@ -263,6 +263,34 @@
     }
   };
 
+  /** Minimize every open window and persist layout (F83). */
+  WindowManager.prototype.minimizeAll = function (opts) {
+    opts = opts || {};
+    const ids = Array.from(this.windows.keys());
+    for (let i = 0; i < ids.length; i++) {
+      this.minimize(ids[i]);
+    }
+    this.focusedId = null;
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+  };
+
+  /** Restore every minimized window and persist layout (F83). */
+  WindowManager.prototype.restoreAll = function (opts) {
+    opts = opts || {};
+    const ids = Array.from(this.windows.keys());
+    for (let i = 0; i < ids.length; i++) {
+      const rec = this.windows.get(ids[i]);
+      if (rec && rec.el.classList.contains("minimized")) {
+        this.restore(ids[i]);
+      }
+    }
+    if (!opts.silent) {
+      this.scheduleSave();
+    }
+  };
+
   WindowManager.prototype.getFocusedId = function () {
     return this.focusedId;
   };

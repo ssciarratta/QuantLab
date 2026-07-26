@@ -2798,3 +2798,44 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F82: **0.74.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+---
+
+## Fase 83 — Minimize / Restore All
+
+**Código:** 0.75.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-127  
+**Qué es:** Command palette + menú Inicio: Minimize all / Restore all windows. `wm.js` `minimizeAll`/`restoreAll` + `scheduleSave` persiste `minimized` en layout. Sin flip LIVE.
+
+**DoD auditor:**
+- [ ] Commands `action.minimize_all` + `action.restore_all` en `/api/commands`
+- [ ] `minimizeAll`/`restoreAll` en `wm.js` + persist layout
+- [ ] Menú grupo Ventanas
+- [ ] Sin `FASE_83_APPROVED.md`
+- [ ] `LIVE_BLOCKED is True`
+- [ ] `phases_summary` F19–F83
+- [ ] Bump 0.75.0
+
+### Lista A F83
+
+| ID | Artefacto | Path |
+|----|-----------|------|
+| A1 | minimizeAll/restoreAll | `static/js/wm.js` |
+| A2 | Commands | `workbench/commands.py` |
+| A3 | Spec | `docs/FASE_83_MINIMIZE_ALL.md` |
+| A4 | DEC-127 | `learning/decisiones.txt` |
+| A5 | Version 0.75.0 | `pyproject.toml` |
+| A6 | Smoke F83 | `scripts/internal_audit_smoke.py` |
+| A7 | Bundle to-phase 83 | `scripts/build_internal_review_bundle.py` |
+
+### Lista B F83 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F83: **0.75.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

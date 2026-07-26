@@ -1,3 +1,7 @@
+[2026-07-26] F83 — Minimize / Restore All (v0.75.0)
+  wm.js minimizeAll/restoreAll + palette/menú + persist layout.
+  DEC-127 · APROBADO_INTERNO · sin FASE_83_APPROVED · LIVE_BLOCKED.
+
 [2026-07-26] F78 Milestone Freeze Docs (v0.70) — v0.70.0
   MILESTONE_V070_FREEZE.md; sync CHANGELOG/RESUMEN/MEMORY/README;
   smoke starts with 0.70; bundle F19–F78; LIVE_BLOCKED intacto;

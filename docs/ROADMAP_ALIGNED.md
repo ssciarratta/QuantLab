@@ -1053,6 +1053,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 83 — Minimize / Restore All
+
+**Versión:** 0.75.0 · **DEC-127** · **APROBADO_INTERNO** (sin `FASE_83_APPROVED.md`)
+
+- Command palette + menú: Minimize all / Restore all windows
+- `wm.js` `minimizeAll` / `restoreAll` + `scheduleSave` (persist `minimized`)
+- Suite/smoke F83; bundle INTERNAL default F19–F83
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

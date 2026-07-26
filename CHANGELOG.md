@@ -19,6 +19,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.75.0] — 2026-07-26
+
+### Fase 83 — Minimize / Restore All
+
+#### Added
+- `wm.js`: `minimizeAll()` / `restoreAll()` con `scheduleSave()` (persist layout)
+- Command palette: `action.minimize_all` · `action.restore_all`
+- Menú Inicio: grupo **Ventanas** (`data-wm-action`)
+- Docs: `FASE_83_MINIMIZE_ALL.md` · implementation report · DEC-127
+- Suite `test_minimize_all_f83.py` + smoke F83
+
+#### Changed
+- `phases_summary` → `F19–F83 INTERNAL`
+- Bundle INTERNAL default F19–F83
+- Bump **0.75.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_83_APPROVED.md`
+
+---
+
 ## [0.74.0] — 2026-07-26
 
 ### Fase 82 — Window Snap to Edges

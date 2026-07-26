@@ -505,6 +505,20 @@
     });
   });
 
+  startMenu.querySelectorAll("[data-wm-action]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const action = btn.getAttribute("data-wm-action");
+      if (action === "minimize_all" && wm.minimizeAll) {
+        wm.minimizeAll();
+      } else if (action === "restore_all" && wm.restoreAll) {
+        wm.restoreAll();
+      }
+      startMenu.setAttribute("hidden", "");
+      startMenu.classList.add("hidden");
+      startBtn.classList.remove("active");
+    });
+  });
+
   if (sbVersion) {
     sbVersion.addEventListener("click", function (ev) {
       ev.stopPropagation();

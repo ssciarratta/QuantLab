@@ -238,6 +238,36 @@ _ACTION_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("close", "cerrar", "ventana", "window"),
         "shortcut": "Ctrl+W",
     },
+    {
+        "id": "action.minimize_all",
+        "kind": "action",
+        "label": "Minimize all",
+        "action": "minimize_all",
+        "keywords": (
+            "minimize",
+            "minimizar",
+            "all",
+            "todas",
+            "windows",
+            "ventanas",
+            "hide",
+        ),
+    },
+    {
+        "id": "action.restore_all",
+        "kind": "action",
+        "label": "Restore all windows",
+        "action": "restore_all",
+        "keywords": (
+            "restore",
+            "restaurar",
+            "all",
+            "todas",
+            "windows",
+            "ventanas",
+            "show",
+        ),
+    },
 )
 
 

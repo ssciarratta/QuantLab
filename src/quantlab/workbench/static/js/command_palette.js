@@ -283,6 +283,14 @@
       }
       if (cmd.action === "close_focused" && this.wm && this.wm.closeFocused) {
         this.wm.closeFocused();
+        return;
+      }
+      if (cmd.action === "minimize_all" && this.wm && this.wm.minimizeAll) {
+        this.wm.minimizeAll();
+        return;
+      }
+      if (cmd.action === "restore_all" && this.wm && this.wm.restoreAll) {
+        this.wm.restoreAll();
       }
     }
   };
