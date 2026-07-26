@@ -4,7 +4,7 @@
 **Versión:** 0.36.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F43 Red-team Workbench Hardening  
-**Impl SHA:** _(rellenar post-commit)_  
+**Impl SHA:** `df89295`  
 **Alcance:** test integración API paper workflow — **sin flip LIVE** · **sin browser**
 
 ---

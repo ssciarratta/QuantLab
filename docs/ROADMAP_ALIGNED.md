@@ -578,7 +578,7 @@
 - DEC-088; bump 0.36.0; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F44.md`, 2026-07-26) — certificado externo `FASE_44_APPROVED.md` **NO emitido**  
-**Versión:** 0.36.0 · implementación _(post-commit)_  
+**Versión:** 0.36.0 · implementación `df89295`  
 **Review Package INTERNAL:** `docs/audit/FASE_44_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F44.md`  
 **Noche F19–F44:** `docs/audit/INTERNAL_AUDIT_F19_F44_NIGHT.md` = **APROBADO_INTERNO**  

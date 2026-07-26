@@ -20,6 +20,7 @@
 | A5 | Version 0.36.0 | `pyproject.toml` |
 | A6 | Smoke F44 | `scripts/internal_audit_smoke.py` |
 | A7 | Bundle to-phase 44 | `scripts/build_internal_review_bundle.py` |
+| A8 | Impl SHA | `df89295` |
 
 ## QA esperado
 

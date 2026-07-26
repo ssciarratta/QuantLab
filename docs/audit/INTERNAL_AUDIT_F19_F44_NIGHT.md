@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código (impl F44):** _(post-commit)_ · **v0.36.0** (E2E Paper Workflow Integration)  
+**Tip código (impl F44):** `df89295` · **v0.36.0** (E2E Paper Workflow Integration)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
 > Extiende `INTERNAL_AUDIT_F19_F43_NIGHT.md` con **F44**.  
@@ -55,7 +55,7 @@
 | **41** | Activity Log + Toasts | 0.33.0 | `f1db945` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F41.md` |
 | **42** | Ops Metrics Panel | 0.34.0 | `34bfac5` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F42.md` |
 | **43** | Red-team Workbench Hardening | 0.35.0 | `2b90b1f` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F43.md` |
-| **44** | E2E Paper Workflow Integration | 0.36.0 | _(post-commit)_ | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F44.md` |
+| **44** | E2E Paper Workflow Integration | 0.36.0 | `df89295` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F44.md` |
 
 ### Arcos
 
@@ -88,11 +88,13 @@ uv run pytest -q                        # 808
 
 ## Bundle INTERNAL
 
-| Campo | Valor |
-|-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F44_v0.36.0.zip` |
+|----------|------------------------------------------------------|
 | Manifest | `reports/QuantLab_Internal_Review_F19_F44_v0.36.0_MANIFEST.json` |
-| SHA256 | _(post-build)_ |
+
+```text
+65a6db436d1bd92ea1851bc8385065ce01743ae9370663b718aca64631b93b5e  QuantLab_Internal_Review_F19_F44_v0.36.0.zip
+```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F44_v0.36.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
 

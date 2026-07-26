@@ -2,6 +2,17 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 44 — E2E Paper Workflow Integration Test
+-------------------------------------------------------
+- v0.36.0 · impl SHA df89295 · DEC-088.
+- QA: mypy 174 · ruff · pytest 808 · smoke 30 PASS.
+- Test integración HTTP loopback (sin browser) del flujo paper
+  completo: mode → connect binance/a3 → submit → book → buy_once →
+  lab (bt/val/opt/mc) → HB → session zip → LIVE reject.
+- Tests test_e2e_paper_workflow_f44.py (2); INTERNAL APROBADO_INTERNO;
+  FASE_44_APPROVED.md NO emitido.
+- Noche F19–F44 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 43 — Red-team Workbench Hardening
 -------------------------------------------------------
 - v0.35.0 · impl SHA 2b90b1f · DEC-087.
