@@ -302,4 +302,11 @@ Formato: [FECHA] DEC-XXX — Título — Decisión — Justificación
   Flip solo con Meta-Auditor + dueño + commit dedicado. F19 no lo ejecuta.
   Fase: 19.
 
+[2026-07-26] DEC-061 — Workbench local stdlib + SPA window-manager
+  Decisión: F20 = ThreadingHTTPServer + static SPA (sin deps UI nuevas);
+  bind default 127.0.0.1; entry quantlab-workbench; OperatingMode.LIVE rechazado;
+  connect siempre PaperBroker + journal sesión; LIVE_BLOCKED permanece True;
+  sin chat (F22) ni paneles F21; sin flip LIVE.
+  Fase: 20.
+
 ================================================================================

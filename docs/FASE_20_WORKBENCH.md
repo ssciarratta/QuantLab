@@ -1,8 +1,10 @@
 # Fase 20 — Workbench (1-click, ventanas tipo Windows)
 
-**Estado:** IMPLEMENTADO (v0.12.0)  
+**Estado:** IMPLEMENTADO (v0.12.0) · **APROBADO_INTERNO** Zero-Trust (2026-07-26)  
 **Prerrequisito:** F19 Operating Modes + BrokerPort  
-**Pedido dueño:** entrar con 1 click; ventanas tipo Windows; mouse; todas las funcionalidades.
+**Pedido dueño:** entrar con 1 click; ventanas tipo Windows; mouse; todas las funcionalidades.  
+**Certificado externo:** NO emitido (`FASE_20_APPROVED.md` reserva Meta-Auditor externo).  
+**Evidencia INTERNAL:** `docs/audit/INTERNAL_AUDIT_F20.md` · `AUTO_AUDIT_2026-07-26_F20.md` · `FASE_20_REVIEW_PACKAGE.md`
 
 ## Stack (DEC-061)
 
@@ -55,9 +57,23 @@ Bind default: `127.0.0.1`. Entry: `quantlab-workbench`.
 - [x] Tests `tests/unit/workbench/` (http.client + thread + puerto efímero)
 - [x] QA: ruff / mypy --strict / pytest workbench+brokers / quantlab-health
 - [x] Docs DoD + implementation report
+- [x] Autauditoría + Review Package INTERNAL + INTERNAL_AUDIT (APROBADO_INTERNO)
 - [ ] Chat (F22) — fuera de alcance
 - [ ] Paneles backtest/optimizer (F21) — fuera de alcance
+- [ ] `FASE_20_APPROVED.md` formal externo — pendiente Meta-Auditor externo
 
 ## Fuera de alcance F20
 
 Chat completo (F22), paneles de todas las features (F21), Electron, LIVE UI arming.
+
+## Auditoría INTERNAL (2026-07-26)
+
+| Check | Resultado |
+|-------|-----------|
+| Bind loopback default | PASS |
+| LIVE mode rejected (API + CLI) | PASS |
+| PaperBroker path (connect + submit) | PASS |
+| `LIVE_BLOCKED is True` | PASS |
+| Entry `quantlab-workbench` | PASS |
+| SPA `wm.js` WindowManager | PASS |
+| mypy / ruff / pytest workbench / health | PASS |

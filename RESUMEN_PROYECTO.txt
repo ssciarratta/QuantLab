@@ -1,33 +1,37 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.11.0
+Versión código actual: 0.12.0
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F20: código 0.12.0 — APROBADO_INTERNO (externo pendiente)
 
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
 - F19: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F19.md, 2026-07-26)
   · NO existe FASE_19_APPROVED.md (reserva Meta-Auditor externo)
+- F20: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F20.md, 2026-07-26)
+  · NO existe FASE_20_APPROVED.md (reserva Meta-Auditor externo)
+- Workbench local loopback (quantlab-workbench) + SPA window-manager
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (a3, binance, paper)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F19 Operating Modes + BrokerPort (v0.11.0, commit a5b12d3):
-- ModeGuard fail-closed; REAL alias = PAPER
-- PaperBroker fills locales; PaperFillJournal ≠ LocalPaperLedger
-- A3BrokerPort MD-only; FakeBinance segundo venue
-- QA INTERNAL: mypy strict · ruff · 34 brokers passed · quantlab-health ok
-- Docs: AUTO_AUDIT_2026-07-26_F19 · FASE_19_REVIEW_PACKAGE · INTERNAL_AUDIT_F19
-- Diseño siguiente: docs/FASE_20_WORKBENCH.md
+F20 Workbench (v0.12.0, commit cacf8e6; audit INTERNAL 2026-07-26):
+- CLI quantlab-workbench; bind default 127.0.0.1; LIVE mode rechazado
+- Connect siempre PaperBroker + journal sesión; LIVE_BLOCKED is True
+- SPA WM (wm.js) + paneles Health / Market Data / Paper Blotter
+- QA INTERNAL: mypy strict · ruff · 11 workbench passed · quantlab-health ok
+- Docs: AUTO_AUDIT_2026-07-26_F20 · FASE_20_REVIEW_PACKAGE · INTERNAL_AUDIT_F20
+- DEC-061 en learning/decisiones.txt
 
 PRÓXIMO PASO
 ------------
-- F20 Workbench (1-click / ventanas) sobre modos F19
-- Certificado externo F19 solo con APROBADO Meta-Auditor externo
+- F21 paneles features (backtest/optimizer) sobre workbench F20
+- Certificados externos F19/F20 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
 
 BLOQUEOS

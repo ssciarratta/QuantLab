@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F19** (+ F20 diseño)  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F20**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
@@ -198,8 +198,21 @@
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F19.md`, 2026-07-26) — certificado externo `FASE_19_APPROVED.md` **pendiente**  
 **Versión:** 0.11.0 · implementación `a5b12d3`  
-**Review Package INTERNAL:** `docs/audit/FASE_19_REVIEW_PACKAGE.md`  
-**Siguiente:** F20 Workbench (`docs/FASE_20_WORKBENCH.md`)
+**Review Package INTERNAL:** `docs/audit/FASE_19_REVIEW_PACKAGE.md`
+
+### Fase 20 — Workbench (1-click / window-manager)
+**Módulos:**
+- CLI `quantlab-workbench` + `ThreadingHTTPServer` bind default `127.0.0.1`
+- JSON API fail-closed ante `OperatingMode.LIVE`; connect siempre `PaperBroker`
+- SPA estática + window-manager MDI (drag/resize/minimize/close + taskbar)
+- Paneles shell: Health/Mode, Market Data, Paper Blotter (UI ES)
+- DEC-061; sin chat (F22), sin paneles F21, sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F20.md`, 2026-07-26) — certificado externo `FASE_20_APPROVED.md` **NO emitido**  
+**Versión:** 0.12.0 · implementación `cacf8e6`  
+**Review Package INTERNAL:** `docs/audit/FASE_20_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F20.md`  
+**Siguiente:** F21 paneles features / F22 chat (diseño); LIVE sigue bloqueado
 
 ---
 
@@ -245,6 +258,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
-2. Implementar **F20 Workbench** (1-click / window manager) sobre modos F19.  
+1. F0–F18 certificados externos; F19–F20 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
+2. Diseñar/implementar **F21** paneles features (backtest/optimizer) sobre workbench F20.  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

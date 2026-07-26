@@ -2,16 +2,16 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.11.0  
+**Código actual:** 0.12.0  
 **LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
-> **F18** = research-ops; **F19** = Operating Modes + BrokerPort (extensiones post-MVP).  
+> **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench (extensiones post-MVP).  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
 
-## Tabla F0–F19 (verificar certificados)
+## Tabla F0–F20 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -35,6 +35,7 @@
 | 17 | Escalabilidad + residuos F10/F12/F14 | ✅ | `docs/audit/FASE_17_APPROVED.md` | **APROBADO DEFINITIVO** (2026-07-25) |
 | **18** | **Control Total (research-ops)** | ✅ | `docs/audit/FASE_18_APPROVED.md` | **APROBADO DEFINITIVO** (2026-07-25) |
 | **19** | **Operating Modes + BrokerPort** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F19.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **20** | **Workbench (1-click / WM)** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F20.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -89,7 +90,7 @@ Versión código F18: **0.10.0** · LIVE: **BLOQUEADO**.
 | Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F19.md` |
 | Veredicto INTERNAL | `docs/audit/INTERNAL_AUDIT_F19.md` |
 | LIVE flip checklist | `docs/ops/LIVE_FLIP_CHECKLIST.md` |
-| Diseño F20 (siguiente) | `docs/FASE_20_WORKBENCH.md` |
+| Spec F20 (implementada) | `docs/FASE_20_WORKBENCH.md` |
 
 **Certificado externo:** **NO** emitido (`FASE_19_APPROVED.md` ausente a propósito).  
 **INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
@@ -121,9 +122,49 @@ Versión código F19: **0.11.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ---
 
+## Fase 20 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / alcance | `docs/FASE_20_WORKBENCH.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 20** |
+| Review Package INTERNAL | `docs/audit/FASE_20_REVIEW_PACKAGE.md` |
+| Implementation report | `docs/audit/FASE_20_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F20.md` |
+| Veredicto INTERNAL | `docs/audit/INTERNAL_AUDIT_F20.md` |
+
+**Certificado externo:** **NO** emitido (`FASE_20_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F20 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | CLI `quantlab-workbench` | `workbench/launch.py` |
+| A2 | ThreadingHTTPServer loopback | `workbench/server.py` |
+| A3 | JSON API + WorkbenchState | `workbench/api.py` |
+| A4 | SPA + WindowManager | `workbench/static/` (`wm.js`) |
+| A5 | Paneles Health / MD / Blotter | `static/js/panes/` |
+| A6 | LIVE gate intacto | `execution/live_gate.py` |
+| A7 | DEC-061 | `learning/decisiones.txt` |
+| A8 | Suite workbench | `tests/unit/workbench/` |
+
+### Lista B F20 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab
+uv run pytest tests/unit/workbench -q
+uv run quantlab-health
+```
+
+Versión código F20: **0.12.0** · LIVE: **BLOQUEADO** · bind default: **127.0.0.1** · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 tienen certificado formal externo; F19 tiene **APROBADO_INTERNO** (pendiente externo).  
-2. QuantLab v0.11.0: Operating Modes + BrokerPort multiplataforma.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE.  
-4. F20 Workbench es el siguiente diseño (`docs/FASE_20_WORKBENCH.md`).
+1. F0–F18 tienen certificado formal externo; F19–F20 tienen **APROBADO_INTERNO** (pendiente externo).  
+2. QuantLab v0.12.0: Workbench SPA + API loopback sobre modos F19.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; órdenes workbench solo PaperBroker.  
+4. Siguiente: F21 paneles features / F22 chat (diseño).
