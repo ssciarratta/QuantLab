@@ -23,14 +23,29 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 
 ---
 
-## Inicio rápido (Fase 3)
+## Inicio rápido
 
 ```bash
 uv sync --frozen --extra dev
 uv run pytest
+uv run quantlab-health
 uv run quantlab-vertical-slice
 uv run quantlab-a3 health
 ```
+
+### Workbench local (F20–F22)
+
+UI loopback (stdlib) con paneles Health / MD / Blotter, Laboratorio y **Chat IA** safe-mode:
+
+```bash
+uv run quantlab-workbench --no-browser
+# http://127.0.0.1:8765  ·  --mode tester|paper|real  ·  live rechazado
+uv run python scripts/internal_audit_smoke.py   # invariantes LIVE + imports
+```
+
+- Bind default `127.0.0.1` · `LIVE_BLOCKED=True` · REAL = PAPER (≠ LIVE)
+- Chat: FakeProvider por defecto; tools allowlist read-only (sin órdenes)
+- Specs: [F20](docs/FASE_20_WORKBENCH.md) · [F21](docs/FASE_21_LAB_PANELS.md) · [F22](docs/FASE_22_CHAT_IA.md)
 
 Market data / órdenes simulation offline usan Fake backend por defecto. API real:
 

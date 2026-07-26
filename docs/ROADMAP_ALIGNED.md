@@ -2,8 +2,9 @@
 
 **Fecha:** 2026-07-26  
 **Propósito:** Una sola fuente de verdad de fases/módulos para comparar con ChatGPT, AI Studio y el código real.  
-**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F21**  
+**Base de diseño:** [`Arquitectura.md`](Arquitectura.md) §13 (F0–F17) + extensiones producto **F18–F22**  
 **Mapa para auditor:** [`docs/audit/MAPA_FASES_PARA_AUDITOR.md`](audit/MAPA_FASES_PARA_AUDITOR.md)  
+**Arco nocturno F19–F22:** [`docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`](audit/INTERNAL_AUDIT_F19_F22_ARC.md) (**APROBADO_INTERNO**)  
 **Estado de ejecución real:** ver columna “Estado en repo”.
 
 > Regla: el cierre formal de cada fase exige Review Package + **APROBADO** del Meta-Auditor.  
@@ -222,10 +223,24 @@
 - DEC-062; sin chat (F22); sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F21.md`, 2026-07-26) — certificado externo `FASE_21_APPROVED.md` **NO emitido**  
-**Versión:** 0.13.0 · implementación `c397ffc` · tip `0de4211`  
+**Versión:** 0.13.0 · implementación `c397ffc` · tip lock `0de4211`  
 **Review Package INTERNAL:** `docs/audit/FASE_21_REVIEW_PACKAGE.md`  
-**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F21.md`  
-**Siguiente:** F22 chat IA (diseño/implementación); LIVE sigue bloqueado
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F21.md`
+
+### Fase 22 — Chat IA safe-by-default
+**Módulos:**
+- `ChatOrchestrator` + `ToolRegistry` allowlist read-only (DEC-063)
+- `FakeProvider` default CI + `OptionalEnvProvider` opt-in (DEC-064)
+- `ChatAuditLog` JSONL append-only (DEC-065)
+- API `POST /api/chat` + `GET /api/chat/tools`; panel Chat IA + banner safe-mode
+- Illegal tools (`submit_order`, `set_live`, `place_order`, …) → `ValidationError`
+- Sin flip LIVE; sin órdenes venue
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F22.md`, 2026-07-26) — certificado externo `FASE_22_APPROVED.md` **NO emitido**  
+**Versión:** 0.14.0 · implementación `5ef9866`  
+**Review Package INTERNAL:** `docs/audit/FASE_22_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F22.md`  
+**Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` = **APROBADO_INTERNO**
 
 ---
 
@@ -271,6 +286,6 @@ Por eso ChatGPT/AI Studio pueden decir “Fase 5 = Framework de Estrategias / Fe
 
 ## Próximo paso sugerido
 
-1. F0–F18 certificados externos; F19–F21 **APROBADO_INTERNO** (pendiente Meta-Auditor externo).  
-2. Diseñar/implementar **F22** chat IA sobre workbench (sin flip LIVE).  
+1. F0–F18 certificados externos; F19–F22 **APROBADO_INTERNO** (arco cerrado; pendiente Meta-Auditor externo por fase).  
+2. Certificados externos F19–F22 solo con APROBADO Meta-Auditor externo (no emitir desde INTERNAL).  
 3. LIVE routing sigue **BLOQUEADO**; flip solo con checklist + Meta-Auditor + dueño.

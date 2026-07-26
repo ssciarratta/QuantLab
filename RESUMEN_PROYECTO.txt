@@ -1,12 +1,14 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.13.0
+Versión código actual: 0.14.0
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19: código 0.11.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F20: código 0.12.0 — APROBADO_INTERNO (externo pendiente)
 Auditoría INTERNAL F21: código 0.13.0 — APROBADO_INTERNO (externo pendiente)
+Auditoría INTERNAL F22: código 0.14.0 — APROBADO_INTERNO (externo pendiente)
+Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
 
 ESTADO
 ------
@@ -17,24 +19,30 @@ ESTADO
   · NO existe FASE_20_APPROVED.md (reserva Meta-Auditor externo)
 - F21: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F21.md, 2026-07-26)
   · NO existe FASE_21_APPROVED.md (reserva Meta-Auditor externo)
-- Workbench local loopback + Lab Panels (`/api/lab/*`, 9 paneles)
+- F22: APROBADO_INTERNO Zero-Trust (INTERNAL_AUDIT_F22.md, 2026-07-26)
+  · NO existe FASE_22_APPROVED.md (reserva Meta-Auditor externo)
+- Arco nocturno F19–F22 CERRADO a nivel INTERNAL
+- Workbench local loopback + Lab Panels + Chat IA safe-by-default
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (a3, binance, paper)
 - Research-prod LISTO · CI Actions ACTIVO · LIVE BLOQUEADO · flip NO ejecutado
 
 ÚLTIMA IMPLEMENTACIÓN / AUDITORÍA
 ---------------------------------
-F21 Lab Panels (v0.13.0, impl c397ffc; tip 0de4211; audit INTERNAL 2026-07-26):
-- lab_services thin adapters + API /api/lab/* + paneles SPA Laboratorio
-- Export HB path-safe; live_routing false; datos sintéticos / tmp sesión
-- QA INTERNAL: mypy strict · ruff · 23 workbench passed · quantlab-health ok
-- Docs: AUTO_AUDIT_2026-07-26_F21 · FASE_21_REVIEW_PACKAGE · INTERNAL_AUDIT_F21
-- DEC-062 en learning/decisiones.txt
+F22 Chat IA (v0.14.0, impl 5ef9866; audit INTERNAL 2026-07-26):
+- ToolRegistry allowlist read-only; illegal tools rejected
+- FakeProvider default CI; OptionalEnv opt-in (QUANTLAB_LLM_*=DISABLED)
+- POST /api/chat + GET /api/chat/tools; panel Chat IA + banner safe-mode
+- Audit JSONL append-only; LIVE_BLOCKED is True; sin flip vía chat
+- QA INTERNAL: mypy strict (148) · ruff · 463 pytest · 40 workbench · health ok
+- Docs: AUTO_AUDIT_2026-07-26_F22 · FASE_22_REVIEW_PACKAGE · INTERNAL_AUDIT_F22
+- Arco: INTERNAL_AUDIT_F19_F22_ARC · smoke scripts/internal_audit_smoke.py
+- DEC-063..065 en learning/decisiones.txt
 
 PRÓXIMO PASO
 ------------
-- F22 chat IA sobre workbench (diseño/implementación)
-- Certificados externos F19–F21 solo con APROBADO Meta-Auditor externo
+- Certificados externos F19–F22 solo con APROBADO Meta-Auditor externo
 - LIVE bloqueado (checklist docs/ops/LIVE_FLIP_CHECKLIST.md)
+- No emitir FASE_*_APPROVED.md desde INTERNAL
 
 BLOQUEOS
 --------

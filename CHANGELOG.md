@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.14.0] — 2026-07-26
+
+### Fase 22 — Chat IA safe-by-default (APROBADO_INTERNO)
+
+#### Added
+- `workbench/chat/`: ToolRegistry allowlist, FakeProvider, OptionalEnvProvider, ChatAuditLog, ChatOrchestrator
+- API `POST /api/chat` + `GET /api/chat/tools`; panel Chat IA + banner safe-mode
+- Tests `tests/unit/workbench/test_chat_*.py` (17)
+- Smoke `scripts/internal_audit_smoke.py` (LIVE + imports workbench/brokers/chat)
+- Auditoría INTERNAL F22 + cierre arco F19–F22
+
+#### Security
+- Illegal tools rechazados; chat no puede `set_live` / `place_order` / `submit_order`
+- `LIVE_BLOCKED is True`; FakeProvider default CI; `QUANTLAB_LLM_*=DISABLED` en `.env.example`
+
+---
+
 ## [0.2.0] — 2026-07-23
 
 ### Fase 2 — Fundación del dominio

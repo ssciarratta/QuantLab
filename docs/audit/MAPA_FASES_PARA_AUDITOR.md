@@ -2,16 +2,18 @@
 
 **Fuente de verdad:** `docs/ROADMAP_ALIGNED.md`  
 **Fecha:** 2026-07-26  
-**Código actual:** 0.12.0  
-**LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)
+**Código actual:** 0.14.0  
+**LIVE order routing:** BLOQUEADO (`LIVE_BLOCKED = True`)  
+**Arco F19–F22:** `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` (**APROBADO_INTERNO**)
 
 > Nota: en `Arquitectura.md` §13 el roadmap original terminaba en **Fase 17**.  
-> **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench (extensiones post-MVP).  
+> **F18** = research-ops; **F19** = Operating Modes + BrokerPort; **F20** = Workbench;  
+> **F21** = Lab Panels; **F22** = Chat IA safe-by-default (extensiones post-MVP).  
 > **No confundir “no estaba en Arquitectura §13” con “no existe en el repo”.**
 
 ---
 
-## Tabla F0–F20 (verificar certificados)
+## Tabla F0–F22 (verificar certificados)
 
 | Fase | Nombre | Certificado formal | Path certificado / evidencia | Estado auditoría |
 |------|--------|--------------------|------------------------------|------------------|
@@ -36,6 +38,8 @@
 | **18** | **Control Total (research-ops)** | ✅ | `docs/audit/FASE_18_APPROVED.md` | **APROBADO DEFINITIVO** (2026-07-25) |
 | **19** | **Operating Modes + BrokerPort** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F19.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 | **20** | **Workbench (1-click / WM)** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F20.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **21** | **Lab Panels** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F21.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
+| **22** | **Chat IA safe-by-default** | 📦 INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` | **APROBADO_INTERNO** (2026-07-26) — externo pendiente |
 
 ---
 
@@ -201,9 +205,52 @@ Versión código F21: **0.13.0** · LIVE: **BLOQUEADO** · bind default: **127.0
 
 ---
 
+## Fase 22 — qué auditar (existe en repo)
+
+| Doc | Path |
+|-----|------|
+| Spec / alcance | `docs/FASE_22_CHAT_IA.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 22** |
+| Review Package INTERNAL | `docs/audit/FASE_22_REVIEW_PACKAGE.md` |
+| Implementation report | `docs/audit/FASE_22_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F22.md` |
+| Veredicto INTERNAL | `docs/audit/INTERNAL_AUDIT_F22.md` |
+| Cierre arco F19–F22 | `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md` |
+
+**Certificado externo:** **NO** emitido (`FASE_22_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F22 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | ToolRegistry allowlist | `workbench/chat/tools.py` |
+| A2 | Providers (Fake default) | `workbench/chat/providers.py` |
+| A3 | Audit JSONL | `workbench/chat/audit.py` |
+| A4 | Orchestrator + API | `orchestrator.py`, `api.py`, `server.py` |
+| A5 | Panel Chat + banner | `static/js/panes/chat.js` |
+| A6 | LIVE gate intacto | `execution/live_gate.py` |
+| A7 | DEC-063..065 | `learning/decisiones.txt` |
+| A8 | Suite chat | `tests/unit/workbench/test_chat_*.py` |
+
+### Lista B F22 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F22: **0.14.0** · LIVE: **BLOQUEADO** · FakeProvider default · flip: **NO**.
+
+---
+
 ## Mensaje corto para el auditor
 
-1. F0–F18 tienen certificado formal externo; F19–F21 tienen **APROBADO_INTERNO** (pendiente externo).  
-2. QuantLab v0.13.0: Workbench + Lab Panels (`/api/lab/*`) sobre modos F19.  
-3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; lab demos sintéticos; export HB path-safe.  
-4. Siguiente: F22 chat IA (diseño/implementación).
+1. F0–F18 tienen certificado formal externo; F19–F22 tienen **APROBADO_INTERNO** (arco cerrado; externo pendiente).  
+2. QuantLab v0.14.0: Workbench + Lab Panels + Chat IA safe sobre modos F19.  
+3. **LIVE sigue BLOQUEADO**; REAL = PAPER ≠ LIVE; chat allowlist-only; FakeProvider CI.  
+4. Cierre arco: `docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md`.  
+5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.
