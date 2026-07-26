@@ -25,8 +25,8 @@ def _cmd_tokens(text: str) -> list[str]:
 
 def test_live_blocked_and_version_f53() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.67.0"
-    assert PHASES_SUMMARY == "F19–F75 INTERNAL"
+    assert __version__ == "0.68.0"
+    assert PHASES_SUMMARY == "F19–F76 INTERNAL"
 
 
 def test_dockerfile_workbench_exists() -> None:

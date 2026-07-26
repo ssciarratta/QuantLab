@@ -2503,3 +2503,46 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F75: **0.67.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 76 — Broker Reconnect Button
+
+**Código:** 0.68.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-120  
+**Qué es:** `POST /api/broker/reconnect` re-ejecuta los últimos params de connect guardados en session meta (`last_broker_connect`). Connect persiste la config. Botón Reconectar en Market + Health. Sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_76_RECONNECT.md` |
+| Implementation report | `docs/audit/FASE_76_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F76.md` |
+| Review Package INTERNAL | `docs/audit/FASE_76_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F76.md` |
+| Noche F19–F76 | `docs/audit/INTERNAL_AUDIT_F19_F76_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 76** |
+
+**Certificado externo:** **NO** emitido (`FASE_76_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F76 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | Persist + reconnect module | `broker_reconnect.py` · `api.py` · `server.py` · `api_catalog.py` |
+| A2 | UI Market + Health | `market.js` · `health.js` · `api.js` |
+| A3 | Spec | `docs/FASE_76_RECONNECT.md` |
+| A4 | Implementation report | `docs/audit/FASE_76_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-120 | `learning/decisiones.txt` |
+| A6 | Version 0.68.0 | `pyproject.toml` |
+| A7 | Suite + smoke F76 | `test_broker_reconnect_f76.py` · smoke |
+
+### Lista B F76 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F76: **0.68.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

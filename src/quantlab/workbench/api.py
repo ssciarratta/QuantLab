@@ -35,6 +35,11 @@ from quantlab.workbench.auto_backup import (
     list_backups,
     run_auto_backup,
 )
+from quantlab.workbench.broker_reconnect import (
+    last_connect_status,
+    require_last_connect,
+    save_last_connect,
+)
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
 from quantlab.workbench.docs_browser import list_docs, read_docs_content
@@ -1400,6 +1405,22 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
         state.md_source = str(
             health.get("md_source") or md_source or create_opts.get("md_source") or "fake"
         )
+        # F76: persist last connect params in session meta for reconnect.
+        persist_body: dict[str, Any] = {
+            "venue": venue,
+            "mode": mode.value,
+            "slippage_bps": str(slippage_bps),
+        }
+        if md_source is not None:
+            persist_body["md_source"] = md_source
+        elif state.md_source:
+            persist_body["md_source"] = state.md_source
+        if "csv_path" in create_opts:
+            persist_body["csv_path"] = create_opts["csv_path"]
+        try:
+            saved = save_last_connect(state.ensure_session(), persist_body)
+        except ValidationError as exc:
+            raise ApiError(400, str(exc)) from exc
         out = {
             "ok": True,
             "venue": venue,
@@ -1411,6 +1432,7 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
             "slippage_bps": str(slippage_bps),
             "session_id": state.ensure_session().session_id,
             "connect": to_jsonable(connect_info),
+            "last_connect": saved,
         }
         _record_activity(
             state,
@@ -1423,6 +1445,37 @@ def handle_post_broker_connect(state: WorkbenchState, body: dict[str, Any]) -> d
     except ApiError as exc:
         _activity_error(state, "connect", exc.message)
         raise
+
+
+def handle_post_broker_reconnect(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """POST /api/broker/reconnect — re-run last connect params from session meta (F76).
+
+    Body opcional (ignorado; reconnect usa solo session meta). Sin last connect → 400.
+    """
+    del body  # reserved; reconnect uses session meta only
+    session = state.ensure_session()
+    try:
+        cfg = require_last_connect(session)
+    except ValidationError as exc:
+        _activity_error(state, "reconnect", str(exc))
+        raise ApiError(400, str(exc)) from exc
+    # Reutiliza connect (LIVE reject, PaperBroker wrap, persist last_connect).
+    out = handle_post_broker_connect(state, dict(cfg))
+    status = last_connect_status(session, config=cfg)
+    out["reconnect"] = True
+    out["kind"] = "broker_reconnect"
+    out["has_last_connect"] = status["has_last_connect"]
+    out["updated_at"] = status["updated_at"]
+    _record_activity(
+        state,
+        "reconnect",
+        ok=True,
+        message=f"reconnected {cfg.get('venue')}",
+        detail={"venue": cfg.get("venue"), "mode": cfg.get("mode")},
+    )
+    return out
 
 
 def handle_get_instruments(state: WorkbenchState) -> dict[str, Any]:

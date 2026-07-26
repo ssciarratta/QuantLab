@@ -5,6 +5,7 @@
   // Paths que disparan toast success/error (F41).
   const TOAST_LABELS = {
     "POST /api/broker/connect": "Connect",
+    "POST /api/broker/reconnect": "Reconnect",
     "POST /api/paper/submit": "Submit",
     "POST /api/paper/kill": "Kill switch",
     "POST /api/lab/backtest": "Backtest",
@@ -107,6 +108,9 @@
         body.slippage_bps = opts.slippage_bps;
       }
       return request("POST", "/api/broker/connect", body);
+    },
+    reconnect: function () {
+      return request("POST", "/api/broker/reconnect", {});
     },
     instruments: function () {
       return request("GET", "/api/broker/instruments");

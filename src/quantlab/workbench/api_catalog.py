@@ -67,6 +67,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("broker",),
     ),
     ApiRoute("/api/broker/connect", "POST", "Connect broker venue", ("broker",)),
+    ApiRoute(
+        "/api/broker/reconnect",
+        "POST",
+        "Reconnect broker using last connect params from session meta",
+        ("broker",),
+    ),
     ApiRoute("/api/paper/book", "GET", "Paper book state", ("paper",)),
     ApiRoute("/api/paper/fills", "GET", "Paper fills journal", ("paper",)),
     ApiRoute("/api/paper/fills.csv", "GET", "Paper fills journal as CSV download", ("paper",)),

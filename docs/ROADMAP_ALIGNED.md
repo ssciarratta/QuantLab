@@ -977,6 +977,17 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 76 — Broker Reconnect Button
+
+**Versión:** 0.68.0 · **DEC-120** · **APROBADO_INTERNO** (sin `FASE_76_APPROVED.md`)
+
+- `POST /api/broker/reconnect` — re-run last connect params from session meta
+- Persist `last_broker_connect` en `meta.json` al connect
+- UI botón Reconectar en Market + Health
+- Smoke F76; bundle INTERNAL default F19–F76
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

@@ -26,6 +26,14 @@
       '<span class="mono" id="hp-status">—</span>' +
       "</div>" +
       '<div id="hp-checks"></div>' +
+      "</div>" +
+      '<div class="pane-section">' +
+      "<h3>Broker reconnect</h3>" +
+      '<div class="pane-row">' +
+      '<button type="button" class="btn" id="hp-reconnect">Reconectar</button>' +
+      '<span class="mono muted" id="hp-reconnect-info">usa last connect de sesión</span>' +
+      "</div>" +
+      '<p class="muted mono" id="hp-reconnect-status">—</p>' +
       "</div>";
 
     const modeSel = root.querySelector("#hp-mode");
@@ -104,6 +112,25 @@
         statusEl.textContent = err.message;
         statusEl.className = "mono status-bad";
       });
+    });
+
+    const reconnectStatus = root.querySelector("#hp-reconnect-status");
+    root.querySelector("#hp-reconnect").addEventListener("click", async function () {
+      try {
+        const res = await QLApi.reconnect();
+        reconnectStatus.textContent =
+          "ok · venue=" +
+          res.venue +
+          " · mode=" +
+          res.mode +
+          " · md_source=" +
+          (res.md_source || "—");
+        reconnectStatus.classList.remove("status-bad");
+        await refreshHealth();
+      } catch (err) {
+        reconnectStatus.textContent = "Error: " + err.message;
+        reconnectStatus.classList.add("status-bad");
+      }
     });
 
     root.refresh = async function () {

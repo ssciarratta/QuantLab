@@ -1,3 +1,8 @@
+[2026-07-26] F76 Broker Reconnect Button — v0.68.0
+  POST /api/broker/reconnect re-run last_broker_connect meta;
+  botón Market+Health; LIVE_BLOCKED intacto;
+  INTERNAL F76 + noche F19–F76; sin FASE_76_APPROVED.
+
 [2026-07-26] F70 Paper Kill Switch — v0.62.0
   Kill switch paper-only: engage rechaza submit+step; persist meta;
   API /api/paper/kill; UI botón rojo Risk/Sesión; LIVE_BLOCKED intacto;

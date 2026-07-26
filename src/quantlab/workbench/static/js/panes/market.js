@@ -16,6 +16,7 @@
       '<option value="env">env</option>' +
       "</select></label>" +
       '<button type="button" class="btn" id="md-connect">Conectar</button>' +
+      '<button type="button" class="btn secondary" id="md-reconnect">Reconectar</button>' +
       "</div>" +
       '<p class="muted mono" id="md-conn">sin conectar</p>' +
       '<p class="muted mono" id="md-provider">provider: —</p>' +
@@ -63,26 +64,47 @@
       }
     }
 
+    function applyConnectResult(res, prefix) {
+      connEl.textContent =
+        (prefix || "conectado") +
+        " · venue=" +
+        res.venue +
+        " · mode=" +
+        res.mode +
+        " · paper=" +
+        String(res.paper_broker) +
+        " · md_source=" +
+        (res.md_source || sourceSel.value);
+      providerEl.textContent = "provider: " + (res.md_provider || "—");
+      connEl.classList.remove("status-bad");
+    }
+
     root.querySelector("#md-connect").addEventListener("click", async function () {
       try {
         const mode = getSessionMode ? getSessionMode() : "tester";
         const res = await QLApi.connect(venueSel.value, mode, {
           md_source: sourceSel.value,
         });
-        connEl.textContent =
-          "conectado · venue=" +
-          res.venue +
-          " · mode=" +
-          res.mode +
-          " · paper=" +
-          String(res.paper_broker) +
-          " · md_source=" +
-          (res.md_source || sourceSel.value);
-        providerEl.textContent = "provider: " + (res.md_provider || "—");
-        connEl.classList.remove("status-bad");
+        applyConnectResult(res, "conectado");
       } catch (err) {
         connEl.textContent = "Error: " + err.message;
         providerEl.textContent = "provider: —";
+        connEl.classList.add("status-bad");
+      }
+    });
+
+    root.querySelector("#md-reconnect").addEventListener("click", async function () {
+      try {
+        const res = await QLApi.reconnect();
+        applyConnectResult(res, "reconectado");
+        if (res.md_source && sourceSel) {
+          sourceSel.value = res.md_source;
+        }
+        if (res.venue && venueSel) {
+          venueSel.value = res.venue;
+        }
+      } catch (err) {
+        connEl.textContent = "Error reconnect: " + err.message;
         connEl.classList.add("status-bad");
       }
     });

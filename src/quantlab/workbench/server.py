@@ -72,6 +72,7 @@ from quantlab.workbench.api import (
     handle_get_watchlist,
     handle_post_backups_run,
     handle_post_broker_connect,
+    handle_post_broker_reconnect,
     handle_post_chat,
     handle_post_lab_backtest,
     handle_post_lab_export_hb,
@@ -555,6 +556,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/broker/connect":
                     self._send_json(handle_post_broker_connect(state, body))
+                    return
+                if path == "/api/broker/reconnect":
+                    self._send_json(handle_post_broker_reconnect(state, body))
                     return
                 if path == "/api/paper/submit":
                     self._send_json(handle_post_paper_submit(state, body))

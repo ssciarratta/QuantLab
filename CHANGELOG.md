@@ -19,6 +19,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.68.0] — 2026-07-26
+
+### Fase 76 — Broker Reconnect Button
+
+#### Added
+- `POST /api/broker/reconnect` — re-run last connect params from session meta
+- Persist `last_broker_connect` en `meta.json` al conectar
+- UI botón **Reconectar** en Market Data + Health
+- Docs: `FASE_76_RECONNECT.md` · implementation report · DEC-120
+- Suite `test_broker_reconnect_f76.py` + smoke F76
+
+#### Changed
+- `phases_summary` → `F19–F76 INTERNAL`
+- Bump **0.68.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_76_APPROVED.md`
+
 ## [0.67.0] — 2026-07-26
 
 ### Fase 75 — Broker Heartbeat Status

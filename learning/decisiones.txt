@@ -1,3 +1,10 @@
+[2026-07-26] DEC-120 — Broker Reconnect Button
+  Decisión: F76 = POST /api/broker/reconnect re-run last connect
+  params desde session meta (last_broker_connect); connect persiste
+  config; botón Reconectar en Market + Health; bump 0.68.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_76_APPROVED.
+  Fase: 76.
+
 [2026-07-26] DEC-119 — Broker Heartbeat Status
   Decisión: F75 = GET /api/broker/heartbeat llama broker.health()
   si hay broker conectado; si no, status=disconnected (HTTP 200);
