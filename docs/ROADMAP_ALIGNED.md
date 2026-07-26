@@ -1166,7 +1166,7 @@
 
 ## Fase 92 — Milestone Freeze Docs + CHANGELOG Sync (arco v0.71–v0.83)
 
-**Version:** 0.84.0 · **DEC-136** · implementada, auditoría INTERNAL en curso
+**Version:** 0.84.0 · **DEC-136** · **APROBADO_INTERNO** (noche F19–F92)
 
 - Freeze documental `docs/audit/MILESTONE_V080_ARC_FREEZE.md` (inventario F79–F91)
 - CHANGELOG sync 0.81.0 / 0.82.0 / 0.83.0 / 0.84.0
