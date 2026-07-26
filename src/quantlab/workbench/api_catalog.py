@@ -60,6 +60,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/broker/snapshot", "GET", "Market data snapshot", ("broker",)),
     ApiRoute("/api/broker/account", "GET", "Broker account (paper/real MD)", ("broker",)),
     ApiRoute("/api/broker/positions", "GET", "Broker positions", ("broker",)),
+    ApiRoute(
+        "/api/broker/heartbeat",
+        "GET",
+        "Broker heartbeat (health or disconnected)",
+        ("broker",),
+    ),
     ApiRoute("/api/broker/connect", "POST", "Connect broker venue", ("broker",)),
     ApiRoute("/api/paper/book", "GET", "Paper book state", ("paper",)),
     ApiRoute("/api/paper/fills", "GET", "Paper fills journal", ("paper",)),

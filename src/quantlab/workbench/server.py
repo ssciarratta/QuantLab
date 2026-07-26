@@ -19,6 +19,7 @@ from quantlab.workbench.api import (
     handle_get_account,
     handle_get_activity,
     handle_get_backups,
+    handle_get_broker_heartbeat,
     handle_get_catalog,
     handle_get_chat_tools,
     handle_get_commands,
@@ -338,6 +339,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/broker/positions":
                     self._send_json(handle_get_positions(state))
+                    return
+                if path == "/api/broker/heartbeat":
+                    self._send_json(handle_get_broker_heartbeat(state))
                     return
                 if path == "/api/paper/book":
                     self._send_json(handle_get_paper_book(state))

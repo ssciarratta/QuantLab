@@ -1,3 +1,10 @@
+[2026-07-26] DEC-119 — Broker Heartbeat Status
+  Decisión: F75 = GET /api/broker/heartbeat llama broker.health()
+  si hay broker conectado; si no, status=disconnected (HTTP 200);
+  status bar muestra ok/fail; shell poll N=5s; bump 0.67.0.
+  LIVE_BLOCKED=True; sin flip; sin FASE_75_APPROVED.
+  Fase: 75.
+
 [2026-07-26] DEC-118 — Status Bar Clock Timezone
   Decisión: F74 = settings.timezone default "UTC" (opciones UTC|local);
   el reloj de la status bar respeta la preferencia (JS timeZone);

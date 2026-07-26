@@ -346,6 +346,12 @@ body {
   opacity: 0.4;
 }
 
+.sb-heartbeat.ok {
+  color: var(--ok);
+}
+.sb-heartbeat.fail {
+  color: var(--danger);
+}
 .sb-clock {
   color: var(--text-muted);
   font-size: 0.72rem;

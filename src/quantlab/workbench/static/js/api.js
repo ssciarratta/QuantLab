@@ -120,6 +120,9 @@
     positions: function () {
       return request("GET", "/api/broker/positions");
     },
+    brokerHeartbeat: function () {
+      return request("GET", "/api/broker/heartbeat");
+    },
     paperBook: function () {
       return request("GET", "/api/paper/book");
     },

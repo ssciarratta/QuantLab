@@ -1458,6 +1458,62 @@ def handle_get_positions(state: WorkbenchState) -> dict[str, Any]:
     return {"positions": positions}
 
 
+# F75: shell poll interval (seconds) for GET /api/broker/heartbeat
+HEARTBEAT_POLL_SECONDS = 5
+
+
+def handle_get_broker_heartbeat(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/broker/heartbeat — ``broker.health()`` si hay broker; else disconnected.
+
+    No exige connect (HTTP 200 siempre): status ``ok`` | ``fail`` | ``disconnected``.
+    Fail-closed sin flip LIVE.
+    """
+    session = state.ensure_session()
+    base: dict[str, Any] = {
+        "kind": "broker_heartbeat",
+        "session_id": session.session_id,
+        "venue": state.venue,
+        "md_provider": state.md_provider,
+        "poll_seconds": HEARTBEAT_POLL_SECONDS,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+    if state.broker is None:
+        return {
+            **base,
+            "ok": False,
+            "status": "disconnected",
+            "heartbeat": "fail",
+            "connected": False,
+            "health": None,
+        }
+    try:
+        health_raw = state.broker.health()
+        health = to_jsonable(health_raw) if health_raw is not None else None
+        health_ok = True
+        if isinstance(health_raw, dict) and "ok" in health_raw:
+            health_ok = bool(health_raw["ok"])
+        return {
+            **base,
+            "ok": health_ok,
+            "status": "ok" if health_ok else "fail",
+            "heartbeat": "ok" if health_ok else "fail",
+            "connected": True,
+            "health": health,
+        }
+    except Exception as exc:  # noqa: BLE001 — heartbeat never raises to client
+        return {
+            **base,
+            "ok": False,
+            "status": "fail",
+            "heartbeat": "fail",
+            "connected": True,
+            "health": None,
+            "error": str(exc),
+        }
+
+
 def handle_get_paper_book(state: WorkbenchState) -> dict[str, Any]:
     book = state.ensure_book()
     account: dict[str, Any] | None = None

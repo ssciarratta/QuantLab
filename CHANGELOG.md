@@ -19,6 +19,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.67.0] — 2026-07-26
+
+### Fase 75 — Broker Heartbeat Status
+
+#### Added
+- `GET /api/broker/heartbeat` — `broker.health()` si conectado; else `disconnected`
+- Status bar `#sb-heartbeat` ok/fail + shell poll **N=5** s
+- Docs: `FASE_75_HEARTBEAT.md` · implementation report · DEC-119
+- Suite `test_broker_heartbeat_f75.py` + smoke F75
+
+#### Changed
+- `phases_summary` → `F19–F75 INTERNAL`
+- Bump **0.67.0**
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); sin `FASE_75_APPROVED.md`
+
 ## [0.66.0] — 2026-07-26
 
 ### Fase 74 — Status Bar Clock Timezone

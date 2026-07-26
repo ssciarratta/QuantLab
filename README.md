@@ -64,9 +64,10 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F72 | Desktop Notifications Hook · **APROBADO_INTERNO** · v0.64.0 |
 | F73 | Optional Sound Alerts · **APROBADO_INTERNO** · v0.65.0 |
 | F74 | Status Bar Clock Timezone · **APROBADO_INTERNO** · v0.66.0 |
+| F75 | Broker Heartbeat Status · **APROBADO_INTERNO** · v0.67.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Freeze v0.60](docs/audit/MILESTONE_V060_FREEZE.md) · [Noche F19–F74](docs/audit/INTERNAL_AUDIT_F19_F74_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Freeze F19–F48](docs/audit/MILESTONE_V040_FREEZE.md) · [Freeze v0.50](docs/audit/MILESTONE_V050_FREEZE.md) · [Freeze v0.60](docs/audit/MILESTONE_V060_FREEZE.md) · [Noche F19–F75](docs/audit/INTERNAL_AUDIT_F19_F75_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

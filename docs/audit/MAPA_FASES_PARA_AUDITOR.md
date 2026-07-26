@@ -2460,3 +2460,46 @@ uv run python scripts/internal_audit_smoke.py
 
 Versión código F74: **0.66.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
+## Fase 75 — Broker Heartbeat Status
+
+**Código:** 0.67.0 · branch `cursor/modo-real-workbench-aafd`  
+**DEC:** DEC-119  
+**Qué es:** `GET /api/broker/heartbeat` llama `broker.health()` si hay broker conectado; si no, `disconnected`. Status bar muestra ok/fail; shell poll cada N=5 s. Sin flip LIVE.
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_75_HEARTBEAT.md` |
+| Implementation report | `docs/audit/FASE_75_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F75.md` |
+| Review Package INTERNAL | `docs/audit/FASE_75_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F75.md` |
+| Noche F19–F75 | `docs/audit/INTERNAL_AUDIT_F19_F75_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 75** |
+
+**Certificado externo:** **NO** emitido (`FASE_75_APPROVED.md` ausente a propósito).  
+**LIVE_BLOCKED:** True (sin flip).
+
+### Lista A F75 (entregables)
+
+| ID | Entrega | Path |
+|----|---------|------|
+| A1 | API heartbeat | `api.py` · `server.py` · `api_catalog.py` |
+| A2 | Status bar + poll | `index.html` · `shell.js` · `api.js` |
+| A3 | Spec | `docs/FASE_75_HEARTBEAT.md` |
+| A4 | Implementation report | `docs/audit/FASE_75_IMPLEMENTATION_REPORT.md` |
+| A5 | DEC-119 | `learning/decisiones.txt` |
+| A6 | Version 0.67.0 | `pyproject.toml` |
+| A7 | Suite + smoke F75 | `test_broker_heartbeat_f75.py` · smoke |
+
+### Lista B F75 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F75: **0.67.0** · LIVE: **BLOQUEADO** · flip: **NO**.
+

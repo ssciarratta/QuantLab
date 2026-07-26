@@ -66,6 +66,7 @@
       "status.session": "session",
       "status.venue": "venue",
       "status.md": "md",
+      "status.heartbeat": "hb",
     },
     en: {
       "app.name": "QuantLab",
@@ -127,6 +128,7 @@
       "status.session": "session",
       "status.venue": "venue",
       "status.md": "md",
+      "status.heartbeat": "hb",
     },
   };
 

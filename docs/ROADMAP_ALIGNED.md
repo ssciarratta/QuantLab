@@ -967,6 +967,16 @@
 - `LIVE_BLOCKED=True`; sin flip LIVE
 
 
+## Fase 75 — Broker Heartbeat Status
+
+**Versión:** 0.67.0 · **DEC-119** · **APROBADO_INTERNO** (sin `FASE_75_APPROVED.md`)
+
+- `GET /api/broker/heartbeat` — `broker.health()` si conectado; else `disconnected`
+- Status bar ok/fail · shell poll **N=5** s
+- Smoke F75; bundle INTERNAL default F19–F75
+- `LIVE_BLOCKED=True`; sin flip LIVE
+
+
 ## Desfase local a resolver (lectura obligatoria)
 
 En el desarrollo reciente se usó esta numeración **local** (no idéntica a Arquitectura §13):

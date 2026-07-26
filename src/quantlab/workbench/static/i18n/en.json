@@ -57,5 +57,6 @@
   "status.live": "live",
   "status.session": "session",
   "status.venue": "venue",
-  "status.md": "md"
+  "status.md": "md",
+  "status.heartbeat": "hb"
 }

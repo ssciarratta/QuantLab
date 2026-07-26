@@ -15,6 +15,7 @@
   const sbSession = document.getElementById("sb-session");
   const sbVenue = document.getElementById("sb-venue");
   const sbMd = document.getElementById("sb-md");
+  const sbHeartbeat = document.getElementById("sb-heartbeat");
   const sbVersion = document.getElementById("sb-version");
 
   let sessionMode = "tester";
@@ -22,6 +23,8 @@
   let cachedSessionId = "—";
   let cachedVersion = null;
   let clockTimezone = "UTC"; /* F74: settings.timezone UTC|local */
+  let heartbeatPollSeconds = 5; /* F75: N seconds · GET /api/broker/heartbeat */
+  let heartbeatTimer = null;
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
 
@@ -549,6 +552,53 @@
     tickClock();
   }
 
+  function updateHeartbeatStatus(payload) {
+    if (!sbHeartbeat) return;
+    let label = "—";
+    let cls = "mono sb-heartbeat";
+    if (payload) {
+      const st = payload.status || payload.heartbeat;
+      if (st === "ok") {
+        label = "ok";
+        cls += " ok";
+      } else if (st === "disconnected") {
+        label = "disconnected";
+        cls += " fail";
+      } else {
+        label = "fail";
+        cls += " fail";
+      }
+      if (
+        typeof payload.poll_seconds === "number" &&
+        payload.poll_seconds > 0 &&
+        payload.poll_seconds !== heartbeatPollSeconds
+      ) {
+        heartbeatPollSeconds = payload.poll_seconds;
+        restartHeartbeatPoll();
+      }
+    }
+    sbHeartbeat.textContent = label;
+    sbHeartbeat.className = cls;
+  }
+
+  function pollBrokerHeartbeat() {
+    if (!QLApi || !QLApi.brokerHeartbeat) return;
+    QLApi.brokerHeartbeat()
+      .then(updateHeartbeatStatus)
+      .catch(function () {
+        updateHeartbeatStatus({ status: "fail", heartbeat: "fail" });
+      });
+  }
+
+  function restartHeartbeatPoll() {
+    if (heartbeatTimer != null) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+    const ms = Math.max(1, Number(heartbeatPollSeconds) || 5) * 1000;
+    heartbeatTimer = setInterval(pollBrokerHeartbeat, ms);
+  }
+
   function tickClock() {
     if (!clockEl) return;
     const now = new Date();
@@ -571,6 +621,10 @@
   }
   tickClock();
   setInterval(tickClock, 1000);
+
+  /* F75: broker heartbeat poll every N seconds */
+  pollBrokerHeartbeat();
+  restartHeartbeatPoll();
 
   // F60: aplicar i18n default es antes del boot async
   applyLocale("es");
