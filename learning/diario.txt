@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 29 — Report Viewer + Metrics History
+------------------------------------------------------
+- v0.21.0 · impl SHA 2f37bf7 · DEC-073.
+- Persist MetricsResult/summary (+ HTML ReportGenerator) en session reports/.
+- API GET /api/lab/reports[+/{id}]; POST implícito en backtest.
+- Panel UI Reports (lista + preview HTML|JSON).
+- INTERNAL APROBADO_INTERNO; FASE_29_APPROVED.md NO emitido.
+- Noche F19–F29 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+- QA: mypy 160 · ruff · pytest 611 · smoke 15 PASS.
+
 [2026-07-23] FASE 0 — FUNDACIÓN
 -------------------------------
 - Creado repositorio QuantLab en GitHub (ssciarratta/QuantLab).

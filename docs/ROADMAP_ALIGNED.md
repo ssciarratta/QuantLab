@@ -351,7 +351,7 @@
 - DEC-073; sin flip LIVE
 
 **Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F29.md`, 2026-07-26) — certificado externo `FASE_29_APPROVED.md` **NO emitido**  
-**Versión:** 0.21.0  
+**Versión:** 0.21.0 · implementación `2f37bf7`  
 **Review Package INTERNAL:** `docs/audit/FASE_29_REVIEW_PACKAGE.md`  
 **Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F29.md`  
 **Noche F19–F29:** `docs/audit/INTERNAL_AUDIT_F19_F29_NIGHT.md` = **APROBADO_INTERNO**  
