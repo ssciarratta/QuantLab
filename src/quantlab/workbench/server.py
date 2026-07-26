@@ -39,6 +39,8 @@ from quantlab.workbench.api import (
     handle_get_layout,
     handle_get_mode,
     handle_get_onboarding,
+    handle_get_ops_metrics,
+    handle_get_ops_prometheus,
     handle_get_paper_book,
     handle_get_paper_fills,
     handle_get_paper_session_status,
@@ -209,6 +211,17 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/activity":
                     self._send_json(handle_get_activity(state, parsed.query))
+                    return
+                if path == "/api/ops/metrics":
+                    self._send_json(handle_get_ops_metrics(state))
+                    return
+                if path == "/api/ops/prometheus":
+                    text = handle_get_ops_prometheus(state)
+                    self._send(
+                        200,
+                        text.encode("utf-8"),
+                        "text/plain; version=0.0.4; charset=utf-8",
+                    )
                     return
                 if path == "/api/session/export":
                     payload = handle_get_session_export(state)

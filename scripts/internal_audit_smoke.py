@@ -963,6 +963,59 @@ def check_f41_activity_log() -> None:
     assert any(e["event"] == "export" for e in again["events"])
 
 
+def check_f42_ops_metrics() -> None:
+    """F42: ops metrics JSON + prometheus text + live_gate.blocked."""
+    from pathlib import Path
+
+    from quantlab.core.exceptions import ValidationError
+    from quantlab.execution.live_gate import LIVE_BLOCKED, assert_live_routing_blocked
+    from quantlab.infra.ops_metrics import get_ops_metrics
+    from quantlab.workbench.api import (
+        WorkbenchState,
+        handle_get_ops_metrics,
+        handle_get_ops_prometheus,
+    )
+    from quantlab.workbench.commands import list_commands
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    metrics = get_ops_metrics()
+    metrics.reset()
+    metrics.inc("health.runs", 1)
+    try:
+        assert_live_routing_blocked()
+        raise AssertionError("expected ValidationError from live gate")
+    except ValidationError:
+        pass
+
+    root = Path("/tmp/quantlab-smoke-f42-ops")
+    if root.exists():
+        import shutil
+
+        shutil.rmtree(root, ignore_errors=True)
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke42")
+    state = WorkbenchState(session=session)
+    state.ensure_session()
+
+    payload = handle_get_ops_metrics(state)
+    assert payload["ok"] is True
+    assert payload["kind"] == "ops_metrics"
+    assert payload["live_blocked"] is True
+    assert payload["live_routing"] is False
+    assert payload["counters"]["health.runs"] >= 1
+    assert payload["live_gate_blocked"] >= 1
+    assert payload["highlight_live_gate_blocked"] is True
+
+    text = handle_get_ops_prometheus(state)
+    assert "live_gate_blocked" in text
+    assert "# TYPE" in text
+
+    ids = {c["id"] for c in list_commands()["commands"]}
+    assert "open.ops_metrics" in ids
+    metrics.reset()
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -992,6 +1045,7 @@ def main() -> int:
         ("F39 session export/import ZIP", check_f39_session_zip),
         ("F40 workspace presets", check_f40_workspace_presets),
         ("F41 activity log + toasts API", check_f41_activity_log),
+        ("F42 ops metrics panel API", check_f42_ops_metrics),
     ]
     ok = True
     for name, fn in checks:

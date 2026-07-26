@@ -542,6 +542,20 @@
 **Spec:** `docs/FASE_41_ACTIVITY.md`  
 **Implementation report:** `docs/audit/FASE_41_IMPLEMENTATION_REPORT.md`
 
+### Fase 42 — Ops Metrics Panel
+**Módulos:**
+- `infra/ops_metrics.py` — contadores in-process + Prometheus text (reutilizado)
+- API `GET /api/ops/metrics` (JSON) + `GET /api/ops/prometheus` (text/plain)
+- UI panel Ops Metrics (tabla + highlight `live_gate.blocked`); DEC-086; sin flip LIVE
+
+**Estado en repo:** 📦 ✅ **APROBADO_INTERNO** (`docs/audit/INTERNAL_AUDIT_F42.md`, 2026-07-26) — certificado externo `FASE_42_APPROVED.md` **NO emitido**  
+**Versión:** 0.34.0 · implementación *(pendiente SHA tip)*  
+**Review Package INTERNAL:** `docs/audit/FASE_42_REVIEW_PACKAGE.md`  
+**Autauditoría:** `docs/audit/AUTO_AUDIT_2026-07-26_F42.md`  
+**Noche F19–F42:** `docs/audit/INTERNAL_AUDIT_F19_F42_NIGHT.md` = **APROBADO_INTERNO**  
+**Spec:** `docs/FASE_42_OPS_METRICS.md`  
+**Implementation report:** `docs/audit/FASE_42_IMPLEMENTATION_REPORT.md`
+
 ---
 
 ## Desfase local a resolver (lectura obligatoria)

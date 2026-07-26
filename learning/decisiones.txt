@@ -1,4 +1,11 @@
 
+[2026-07-26] DEC-086 — Ops Metrics Panel
+  Decisión: F42 = exponer quantlab.infra.ops_metrics en workbench;
+  GET /api/ops/metrics (JSON counters) + GET /api/ops/prometheus
+  (text/plain); UI panel tabla counters con highlight
+  live_gate.blocked; sin flip LIVE; sin FASE_42_APPROVED.
+  Fase: 42.
+
 [2026-07-26] DEC-085 — Activity Log + Toasts
   Decisión: F41 = activity.jsonl append-only por sesión (events:
   connect, submit, backtest, optimize, export, error);

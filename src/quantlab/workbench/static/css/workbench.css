@@ -1272,6 +1272,22 @@ button.btn.secondary:hover {
   word-break: break-all;
 }
 
+/* F42 — ops metrics */
+.ops-gate--blocked {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.ops-metrics-table .ops-val {
+  text-align: right;
+}
+
+.ops-row--blocked td {
+  color: var(--danger);
+  font-weight: 600;
+  background: rgba(180, 40, 40, 0.12);
+}
+
 @media (max-width: 640px) {
   .win {
     left: 4px !important;

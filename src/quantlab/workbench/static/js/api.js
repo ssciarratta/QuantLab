@@ -119,6 +119,9 @@
         limit != null ? "?limit=" + encodeURIComponent(String(limit)) : "?limit=100";
       return request("GET", "/api/activity" + q);
     },
+    getOpsMetrics: function () {
+      return request("GET", "/api/ops/metrics");
+    },
     risk: function () {
       return request("GET", "/api/risk");
     },

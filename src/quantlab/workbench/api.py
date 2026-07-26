@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs
 
+from quantlab import __version__
 from quantlab.brokers.mode import REAL_ALIAS, OperatingMode, default_mode, resolve_mode
 from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH, PaperBook
 from quantlab.brokers.paper.broker import PaperBroker
@@ -22,6 +23,7 @@ from quantlab.core.types.orders import OrderIntent
 from quantlab.core.types.serialization import dataclass_to_dict, to_jsonable
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
+from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.catalog_browser import list_catalog_datasets
@@ -255,6 +257,34 @@ def handle_get_activity(state: WorkbenchState, query: str = "") -> dict[str, Any
     payload["session_id"] = session.session_id
     payload["limit"] = clamp_limit(limit)
     return payload
+
+
+def handle_get_ops_metrics(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/ops/metrics — snapshot JSON de contadores in-process (F42)."""
+    session = state.ensure_session()
+    counters = dict(get_ops_metrics().snapshot().counters)
+    blocked = int(counters.get("live_gate.blocked", 0))
+    rows = [{"name": name, "value": int(value)} for name, value in counters.items()]
+    return {
+        "ok": True,
+        "kind": "ops_metrics",
+        "counters": counters,
+        "rows": rows,
+        "count": len(rows),
+        "live_gate_blocked": blocked,
+        "highlight_live_gate_blocked": blocked > 0,
+        "session_id": session.session_id,
+        "version": __version__,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+
+
+def handle_get_ops_prometheus(state: WorkbenchState) -> str:
+    """GET /api/ops/prometheus — text/plain Prometheus counters (F42)."""
+    state.ensure_session()
+    return render_prometheus_text()
 
 
 def _require_broker(state: WorkbenchState) -> BrokerPort:

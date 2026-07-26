@@ -219,9 +219,7 @@ def test_paper_session_inventory_mm_quotes() -> None:
     assert summary["ok"] is True
     types = [a["intent_type"] for a in summary["actions"]]
     assert "place_order" in types or "PLACE_ORDER" in types
-    assert any(
-        a.get("intent_type") in ("place_order", "PLACE_ORDER") for a in summary["actions"]
-    )
+    assert any(a.get("intent_type") in ("place_order", "PLACE_ORDER") for a in summary["actions"])
     runner.stop()
 
 

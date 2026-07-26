@@ -41,9 +41,7 @@ class BrokerRegistry:
             raise ValidationError("venue_id vacío")
         # Plugins no pueden sombrear builtins / venues ya registrados (Zero-Trust F24).
         if from_plugin and key in self._factories:
-            raise ValidationError(
-                f"plugin venue rechazado: '{key}' ya registrado (no shadow)"
-            )
+            raise ValidationError(f"plugin venue rechazado: '{key}' ya registrado (no shadow)")
         self._factories[key] = factory
         if from_plugin:
             self._plugin_venues.add(key)

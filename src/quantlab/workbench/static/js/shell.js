@@ -254,6 +254,17 @@
     pane.refresh().catch(function () {});
   }
 
+  function openOpsMetrics() {
+    const pane = QLPanes.createOpsMetricsPane();
+    wm.open(
+      "ops_metrics",
+      "Ops Metrics",
+      pane,
+      mergeOpts("ops_metrics", { x: 240, y: 80, w: 480, h: 420 })
+    );
+    pane.refresh().catch(function () {});
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -268,6 +279,7 @@
     settings: openSettings,
     docs: openDocs,
     activity: openActivity,
+    ops_metrics: openOpsMetrics,
     backtest: openBacktest,
     scanner: openScanner,
     metrics: openMetrics,
