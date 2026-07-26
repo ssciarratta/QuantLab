@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuantLab Workbench</title>
+  <link rel="stylesheet" href="/static/css/workbench.css" />
+</head>
+<body>
+  <div id="desktop" class="desktop">
+    <header class="top-banner" id="mode-banner" role="status">
+      <span class="brand">QuantLab</span>
+      <span class="banner-sep">·</span>
+      <span id="banner-mode">modo —</span>
+      <span class="banner-sep">·</span>
+      <span id="banner-live" class="live-badge">LIVE_BLOCKED</span>
+    </header>
+    <div id="workspace" class="workspace" aria-label="Escritorio"></div>
+    <footer class="taskbar" id="taskbar">
+      <button type="button" class="start-btn" id="btn-start" title="Menú">QL</button>
+      <div class="taskbar-windows" id="taskbar-windows"></div>
+      <div class="taskbar-clock" id="taskbar-clock"></div>
+    </footer>
+  </div>
+
+  <div id="start-menu" class="start-menu hidden" hidden>
+    <button type="button" data-open="health">Salud / Modo</button>
+    <button type="button" data-open="market">Market Data</button>
+    <button type="button" data-open="blotter">Paper Blotter</button>
+  </div>
+
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/wm.js"></script>
+  <script src="/static/js/panes/health.js"></script>
+  <script src="/static/js/panes/market.js"></script>
+  <script src="/static/js/panes/blotter.js"></script>
+  <script src="/static/js/shell.js"></script>
+</body>
+</html>

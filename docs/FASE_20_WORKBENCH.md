@@ -1,6 +1,6 @@
 # Fase 20 — Workbench (1-click, ventanas tipo Windows)
 
-**Estado:** DISEÑO → implementar tras F19  
+**Estado:** IMPLEMENTADO (v0.12.0)  
 **Prerrequisito:** F19 Operating Modes + BrokerPort  
 **Pedido dueño:** entrar con 1 click; ventanas tipo Windows; mouse; todas las funcionalidades.
 
@@ -10,8 +10,10 @@
 
 ```text
 src/quantlab/workbench/
-├── server.py / api.py / launch.py
-└── static/ (index.html, css, js/wm.js, panes)
+├── launch.py          # CLI: --host --port --no-browser --mode
+├── server.py          # ThreadingHTTPServer
+├── api.py             # JSON API + WorkbenchState
+└── static/            # index.html, css, js/wm.js, panes
 ```
 
 Bind default: `127.0.0.1`. Entry: `quantlab-workbench`.
@@ -21,6 +23,40 @@ Bind default: `127.0.0.1`. Entry: `quantlab-workbench`.
 1. Health / Mode  
 2. Market Data  
 3. Paper Blotter  
+
+## API (loopback)
+
+| Método | Ruta | Notas |
+|--------|------|-------|
+| GET | `/api/health` | `run_health_checks().to_dict()` |
+| GET/POST | `/api/mode` | LIVE → 400; `real` → paper |
+| GET | `/api/venues` | registry |
+| POST | `/api/broker/connect` | siempre envuelve PaperBroker |
+| GET | `/api/broker/instruments\|snapshot\|account` | MD vía PaperBroker |
+| POST | `/api/paper/submit` | solo TESTER/PAPER |
+| GET | `/api/paper/fills` | journal sesión |
+| GET | `/` + `/static/…` + `/api/static/…` | SPA |
+
+## Seguridad
+
+- Bind `127.0.0.1` por defecto  
+- Rechazo de `OperatingMode.LIVE` y de cualquier path que envíe `place_order` al venue  
+- Banner UI: mode + `LIVE_BLOCKED`  
+- `LIVE_BLOCKED` permanece `True` (sin flip)
+
+## Definition of Done
+
+- [x] Paquete `src/quantlab/workbench/` con launch/server/api + static SPA
+- [x] Entry `quantlab-workbench` en pyproject (v0.12.0)
+- [x] Bind default loopback; API JSON completa F20
+- [x] Window-manager MDI (drag/resize/minimize/close + taskbar)
+- [x] 3 ventanas: Health, Market Data, Paper Blotter (UI ES)
+- [x] Paper submit solo PaperBroker; LIVE rechazado
+- [x] Tests `tests/unit/workbench/` (http.client + thread + puerto efímero)
+- [x] QA: ruff / mypy --strict / pytest workbench+brokers / quantlab-health
+- [x] Docs DoD + implementation report
+- [ ] Chat (F22) — fuera de alcance
+- [ ] Paneles backtest/optimizer (F21) — fuera de alcance
 
 ## Fuera de alcance F20
 
