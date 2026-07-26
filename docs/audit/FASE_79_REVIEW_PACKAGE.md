@@ -1,7 +1,7 @@
 # FASE 79 — Review Package INTERNAL (Watchlist Import/Export JSON)
 
 **Fecha:** 2026-07-26  
-**Versión:** 0.71.0 · tip _(post-commit)_  
+**Versión:** 0.71.0 · tip 7245ca4  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Veredicto propuesto:** **APROBADO_INTERNO**  
 **Certificado externo:** `FASE_79_APPROVED.md` **NO** emitido

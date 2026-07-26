@@ -4,7 +4,7 @@
 **Versión:** 0.71.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F78 Milestone Freeze Docs v0.70  
-**Impl SHA:** _(tip post-commit)_  
+**Impl SHA:** `7245ca4`  
 **Alcance:** export/import JSON watchlist + UI Universe — **sin flip LIVE**
 
 ---

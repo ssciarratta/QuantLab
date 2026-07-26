@@ -103,7 +103,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | 76 | Broker Reconnect Button | 0.68.0 | `30ff7ec` |
 | 77 | Broker Disconnect + Milestone prep | 0.69.0 | `f782981` |
 | 78 | Milestone Freeze Docs + CHANGELOG (v0.70) | 0.70.0 | `77ea109` |
-| 79 | Watchlist Import/Export JSON | 0.71.0 | _(tip)_ |
+| 79 | Watchlist Import/Export JSON | 0.71.0 | `7245ca4` |
 
 ---
 

@@ -3,7 +3,7 @@
 **Fecha:** 2026-07-26  
 **Rol:** Meta-Auditor INTERNO (Zero-Trust) QuantLab  
 **Branch:** `cursor/modo-real-workbench-aafd`  
-**Tip código:** _(post-commit)_ · **v0.71.0** (Watchlist Import/Export JSON F79)  
+**Tip código:** 7245ca4 · **v0.71.0** (Watchlist Import/Export JSON F79)  
 **Producto previo:** v0.70.0 (F78 Milestone Freeze · impl `77ea109`)  
 **LIVE:** BLOQUEADO · flip **NO** ejecutado
 
@@ -47,7 +47,7 @@
 | **76** | Broker Reconnect Button | 0.68.0 | `30ff7ec` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F76.md` |
 | **77** | Broker Disconnect + Milestone prep | 0.69.0 | `f782981` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F77.md` |
 | **78** | Milestone Freeze Docs (v0.70) | 0.70.0 | `77ea109` | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F78.md` |
-| **79** | Watchlist Import/Export JSON | 0.71.0 | _(tip)_ | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F79.md` |
+| **79** | Watchlist Import/Export JSON | 0.71.0 | 7245ca4 | **APROBADO_INTERNO** | `INTERNAL_AUDIT_F79.md` |
 
 ### Arcos
 
@@ -93,6 +93,13 @@ uv run python scripts/internal_audit_smoke.py  # 63/63 PASS
 
 | Artifact | `reports/QuantLab_Internal_Review_F19_F79_v0.71.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F79_v0.71.0_MANIFEST.json` |
+| Digest | `c576cffb260bddd3e0a1d49b1d237b3cf554dbe21f7e2c2962c6a03e93a00c1c` |
+
+```text
+c576cffb260bddd3e0a1d49b1d237b3cf554dbe21f7e2c2962c6a03e93a00c1c  QuantLab_Internal_Review_F19_F79_v0.71.0.zip
+```
+
+> Path: `reports/QuantLab_Internal_Review_F19_F79_v0.71.0.zip` · tip docs audit `7245ca4`; re-generar puede cambiar SHA (`created_at_utc`).
 
 ---
 

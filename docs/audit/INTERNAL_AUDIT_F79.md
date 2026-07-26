@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-26  
 
-**Código tip:** _(post-commit)_ · **v0.71.0** · F79 Watchlist Import/Export JSON  
+**Código tip:** 7245ca4 · **v0.71.0** · F79 Watchlist Import/Export JSON  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Versión:** **0.71.0** · F79 Watchlist Import/Export JSON  
 **LIVE_BLOCKED:** True  
