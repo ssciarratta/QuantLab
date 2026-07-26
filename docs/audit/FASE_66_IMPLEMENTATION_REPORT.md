@@ -4,7 +4,7 @@
 **Versión:** 0.58.0  
 **Branch:** `cursor/modo-real-workbench-aafd`  
 **Prereq:** F65 Blotter CSV · F26 Paper Session · F23 Paper Book  
-**Impl SHA:** _(tip commit F66)_  
+**Impl SHA:** `d10c1ce`  
 **Alcance:** `equity.jsonl` + `GET /api/paper/equity` + sparkline Positions — **sin flip LIVE**
 
 ---
