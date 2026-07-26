@@ -107,10 +107,10 @@ uv run python scripts/internal_audit_smoke.py  # 37/37
 |-------|-------|
 | Artifact | `reports/QuantLab_Internal_Review_F19_F51_v0.43.0.zip` |
 | Manifest | `reports/QuantLab_Internal_Review_F19_F51_v0.43.0_MANIFEST.json` |
-| Digest | `ad0a2df4d96aeb39afdc82343751e86e4590374fb9d84aec824c4ddaa37a02ed` |
+| Digest | `18f02295d3dbb91da73813fac7366f127824d25033eef7bca204ad11e10e6852` |
 
 ```text
-ad0a2df4d96aeb39afdc82343751e86e4590374fb9d84aec824c4ddaa37a02ed  QuantLab_Internal_Review_F19_F51_v0.43.0.zip
+18f02295d3dbb91da73813fac7366f127824d25033eef7bca204ad11e10e6852  QuantLab_Internal_Review_F19_F51_v0.43.0.zip
 ```
 
 > Path: `reports/QuantLab_Internal_Review_F19_F51_v0.43.0.zip` · tip docs pre-commit; re-generar puede cambiar SHA (`created_at_utc`).
