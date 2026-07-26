@@ -25,6 +25,7 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.infra.health import run_health_checks
 from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
+from quantlab.workbench.about import build_about_payload
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
 from quantlab.workbench.catalog_browser import list_catalog_datasets
 from quantlab.workbench.commands import list_commands
@@ -99,6 +100,8 @@ class WorkbenchState:
     slippage_bps: Decimal = field(default_factory=lambda: Decimal("0"))
     last_lab_result: dict[str, Any] | None = None
     paper_session: PaperSessionRunner | None = None
+    bind_host: str = "127.0.0.1"
+    allow_non_loopback: bool = False
     _lab_registry_path: Path | None = field(default=None, repr=False)
     _lab_export_dir: Path | None = field(default=None, repr=False)
     _chat: ChatOrchestrator | None = field(default=None, repr=False)
@@ -324,6 +327,15 @@ def handle_get_health(state: WorkbenchState) -> dict[str, Any]:
     report = run_health_checks().to_dict()
     report.update(_md_info(state))
     return report
+
+
+def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/about — version, phases INTERNAL, Python, bind policy (F45)."""
+    state.ensure_session()
+    return build_about_payload(
+        bind_host=state.bind_host,
+        allow_non_loopback=state.allow_non_loopback,
+    )
 
 
 def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:

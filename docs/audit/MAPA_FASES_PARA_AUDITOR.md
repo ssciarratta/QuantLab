@@ -1109,8 +1109,58 @@ Versión código F40: **0.32.0** · LIVE: **BLOQUEADO** · flip: **NO**.
 
 ## Mensaje corto para el auditor
 
-1. F0–F18 certificado formal externo; F19–F40 **APROBADO_INTERNO**.  
-2. QuantLab v0.32.0: Workspace Presets.  
-3. **LIVE sigue BLOQUEADO**; apply preset → layout.json fail-closed.  
-4. Arcos F19–F22 + F23–F25 + noche F19–F40 INTERNAL.  
+1. F0–F18 certificado formal externo; F19–F45 **APROBADO_INTERNO**.  
+2. QuantLab v0.37.0: About Dialog + Version Badge.  
+3. **LIVE sigue BLOQUEADO**; `GET /api/about` read-only.  
+4. Arcos F19–F22 + F23–F25 + noche F19–F45 INTERNAL.  
 5. **No** emitir `FASE_*_APPROVED.md` desde INTERNAL.
+
+---
+
+## Fase 45 — About Dialog + Version Badge (Workbench)
+
+**Estado:** 📦 ✅ **APROBADO_INTERNO** (2026-07-26)  
+**Código:** 0.37.0 · branch `cursor/modo-real-workbench-aafd`  
+**LIVE:** BLOQUEADO · flip **NO**
+
+**Qué es:** `GET /api/about` + badge de versión en status bar + diálogo Acerca de (menú Inicio / command palette); phases_summary `F19–F45 INTERNAL`; bind_policy loopback-default.
+
+**Docs de auditoría:**
+
+| Doc | Path |
+|-----|------|
+| Spec | `docs/FASE_45_ABOUT.md` |
+| Implementation report | `docs/audit/FASE_45_IMPLEMENTATION_REPORT.md` |
+| Autauditoría | `docs/audit/AUTO_AUDIT_2026-07-26_F45.md` |
+| Review Package INTERNAL | `docs/audit/FASE_45_REVIEW_PACKAGE.md` |
+| INTERNAL AUDIT | `docs/audit/INTERNAL_AUDIT_F45.md` |
+| Noche F19–F45 | `docs/audit/INTERNAL_AUDIT_F19_F45_NIGHT.md` |
+| Roadmap | `docs/ROADMAP_ALIGNED.md` → sección **Fase 45** |
+
+**Certificado externo:** **NO** emitido (`FASE_45_APPROVED.md` ausente a propósito).  
+**INTERNAL:** **APROBADO_INTERNO** (2026-07-26).
+
+### Lista A F45 (entregables)
+
+| ID | Entregable | Path |
+|----|------------|------|
+| A1 | About module | `workbench/about.py` |
+| A2 | API + server | `api.py` · `server.py` |
+| A3 | UI About + badge | `about.js` · `shell.js` · `index.html` · CSS |
+| A4 | Spec | `docs/FASE_45_ABOUT.md` |
+| A5 | Implementation report | `docs/audit/FASE_45_IMPLEMENTATION_REPORT.md` |
+| A6 | DEC-089 | `learning/decisiones.txt` |
+| A7 | Suite F45 | `tests/unit/workbench/test_about_f45.py` |
+| A8 | Version 0.37.0 | `pyproject.toml` |
+
+### Lista B F45 (QA)
+
+```
+uv run mypy --strict src/quantlab
+uv run ruff check src/quantlab tests scripts
+uv run pytest -q
+uv run quantlab-health
+uv run python scripts/internal_audit_smoke.py
+```
+
+Versión código F45: **0.37.0** · LIVE: **BLOQUEADO** · flip: **NO**.

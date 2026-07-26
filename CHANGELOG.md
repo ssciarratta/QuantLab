@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.37.0] — 2026-07-26
+
+### Fase 45 — About Dialog + Version Badge
+
+#### Added
+- API `GET /api/about` (version, live_blocked, phases_summary, python, bind_policy)
+- Badge versión en status bar + diálogo Acerca de (menú Inicio / `open.about`)
+- Docs: `FASE_45_ABOUT.md` · implementation report · DEC-089
+
+#### Security
+- `LIVE_BLOCKED is True` (sin flip); superficie read-only
+
+---
+
 ## [0.36.0] — 2026-07-26
 
 ### Fase 44 — E2E Paper Workflow Integration Test

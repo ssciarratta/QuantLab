@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Empaqueta evidencia INTERNAL F19–F44 para Meta-Auditor externo.
+"""Empaqueta evidencia INTERNAL F19–F45 para Meta-Auditor externo.
 
 NO emite ni incluye certificados ``FASE_*_APPROVED.md``.
 NO corre el Review Package oficial (pesado). Solo evidencia documental.
 
 Uso:
   uv run python scripts/build_internal_review_bundle.py
-  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 44
+  uv run python scripts/build_internal_review_bundle.py --from-phase 19 --to-phase 45
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from pathlib import Path
 
 GENERATOR_VERSION = "1.0.0"
 DEFAULT_FROM_PHASE = 19
-DEFAULT_TO_PHASE = 44
+DEFAULT_TO_PHASE = 45
 
 # Nunca empaquetar certificados externos (ni aunque existan por error).
 EXCLUDE_APPROVED_RE = re.compile(r"(?i)FASE_.*_APPROVED\.md$")

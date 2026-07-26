@@ -179,6 +179,13 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         "keywords": ("docs", "help", "ayuda", "markdown", "manual", "ops"),
     },
     {
+        "id": "open.about",
+        "kind": "pane",
+        "label": "Acerca de QuantLab",
+        "pane_id": "about",
+        "keywords": ("about", "acerca", "version", "versión", "info", "python"),
+    },
+    {
         "id": "open.activity",
         "kind": "pane",
         "label": "Abrir Activity",

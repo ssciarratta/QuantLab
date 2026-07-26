@@ -1196,6 +1196,53 @@ def check_f44_e2e_paper_workflow() -> None:
     assert LIVE_BLOCKED is True
 
 
+def check_f45_about() -> None:
+    """F45: GET /api/about + version badge UI assets + LIVE_BLOCKED."""
+    from pathlib import Path
+
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY, build_about_payload
+    from quantlab.workbench.api import WorkbenchState, handle_get_about
+    from quantlab.workbench.commands import list_commands
+    from quantlab.workbench.server import STATIC_ROOT
+    from quantlab.workbench.session import WorkbenchSession
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.37.0"
+    assert PHASES_SUMMARY == "F19–F45 INTERNAL"
+
+    root = Path("/tmp/quantlab-smoke-f45-about")
+    root.mkdir(parents=True, exist_ok=True)
+    session = WorkbenchSession.create_or_load(root, "smoke45")
+    state = WorkbenchState(session=session, bind_host="127.0.0.1", allow_non_loopback=False)
+    state.ensure_session()
+
+    about = handle_get_about(state)
+    assert about["ok"] is True
+    assert about["kind"] == "about"
+    assert about["version"] == "0.37.0"
+    assert about["live_blocked"] is True
+    assert about["phases_summary"] == PHASES_SUMMARY
+    assert about["python_version"]
+    assert about["bind_policy"]["policy"] == "loopback-default"
+
+    built = build_about_payload(bind_host="0.0.0.0", allow_non_loopback=True)
+    assert built["bind_policy"]["policy"] == "allow-non-loopback"
+
+    ids = {c["id"] for c in list_commands()["commands"]}
+    assert "open.about" in ids
+
+    assert (STATIC_ROOT / "js" / "about.js").is_file()
+    html = (STATIC_ROOT / "index.html").read_text(encoding="utf-8")
+    assert "about.js" in html
+    assert 'data-open="about"' in html
+    assert "sb-version" in html
+    shell = (STATIC_ROOT / "js" / "shell.js").read_text(encoding="utf-8")
+    assert "openAbout" in shell
+    assert "refreshVersionBadge" in shell
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -1228,6 +1275,7 @@ def main() -> int:
         ("F42 ops metrics panel API", check_f42_ops_metrics),
         ("F43 red-team workbench hardening", check_f43_redteam),
         ("F44 e2e paper workflow integration", check_f44_e2e_paper_workflow),
+        ("F45 about dialog + version badge", check_f45_about),
     ]
     ok = True
     for name, fn in checks:

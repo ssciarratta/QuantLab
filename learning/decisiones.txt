@@ -1,4 +1,12 @@
 
+[2026-07-26] DEC-089 — About Dialog + Version Badge
+  Decisión: F45 = GET /api/about (version, live_blocked, phases_summary
+  F19–F45 INTERNAL, python_version, bind_policy) + badge versión en
+  status bar + diálogo Acerca de (menú Inicio); command open.about;
+  tests test_about_f45.py. LIVE_BLOCKED=True; sin flip;
+  sin FASE_45_APPROVED; sin LIVE.
+  Fase: 45.
+
 [2026-07-26] DEC-088 — E2E Paper Workflow Integration Test
   Decisión: F44 = test de integración (sin browser) que ejercita el
   flujo paper completo vía API workbench en thread loopback:

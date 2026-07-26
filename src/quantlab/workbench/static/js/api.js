@@ -266,6 +266,9 @@
         "/api/docs/content?path=" + encodeURIComponent(path || "")
       );
     },
+    about: function () {
+      return request("GET", "/api/about");
+    },
     sessionExport: function () {
       return request("GET", "/api/session/export");
     },

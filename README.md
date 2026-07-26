@@ -17,7 +17,7 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F25 | Ops Desk 1-click + hardening (non-loopback, experiment_id, slip, Risk) · **APROBADO_INTERNO** · v0.17.0 |
 | F26 | Paper Session Runner (estrategia → risk → PaperBroker) · **APROBADO_INTERNO** · v0.18.0 |
 | F27 | Strategy Catalog (InventoryMM + Avellaneda–Stoikov en workbench) · **APROBADO_INTERNO** · v0.19.0 |
-| F28 | Layout persistence + Journal viewer · v0.20.0 |
+| F28 | Layout persistence + Journal viewer · **APROBADO_INTERNO** · v0.20.0 |
 | F29 | Report Viewer + Metrics History · **APROBADO_INTERNO** · v0.21.0 |
 | F30 | Universe Watchlist + Data Catalog · **APROBADO_INTERNO** · v0.22.0 |
 | F31 | Feature Store Browser + Pipeline Runner · **APROBADO_INTERNO** · v0.23.0 |
@@ -28,9 +28,16 @@ QuantLab es un **laboratorio de investigación cuantitativa**, no un bot de trad
 | F36 | Settings + Status Bar · **APROBADO_INTERNO** · v0.28.0 |
 | F37 | First-run Onboarding Wizard · **APROBADO_INTERNO** · v0.29.0 |
 | F38 | Docs / Help Browser · **APROBADO_INTERNO** · v0.30.0 |
+| F39 | Session Export/Import ZIP · **APROBADO_INTERNO** · v0.31.0 |
+| F40 | Workspace Presets · **APROBADO_INTERNO** · v0.32.0 |
+| F41 | Activity Log + Toasts · **APROBADO_INTERNO** · v0.33.0 |
+| F42 | Ops Metrics Panel · **APROBADO_INTERNO** · v0.34.0 |
+| F43 | Red-team Workbench Hardening · **APROBADO_INTERNO** · v0.35.0 |
+| F44 | E2E Paper Workflow Integration · **APROBADO_INTERNO** · v0.36.0 |
+| F45 | About Dialog + Version Badge · **APROBADO_INTERNO** · v0.37.0 |
 | LIVE order routing | **BLOQUEADO** (`LIVE_BLOCKED=True`) |
 
-> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F38](docs/audit/INTERNAL_AUDIT_F19_F38_NIGHT.md)  
+> Mapa: [ROADMAP_ALIGNED](docs/ROADMAP_ALIGNED.md) · [MAPA auditor](docs/audit/MAPA_FASES_PARA_AUDITOR.md) · [Arco F19–F22](docs/audit/INTERNAL_AUDIT_F19_F22_ARC.md) · [Arco F23–F25](docs/audit/INTERNAL_AUDIT_F23_F25_ARC.md) · [Noche F19–F45](docs/audit/INTERNAL_AUDIT_F19_F45_NIGHT.md)  
 > **REAL ≠ LIVE** — REAL = PAPER (MD/cuenta reales + fills simulados).
 
 ---

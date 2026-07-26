@@ -2,6 +2,16 @@
 QUANTLAB — DIARIO DE PROYECTO
 ================================================================================
 
+[2026-07-26] FASE 45 — About Dialog + Version Badge
+-------------------------------------------------------
+- v0.37.0 · impl SHA PENDING_SHA · DEC-089.
+- QA: mypy 175 · ruff · pytest 818 · smoke 31 PASS.
+- GET /api/about + badge versión status bar + diálogo Acerca de
+  (Inicio / open.about); phases_summary F19–F45 INTERNAL; bind_policy.
+- Tests test_about_f45.py (10); INTERNAL APROBADO_INTERNO;
+  FASE_45_APPROVED.md NO emitido.
+- Noche F19–F45 APROBADO_INTERNO; LIVE_BLOCKED intacto.
+
 [2026-07-26] FASE 44 — E2E Paper Workflow Integration Test
 -------------------------------------------------------
 - v0.36.0 · impl SHA df89295 · DEC-088.

@@ -15,10 +15,12 @@
   const sbSession = document.getElementById("sb-session");
   const sbVenue = document.getElementById("sb-venue");
   const sbMd = document.getElementById("sb-md");
+  const sbVersion = document.getElementById("sb-version");
 
   let sessionMode = "tester";
   let savedGeom = {};
   let cachedSessionId = "—";
+  let cachedVersion = null;
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
 
@@ -73,6 +75,27 @@
     if (sbMd) {
       sbMd.textContent = payload.md_provider || "—";
     }
+    if (payload.version && sbVersion) {
+      cachedVersion = payload.version;
+      sbVersion.textContent = "v" + cachedVersion;
+    }
+  }
+
+  function refreshVersionBadge() {
+    if (!QLApi || !QLApi.about) return;
+    QLApi.about()
+      .then(function (data) {
+        if (!data) return;
+        if (sbVersion && data.version) {
+          cachedVersion = data.version;
+          sbVersion.textContent = "v" + data.version;
+        }
+        updateStatusBar({
+          live_blocked: data.live_blocked !== false,
+          version: data.version,
+        });
+      })
+      .catch(function () {});
   }
 
   function updateBanner(modePayload) {
@@ -248,6 +271,12 @@
     pane.refresh().catch(function () {});
   }
 
+  function openAbout() {
+    if (window.QLAbout && QLAbout.open) {
+      QLAbout.open();
+    }
+  }
+
   function openActivity() {
     const pane = QLPanes.createActivityPane();
     wm.open("activity", "Activity", pane, mergeOpts("activity", { x: 220, y: 70, w: 520, h: 440 }));
@@ -278,6 +307,7 @@
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
+    about: openAbout,
     activity: openActivity,
     ops_metrics: openOpsMetrics,
     backtest: openBacktest,
@@ -332,6 +362,11 @@
       if (palette.isOpen()) {
         ev.preventDefault();
         palette.hide();
+        return;
+      }
+      if (window.QLAbout && QLAbout.isOpen && QLAbout.isOpen()) {
+        ev.preventDefault();
+        QLAbout.close();
         return;
       }
     }
@@ -391,6 +426,13 @@
     });
   });
 
+  if (sbVersion) {
+    sbVersion.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      openAbout();
+    });
+  }
+
   function closeStartMenu() {
     startMenu.setAttribute("hidden", "");
     startMenu.classList.add("hidden");
@@ -446,6 +488,8 @@
     .catch(function () {
       bannerMode.textContent = "modo ?";
     });
+
+  refreshVersionBadge();
 
   Promise.all([
     QLApi.session().catch(function () {

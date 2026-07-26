@@ -13,6 +13,7 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
+    handle_get_about,
     handle_get_account,
     handle_get_activity,
     handle_get_catalog,
@@ -199,6 +200,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
             try:
                 if path == "/api/health":
                     self._send_json(handle_get_health(state))
+                    return
+                if path == "/api/about":
+                    self._send_json(handle_get_about(state))
                     return
                 if path == "/api/commands":
                     self._send_json(handle_get_commands(state))
@@ -484,6 +488,8 @@ def create_server(
             f"host={host!r} no es loopback; pasar allow_non_loopback=True (riesgo: sin auth HTTP)"
         )
     app_state = state if state is not None else WorkbenchState()
+    app_state.bind_host = host
+    app_state.allow_non_loopback = bool(allow_non_loopback)
     handler = make_handler(app_state)
     server = ThreadingHTTPServer((host, port), handler)
     # Exponer estado para tests
