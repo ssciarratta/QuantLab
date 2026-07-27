@@ -1,7 +1,10 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-26
-Versión código actual: 0.98.0 (F105 A3 MD env Guided Lab)
+Actualizado: 2026-07-27
+Versión código actual: 0.98.0 (F106 Guided Lab A3 snapshot)
+
+>>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
+>>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,19 +78,20 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F105: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab: Binance demo/testnet + A3 paper/MD env opt-in (sin producción)
+- F19–F106: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab completo: unlock LIVE + Binance demo/testnet + A3 paper/MD/snapshot
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · sin unlock LIVE bloqueado · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F105 A3 MD env Guided Lab (0.98.0): /api/lab/a3/md-status + selector fake|env.
-Banner LIVE con transport/fills. PaperBroker only. DEC-149.
+F106 Guided Lab A3 snapshot (0.98.0): botón Snapshot + input símbolo post-connect.
+DEC-150. Checkpoint RETOMAR.txt para reanudar sesión.
 
-Previo — F104 Guided Lab A3 paper (0.96.0). DEC-148.
+Previo — F105 A3 MD env (0.97.0): /api/lab/a3/md-status + md_source fake|env. DEC-149.
+Previo — F104 A3 paper connect (0.96.0). DEC-148.
 Previo — F103 freeze LIVE arc (0.95.0). DEC-147.
-Previo — F102 testnet opt-in (0.94.0). DEC-146.
+Previo — F102 testnet (0.94.0). F101 demo (0.93.0). F100 unlock (0.92.0).
 
 Previo — F98 Milestone Freeze arco ops F93–F97 (0.90.0):
 - MILESTONE_V090_OPS_ARC_FREEZE.md + CHANGELOG; sin cambios runtime
@@ -134,6 +138,6 @@ Windows (sqlite locks, i18n guard, fsync, /tmp, env worker sandbox).
 
 PRÓXIMO PASO
 ------------
-- A3 en Guided Lab (MD/paper) después del camino Binance
+- F107: paper submit A3 desde Guided Lab o freeze arco Guided F99–F106 (v0.99)
 - Certificados externos F19+ solo con APROBADO Meta-Auditor externo
 - LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado
