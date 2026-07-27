@@ -69,7 +69,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F110 | Milestone freeze arco Guided F99–F109 · **1.00.0** |
 | F111 | Binance alpha klines + pipeline + chat copilot · **1.01.0** |
 | F112+ | Chat instructor/memoria/LLM + UI font/resize/tips (tip interno, sin freeze) |
-| F115 | Espectro estrategias por familia (runnable + stubs) · tip interno |
+| F115 | Espectro estrategias: 50 ids · 39 runnable · 11 stubs · tip interno |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
