@@ -104,6 +104,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("live", "binance"),
     ),
     ApiRoute(
+        "/api/live/demo/open-orders",
+        "GET",
+        "List Binance demo resting orders (requires unlock)",
+        ("live", "binance"),
+    ),
+    ApiRoute(
+        "/api/live/demo/cancel",
+        "POST",
+        "Cancel Binance demo resting order (requires unlock)",
+        ("live", "binance"),
+    ),
+    ApiRoute(
         "/api/lab/binance/scan",
         "POST",
         "Binance public USDT scan (read-only market data)",
@@ -298,6 +310,8 @@ LIVE_CREDENTIAL_GATE_PATHS: frozenset[str] = frozenset(
         "/api/live/lock",
         "/api/live/demo/submit",
         "/api/live/demo/fills",
+        "/api/live/demo/open-orders",
+        "/api/live/demo/cancel",
     }
 )
 

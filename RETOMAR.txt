@@ -2,62 +2,29 @@ QUANTLAB — CHECKPOINT DE REANUDACIÓN
 ====================================
 Actualizado: 2026-07-27
 Branch: cursor/modo-real-workbench-aafd
-Versión tip: 0.99.0 · F19–F107 INTERNAL
+Versión tip: 1.00.0 · F19–F110 INTERNAL
 
-PEGÁ ESTO EN CURSOR AL VOLVER
------------------------------
-seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
-
-ESTADO AL SUSPENDER
--------------------
-✅ F99–F107 Guided Lab + LIVE gate + Binance demo/testnet + A3 paper/MD/submit
-✅ Smoke interno PASS (scripts/internal_audit_smoke.py)
-⏳ F108 freeze arco Guided pendiente
+ESTADO
+------
+✅ F99–F110 Guided Lab completo + LIVE demo deuda cerrada + i18n + freeze v1.00
+✅ Smoke interno PASS
 
 ÚLTIMO TRABAJO CERRADO
 ----------------------
-F107 (0.99.0): Guided Lab paper submit A3 — Enviar paper vía PaperBroker.
-F106 (0.98.0): snapshot A3.
-F105: A3 MD env opt-in.
-F104: connect A3 paper + instrumentos.
-F103: freeze arco LIVE F99–F102.
+F110: freeze MILESTONE_V100_GUIDED_ARC_FREEZE.md
+F109: cancel/LIMIT/mirror demo
+F108: i18n + venue-aware
+F107: paper submit A3
 
-CÓMO ARRANCAR EL WORKBENCH (1 min)
-----------------------------------
+ARRANQUE
+--------
 cd C:\Users\ssciarratta\Desktop\QuantLab
 uv run quantlab-workbench
-# Abrir http://127.0.0.1:8765 → Guided Lab
+# http://127.0.0.1:8765 → Guided Lab
 
-ENV LOCAL (NUNCA EN GIT)
-------------------------
-LIVE unlock (corte humano):
-  QUANTLAB_LIVE_USER=...
-  QUANTLAB_LIVE_PASSWORD=...
-
-Binance testnet demo (opcional):
-  QUANTLAB_DEMO_USE_TESTNET=1
-  BINANCE_DEMO_API_KEY=...
-  BINANCE_DEMO_API_SECRET=...
-
-A3 MD real read-only (opcional):
-  QUANTLAB_A3_MD_READONLY=1
-  QUANTLAB_A3_USER=...
-  QUANTLAB_A3_PASSWORD=...
-  QUANTLAB_A3_ACCOUNT=...
-
-PRÓXIMO PASO SUGERIDO (F108+)
------------------------------
-- Freeze documental arco Guided F99–F107 (v1.00.0)
-- Polish UX Guided Lab (venue-aware, i18n strings nuevos)
-- LIVE producción: NO — solo con Meta-Auditor + checklist
-
-ARCHIVOS CLAVE
---------------
-RESUMEN_PROYECTO.txt
-.cursor/PROJECT_MEMORY.md
-docs/ops/LIVE_CREDENTIAL_GATE.md
-docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md
-
-INVARIANTES
------------
-LIVE_BLOCKED=True sin unlock · secrets solo env local · sin producción Binance
+PRÓXIMO (post v1.00)
+--------------------
+- Certificación externa Meta-Auditor (F19+)
+- Testnet manual E2E con keys reales
+- A3 MD env validación operativa
+- LIVE producción: NO sin checklist explícito

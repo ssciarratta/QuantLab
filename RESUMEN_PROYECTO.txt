@@ -1,145 +1,32 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión código actual: 0.99.0 (F107 Guided Lab A3 paper submit)
+Versión código actual: 1.00.0 (F110 Milestone freeze arco Guided Lab)
 
 >>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
 >>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
-Certificado F17: código 0.9.0 / Review v1.0
-Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
-Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
-Auditoría INTERNAL F49: código 0.41.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F50: código 0.42.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F51: código 0.43.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F52: código 0.44.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F53: código 0.45.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F54: código 0.46.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F55: código 0.47.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F56: código 0.48.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F57: código 0.49.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F58: código 0.50.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.50.0
-Auditoría INTERNAL F59: código 0.51.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F60: código 0.52.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F61: código 0.53.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F62: código 0.54.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F63: código 0.55.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F64: código 0.56.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F65: código 0.57.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F66: código 0.58.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F67: código 0.59.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F68: código 0.60.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.60.0
-Auditoría INTERNAL F69: código 0.61.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F70: código 0.62.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F71: código 0.63.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F72: código 0.64.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F73: código 0.65.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F74: código 0.66.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F75: código 0.67.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F76: código 0.68.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F77: código 0.69.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F78: código 0.70.0 — APROBADO_INTERNO (externo pendiente) — milestone v0.70.0
-Auditoría INTERNAL F79: código 0.71.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F80: código 0.72.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F81: código 0.73.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F82: código 0.74.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F83: código 0.75.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F84: código 0.76.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F85: código 0.77.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F86: código 0.78.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F87: código 0.79.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F88: código 0.80.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F89: código 0.81.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F90: código 0.82.0 — APROBADO_INTERNO (externo pendiente)
-Auditoría INTERNAL F91: código 0.83.0 — APROBADO_INTERNO (externo pendiente)
-Arco F19–F22: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F22_ARC.md)
-Arco F23–F25: APROBADO_INTERNO (INTERNAL_AUDIT_F23_F25_ARC.md)
-Noche F19–F48: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F48_NIGHT.md)
-Noche F19–F68: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F68_NIGHT.md)
-Noche F19–F77: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F77_NIGHT.md)
-Noche F19–F78: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F78_NIGHT.md)
-Noche F19–F79: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F79_NIGHT.md)
-Noche F19–F80: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F80_NIGHT.md)
-Noche F19–F81: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F81_NIGHT.md)
-Noche F19–F82: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F82_NIGHT.md)
-Noche F19–F83: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F83_NIGHT.md)
-Noche F19–F84: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F84_NIGHT.md)
-Noche F19–F85: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F85_NIGHT.md)
-Noche F19–F86: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F86_NIGHT.md)
-Noche F19–F87: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F87_NIGHT.md)
-Noche F19–F88: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F88_NIGHT.md)
-Noche F19–F89: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F89_NIGHT.md)
-Noche F19–F90: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F90_NIGHT.md)
-Noche F19–F91: APROBADO_INTERNO (INTERNAL_AUDIT_F19_F91_NIGHT.md)
-Freeze v0.40: docs/audit/MILESTONE_V040_FREEZE.md
-Freeze v0.50: docs/audit/MILESTONE_V050_FREEZE.md
-Freeze v0.60: docs/audit/MILESTONE_V060_FREEZE.md
-Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 
 ESTADO
 ------
-- F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F107: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab completo: unlock LIVE + Binance demo/testnet + A3 paper/MD/snapshot/submit
-- Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
-- Research-prod LISTO · CI Actions ACTIVO · sin unlock LIVE bloqueado · secrets solo env local
+- F0–F18: CERTIFICADOS externos
+- F19–F110: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab v1.00: i18n es/en · venue-aware · LIVE demo cancel/LIMIT/mirror · A3 completo
+- LIVE_BLOCKED=True sin unlock · sin producción Binance · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F107 Guided Lab A3 paper submit (0.99.0): side + qty + Enviar paper vía PaperBroker.
-DEC-151.
-
-Previo — F106 A3 snapshot (0.98.0): botón Snapshot + input símbolo. DEC-150.
-
-Previo — F105 A3 MD env (0.97.0): /api/lab/a3/md-status + md_source fake|env. DEC-149.
-Previo — F104 A3 paper connect (0.96.0). DEC-148.
-Previo — F103 freeze LIVE arc (0.95.0). DEC-147.
-Previo — F102 testnet (0.94.0). F101 demo (0.93.0). F100 unlock (0.92.0).
-
-Previo — F98 Milestone Freeze arco ops F93–F97 (0.90.0):
-- MILESTONE_V090_OPS_ARC_FREEZE.md + CHANGELOG; sin cambios runtime
-- DEC-142; FASE_98_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F97 Support Bundle ZIP read-only (0.89.0):
-- GET /api/support-bundle.zip (diagnostics/about/openapi/venues/recon + README)
-- Sin journal/book; botón Support ZIP en Diagnostics; DEC-141
-- FASE_97_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F96 Diagnostics Download support snapshot (0.88.0):
-- GET /api/diagnostics.json descarga adjunta (reutiliza F95) + botón en pane
-- Nombre saneado por session_id; DEC-140; sin mutaciones
-- FASE_96_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F95 Diagnostics Snapshot Panel read-only (0.87.0):
-- GET /api/diagnostics agrega versión/modo/salud/conexión/reconciliación
-- Pane diagnostics.js (resumen + JSON + copiar) + comando open.diagnostics + i18n
-- DEC-139; FASE_95_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F94 API Explorer Panel read-only (0.86.0):
-- Pane api_explorer.js navega /api/openapi.json (método/path/resumen/tags + filtro)
-- Cliente QLApi.openapi() + comando open.api_explorer + i18n; sin mutaciones
-- DEC-138; FASE_94_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F93 Venues / Broker Registry Panel read-only (0.85.0):
-- /api/venues enriquecido: conexión + contrato plugins v1 (ReadOnlyBrokerPort)
-- Pane venues.js (builtin vs plugin, conectado) + comando open.venues + i18n
-- DEC-137; FASE_93_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F92 Milestone Freeze Docs arco v0.71–v0.83 (0.84.0):
-- MILESTONE_V080_ARC_FREEZE.md (inventario F79–F91 + invariantes + operación)
-- CHANGELOG sync 0.81.0/0.82.0/0.83.0/0.84.0; smoke F92; sin cambios runtime
-- DEC-136; FASE_92_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-
-Previo — F91 Paper Session Rehydrate post-rebuild (0.83.0):
-- POST /api/paper/reconciliation/rehydrate: teardown + relectura desde disco
-- Sin auto-recovery: durable inválido queda bloqueado como al boot
-- Journal nunca mutado; broker desconectado (reconexión explícita)
-- Botón con confirm en panel Reconciliación (F90); activity `rehydrate`
-- DEC-135; FASE_91_APPROVED.md NO emitido · LIVE_BLOCKED intacto
-Antes en el día: F90 panel reconciliación (0.82.0) + fixes portabilidad
-Windows (sqlite locks, i18n guard, fsync, /tmp, env worker sandbox).
+F110 (1.00.0): Milestone freeze arco Guided F99–F109 — MILESTONE_V100_GUIDED_ARC_FREEZE.md
+F109: LIVE demo cancel + LIMIT resting + mirror_to_paper → journal binance_demo
+F108: i18n Guided Lab (guided_lab.* es/en) + UX venue-aware
+F107: paper submit A3 desde Guided Lab
 
 PRÓXIMO PASO
 ------------
-- F108: freeze documental arco Guided F99–F107 (v1.00.0)
-- Certificados externos F19+ solo con APROBADO Meta-Auditor externo
-- LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado
+- Certificados externos F19+ solo con Meta-Auditor
+- Validación manual testnet E2E con keys del operador
+- A3 MD env real end-to-end (PyRofex) — validación operativa
+- LIVE producción: checklist + Meta-Auditor + dueño (fuera de alcance v1.00)
+
+INVARIANTES
+-----------
+LIVE_BLOCKED=True · REAL=PAPER · sin api.binance.com · sin FASE_*_APPROVED INTERNAL

@@ -19,6 +19,36 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [1.00.0] — 2026-07-27
+
+### Fase 110 — Milestone freeze arco Guided Lab F99–F109
+
+#### Added
+- `docs/audit/MILESTONE_V100_GUIDED_ARC_FREEZE.md` · DEC-154
+- Tip **1.00.0** · `F19–F110 INTERNAL`
+
+### Fase 109 — LIVE demo cancel + LIMIT + mirror paper
+
+#### Added
+- `POST /api/live/demo/cancel` · `GET /api/live/demo/open-orders`
+- LIMIT resting/marketable local; testnet LIMIT/cancel
+- `mirror_to_paper` opt-in → journal source `binance_demo`
+- UI demo: price, mirror, cancel, open orders
+- Docs `docs/FASE_109_LIVE_DEMO_COMPLETE.md` · DEC-153
+
+### Fase 108 — Guided Lab i18n + venue-aware UX
+
+#### Added
+- Claves `guided_lab.*` es/en (paridad F60)
+- `t()` + `data-i18n` + secciones venue-aware
+- Docs `docs/FASE_108_GUIDED_LAB_I18N.md` · DEC-152
+
+#### Invariantes
+- LIVE_BLOCKED=True sin unlock · sin producción Binance
+- Sin `FASE_108`…`FASE_110_APPROVED.md`
+
+---
+
 ## [0.99.0] — 2026-07-27
 
 ### Fase 107 — Guided Lab paper submit A3

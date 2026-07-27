@@ -49,6 +49,7 @@ from quantlab.workbench.api import (
     handle_get_lab_validation_run,
     handle_get_layout,
     handle_get_live_demo_fills,
+    handle_get_live_demo_open_orders,
     handle_get_live_status,
     handle_get_livez,
     handle_get_mode,
@@ -92,6 +93,7 @@ from quantlab.workbench.api import (
     handle_post_lab_optimize,
     handle_post_lab_scanner,
     handle_post_lab_validation_run,
+    handle_post_live_demo_cancel,
     handle_post_live_demo_submit,
     handle_post_live_lock,
     handle_post_live_unlock,
@@ -348,6 +350,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/live/demo/fills":
                     self._send_json(handle_get_live_demo_fills(state))
+                    return
+                if path == "/api/live/demo/open-orders":
+                    self._send_json(handle_get_live_demo_open_orders(state))
                     return
                 if path == "/api/lab/a3/md-status":
                     self._send_json(handle_get_a3_md_status(state))
@@ -620,6 +625,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/live/demo/submit":
                     self._send_json(handle_post_live_demo_submit(state, body))
+                    return
+                if path == "/api/live/demo/cancel":
+                    self._send_json(handle_post_live_demo_cancel(state, body))
                     return
                 if path == "/api/lab/binance/scan":
                     self._send_json(handle_post_binance_scan(state, body))

@@ -24,8 +24,8 @@ _WM_JS = _STATIC / "js" / "wm.js"
 
 def test_live_blocked_and_version_f59() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.99.0"
-    assert PHASES_SUMMARY == "F19–F107 INTERNAL"
+    assert __version__ == "1.00.0"
+    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
 
 
 def test_index_html_contains_aria_and_role_dialog() -> None:

@@ -54,6 +54,7 @@ class PaperFillJournal:
     """
 
     SOURCE_TAG = "paper_broker"
+    MIRROR_SOURCE_TAGS = frozenset({SOURCE_TAG, "binance_demo"})
 
     def __init__(self, path: Path) -> None:
         self._path = path
@@ -196,9 +197,10 @@ class PaperFillJournal:
     @classmethod
     def _validate_fill(cls, fill: PaperFill, *, line_number: int | None) -> None:
         prefix = f"journal línea {line_number}: " if line_number is not None else ""
-        if fill.source != cls.SOURCE_TAG:
+        if fill.source not in cls.MIRROR_SOURCE_TAGS:
             raise ValidationError(
-                f"{prefix}PaperFill.source debe ser {cls.SOURCE_TAG!r}, got {fill.source!r}"
+                f"{prefix}PaperFill.source debe ser uno de "
+                f"{sorted(cls.MIRROR_SOURCE_TAGS)!r}, got {fill.source!r}"
             )
         if not fill.fill_id.strip() or not fill.order_id.strip() or not fill.symbol.strip():
             raise ValidationError(f"{prefix}fill_id, order_id y symbol deben ser no vacíos")

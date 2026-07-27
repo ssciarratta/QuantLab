@@ -886,6 +886,44 @@ def handle_post_live_lock(state: WorkbenchState, body: dict[str, Any]) -> dict[s
     }
 
 
+def _mirror_demo_fill_to_paper(
+    state: WorkbenchState, fill: dict[str, Any]
+) -> dict[str, Any] | None:
+    """Opt-in: refleja fill demo FILLED en journal/book de sesión (F109)."""
+    from datetime import datetime
+
+    from quantlab.brokers.types import PaperFill
+
+    price_raw = fill.get("price")
+    if price_raw is None:
+        return None
+    try:
+        price = Decimal(str(price_raw))
+        quantity = Decimal(str(fill["quantity"]))
+        ts = datetime.fromisoformat(str(fill["ts"]))
+    except (InvalidOperation, ValueError, KeyError, TypeError):
+        return None
+    if not price.is_finite() or price <= 0:
+        return None
+    paper_fill = PaperFill(
+        fill_id=f"demo-mirror-{uuid.uuid4().hex[:12]}",
+        order_id=str(fill["order_id"]),
+        symbol=str(fill["symbol"]),
+        side=str(fill["side"]),
+        quantity=quantity,
+        price=price,
+        ts=ts,
+        source="binance_demo",
+    )
+    journal = state.ensure_journal()
+    book = state.ensure_book()
+    journal.append(paper_fill)
+    book.apply_fill(paper_fill)
+    state.persist_book()
+    _record_equity_point(state)
+    return dataclass_to_dict(paper_fill)
+
+
 def handle_post_live_demo_submit(
     state: WorkbenchState, body: dict[str, Any]
 ) -> dict[str, Any]:
@@ -925,6 +963,15 @@ def handle_post_live_demo_submit(
             "transport": demo_status.get("transport"),
         },
     )
+    mirrored: dict[str, Any] | None = None
+    mirror_flag = body.get("mirror_to_paper") in {True, "true", "1", 1}
+    if mirror_flag and ack.status == "FILLED":
+        fills = get_shared_demo_router().recent_fills(limit=1)
+        if fills:
+            try:
+                mirrored = _mirror_demo_fill_to_paper(state, fills[-1])
+            except ValidationError:
+                mirrored = None
     return {
         "ok": True,
         "kind": "demo_submit",
@@ -937,6 +984,70 @@ def handle_post_live_demo_submit(
         "message": ack.message,
         "venue": ack.venue,
         "demo": demo_status,
+        "mirrored_to_paper": mirrored is not None,
+        "paper_fill": mirrored,
+    }
+
+
+def handle_post_live_demo_cancel(
+    state: WorkbenchState, body: dict[str, Any]
+) -> dict[str, Any]:
+    """POST /api/live/demo/cancel — cancela orden demo resting (F109)."""
+    from quantlab.brokers.binance.demo_router import (
+        get_shared_demo_router,
+        intent_from_demo_body,
+    )
+    from quantlab.execution.live_gate import LiveOrderRouter, require_live_unlock
+
+    try:
+        require_live_unlock(venue_scope="binance_demo")
+        cancel_body = {"intent_type": "cancel_order", "order_id": body.get("order_id")}
+        intent = intent_from_demo_body(cancel_body)
+        router = LiveOrderRouter()
+        ack = router.submit(intent)
+        demo_status = get_shared_demo_router().status()
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 401 if "BLOQUEADO" in msg or "unlock" in msg.lower() else 400
+        raise ApiError(status, msg) from exc
+
+    _record_activity(
+        state,
+        "demo_cancel",
+        ok=ack.status == "CANCELED",
+        message=f"demo cancel {ack.order_id} -> {ack.status}",
+        detail={"order_id": ack.order_id, "status": ack.status},
+    )
+    return {
+        "ok": ack.status == "CANCELED",
+        "kind": "demo_cancel",
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "order_id": ack.order_id,
+        "status": ack.status,
+        "message": ack.message,
+        "demo": demo_status,
+    }
+
+
+def handle_get_live_demo_open_orders(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/live/demo/open-orders — órdenes demo resting (F109)."""
+    from quantlab.brokers.binance.demo_router import get_shared_demo_router
+
+    _ = state
+    try:
+        router = get_shared_demo_router()
+    except ValidationError as exc:
+        raise ApiError(401, str(exc)) from exc
+    orders = router.open_orders()
+    return {
+        "ok": True,
+        "kind": "demo_open_orders",
+        "count": len(orders),
+        "orders": orders,
+        "demo": router.status(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
     }
 
 

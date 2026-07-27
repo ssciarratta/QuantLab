@@ -229,6 +229,9 @@
     scope.querySelectorAll("[data-i18n-title]").forEach(function (el) {
       applyAttr(el, "title", el.getAttribute("data-i18n-title"));
     });
+    scope.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
+      applyAttr(el, "placeholder", el.getAttribute("data-i18n-placeholder"));
+    });
   }
 
   function mergeMessages(locale, messages) {

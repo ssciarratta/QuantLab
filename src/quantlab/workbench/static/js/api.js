@@ -394,8 +394,14 @@
     liveDemoSubmit: function (payload) {
       return request("POST", "/api/live/demo/submit", payload || {});
     },
+    liveDemoCancel: function (orderId) {
+      return request("POST", "/api/live/demo/cancel", { order_id: orderId });
+    },
     liveDemoFills: function () {
       return request("GET", "/api/live/demo/fills");
+    },
+    liveDemoOpenOrders: function () {
+      return request("GET", "/api/live/demo/open-orders");
     },
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });

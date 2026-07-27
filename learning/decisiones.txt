@@ -1,3 +1,18 @@
+[2026-07-27] DEC-154 — Milestone freeze arco Guided Lab v1.00
+  Decisión: F110 congela F99–F109 en MILESTONE_V100_GUIDED_ARC_FREEZE.md.
+  Tip 1.00.0 · sin certificado externo.
+  Fase: 110.
+
+[2026-07-27] DEC-153 — LIVE demo cancel + LIMIT + mirror journal
+  Decisión: F109 cierra deuda demo: cancel/open-orders API, LIMIT resting,
+  mirror_to_paper opt-in con source binance_demo en journal.
+  Fase: 109.
+
+[2026-07-27] DEC-152 — Guided Lab i18n + venue-aware
+  Decisión: F108 internacionaliza Guided Lab (guided_lab.* es/en) y oculta
+  secciones A3/Binance según venue.
+  Fase: 108.
+
 [2026-07-27] DEC-151 — Guided Lab A3 paper submit
   Decisión: F107 agrega submit paper desde Guided Lab reutilizando POST /api/paper/submit.
   PaperBroker únicamente; sin routing venue A3. Bump 0.99.0.

@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-27  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.99.0** (F107 Guided Lab A3 paper submit)
+**Versión tip:** **1.00.0** (F110 Milestone freeze arco Guided Lab)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  
@@ -10,7 +10,7 @@
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
 **Milestone congelado v0.70:** F19–F77/F78 · `docs/audit/MILESTONE_V070_FREEZE.md`  
-**LIVE:** unlock + demo local; testnet opt-in; sin producción (freeze F103).
+**Milestone congelado arco Guided v1.00:** F99–F109 · `docs/audit/MILESTONE_V100_GUIDED_ARC_FREEZE.md`  
 
 ---
 
@@ -64,6 +64,9 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F105 | A3 MD env Guided Lab · **0.97.0** |
 | F106 | Guided Lab A3 snapshot MD · **0.98.0** |
 | F107 | Guided Lab A3 paper submit · **0.99.0** |
+| F108 | Guided Lab i18n + venue-aware UX · **1.00.0** |
+| F109 | LIVE demo cancel/LIMIT/mirror · **1.00.0** |
+| F110 | Milestone freeze arco Guided F99–F109 · **1.00.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -160,16 +163,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 9. PaperBroker / Paper Session: fills simulados; sin venue submit
 10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
 11. Sin emitir `FASE_19`…`FASE_107_APPROVED.md` desde INTERNAL
-12. `phases_summary` tip: `F19–F107 INTERNAL`
-13. About / health `version` ≡ `__version__` (tip `0.99.0`)
-14. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
-15. Guided Lab: unlock LIVE + Binance demo/testnet + A3 paper/MD/snapshot/submit (sin producción)
+12. `phases_summary` tip: `F19–F110 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `1.00.0`)
+14. Journal PAPER append-only; mirror demo opt-in source `binance_demo`
+15. Guided Lab v1.00: i18n es/en · venue-aware · LIVE demo completo · A3 paper path
 
 ## Próximo
 
-- F108: freeze documental arco Guided F99–F107 (v1.00.0)
-- Certificados externos F19+ solo con Meta-Auditor
-- Flip LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado
+- Certificados externos F19+ (Meta-Auditor)
+- Testnet manual E2E · A3 MD env operativo
+- LIVE producción solo con checklist + dueño
 
 ## Checkpoint
 

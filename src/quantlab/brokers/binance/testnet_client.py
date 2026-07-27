@@ -113,7 +113,7 @@ class BinanceTestnetClient:
         self, method: str, path: str, params: dict[str, str], *, signed: bool
     ) -> dict[str, Any]:
         payload = dict(params)
-        headers = {"User-Agent": "QuantLab/0.99 (+binance-testnet)", "X-MBX-APIKEY": self._key}
+        headers = {"User-Agent": "QuantLab/1.00 (+binance-testnet)", "X-MBX-APIKEY": self._key}
         if signed:
             payload["timestamp"] = str(int(time.time() * 1000))
             payload["signature"] = self._sign(payload)
@@ -176,3 +176,51 @@ class BinanceTestnetClient:
             side=side_u,
             raw={k: data[k] for k in data if k.lower() not in {"fills"}},
         )
+
+    def place_limit_order(
+        self,
+        *,
+        symbol: str,
+        side: str,
+        quantity: str,
+        price: str,
+        client_order_id: str,
+        time_in_force: str = "GTC",
+    ) -> TestnetOrderResult:
+        sym = symbol.strip().upper()
+        side_u = side.strip().upper()
+        if side_u not in {"BUY", "SELL"}:
+            raise ValidationError("side testnet inválido")
+        params = {
+            "symbol": sym,
+            "side": side_u,
+            "type": "LIMIT",
+            "timeInForce": time_in_force,
+            "quantity": quantity,
+            "price": price,
+            "newClientOrderId": client_order_id,
+        }
+        data = self._request("POST", "/api/v3/order", params, signed=True)
+        order_id = str(data.get("orderId") or data.get("order_id") or "")
+        if not order_id:
+            raise ValidationError("testnet sin orderId en respuesta LIMIT")
+        status = str(data.get("status") or "UNKNOWN")
+        return TestnetOrderResult(
+            order_id=f"BN-TN-{order_id}",
+            client_order_id=str(data.get("clientOrderId") or client_order_id),
+            status=status,
+            symbol=sym,
+            side=side_u,
+            raw={k: data[k] for k in data if k.lower() not in {"fills"}},
+        )
+
+    def cancel_order(self, *, symbol: str, order_id: str) -> dict[str, Any]:
+        sym = symbol.strip().upper()
+        oid = order_id.strip()
+        if not sym or not oid:
+            raise ValidationError("symbol y order_id requeridos para cancel testnet")
+        params = {"symbol": sym, "orderId": oid}
+        data = self._request("DELETE", "/api/v3/order", params, signed=True)
+        if not isinstance(data, dict):
+            raise ValidationError("testnet cancel respuesta inválida")
+        return data

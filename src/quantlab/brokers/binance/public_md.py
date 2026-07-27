@@ -43,7 +43,7 @@ class BinancePublicMdClient:
         url = f"{self._base}{path}"
         req = urllib.request.Request(
             url,
-            headers={"User-Agent": "QuantLab/0.99 (+read-only-md)"},
+            headers={"User-Agent": "QuantLab/1.00 (+read-only-md)"},
             method="GET",
         )
         try:
