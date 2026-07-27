@@ -19,6 +19,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.95.0] — 2026-07-26
+
+### Fase 103 — Milestone freeze arco LIVE Guided Path (F99–F102)
+
+#### Added
+- `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`
+- Docs `docs/FASE_103_LIVE_ARC_FREEZE.md` · DEC-147
+
+#### Notes
+- Solo documental; runtime F99–F102 intacto. Sin producción.
+
+---
+
 ## [0.94.0] — 2026-07-26
 
 ### Fase 102 — Binance Spot Testnet opt-in

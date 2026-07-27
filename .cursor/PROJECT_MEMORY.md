@@ -2,14 +2,15 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.94.0** (F102 Binance Spot Testnet opt-in)
+**Versión tip:** **0.95.0** (F103 freeze arco LIVE Guided Path F99–F102)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
+**Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
 **Milestone congelado v0.70:** F19–F77/F78 · `docs/audit/MILESTONE_V070_FREEZE.md`  
-**LIVE:** unlock + demo local (F101); testnet remoto solo con flag+keys (F102/DEC-146). Sin producción.
+**LIVE:** unlock + demo local; testnet opt-in; sin producción (freeze F103).
 
 ---
 
@@ -58,6 +59,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F100 | LIVE credential gate + Binance public MD · **0.92.0** |
 | F101 | Binance demo routing post-unlock · **0.93.0** |
 | F102 | Binance Spot Testnet opt-in · **0.94.0** |
+| F103 | Freeze arco LIVE Guided Path F99–F102 · **0.95.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -153,15 +155,14 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 8. Session paths fail-closed (`validate_session_id`, zip-slip)
 9. PaperBroker / Paper Session: fills simulados; sin venue submit
 10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-11. Sin emitir `FASE_19`…`FASE_102_APPROVED.md` desde INTERNAL
-12. `phases_summary` tip: `F19–F102 INTERNAL`
-13. About / health `version` ≡ `__version__` (tip `0.94.0`)
+11. Sin emitir `FASE_19`…`FASE_103_APPROVED.md` desde INTERNAL
+12. `phases_summary` tip: `F19–F103 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `0.95.0`)
 14. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
 15. OpenAPI: `/api/live/{status,unlock,lock,demo/submit,demo/fills}` permitidos; otros `/api/live/*` trading prohibidos
 
 ## Próximo
 
-- Guided Lab polish + paper con MD Binance
-- A3 después del camino Binance
+- A3 en Guided Lab (MD/paper)
 - Certificados externos F19+ solo con Meta-Auditor
 - Flip LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado
