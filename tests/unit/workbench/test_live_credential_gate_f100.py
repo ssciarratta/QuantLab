@@ -42,8 +42,8 @@ def _clean_unlock() -> None:
 
 def test_live_blocked_constant_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.92.0"
-    assert PHASES_SUMMARY == "F19–F100 INTERNAL"
+    assert __version__ == "0.93.0"
+    assert PHASES_SUMMARY == "F19–F101 INTERNAL"
     assert not Path("docs/audit/FASE_100_APPROVED.md").exists()
 
 
@@ -68,8 +68,8 @@ def test_unlock_with_valid_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
     assert session.venue_scope == "binance_demo"
     assert_live_routing_blocked()  # no raise
     ModeGuard.validate_boot(OperatingMode.LIVE)  # no raise
-    with pytest.raises(ValidationError, match="aún no está habilitado"):
-        LiveOrderRouter()
+    router = LiveOrderRouter()
+    assert router.status()["transport"] == "local_demo_sim"
 
 
 def test_bad_password_rejected(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -27,6 +27,8 @@ ACTIVITY_EVENT_TYPES: frozenset[str] = frozenset(
         # F100: unlock/lock LIVE por credenciales (sin password en el log).
         "live_unlock",
         "live_lock",
+        # F101: submit demo Binance simulado (post-unlock).
+        "demo_submit",
     }
 )
 

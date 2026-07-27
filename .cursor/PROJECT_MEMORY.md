@@ -2,14 +2,14 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.92.0** (F100 LIVE credential gate + Binance MD público)
+**Versión tip:** **0.93.0** (F101 Binance demo routing post-unlock)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado v0.40:** F19–F48 · `docs/audit/MILESTONE_V040_FREEZE.md`  
 **Milestone congelado v0.50:** F19–F57/F58 · `docs/audit/MILESTONE_V050_FREEZE.md`  
 **Milestone congelado v0.60:** F19–F67/F68 · `docs/audit/MILESTONE_V060_FREEZE.md`  
 **Milestone congelado v0.70:** F19–F77/F78 · `docs/audit/MILESTONE_V070_FREEZE.md`  
-**LIVE:** `LIVE_BLOCKED = True` sin unlock; con unlock efímero (user/pass) el gate de boot pasa — **routing venue aún stub** (DEC-144)
+**LIVE:** sin unlock bloqueado; con unlock `binance_demo` → fills simulados locales (DEC-145). Sin producción.
 
 ---
 
@@ -56,6 +56,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F98 | Milestone freeze arco ops v0.90 · **0.90.0** |
 | F99 | Guided Lab MVP wizard paper · **0.91.0** |
 | F100 | LIVE credential gate + Binance public MD · **0.92.0** |
+| F101 | Binance demo routing post-unlock · **0.93.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -143,7 +144,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 
 1. Sin unlock: `assert_live_routing_blocked()` falla; `LIVE_BLOCKED` documenta fail-closed
 2. Unlock LIVE solo con `QUANTLAB_LIVE_USER` / `QUANTLAB_LIVE_PASSWORD` (env local) + POST `/api/live/unlock`; password **nunca** en git ni disco de sesión
-3. Con unlock: ModeGuard permite boot LIVE; **LiveOrderRouter aún stub** (no place_order venue)
+3. Con unlock scope `binance_demo`: `LiveOrderRouter` = fills **simulados locales** (`local_demo_sim`); `live_routing=False` (no producción)
 4. **REAL ≠ LIVE** — alias producto `REAL = PAPER` (MD/cuenta pueden ser reales; fills simulados)
 5. Workbench bind default `127.0.0.1`; non-loopback exige `--allow-non-loopback`
 6. Chat: solo tools allowlist read-only; mutaciones → `ValidationError`
@@ -151,16 +152,15 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 8. Session paths fail-closed (`validate_session_id`, zip-slip)
 9. PaperBroker / Paper Session: fills simulados; sin venue submit
 10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-11. Sin emitir `FASE_19`…`FASE_100_APPROVED.md` desde INTERNAL
-12. `phases_summary` tip: `F19–F100 INTERNAL`
-13. About / health `version` ≡ `__version__` (tip `0.92.0`)
+11. Sin emitir `FASE_19`…`FASE_101_APPROVED.md` desde INTERNAL
+12. `phases_summary` tip: `F19–F101 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `0.93.0`)
 14. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
-15. OpenAPI: `/api/live/{status,unlock,lock}` = credential gate (permitido); paths trading `/api/live/*` prohibidos
+15. OpenAPI: `/api/live/{status,unlock,lock,demo/submit,demo/fills}` permitidos; otros `/api/live/*` trading prohibidos
 
 ## Próximo
 
-- F101: Binance **demo** order routing solo tras unlock (secrets solo en env del usuario)
-- Guided Lab: paper con MD Binance real → demo orders gated
+- F102: testnet Binance HMAC opcional (keys solo env local del usuario)
 - A3 después del camino Binance
 - Certificados externos F19+ solo con Meta-Auditor
-- Flip LIVE real (no demo) solo con checklist + Meta-Auditor + dueño + commit dedicado
+- Flip LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado

@@ -92,6 +92,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("live",),
     ),
     ApiRoute(
+        "/api/live/demo/submit",
+        "POST",
+        "Binance demo simulated fill (requires unlock; local sim only)",
+        ("live", "binance"),
+    ),
+    ApiRoute(
+        "/api/live/demo/fills",
+        "GET",
+        "List Binance demo simulated fills for unlocked session",
+        ("live", "binance"),
+    ),
+    ApiRoute(
         "/api/lab/binance/scan",
         "POST",
         "Binance public USDT scan (read-only market data)",
@@ -272,12 +284,14 @@ def catalog_routes() -> tuple[ApiRoute, ...]:
     return API_ROUTES
 
 
-# Credential gate F100 — no son place_order venue (permitidos en OpenAPI).
+# Credential gate F100 + demo routing F101 — no son trading producción.
 LIVE_CREDENTIAL_GATE_PATHS: frozenset[str] = frozenset(
     {
         "/api/live/status",
         "/api/live/unlock",
         "/api/live/lock",
+        "/api/live/demo/submit",
+        "/api/live/demo/fills",
     }
 )
 

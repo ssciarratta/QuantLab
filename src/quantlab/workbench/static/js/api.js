@@ -391,6 +391,12 @@
     liveLock: function () {
       return request("POST", "/api/live/lock", {});
     },
+    liveDemoSubmit: function (payload) {
+      return request("POST", "/api/live/demo/submit", payload || {});
+    },
+    liveDemoFills: function () {
+      return request("GET", "/api/live/demo/fills");
+    },
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
     },

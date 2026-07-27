@@ -1,12 +1,21 @@
-"""Gate irrenunciable: order routing LIVE (TD-10 / F100 credential gate).
+"""Gate irrenunciable: order routing LIVE (TD-10 / F100–F101).
 
 ``LIVE_BLOCKED=True`` significa: LIVE bloqueado **salvo** unlock explícito
 con usuario/contraseña de operador (env local). El password nunca va a git.
+
+F101: con unlock + scope ``binance_demo``, ``LiveOrderRouter`` enruta fills
+simulados locales (nunca producción Binance).
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 from quantlab.core.exceptions import ValidationError
+
+if TYPE_CHECKING:
+    from quantlab.brokers.types import BrokerAck
+    from quantlab.core.types.orders import OrderIntent
 
 # Invariante de producto — default bloqueado. Unlock = corte humano (F100).
 LIVE_BLOCKED: bool = True
@@ -57,15 +66,39 @@ def require_live_unlock(*, venue_scope: str | None = None) -> None:
 
 
 class LiveOrderRouter:
-    """Stub: construcción solo tras unlock; aún sin routing venue real (F100)."""
+    """Router LIVE post-unlock: solo ``binance_demo`` simulado (F101).
+
+    No envía órdenes a producción. Testnet HMAC remoto queda fuera de este build.
+    """
 
     LIVE_BLOCKED: bool = True
 
     def __init__(self, *_args: object, **_kwargs: object) -> None:
+        from quantlab.brokers.binance.demo_router import get_shared_demo_router
+        from quantlab.execution.live_unlock import get_live_unlock_session
+
         assert_live_routing_blocked()
         require_live_unlock()
-        raise ValidationError(
-            "LiveOrderRouter: unlock OK, pero el routing venue real aún no está "
-            "habilitado en este build (siguiente fase Binance demo). "
-            "No hay envío de órdenes."
-        )
+        session = get_live_unlock_session()
+        assert session is not None
+        scope = session.venue_scope
+        if scope not in {"binance_demo", "binance"}:
+            raise ValidationError(
+                f"LiveOrderRouter F101 solo soporta binance_demo "
+                f"(scope actual={scope!r})"
+            )
+        self._scope = scope
+        self._demo = get_shared_demo_router()
+
+    def submit(self, intent: OrderIntent) -> BrokerAck:
+        require_live_unlock(venue_scope="binance_demo")
+        return self._demo.submit(intent)
+
+    def status(self) -> dict[str, Any]:
+        payload = self._demo.status()
+        payload["unlock_scope"] = self._scope
+        payload["live_blocked_flag"] = LIVE_BLOCKED
+        return payload
+
+    def recent_fills(self, *, limit: int = 20) -> list[dict[str, Any]]:
+        return self._demo.recent_fills(limit=limit)

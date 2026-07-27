@@ -812,16 +812,25 @@ def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:
 
 
 def handle_get_live_status(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/live/status — estado del gate LIVE + unlock (F100)."""
-    from quantlab.execution.live_unlock import live_unlock_status
+    """GET /api/live/status — estado del gate LIVE + unlock (F100/F101)."""
+    from quantlab.brokers.binance.demo_router import get_shared_demo_router
+    from quantlab.execution.live_unlock import is_live_session_unlocked, live_unlock_status
 
     _ = state
     status = live_unlock_status()
+    demo: dict[str, Any] | None = None
+    if is_live_session_unlocked():
+        try:
+            demo = get_shared_demo_router().status()
+        except ValidationError:
+            demo = None
     return {
         "ok": True,
         "kind": "live_status",
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
+        "demo_routing": demo is not None,
+        "demo": demo,
         **status,
     }
 
@@ -874,6 +883,80 @@ def handle_post_live_lock(state: WorkbenchState, body: dict[str, Any]) -> dict[s
         "kind": "live_lock",
         "live_blocked": LIVE_BLOCKED is True,
         **live_unlock_status(),
+    }
+
+
+def handle_post_live_demo_submit(
+    state: WorkbenchState, body: dict[str, Any]
+) -> dict[str, Any]:
+    """POST /api/live/demo/submit — orden demo Binance simulada (F101, unlock)."""
+    from quantlab.brokers.binance.demo_router import (
+        get_shared_demo_router,
+        intent_from_demo_body,
+    )
+    from quantlab.execution.live_gate import LiveOrderRouter
+
+    try:
+        # Fail-closed: unlock primero (antes de validar body) para 401 sin unlock.
+        from quantlab.execution.live_gate import LiveOrderRouter, require_live_unlock
+
+        require_live_unlock(venue_scope="binance_demo")
+        intent = intent_from_demo_body(body)
+        router = LiveOrderRouter()
+        ack = router.submit(intent)
+    except ValidationError as exc:
+        msg = str(exc)
+        status = 401 if "BLOQUEADO" in msg or "unlock" in msg.lower() else 400
+        raise ApiError(status, msg) from exc
+
+    _record_activity(
+        state,
+        "demo_submit",
+        ok=True,
+        message=f"demo fill {ack.order_id}",
+        detail={
+            "order_id": ack.order_id,
+            "symbol": intent.instrument_id,
+            "side": None if intent.side is None else intent.side.value,
+            "quantity": None if intent.quantity is None else str(intent.quantity),
+            "status": ack.status,
+            "venue": ack.venue,
+            "transport": "local_demo_sim",
+        },
+    )
+    return {
+        "ok": True,
+        "kind": "demo_submit",
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "transport": "local_demo_sim",
+        "order_id": ack.order_id,
+        "client_order_id": ack.client_order_id,
+        "status": ack.status,
+        "message": ack.message,
+        "venue": ack.venue,
+        "demo": get_shared_demo_router().status(),
+    }
+
+
+def handle_get_live_demo_fills(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/live/demo/fills — fills demo de la sesión unlock (F101)."""
+    from quantlab.brokers.binance.demo_router import get_shared_demo_router
+
+    _ = state
+    try:
+        router = get_shared_demo_router()
+    except ValidationError as exc:
+        raise ApiError(401, str(exc)) from exc
+    fills = router.recent_fills(limit=50)
+    return {
+        "ok": True,
+        "kind": "demo_fills",
+        "count": len(fills),
+        "fills": fills,
+        "demo": router.status(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
     }
 
 

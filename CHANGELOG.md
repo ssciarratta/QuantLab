@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.93.0] — 2026-07-26
+
+### Fase 101 — Binance demo routing post-unlock
+
+#### Added
+- `BinanceDemoRouter` / `LiveOrderRouter` con fills simulados locales (`local_demo_sim`)
+- API `/api/live/demo/submit` + `/api/live/demo/fills` (exigen unlock)
+- Guided Lab paso 5: enviar orden demo
+- Docs `docs/FASE_101_BINANCE_DEMO_ROUTING.md` · DEC-145
+
+#### Notes
+- Sin unlock sigue bloqueado. No hit a producción ni testnet remoto (HMAC = fase siguiente con keys locales).
+
+---
+
 ## [0.92.0] — 2026-07-26
 
 ### Fase 100 — LIVE credential gate + Binance public MD

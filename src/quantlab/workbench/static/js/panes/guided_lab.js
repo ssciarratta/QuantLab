@@ -57,7 +57,19 @@
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
-      '<p class="muted">Órdenes venue reales: solo después de unlock + fases Binance demo. Password nunca se loguea.</p>' +
+      "</div>" +
+      '<div class="pane-section">' +
+      "<h3>5. Demo order (post-unlock)</h3>" +
+      '<p class="muted" style="margin-top:0">Fill simulado local Binance demo. Requiere unlock. ' +
+      "No pega a producción ni testnet remoto.</p>" +
+      '<div class="pane-row">' +
+      '<input type="text" id="gl-demo-sym" value="BTCUSDT" style="width:7em">' +
+      '<select id="gl-demo-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>' +
+      '<input type="text" id="gl-demo-qty" value="0.001" style="width:5em">' +
+      '<button type="button" class="btn" id="gl-demo-submit">Enviar demo</button>' +
+      '<span class="mono muted" id="gl-demo-status">—</span>' +
+      "</div>" +
+      '<div class="mono" id="gl-demo-out">—</div>' +
       "</div>";
 
     const liveEl = root.querySelector("#gl-live");
@@ -203,6 +215,34 @@
         .catch(function (err) {
           runStatus.textContent = "error: " + err.message;
           runStatus.className = "mono status-bad";
+        });
+    });
+
+    const demoStatus = root.querySelector("#gl-demo-status");
+    const demoOut = root.querySelector("#gl-demo-out");
+    root.querySelector("#gl-demo-submit").addEventListener("click", function () {
+      demoStatus.textContent = "enviando demo…";
+      QLApi.liveDemoSubmit({
+        symbol: root.querySelector("#gl-demo-sym").value,
+        side: root.querySelector("#gl-demo-side").value,
+        quantity: root.querySelector("#gl-demo-qty").value,
+      })
+        .then(function (data) {
+          demoStatus.textContent = data.ok ? "demo fill ok" : "falló";
+          demoStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
+          demoOut.textContent =
+            esc(data.order_id) +
+            " " +
+            esc(data.status) +
+            " @ " +
+            esc(data.message) +
+            " [" +
+            esc(data.transport) +
+            "]";
+        })
+        .catch(function (err) {
+          demoStatus.textContent = "error: " + err.message;
+          demoStatus.className = "mono status-bad";
         });
     });
 

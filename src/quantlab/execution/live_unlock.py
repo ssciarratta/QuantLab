@@ -102,9 +102,12 @@ def unlock_live_session(
 
 def lock_live_session() -> None:
     """Cierra la sesión LIVE desbloqueada."""
+    from quantlab.brokers.binance.demo_router import reset_demo_router
+
     with _lock:
         global _active
         _active = None
+    reset_demo_router()
 
 
 def get_live_unlock_session() -> LiveUnlockSession | None:

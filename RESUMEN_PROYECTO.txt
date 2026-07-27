@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.92.0 (F100 LIVE credential gate + Binance MD)
+Versión código actual: 0.93.0 (F101 Binance demo routing post-unlock)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,14 +75,18 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F100: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab F99 + LIVE credential gate F100 (user/pass = corte humano; routing venue aún stub)
+- F19–F101: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab F99 + LIVE gate F100 + demo routing F101 (sim local post-unlock)
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · sin unlock LIVE bloqueado · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F100 LIVE credential gate (0.92.0): unlock user/pass + Binance public scan.
+F101 Binance demo routing (0.93.0): LiveOrderRouter post-unlock con fills
+simulados locales (local_demo_sim). API /api/live/demo/submit|fills + Guided Lab.
+Sin unlock = bloqueado. Sin testnet remoto ni producción. DEC-145.
+
+Previo — F100 LIVE credential gate (0.92.0): unlock user/pass + Binance public scan.
 Sin unlock LIVE bloqueado. Password nunca en git. DEC-144.
 
 Previo — F98 Milestone Freeze arco ops F93–F97 (0.90.0):
@@ -130,6 +134,7 @@ Windows (sqlite locks, i18n guard, fsync, /tmp, env worker sandbox).
 
 PRÓXIMO PASO
 ------------
-- F101: routing órdenes Binance demo solo tras unlock (sin secrets en repo)
+- F102: testnet Binance HMAC opcional si BINANCE_DEMO_* en env local (nunca en git)
+- A3 después del camino Binance demo
 - Certificados externos F19+ solo con APROBADO Meta-Auditor externo
-- LIVE real (no demo) solo con checklist + Meta-Auditor + dueño + commit dedicado
+- LIVE real (producción) solo con checklist + Meta-Auditor + dueño + commit dedicado

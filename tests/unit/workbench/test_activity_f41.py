@@ -45,6 +45,7 @@ def test_event_types_allowlist() -> None:
         "rehydrate",
         "live_unlock",
         "live_lock",
+        "demo_submit",
     } == ACTIVITY_EVENT_TYPES
     assert validate_event_type("CONNECT") == "connect"
     with pytest.raises(ValidationError, match="desconocido"):

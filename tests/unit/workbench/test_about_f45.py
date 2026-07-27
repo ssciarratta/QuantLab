@@ -45,7 +45,7 @@ def test_live_blocked_still_true() -> None:
 
 
 def test_phases_summary_constant() -> None:
-    assert PHASES_SUMMARY == "F19–F100 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F101 INTERNAL"
 
 
 def test_bind_policy_loopback_default() -> None:
@@ -69,7 +69,7 @@ def test_build_about_payload_shape() -> None:
     payload = build_about_payload()
     assert payload["ok"] is True
     assert payload["kind"] == "about"
-    assert payload["version"] == __version__ == "0.92.0"
+    assert payload["version"] == __version__ == "0.93.0"
     assert payload["live_blocked"] is True
     assert payload["live_routing"] is False
     assert payload["research_safe"] is True
@@ -87,7 +87,7 @@ def test_handle_get_about_uses_state_bind(
     assert state.allow_non_loopback is False
     payload = handle_get_about(state)
     assert payload["ok"] is True
-    assert payload["version"] == "0.92.0"
+    assert payload["version"] == "0.93.0"
     assert payload["bind_policy"]["bind_host"] == "127.0.0.1"
 
 
@@ -100,9 +100,9 @@ def test_api_about_http(
     assert isinstance(body, dict)
     assert body["ok"] is True
     assert body["kind"] == "about"
-    assert body["version"] == "0.92.0"
+    assert body["version"] == "0.93.0"
     assert body["live_blocked"] is True
-    assert body["phases_summary"] == "F19–F100 INTERNAL"
+    assert body["phases_summary"] == "F19–F101 INTERNAL"
     assert "python_version" in body
     assert body["bind_policy"]["policy"] == BIND_POLICY_LOOPBACK
 
