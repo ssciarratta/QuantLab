@@ -12,9 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Leyendas claras HISTÓRICO Binance vs SINTÉTICO lab (Guided Lab + Backtest + Reports)
-Simular: días/velas sintéticas (4–2000); Binance klines 8–3000 + ventana horaria
-Fees VIP0; detalle fills
+Alpha Scanner FASE 0+1: auditoría + contratos tipados legacy_v1 (sin cambiar scores)
+Baseline sintético WB:B>WB:C>WB:A fijado en docs/scanner/
+Leyendas HISTÓRICO/SINTÉTICO; klines 8–3000; fees VIP0
+
+PRÓXIMO
+-------
+FASE 2: UniverseBuilder + exclusiones tipadas + DataQualityReport
 
 DÓNDE VER DETALLE
 -----------------

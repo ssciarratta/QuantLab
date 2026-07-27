@@ -175,14 +175,13 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 18. Backtest UX: `verdict_es` + Guided Lab explica fills/equity; MM half_spread escala al mid en alts
 19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
 20. Horizonte Binance: klines paginadas hasta 3000; UI default 1200; summary con fills/orders/bar_range
+21. **FASE 0 Alpha Scanner:** auditoría en `docs/scanner/current-alpha-scanner-audit.md` + baseline sintético; sin cambio de scoring aún
 
 ## Próximo
 
+- FASE 1 Alpha Scanner: contratos tipados + compat `legacy_v1` (sin romper API)
 - Selector fecha start/end opcional (hoy: últimas N hasta ahora)
 - Certificados externos F19+ (Meta-Auditor)
-- Testnet manual E2E · A3 MD env operativo
-- LIVE producción solo con checklist + dueño
-- Promover stubs restantes con datos reales (L2/opciones/multi-asset)
 
 ## Checkpoint
 

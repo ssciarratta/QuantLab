@@ -202,3 +202,13 @@ class AlphaScanner:
             selected=selected,
             gap_events=tuple(gap_events),
         )
+
+
+__all__ = [
+    "AlphaScanner",
+    "AssetScore",
+    "GapPolicy",
+    "ScannerResult",
+    "ScannerWeights",
+    "align_bars_for_gaps",
+]

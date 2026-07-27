@@ -1,0 +1,102 @@
+{
+  "kind": "fase0_baseline_synthetic",
+  "as_of": "controlled_synthetic_WB_ABC",
+  "weights": {
+    "volatility": 0.35,
+    "volume": 0.35,
+    "liquidity": 0.3
+  },
+  "formula": "composite = 0.35*n(vol) + 0.35*n(volume) + 0.30*n(liquidity); n=min-max cross-sectional",
+  "lab_scanner": {
+    "ok": true,
+    "kind": "scanner",
+    "top_n": 3,
+    "selected": [
+      "WB:B",
+      "WB:C",
+      "WB:A"
+    ],
+    "scores": [
+      {
+        "instrument_id": "WB:B",
+        "volatility": 0.004394992912626267,
+        "volume_score": 107.5,
+        "liquidity_score": 31.83541870516387,
+        "composite": 0.35,
+        "volatility_n": 1.0,
+        "volume_n": 0.0,
+        "liquidity_n": 0.0
+      },
+      {
+        "instrument_id": "WB:C",
+        "volatility": 0.0,
+        "volume_score": 107.5,
+        "liquidity_score": 99.999990000001,
+        "composite": 0.3,
+        "volatility_n": 0.0,
+        "volume_n": 0.0,
+        "liquidity_n": 1.0
+      },
+      {
+        "instrument_id": "WB:A",
+        "volatility": 0.000378717700879829,
+        "volume_score": 107.5,
+        "liquidity_score": 53.65101581907831,
+        "composite": 0.12617251,
+        "volatility_n": 0.08617026430049984,
+        "volume_n": 0.0,
+        "liquidity_n": 0.32004304728263994
+      }
+    ],
+    "gap_events": [],
+    "schema_version": "1.0",
+    "live_routing": false
+  },
+  "explain": [
+    {
+      "instrument_id": "WB:B",
+      "composite": 0.35,
+      "drivers": [
+        "volatility=0.00439499 (n=1, w=0.35, contrib=0.35, share=1)",
+        "volume=107.5 (n=0, w=0.35, contrib=0, share=0)",
+        "liquidity=31.8354 (n=0, w=0.3, contrib=0, share=0)"
+      ],
+      "contrib_sum": 0.35
+    },
+    {
+      "instrument_id": "WB:C",
+      "composite": 0.3,
+      "drivers": [
+        "liquidity=100 (n=1, w=0.3, contrib=0.3, share=1)",
+        "volatility=0 (n=0, w=0.35, contrib=0, share=0)",
+        "volume=107.5 (n=0, w=0.35, contrib=0, share=0)"
+      ],
+      "contrib_sum": 0.3
+    },
+    {
+      "instrument_id": "WB:A",
+      "composite": 0.12617251,
+      "drivers": [
+        "liquidity=53.651 (n=0.320043, w=0.3, contrib=0.0960129, share=0.761)",
+        "volatility=0.000378718 (n=0.0861703, w=0.35, contrib=0.0301596, share=0.239)",
+        "volume=107.5 (n=0, w=0.35, contrib=0, share=0)"
+      ],
+      "contrib_sum": 0.12617251
+    }
+  ],
+  "universe_keys": [
+    "WB:A",
+    "WB:B",
+    "WB:C"
+  ],
+  "bars_per_instrument": {
+    "WB:A": 16,
+    "WB:B": 16,
+    "WB:C": 16
+  },
+  "notes": {
+    "fetched": "UI label for n_symbols_fetched (Binance only); synthetic has no fetched field",
+    "reproducible": true,
+    "look_ahead_risk_pipeline": "same window used for rank and backtest (in-sample selection)"
+  }
+}
