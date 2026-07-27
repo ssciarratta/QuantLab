@@ -78,12 +78,8 @@
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.strategy">3. Estrategia</h3>' +
-      '<select id="gl-strategy">' +
-      '<option value="momentum">momentum</option>' +
-      '<option value="buy_once">buy_once</option>' +
-      '<option value="inventory_mm">inventory_mm (MM)</option>' +
-      '<option value="avellaneda_stoikov">avellaneda_stoikov (MM)</option>' +
-      "</select>" +
+      '<select id="gl-strategy"></select>' +
+      '<p class="muted mono" id="gl-strategy-hint" style="margin:0.25rem 0 0">cargando catálogo…</p>' +
       '<label class="muted"> n_bars <input type="number" id="gl-bars" value="24" min="4" max="120" style="width:4em"></label>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -642,12 +638,70 @@
         });
     });
 
+    function fillStrategySelect(strategies) {
+      const sel = root.querySelector("#gl-strategy");
+      const hint = root.querySelector("#gl-strategy-hint");
+      if (!sel) return;
+      const prev = sel.value;
+      sel.innerHTML = "";
+      const list = (strategies || []).filter(function (s) {
+        return s && s.runnable !== false;
+      });
+      const byFamily = {};
+      list.forEach(function (s) {
+        const fam = s.family || "other";
+        if (!byFamily[fam]) byFamily[fam] = [];
+        byFamily[fam].push(s);
+      });
+      Object.keys(byFamily)
+        .sort()
+        .forEach(function (fam) {
+          const group = document.createElement("optgroup");
+          group.label = fam;
+          byFamily[fam].forEach(function (s) {
+            const opt = document.createElement("option");
+            opt.value = s.id;
+            opt.textContent = (s.name || s.id) + " · binance-ready";
+            if (s.description) opt.title = s.description;
+            group.appendChild(opt);
+          });
+          sel.appendChild(group);
+        });
+      if (prev) {
+        sel.value = prev;
+      }
+      if (!sel.value && list.length) {
+        sel.value = list[0].id;
+      }
+      if (hint) {
+        hint.textContent =
+          list.length +
+          " runnable (backtest/paper/Binance demo). Stubs ocultos aquí.";
+      }
+    }
+
     root.refresh = function () {
-      return refreshLive();
+      return QLApi.labStrategies()
+        .then(function (res) {
+          fillStrategySelect(res.strategies || []);
+          return refreshLive();
+        })
+        .catch(function () {
+          fillStrategySelect([
+            { id: "momentum", name: "momentum", family: "momentum", runnable: true },
+            {
+              id: "inventory_mm",
+              name: "inventory_mm",
+              family: "market_making",
+              runnable: true,
+            },
+          ]);
+          return refreshLive();
+        });
     };
 
     applyVenueUi();
-    refreshLive();
+    root.refresh();
     QLi18n.applyDom(root);
     return root;
   }

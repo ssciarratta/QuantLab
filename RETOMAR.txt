@@ -1,31 +1,12 @@
-QUANTLAB — CHECKPOINT DE REANUDACIÓN
-====================================
-Actualizado: 2026-07-27
-Branch: cursor/modo-real-workbench-aafd
-Versión tip: 1.01.0 · F19–F111+ INTERNAL (chat/UX post-F111)
+QUANTLAB — CHECKPOINT
+=====================
+2026-07-27 · branch cursor/modo-real-workbench-aafd · v1.01.0 F115
 
-ESTADO
-------
-✅ F99–F110 Guided Lab + LIVE demo + i18n + freeze v1.00
-✅ F111 Binance alpha klines + pipeline scan→backtest
-✅ Chat instructor/asistente: memoria · LLM opt-in · abrir paneles / correr alpha
-✅ UI: font scale · resize bordes · tooltips hover
+✅ 50 estrategias · 39 runnable · 11 stubs
+✅ Proxies stats/ML/micro/vol promovidos
+✅ UI API por familia · skill strategy-expander
 
-ÚLTIMO TRABAJO CERRADO
-----------------------
-- Resize multi-borde + tips.js / data-tip / i18n tip.*
-- Chat tools open_pane + run_binance_* + ui_actions en shell
-- Font A−/A+ (ui_font_scale)
+Arranque: arrancar_quantlab.bat → http://127.0.0.1:8765 → F5
 
-ARRANQUE
---------
-cd C:\Users\ssciarratta\Desktop\QuantLab
-arrancar_quantlab.bat
-# http://127.0.0.1:8765 → F5 si el static no refresca
-
-PRÓXIMO
--------
-- Certificación externa Meta-Auditor (F19+)
-- Testnet manual E2E con keys reales
-- A3 MD env validación operativa
-- LIVE producción: NO sin checklist explícito
+Stubs pendientes: sector_rotation, risk_parity, asset_allocation,
+queue_position, triangular/cross/funding/basis arb, delta/gamma/covered

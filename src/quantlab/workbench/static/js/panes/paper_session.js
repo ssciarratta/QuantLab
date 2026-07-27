@@ -118,24 +118,41 @@
     function fillStrategySelect(strategies) {
       catalog = strategies || [];
       selectEl.innerHTML = "";
-      if (!catalog.length) {
-        ["dummy", "buy_once", "momentum", "inventory_mm", "avellaneda_stoikov"].forEach(
-          function (id) {
-            const opt = document.createElement("option");
-            opt.value = id;
-            opt.textContent = id;
-            selectEl.appendChild(opt);
-          }
-        );
-        return;
-      }
-      catalog.forEach(function (s) {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        const tags = (s.tags || []).join(",");
-        opt.textContent = s.name ? s.name + " (" + s.id + ")" + (tags ? " [" + tags + "]" : "") : s.id;
-        selectEl.appendChild(opt);
+      const list = catalog.length
+        ? catalog.filter(function (s) {
+            return s.runnable !== false;
+          })
+        : [
+            { id: "momentum", name: "momentum", family: "momentum", runnable: true },
+            { id: "buy_once", name: "buy_once", family: "demo", runnable: true },
+            {
+              id: "inventory_mm",
+              name: "inventory_mm",
+              family: "market_making",
+              runnable: true,
+            },
+          ];
+      const byFamily = {};
+      list.forEach(function (s) {
+        const fam = s.family || "other";
+        if (!byFamily[fam]) byFamily[fam] = [];
+        byFamily[fam].push(s);
       });
+      Object.keys(byFamily)
+        .sort()
+        .forEach(function (fam) {
+          const group = document.createElement("optgroup");
+          group.label = fam;
+          byFamily[fam].forEach(function (s) {
+            const opt = document.createElement("option");
+            opt.value = s.id;
+            opt.textContent = (s.name || s.id) + " (" + s.id + ") · binance-ready";
+            if (s.description) opt.title = s.description;
+            group.appendChild(opt);
+          });
+          selectEl.appendChild(group);
+        });
+      if (!catalog.length) catalog = list;
       renderParams();
     }
 

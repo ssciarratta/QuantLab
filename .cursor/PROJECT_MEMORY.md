@@ -69,6 +69,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F110 | Milestone freeze arco Guided F99–F109 · **1.00.0** |
 | F111 | Binance alpha klines + pipeline + chat copilot · **1.01.0** |
 | F112+ | Chat instructor/memoria/LLM + UI font/resize/tips (tip interno, sin freeze) |
+| F115 | Espectro estrategias por familia (runnable + stubs) · tip interno |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -170,10 +171,12 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 14. Journal PAPER append-only; mirror demo opt-in source `binance_demo`
 15. Guided Lab v1.01: alpha Binance · pipeline · chat asistente (abrir/correr sin órdenes)
 16. UI: `ui_font_scale` · resize bordes wm · `tips.js` / `data-tip` / i18n `tip.*`
+17. Estrategias F115: `strategy_catalog` por familia · `runnable`/`binance_ready` · stubs fail-closed · skill `strategy-expander`
 
 ## Próximo
 
-- Probar UI en browser (F5): bordes + tooltips + chat «abrí/corré»
+- Promover stubs (ML/micro/opciones/arb) con datos reales cuando existan
+- Probar UI catálogo + backtest/paper/Binance demo con ids nuevos
 - Certificados externos F19+ (Meta-Auditor)
 - Testnet manual E2E · A3 MD env operativo
 - LIVE producción solo con checklist + dueño

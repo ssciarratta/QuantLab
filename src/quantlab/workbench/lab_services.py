@@ -1099,14 +1099,23 @@ def lab_capabilities() -> dict[str, Any]:
 
 
 def lab_strategies() -> dict[str, Any]:
-    """GET /api/lab/strategies — catálogo con metadata (F27)."""
+    """GET /api/lab/strategies — catálogo con metadata (F27/F115)."""
+    strategies = list_strategy_catalog()
+    runnable = [s["id"] for s in strategies if s.get("runnable")]
+    families = sorted({str(s.get("family") or "") for s in strategies if s.get("family")})
     return {
         "ok": True,
         "kind": "strategies",
-        "strategies": list_strategy_catalog(),
+        "strategies": strategies,
         "ids": list_strategy_ids(),
+        "runnable_ids": runnable,
+        "families": families,
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
+        "note": (
+            "runnable=true → backtest/paper/Binance demo post-unlock. "
+            "LIVE producción sigue bloqueado (LIVE_BLOCKED)."
+        ),
     }
 
 

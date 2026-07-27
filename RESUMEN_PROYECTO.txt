@@ -1,42 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión código actual: 1.01.0 (F111–F114 tip interno · Workbench UX)
-
->>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
->>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
+Versión: 1.01.0 · F115 espectro estrategias
 
 ESTADO
 ------
-- F0–F18: CERTIFICADOS externos
-- F19–F111+: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab v1.01: ranking alpha Binance · pipeline backtest top-5 · chat asistente
-- Chat: memoria multi-turno · LLM NVIDIA/Gemini/OpenAI opt-in · tools abrir/correr (sin órdenes)
-- UI: escala de fuente A−/A+ · resize por bordes · tooltips flotantes 1–2 líneas
-- Doc operador: docs/GUIA_COMPLETA_QUANTLAB.md
-- LIVE_BLOCKED=True sin unlock · sin producción Binance · secrets solo env local
+- 50 strategies · 39 runnable (binance-ready) · 11 stubs
+- Runnable = backtest + paper + Binance demo/testnet post-unlock
+- Stubs restantes: multi-asset (sector/risk/allocation), queue L2, arb multi-venue, opciones greeks
+- LIVE producción bloqueado (LIVE_BLOCKED)
+- Skill: .cursor/skills/strategy-expander/SKILL.md
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-07-27 — Sync Workbench UX + chat actions
-- Resize ventanas por bordes N/S/E/W + esquina SE (wm.js)
-- Tooltips data-tip + tips.js + i18n tip.* (es/en)
-- Chat: open_pane / run_binance_alpha / run_binance_pipeline + ui_actions
-- Font scale global (settings ui_font_scale, default 1.15)
-- Arranque: arrancar_quantlab.bat / scripts/arrancar_workbench.py (mata :8765)
+F115 completo: classic_bar + mm_spectrum + promoción proxies
+(stats/ML/micro/vol) · UI por familia · tests F27 verdes
 
-PRÓXIMO PASO
-------------
-- F5 en http://127.0.0.1:8765 tras sync (static + tips)
-- Validación manual pipeline Binance con red
-- Certificados externos F19+ solo con Meta-Auditor
+PRÓXIMO
+-------
+- Datos multi-símbolo / L2 / opciones para stubs restantes
+- Certificados externos Meta-Auditor
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER · sin api.binance.com órdenes · sin FASE_*_APPROVED INTERNAL
-
-ARRANQUE
---------
-arrancar_quantlab.bat
-# o: .venv\Scripts\python.exe scripts\arrancar_workbench.py
-# URL: http://127.0.0.1:8765
+LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL

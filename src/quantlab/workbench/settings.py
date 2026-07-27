@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from quantlab.core.exceptions import ValidationError
-from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS, normalize_strategy_id
+from quantlab.workbench.strategy_catalog import RUNNABLE_STRATEGY_IDS, normalize_strategy_id
 
 SETTINGS_VERSION = 1
 ALLOWED_THEMES: frozenset[str] = frozenset({"slate", "high-contrast"})
@@ -134,10 +134,10 @@ def _validate_strategy(raw: Any) -> str:
         sid = normalize_strategy_id(raw.strip())
     except ValidationError as exc:
         raise ValidationError(f"settings.default_strategy inválido: {exc}") from exc
-    if sid not in CANONICAL_STRATEGY_IDS:
+    if sid not in RUNNABLE_STRATEGY_IDS:
         raise ValidationError(
-            f"settings.default_strategy desconocido: {raw!r} "
-            f"(válidos: {', '.join(CANONICAL_STRATEGY_IDS)})"
+            f"settings.default_strategy desconocido o no runnable: {raw!r} "
+            f"(válidos: {', '.join(RUNNABLE_STRATEGY_IDS)})"
         )
     return sid
 
