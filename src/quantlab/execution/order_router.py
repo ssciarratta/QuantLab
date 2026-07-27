@@ -55,7 +55,8 @@ class NullRouter:
 class GatedBackendRouter:
     """Envuelve un A3Backend con live_gate antes de cualquier envío.
 
-    Incluso con backend Fake/PyRofex, el gate falla mientras LIVE_BLOCKED=True.
+    ``assert_live_routing_blocked`` falla siempre (fail-closed), independientemente
+    del flag ``LIVE_BLOCKED``; Fake/PyRofex no son alcanzables en research-prod.
     """
 
     def __init__(self, backend: A3Backend) -> None:

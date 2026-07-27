@@ -1,26 +1,27 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Simulaciones: capital + fees por operación visibles
+Versión: 1.01.0 · tip workbench (Alpha + MC + capital/fees) sync → main
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
+- F0–F18: certificados externos (histórico)
 - Alpha: F0–10 + walk-forward pipeline
-- Monte Carlo: F0–12 código (schema v2, cards probs, historial CRUD UI, nav Scan/BT)
-- Sim UI: capital inicial/final + fee/lado (VIP0 10 bps) en Guided Lab y MC
+- Monte Carlo: F0–12 código (schema v2, probs, historial, nav)
+- Sim UI: capital inicial/final + fee/lado VIP0 10 bps
+- Auditoría integral 2026-07-26 en main (Fake gate / micro / *.db) mergeada
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Backtest lab: initial_equity, pnl, fee_per_side, avg_fee_per_fill + UI detalle fills
-MC: capital_summary + fee_summary (bps/%, media fees/escenario, fee medio/fill)
-Tests: test_sim_capital_fees.py
-Schedule actual: Binance Spot VIP0 maker/taker 10 bps (0.10%) — revisar si actualizar
+Sync GitHub: branch workbench → main (celular / web al día)
+Capital/fees en simulaciones Guided Lab + MC
+Alpha Scanner F0–10 + walk-forward; MC trazable v2
 
 PRÓXIMO
 -------
-Usuario valida fees VIP0 vs cuenta real; deep-link Scan/BT por id si se agrega API
+Validar fees VIP0 vs cuenta; deep-link Scan/BT si se pide
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL
+LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL inventados
