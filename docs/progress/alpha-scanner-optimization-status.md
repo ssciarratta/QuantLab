@@ -1,38 +1,29 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 5 — Perfiles **COMPLETA**  
-**Siguiente:** FASE 6 — Multi-venue (Binance + capabilities Hyperliquid/Bybit/OKX)
+**Fase actual:** FASE 6 — Multi-venue **COMPLETA** (capabilities + ranking combinado)  
+**Siguiente:** FASE 7 — Persistencia / reproducibilidad (`scan_id`, hashes, reload)
 
 ---
 
-## Hecho (0–5)
+## Hecho 0–6
 
-| Fase | Resumen |
-|------|---------|
-| 0 | Auditoría + baseline sintético |
-| 1 | Contratos tipados `legacy_v1` |
-| 2 | Universo + exclusiones tipadas |
-| 3 | `FeatureCalculator` (ausencia→None) |
-| 4 | `CompositeScorer` + norm + penalties |
-| 5 | Perfiles nombrados + `score_with_profile` |
+Default lab: `AlphaScanner` / `legacy_v1`.  
+Nuevo path: features → profiles → scorer → multi-venue.
 
-**Default lab:** sigue `AlphaScanner` / `legacy_v1` (parity en tests).
+### FASE 6
 
-### Perfiles F5
+- `research/alpha/venues.py`: capabilities Binance/HL/Bybit/OKX/lab
+- Solo Binance+lab `fetch_implemented=True`
+- `scan_multi_venue` omite venues sin fetch con warning (no silencio)
+- Tests: `test_alpha_venues_f6.py`
 
-`legacy_v1` · `momentum` · `mean_reversion` · `market_making` · `avellaneda_stoikov` · `funding` · `balanced`
+### Limitación
 
-Archivos: `research/alpha/profiles.py`, `tests/unit/research/test_alpha_profiles_f5.py`
+Fetch real HL/Bybit/OKX **no** implementado (declarativo).
 
 ---
 
 ## Pendiente
 
-| Fase | Título |
-|------|--------|
-| 6 | Multi-venue |
-| 7 | Persistencia / reproducibilidad |
-| 8 | Workbench / Guided Lab UX |
-| 9 | Rendimiento / observabilidad |
-| 10 | Docs / auditoría final |
+7 Persistencia · 8 Workbench UX · 9 Perf · 10 Docs finales

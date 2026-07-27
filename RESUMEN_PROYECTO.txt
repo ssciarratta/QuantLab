@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–5: calidad + features + CompositeScorer + perfiles
-Perfiles: legacy_v1, momentum, mean_reversion, MM, AS, funding, balanced
-Default Guided Lab / Binance scanner: legacy_v1 sin cambio de composite
+Alpha Scanner FASE 2–6: calidad → features → scorer → perfiles → multi-venue
+Capabilities HL/Bybit/OKX declaradas (fetch pendiente); Binance+lab usables
+Default Guided Lab: legacy_v1
 
 PRÓXIMO
 -------
-FASE 6: multi-venue (Binance + capability stubs HL/Bybit/OKX)
+FASE 7: persistencia scan_id/hashes + repetir/comparar scans
 
 DÓNDE VER DETALLE
 -----------------
