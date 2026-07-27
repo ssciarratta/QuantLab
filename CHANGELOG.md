@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.94.0] — 2026-07-26
+
+### Fase 102 — Binance Spot Testnet opt-in
+
+#### Added
+- `BinanceTestnetClient` firmado (stdlib) — solo `testnet.binance.vision`
+- Doble gate: unlock + `QUANTLAB_DEMO_USE_TESTNET=1` + `BINANCE_DEMO_*`
+- Router elige `binance_spot_testnet` vs `local_demo_sim`
+- Docs `docs/FASE_102_BINANCE_TESTNET.md` · DEC-146
+
+#### Notes
+- Sin flag/keys: comportamiento F101 (sim local). Rechaza producción.
+
+---
+
 ## [0.93.0] — 2026-07-26
 
 ### Fase 101 — Binance demo routing post-unlock

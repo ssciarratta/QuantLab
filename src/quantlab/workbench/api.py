@@ -904,6 +904,7 @@ def handle_post_live_demo_submit(
         intent = intent_from_demo_body(body)
         router = LiveOrderRouter()
         ack = router.submit(intent)
+        demo_status = get_shared_demo_router().status()
     except ValidationError as exc:
         msg = str(exc)
         status = 401 if "BLOQUEADO" in msg or "unlock" in msg.lower() else 400
@@ -921,7 +922,7 @@ def handle_post_live_demo_submit(
             "quantity": None if intent.quantity is None else str(intent.quantity),
             "status": ack.status,
             "venue": ack.venue,
-            "transport": "local_demo_sim",
+            "transport": demo_status.get("transport"),
         },
     )
     return {
@@ -929,13 +930,13 @@ def handle_post_live_demo_submit(
         "kind": "demo_submit",
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
-        "transport": "local_demo_sim",
+        "transport": demo_status.get("transport"),
         "order_id": ack.order_id,
         "client_order_id": ack.client_order_id,
         "status": ack.status,
         "message": ack.message,
         "venue": ack.venue,
-        "demo": get_shared_demo_router().status(),
+        "demo": demo_status,
     }
 
 

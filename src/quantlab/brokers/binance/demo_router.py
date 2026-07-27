@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import threading
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
-from typing import Any, Callable
+from typing import Any
 
 from quantlab.brokers.types import BrokerAck
 from quantlab.core.exceptions import ValidationError
@@ -53,10 +54,13 @@ def default_mid_price(symbol: str) -> Decimal:
 
 
 class BinanceDemoRouter:
-    """Router de órdenes demo Binance (simuladas) — exige unlock activo."""
+    """Router de órdenes demo Binance — exige unlock activo.
+
+    Default: simulador local. Opt-in testnet: ``QUANTLAB_DEMO_USE_TESTNET=1``
+    + keys ``BINANCE_DEMO_*``.
+    """
 
     venue_id: str = "binance_demo"
-    transport: str = "local_demo_sim"
 
     def __init__(
         self,
@@ -93,6 +97,14 @@ class BinanceDemoRouter:
         if intent.side is None or intent.quantity is None:
             raise ValidationError("PLACE_ORDER requiere side y quantity")
 
+        from quantlab.brokers.binance.testnet_client import testnet_remote_enabled
+
+        if testnet_remote_enabled():
+            return self._submit_testnet(intent)
+        return self._submit_local(intent)
+
+    def _submit_local(self, intent: OrderIntent) -> BrokerAck:
+        assert intent.side is not None and intent.quantity is not None
         symbol = intent.instrument_id.strip().upper()
         mid = self._price_lookup(symbol)
         fill_price = intent.price if intent.price is not None else mid
@@ -109,7 +121,7 @@ class BinanceDemoRouter:
             "quantity": str(intent.quantity),
             "price": str(fill_price),
             "ts": datetime.now(tz=UTC).isoformat(),
-            "transport": self.transport,
+            "transport": "local_demo_sim",
             "venue": self.venue_id,
         }
         self._fills.append(fill)
@@ -121,22 +133,66 @@ class BinanceDemoRouter:
             venue=self.venue_id,
         )
 
+    def _submit_testnet(self, intent: OrderIntent) -> BrokerAck:
+        assert intent.side is not None and intent.quantity is not None
+        from quantlab.brokers.binance.testnet_client import BinanceTestnetClient
+
+        if intent.price is not None:
+            raise ValidationError(
+                "testnet remoto F102 solo MARKET (omití price en el body)"
+            )
+        symbol = intent.instrument_id.strip().upper()
+        client = BinanceTestnetClient()
+        result = client.place_market_order(
+            symbol=symbol,
+            side=intent.side.value.upper(),
+            quantity=str(intent.quantity),
+            client_order_id=intent.intent_id,
+        )
+        fill = {
+            "order_id": result.order_id,
+            "client_order_id": result.client_order_id,
+            "symbol": result.symbol,
+            "side": result.side.lower(),
+            "quantity": str(intent.quantity),
+            "price": None,
+            "ts": datetime.now(tz=UTC).isoformat(),
+            "transport": "binance_spot_testnet",
+            "venue": self.venue_id,
+            "exchange_status": result.status,
+        }
+        self._fills.append(fill)
+        return BrokerAck(
+            order_id=result.order_id,
+            client_order_id=result.client_order_id,
+            status=result.status,
+            message=f"binance testnet {result.status}",
+            venue=self.venue_id,
+        )
+
     def recent_fills(self, *, limit: int = 20) -> list[dict[str, Any]]:
         if limit < 1 or limit > 200:
             raise ValidationError("limit debe estar entre 1 y 200")
         return list(self._fills[-limit:])
 
     def status(self) -> dict[str, Any]:
+        from quantlab.brokers.binance.testnet_client import testnet_status
+
+        tn = testnet_status()
+        transport = (
+            "binance_spot_testnet" if tn["remote_enabled"] else "local_demo_sim"
+        )
         return {
             "ok": True,
             "venue": self.venue_id,
-            "transport": self.transport,
+            "transport": transport,
             "n_fills": len(self._fills),
             "symbols": sorted(_DEFAULT_MIDS),
-            "remote_testnet": False,
+            "remote_testnet": bool(tn["remote_enabled"]),
+            "testnet": tn,
             "note": (
-                "Simulador local post-unlock. Testnet HMAC queda para cuando "
-                "BINANCE_DEMO_API_KEY/SECRET estén en env local (nunca en git)."
+                "Default: simulador local post-unlock. "
+                "Remoto: QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_API_KEY/SECRET."
             ),
         }
 

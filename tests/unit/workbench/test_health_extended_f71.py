@@ -42,8 +42,8 @@ def _static_root() -> Path:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.93.0"
-    assert PHASES_SUMMARY == "F19–F101 INTERNAL"
+    assert __version__ == "0.94.0"
+    assert PHASES_SUMMARY == "F19–F102 INTERNAL"
     assert not Path("docs/audit/FASE_71_APPROVED.md").exists()
 
 
@@ -52,8 +52,8 @@ def test_build_about_payload_includes_ops_flags_defaults() -> None:
     assert payload["paper_kill_engaged"] is False
     assert payload["auto_backup_minutes"] == 0
     assert payload["access_log"] is True
-    assert payload["version"] == "0.93.0"
-    assert payload["phases_summary"] == "F19–F101 INTERNAL"
+    assert payload["version"] == "0.94.0"
+    assert payload["phases_summary"] == "F19–F102 INTERNAL"
 
 
 def test_health_ops_flags_defaults(tmp_path: Path) -> None:
@@ -62,7 +62,7 @@ def test_health_ops_flags_defaults(tmp_path: Path) -> None:
     health = handle_get_health(state)
     assert health["ok"] is True
     assert health["live_blocked"] is True
-    assert health["version"] == "0.93.0"
+    assert health["version"] == "0.94.0"
     assert health["paper_kill_engaged"] is False
     assert health["auto_backup_minutes"] == 0
     assert health["access_log"] is True
@@ -75,7 +75,7 @@ def test_about_ops_flags_defaults(tmp_path: Path) -> None:
     assert about["paper_kill_engaged"] is False
     assert about["auto_backup_minutes"] == 0
     assert about["access_log"] is True
-    assert about["phases_summary"] == "F19–F101 INTERNAL"
+    assert about["phases_summary"] == "F19–F102 INTERNAL"
 
 
 def test_health_reflects_paper_kill_engaged(tmp_path: Path) -> None:
@@ -234,7 +234,7 @@ def test_http_health_includes_ops_flags(tmp_path: Path) -> None:
         assert resp2.status == 200
         assert about["paper_kill_engaged"] is True
         assert about["auto_backup_minutes"] == 15
-        assert about["version"] == "0.93.0"
+        assert about["version"] == "0.94.0"
     finally:
         server.shutdown()
 

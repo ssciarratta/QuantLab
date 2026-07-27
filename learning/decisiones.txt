@@ -1,3 +1,9 @@
+[2026-07-26] DEC-146 — Binance Spot Testnet opt-in (doble gate)
+  Decisión: F102 agrega transport remoto solo con QUANTLAB_DEMO_USE_TESTNET=1
+  + BINANCE_DEMO_API_KEY/SECRET locales. Default sigue local_demo_sim.
+  Rechaza api.binance.com. Bump 0.94.0.
+  Fase: 102.
+
 [2026-07-26] DEC-145 — Binance demo routing simulado post-unlock
   Decisión: F101 habilita LiveOrderRouter solo con unlock y scope binance_demo.
   Transport local_demo_sim (fills en memoria). No producción ni testnet remoto

@@ -60,8 +60,8 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>5. Demo order (post-unlock)</h3>" +
-      '<p class="muted" style="margin-top:0">Fill simulado local Binance demo. Requiere unlock. ' +
-      "No pega a producción ni testnet remoto.</p>" +
+      '<p class="muted" style="margin-top:0">Fill demo Binance. Requiere unlock. ' +
+      "Default: sim local. Testnet remoto solo con QUANTLAB_DEMO_USE_TESTNET=1 + keys.</p>" +
       '<div class="pane-row">' +
       '<input type="text" id="gl-demo-sym" value="BTCUSDT" style="width:7em">' +
       '<select id="gl-demo-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>' +
