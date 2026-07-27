@@ -14,7 +14,6 @@ from quantlab.workbench.chat.memory import ChatMemory
 from quantlab.workbench.chat.providers import (
     ChatProvider,
     ChatRequest,
-    FakeProvider,
     build_default_provider,
 )
 from quantlab.workbench.chat.tools import ALLOWED_TOOLS, ToolRegistry

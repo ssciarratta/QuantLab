@@ -87,15 +87,16 @@ def persist_montecarlo_run(
     body["live_blocked"] = True
 
     # Hashes de reproducibilidad
-    cfg = body.get("config") if isinstance(body.get("config"), dict) else {}
+    cfg_raw = body.get("config")
+    cfg: dict[str, Any] = cfg_raw if isinstance(cfg_raw, dict) else {}
     body["config_hash"] = hash_mapping(cfg) if cfg else body.get("config_hash")
-    ctx = body.get("context") if isinstance(body.get("context"), dict) else {}
-    if isinstance(ctx, dict) and ctx.get("run_id") is None:
-        ctx = dict(ctx)
+    ctx_raw = body.get("context")
+    ctx: dict[str, Any] = dict(ctx_raw) if isinstance(ctx_raw, dict) else {}
+    if ctx.get("run_id") is None:
         ctx["run_id"] = rid
         body["context"] = ctx
-    relations = body.get("relations") if isinstance(body.get("relations"), dict) else {}
-    relations = dict(relations)
+    rel_raw = body.get("relations")
+    relations: dict[str, Any] = dict(rel_raw) if isinstance(rel_raw, dict) else {}
     relations.setdefault("config_hash", body.get("config_hash"))
     if isinstance(ctx, dict):
         relations.setdefault("backtest_id", ctx.get("backtest_id"))
@@ -133,7 +134,8 @@ def list_montecarlo_runs(montecarlo_root: Path) -> dict[str, Any]:
             if not isinstance(raw, dict):
                 continue
             norm = normalize_montecarlo_payload(raw)
-            ctx = norm.get("context") if isinstance(norm.get("context"), dict) else {}
+            ctx_raw = norm.get("context")
+            ctx: dict[str, Any] = ctx_raw if isinstance(ctx_raw, dict) else {}
             runs.append(
                 {
                     "run_id": norm.get("run_id", folder.name),

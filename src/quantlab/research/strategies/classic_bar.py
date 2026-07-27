@@ -6,8 +6,9 @@ post-unlock (LIVE_BLOCKED). Sin dependencias ML ni L2.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from decimal import Decimal
-from typing import Any, Callable
+from typing import Any
 
 from quantlab.core.contracts.strategy import StrategyContext
 from quantlab.core.types.enums import IntentType, OrderSide, OrderType, TimeInForce
@@ -467,7 +468,7 @@ class ClassicBarStrategy:
         period = int(self._parameters.get("period", 20))
         if len(self._closes) < period + 1:
             return 0
-        ret = (self._closes[-1] / self._closes[-2] - Decimal("1")) if self._closes[-2] else Decimal("0")
+        ret = (self._closes[-1] / self._closes[-2] - Decimal("1")) if self._closes[-2] else Decimal("0")  # noqa: E501
         rng = (bar.high - bar.low) / bar.close if bar.close else Decimal("0")
         avg_vol = _sma(self._volumes, period) or Decimal("1")
         vol_rel = (self._volumes[-1] / avg_vol - Decimal("1")) if avg_vol else Decimal("0")

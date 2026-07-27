@@ -1107,6 +1107,8 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
     if not isinstance(profile, str):
         raise ApiError(400, "profile debe ser string")
     try:
+        if state.session is None:
+            raise ApiError(503, "sesión workbench no inicializada")
         persist_dir = state.session.experiments_dir / "alpha_scans"
         result = lab_services.run_binance_lab_scanner(
             top_n=top_n,

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from quantlab import __version__
@@ -125,10 +124,11 @@ def prefetch_tool_context(tools: ToolRegistry) -> tuple[list[str], dict[str, Any
     """Pre-carga contexto útil (solo lectura) para respuestas más ricas."""
     used: list[str] = []
     bundle: dict[str, Any] = {}
-    for name, args in (
+    prefetch: list[tuple[str, dict[str, Any]]] = [
         ("get_mode", {}),
         ("list_strategies", {}),
-    ):
+    ]
+    for name, args in prefetch:
         try:
             bundle[name] = tools.call(name, args)
             used.append(name)

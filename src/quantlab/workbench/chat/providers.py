@@ -10,6 +10,7 @@ from typing import Any, Protocol, runtime_checkable
 from quantlab.workbench.chat.memory import ChatMessage
 from quantlab.workbench.chat.tools import ToolRegistry
 
+
 def format_instructor_reply(data: dict[str, Any]) -> str:
     """Formatea lección instructor en texto legible (multi-línea)."""
     lines: list[str] = [str(data.get("title", "Instructor QuantLab")), ""]
@@ -115,7 +116,7 @@ class FakeProvider:
 
         # Acciones: abrir / correr (antes de solo-explicar)
         if _is_run_action(lower):
-            if _match(lower, ("pipeline", "backtest", "top 5", "top5", "mm", "inventory", "avellaneda")):
+            if _match(lower, ("pipeline", "backtest", "top 5", "top5", "mm", "inventory", "avellaneda")):  # noqa: E501
                 sid = "inventory_mm"
                 if _match(lower, ("avellaneda", "stoikov")):
                     sid = "avellaneda_stoikov"
@@ -178,12 +179,16 @@ class FakeProvider:
         # Instructor (antes de intents genéricos alpha/binance)
         elif _is_alpha_mm_flow(lower):
             lesson = "full_alpha_mm"
-            if _match(lower, ("market mak", "market-mak", " mm", "inventory", "avellaneda", "stoikov")):
-                if not _match(lower, ("alpha", "binance", "detectar", "moneda", "correr", "corramos", "vamos")):
-                    lesson = "mm_after_alpha"
-            elif _match(lower, ("alpha", "ranking", "scanner", "detectar", "moneda")):
-                if not _match(lower, ("market mak", " mm", "inventory", "avellaneda")):
-                    lesson = "alpha_binance"
+            if _match(
+                lower, ("market mak", "market-mak", " mm", "inventory", "avellaneda", "stoikov")
+            ) and not _match(
+                lower, ("alpha", "binance", "detectar", "moneda", "correr", "corramos", "vamos")
+            ):
+                lesson = "mm_after_alpha"
+            elif _match(lower, ("alpha", "ranking", "scanner", "detectar", "moneda")) and not _match(
+                lower, ("market mak", " mm", "inventory", "avellaneda")
+            ):
+                lesson = "alpha_binance"
             data = use("instructor_guide", {"lesson": lesson})
             parts.append(format_instructor_reply(data))
         elif _match(
@@ -198,10 +203,7 @@ class FakeProvider:
                 "stoikov",
                 "cotizador",
             ),
-        ) and _match(lower, ("estrateg", "probar", "cuál", "cual", "qué", "que", "recomend")):
-            data = use("instructor_guide", {"lesson": "mm_after_alpha"})
-            parts.append(format_instructor_reply(data))
-        elif _match(
+        ) and _match(lower, ("estrateg", "probar", "cuál", "cual", "qué", "que", "recomend")) or _match(  # noqa: E501
             lower,
             (
                 "ya tengo el ranking",
@@ -293,7 +295,7 @@ class FakeProvider:
                 "no se usar",
             ),
         ):
-            goal = "estrategia" if _match(lower, ("estrategia", "backtest", "momentum")) else "aprender"
+            goal = "estrategia" if _match(lower, ("estrategia", "backtest", "momentum")) else "aprender"  # noqa: E501
             if _match(lower, ("binance", "usdt", "crypto")):
                 goal = "binance"
             elif _match(lower, ("a3", "remarkets", "rofex")):
@@ -388,7 +390,7 @@ class FakeProvider:
 
         reply = "\n\n".join(p for p in parts if p).strip()
         if not reply:
-            reply = "No tengo una respuesta para eso todavía. Probá reformular o pedime «cómo empiezo»."
+            reply = "No tengo una respuesta para eso todavía. Probá reformular o pedime «cómo empiezo»."  # noqa: E501
         # Dedup tools_used preservando orden
         seen: set[str] = set()
         ordered: list[str] = []
@@ -507,9 +509,7 @@ def _is_alpha_mm_flow(lower: str) -> bool:
         return True
     if has_alpha and has_binance and has_run:
         return True
-    if has_binance and has_mm and has_run:
-        return True
-    return False
+    return bool(has_binance and has_mm and has_run)
 
 
 def _is_run_action(lower: str) -> bool:
@@ -654,14 +654,15 @@ def _resolve_followup(request: ChatRequest) -> str:
         return text
 
     _last_user, last_assistant = _last_exchange_from_request(request)
-    instructor = {}
+    instructor: dict[str, Any] = {}
     if isinstance(request.assistant_context, dict):
-        instructor = request.assistant_context.get("instructor") or {}
-    lesson = instructor.get("lesson") if isinstance(instructor, dict) else None
+        raw_inst = request.assistant_context.get("instructor") or {}
+        instructor = raw_inst if isinstance(raw_inst, dict) else {}
+    lesson = instructor.get("lesson")
 
     asst_text = (last_assistant.content if last_assistant else "").lower()
 
-    if _match(lower, ("dale", "sí", "si", "ok", "vamos", "siguiente", "continu", "seguimos", "bien", "listo", "hecho")):
+    if _match(lower, ("dale", "sí", "si", "ok", "vamos", "siguiente", "continu", "seguimos", "bien", "listo", "hecho")):  # noqa: E501
         if lesson == "alpha_binance" or "ranking alpha" in asst_text:
             return "ya tengo el ranking, ¿qué estrategia de market making probamos?"
         if lesson == "mm_after_alpha" or "inventory_mm" in asst_text:

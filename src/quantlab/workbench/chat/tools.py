@@ -220,9 +220,9 @@ _INSTRUCTOR_LESSONS: dict[str, dict[str, Any]] = {
             "Abrí el Workbench en http://127.0.0.1:8765 (si no corre: uv run quantlab-workbench).",
             "QL (abajo izq) → Guided Lab.",
             "Sección 1 Venue: elegí binance.",
-            "Sección 2 Escanear: clic en Ranking alpha Binance (lee klines USDT reales, read-only).",
-            "Esperá el resultado: verás hasta 5 símbolos con score composite (volatilidad, volumen, liquidez).",
-            "Anotá los símbolos (ej. BTCUSDT, ETHUSDT…). Opcional: Scan Binance USDT para bid/ask actual.",
+            "Sección 2 Escanear: clic en Ranking alpha Binance (lee klines USDT reales, read-only).",  # noqa: E501
+            "Esperá el resultado: verás hasta 5 símbolos con score composite (volatilidad, volumen, liquidez).",  # noqa: E501
+            "Anotá los símbolos (ej. BTCUSDT, ETHUSDT…). Opcional: Scan Binance USDT para bid/ask actual.",  # noqa: E501
         ),
         "next_prompt": "Cuando termines, escribime: «ya tengo el ranking, ¿qué MM probamos?»",
     },
@@ -230,10 +230,10 @@ _INSTRUCTOR_LESSONS: dict[str, dict[str, Any]] = {
         "title": "Lección 2 — Elegir estrategia Market Making para las monedas detectadas",
         "steps": (
             "Volvé a Guided Lab (venue binance).",
-            "Sección 3 Estrategia: elegí inventory_mm (empezá simple) o avellaneda_stoikov (avanzada).",
-            "Sección 4: clic Backtest top 5 Binance — corre la estrategia elegida sobre las monedas del ranking.",
+            "Sección 3 Estrategia: elegí inventory_mm (empezá simple) o avellaneda_stoikov (avanzada).",  # noqa: E501
+            "Sección 4: clic Backtest top 5 Binance — corre la estrategia elegida sobre las monedas del ranking.",  # noqa: E501
             "Revisá equity y fills por símbolo en el resultado del pipeline.",
-            "Compará: inventory_mm en pares muy volátiles del ranking puede necesitar half_spread más amplio.",
+            "Compará: inventory_mm en pares muy volátiles del ranking puede necesitar half_spread más amplio.",  # noqa: E501
             "Paper session automática con MM: panel Sesión Paper (después de validar backtest).",
         ),
         "next_prompt": "Si querés, preguntame: «explicame inventory_mm» o «qué parámetros tunear».",
@@ -242,10 +242,10 @@ _INSTRUCTOR_LESSONS: dict[str, dict[str, Any]] = {
         "title": "Flujo completo — Alpha Binance → Market Making",
         "steps": (
             "PASO A — Detectar monedas: Guided Lab → venue binance → Ranking alpha Binance.",
-            "PASO B — Revisá el top 5: priorizá pares con buen composite y volumen (BTC/ETH suelen aparecer).",
-            "PASO C — Estrategia MM: empezá con inventory_mm; si ya la dominás, probá avellaneda_stoikov.",
-            "PASO D — Backtest: mismo Guided Lab → elegí la estrategia MM → Backtest top 5 Binance.",
-            "PASO E — Interpretá: compará final_equity y n_fills entre símbolos; no es asesoramiento financiero.",
+            "PASO B — Revisá el top 5: priorizá pares con buen composite y volumen (BTC/ETH suelen aparecer).",  # noqa: E501
+            "PASO C — Estrategia MM: empezá con inventory_mm; si ya la dominás, probá avellaneda_stoikov.",  # noqa: E501
+            "PASO D — Backtest: mismo Guided Lab → elegí la estrategia MM → Backtest top 5 Binance.",  # noqa: E501
+            "PASO E — Interpretá: compará final_equity y n_fills entre símbolos; no es asesoramiento financiero.",  # noqa: E501
             "Recordá: LIVE_BLOCKED=True; esto es laboratorio paper, sin órdenes reales.",
         ),
         "next_prompt": "Decime «vamos al paso A» si querés que te guíe uno por uno.",
@@ -456,7 +456,7 @@ class ToolRegistry:
     def _get_assistant_context(self, args: dict[str, Any]) -> dict[str, Any]:
         from quantlab.workbench.chat.memory import ChatMemory
 
-        memory = self._state.chat_memory if isinstance(self._state.chat_memory, ChatMemory) else ChatMemory()
+        memory = self._state.chat_memory if isinstance(self._state.chat_memory, ChatMemory) else ChatMemory()  # noqa: E501
         ui = args.get("ui_context")
         ui_ctx = ui if isinstance(ui, dict) else None
         ctx = build_assistant_context(self._state, memory, ui_context=ui_ctx)
@@ -618,9 +618,11 @@ class ToolRegistry:
             reports_dir=self._state.ensure_lab_reports_dir(),
         )
         stored = self._state.store_lab_result(result)
-        scanner = stored.get("scanner") if isinstance(stored.get("scanner"), dict) else {}
+        scanner_raw = stored.get("scanner")
+        scanner: dict[str, Any] = scanner_raw if isinstance(scanner_raw, dict) else {}
         symbols = list(scanner.get("selected_symbols") or [])
-        batch = stored.get("backtests") if isinstance(stored.get("backtests"), dict) else {}
+        batch_raw = stored.get("backtests")
+        batch: dict[str, Any] = batch_raw if isinstance(batch_raw, dict) else {}
         return {
             "ok": stored.get("ok") is True,
             "kind": "binance_pipeline",

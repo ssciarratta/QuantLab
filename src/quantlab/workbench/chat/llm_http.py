@@ -126,7 +126,7 @@ def complete_with_llm(
     url = f"{base}/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}"}
     provider = os.environ.get("QUANTLAB_LLM_PROVIDER", "").strip().lower()
-    prefer_plain = provider in {"nvidia", "gemini"} or "nvidia.com" in base or "googleapis.com" in base
+    prefer_plain = provider in {"nvidia", "gemini"} or "nvidia.com" in base or "googleapis.com" in base  # noqa: E501
 
     for round_i in range(_MAX_TOOL_ROUNDS):
         payload: dict[str, Any] = {

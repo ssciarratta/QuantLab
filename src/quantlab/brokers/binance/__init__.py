@@ -1,9 +1,5 @@
 """Binance broker skeleton (fake tester + demo router + public MD)."""
 
-from quantlab.brokers.binance.fees import (
-    binance_spot_fee_model,
-    resolve_binance_spot_fee_schedule,
-)
 from quantlab.brokers.binance.demo_router import (
     BinanceDemoRouter,
     get_shared_demo_router,
@@ -11,6 +7,10 @@ from quantlab.brokers.binance.demo_router import (
     reset_demo_router,
 )
 from quantlab.brokers.binance.fake import FakeBinanceBroker
+from quantlab.brokers.binance.fees import (
+    binance_spot_fee_model,
+    resolve_binance_spot_fee_schedule,
+)
 from quantlab.brokers.binance.public_md import BinancePublicMdClient, scan_binance_usdt
 from quantlab.brokers.binance.testnet_client import (
     BinanceTestnetClient,
