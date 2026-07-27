@@ -12,7 +12,7 @@
 | Fase | Tema | Estado |
 |------|------|--------|
 | 0 | Auditoría obligatoria | **DONE** |
-| 1 | Modelos contexto/config/result | pending |
+| 1 | Modelos contexto/config/result | **DONE** |
 | 2 | Persistencia + trazabilidad | pending |
 | 3 | Compat schema v1 | pending |
 | 4 | Métricas backend | pending |
@@ -46,4 +46,17 @@ mypy --strict src/quantlab/montecarlo → OK
 pytest MC-related → 11 passed
 ```
 
-**Próximo:** FASE 1 — modelos tipados evolucionando `quantlab.montecarlo` existente.
+## FASE 1 — DONE
+
+**Archivos:** `montecarlo/models.py`, `simulator.py` enriquecido, `__init__.py`, `tests/unit/montecarlo/test_models_f1.py`
+
+**Decisiones:**
+- Método único expuesto: `price_shock_rerun`
+- Context/config con None (nunca 0 sentinel); UI label `No disponible`
+- CI documentado como `ci_kind=wald_mean`; drawdown solo si `store_paths`
+- `as_of_time` bloquea look-ahead en barras
+- Disclaimer fijo en config
+
+**Gates:** 17 passed (F1+legacy MC) · ruff OK · mypy OK
+
+**Próximo:** FASE 2 — persistencia relaciones + hashes.
