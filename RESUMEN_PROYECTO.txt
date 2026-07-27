@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión código actual: 0.98.0 (F106 Guided Lab A3 snapshot)
+Versión código actual: 0.99.0 (F107 Guided Lab A3 paper submit)
 
 >>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
 >>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
@@ -78,15 +78,17 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F106: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab completo: unlock LIVE + Binance demo/testnet + A3 paper/MD/snapshot
+- F19–F107: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab completo: unlock LIVE + Binance demo/testnet + A3 paper/MD/snapshot/submit
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · sin unlock LIVE bloqueado · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F106 Guided Lab A3 snapshot (0.98.0): botón Snapshot + input símbolo post-connect.
-DEC-150. Checkpoint RETOMAR.txt para reanudar sesión.
+F107 Guided Lab A3 paper submit (0.99.0): side + qty + Enviar paper vía PaperBroker.
+DEC-151.
+
+Previo — F106 A3 snapshot (0.98.0): botón Snapshot + input símbolo. DEC-150.
 
 Previo — F105 A3 MD env (0.97.0): /api/lab/a3/md-status + md_source fake|env. DEC-149.
 Previo — F104 A3 paper connect (0.96.0). DEC-148.
@@ -138,6 +140,6 @@ Windows (sqlite locks, i18n guard, fsync, /tmp, env worker sandbox).
 
 PRÓXIMO PASO
 ------------
-- F107: paper submit A3 desde Guided Lab o freeze arco Guided F99–F106 (v0.99)
+- F108: freeze documental arco Guided F99–F107 (v1.00.0)
 - Certificados externos F19+ solo con APROBADO Meta-Auditor externo
 - LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado

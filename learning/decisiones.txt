@@ -1,3 +1,8 @@
+[2026-07-27] DEC-151 — Guided Lab A3 paper submit
+  Decisión: F107 agrega submit paper desde Guided Lab reutilizando POST /api/paper/submit.
+  PaperBroker únicamente; sin routing venue A3. Bump 0.99.0.
+  Fase: 107.
+
 [2026-07-26] DEC-150 — Guided Lab A3 snapshot MD
   Decisión: F106 agrega snapshot de símbolo post-connect A3 (API broker existente).
   Sin submit venue. Bump 0.98.0.

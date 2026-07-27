@@ -46,7 +46,13 @@
       '<span class="mono muted" id="gl-a3-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-a3-out">—</div>' +
-      '<p class="muted">A3 = PAPER fills. MD env exige QUANTLAB_A3_MD_READONLY=1 + USER/PASSWORD/ACCOUNT. Sin submit venue.</p>' +
+      '<div class="pane-row" style="margin-top:0.5em">' +
+      '<select id="gl-a3-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>' +
+      '<input type="text" id="gl-a3-qty" value="1" style="width:5em" placeholder="qty">' +
+      '<button type="button" class="btn" id="gl-a3-paper">Enviar paper (A3)</button>' +
+      '<span class="mono muted" id="gl-a3-paper-status">—</span>' +
+      "</div>" +
+      '<p class="muted">A3 = PaperBroker (sin routing venue). MD env: QUANTLAB_A3_MD_READONLY=1 + creds.</p>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>2. Escanear</h3>" +
@@ -245,6 +251,38 @@
         .catch(function (err) {
           a3Status.textContent = "error: " + err.message;
           a3Status.className = "mono status-bad";
+        });
+    });
+    root.querySelector("#gl-a3-paper").addEventListener("click", function () {
+      const sym = root.querySelector("#gl-a3-sym").value.trim();
+      const side = root.querySelector("#gl-a3-side").value;
+      const qty = root.querySelector("#gl-a3-qty").value.trim();
+      const paperStatus = root.querySelector("#gl-a3-paper-status");
+      if (!sym || !qty) {
+        paperStatus.textContent = "símbolo y qty requeridos";
+        paperStatus.className = "mono status-bad";
+        return;
+      }
+      paperStatus.textContent = "enviando paper…";
+      QLApi.paperSubmit({
+        intent_type: "place_order",
+        instrument_id: sym,
+        side: side,
+        quantity: qty,
+        order_type: "market",
+      })
+        .then(function (res) {
+          const ack = res.ack || {};
+          paperStatus.textContent =
+            (ack.status || "?") + " · " + (ack.order_id || "") + " · " + (ack.message || "");
+          paperStatus.className = "mono status-ok";
+          const acct = res.account || {};
+          a3Out.textContent =
+            "paper ok · cash=" + esc(acct.cash) + " · equity=" + esc(acct.equity);
+        })
+        .catch(function (err) {
+          paperStatus.textContent = "error: " + err.message;
+          paperStatus.className = "mono status-bad";
         });
     });
 

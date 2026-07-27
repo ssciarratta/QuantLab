@@ -19,6 +19,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.99.0] — 2026-07-27
+
+### Fase 107 — Guided Lab paper submit A3
+
+#### Added
+- Guided Lab: side + qty + botón Enviar paper (A3) vía `POST /api/paper/submit`
+- Docs `docs/FASE_107_GUIDED_LAB_A3_PAPER_SUBMIT.md` · DEC-151
+
+#### Invariantes
+- PaperBroker únicamente; sin routing venue A3
+- LIVE_BLOCKED=True sin unlock
+- Sin `FASE_107_APPROVED.md`
+
+---
+
 ## [0.98.0] — 2026-07-27
 
 ### Fase 106 — Guided Lab A3 snapshot MD

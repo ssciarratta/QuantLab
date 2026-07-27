@@ -1,8 +1,8 @@
 QUANTLAB — CHECKPOINT DE REANUDACIÓN
 ====================================
-Actualizado: 2026-07-27 (antes de suspender PC)
+Actualizado: 2026-07-27
 Branch: cursor/modo-real-workbench-aafd
-Versión tip: 0.98.0 · F19–F106 INTERNAL
+Versión tip: 0.99.0 · F19–F107 INTERNAL
 
 PEGÁ ESTO EN CURSOR AL VOLVER
 -----------------------------
@@ -10,18 +10,17 @@ seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-
 
 ESTADO AL SUSPENDER
 -------------------
-✅ F99–F106 Guided Lab + LIVE gate + Binance demo/testnet + A3 paper/MD
+✅ F99–F107 Guided Lab + LIVE gate + Binance demo/testnet + A3 paper/MD/submit
 ✅ Smoke interno PASS (scripts/internal_audit_smoke.py)
-✅ Commits recientes en GitHub (ver git log)
+⏳ F108 freeze arco Guided pendiente
 
 ÚLTIMO TRABAJO CERRADO
 ----------------------
-F106 (0.98.0): Guided Lab snapshot A3 — botón Snapshot + símbolo.
-F105: A3 MD env opt-in (/api/lab/a3/md-status + md_source fake|env).
+F107 (0.99.0): Guided Lab paper submit A3 — Enviar paper vía PaperBroker.
+F106 (0.98.0): snapshot A3.
+F105: A3 MD env opt-in.
 F104: connect A3 paper + instrumentos.
 F103: freeze arco LIVE F99–F102.
-F102: Binance testnet opt-in (flag+keys).
-F101: demo routing post-unlock.
 
 CÓMO ARRANCAR EL WORKBENCH (1 min)
 ----------------------------------
@@ -46,10 +45,10 @@ A3 MD real read-only (opcional):
   QUANTLAB_A3_PASSWORD=...
   QUANTLAB_A3_ACCOUNT=...
 
-PRÓXIMO PASO SUGERIDO (F107+)
+PRÓXIMO PASO SUGERIDO (F108+)
 -----------------------------
-- Paper submit A3 desde Guided Lab (sigue siendo PaperBroker)
-- O freeze documental arco Guided F99–F106 (v0.99)
+- Freeze documental arco Guided F99–F107 (v1.00.0)
+- Polish UX Guided Lab (venue-aware, i18n strings nuevos)
 - LIVE producción: NO — solo con Meta-Auditor + checklist
 
 ARCHIVOS CLAVE
