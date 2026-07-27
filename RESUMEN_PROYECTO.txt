@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–6: calidad → features → scorer → perfiles → multi-venue
-Capabilities HL/Bybit/OKX declaradas (fetch pendiente); Binance+lab usables
+Alpha Scanner FASE 2–7: pipeline research completo hasta persistencia
+ScanStore: scan_id, request/bars/result hashes, reload y compare
 Default Guided Lab: legacy_v1
 
 PRÓXIMO
 -------
-FASE 7: persistencia scan_id/hashes + repetir/comparar scans
+FASE 8: Workbench UX perfiles + exclusiones + comparación de scans
 
 DÓNDE VER DETALLE
 -----------------

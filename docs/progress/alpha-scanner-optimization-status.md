@@ -1,29 +1,29 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 6 — Multi-venue **COMPLETA** (capabilities + ranking combinado)  
-**Siguiente:** FASE 7 — Persistencia / reproducibilidad (`scan_id`, hashes, reload)
+**Fase actual:** FASE 7 — Persistencia **COMPLETA**  
+**Siguiente:** FASE 8 — Workbench / Guided Lab UX (perfiles, exclusiones, compare)
 
 ---
 
-## Hecho 0–6
+## Hecho 0–7
 
-Default lab: `AlphaScanner` / `legacy_v1`.  
-Nuevo path: features → profiles → scorer → multi-venue.
+| Fase | Entrega clave |
+|------|----------------|
+| 0–1 | Auditoría + contratos legacy_v1 |
+| 2 | Universo + exclusiones tipadas |
+| 3 | FeatureCalculator |
+| 4 | CompositeScorer / penalties |
+| 5 | Perfiles nombrados |
+| 6 | Multi-venue capabilities |
+| 7 | `ScanStore` + hashes + compare |
 
-### FASE 6
+Archivo F7: `research/alpha/persist.py` · tests `test_alpha_persist_f7.py`
 
-- `research/alpha/venues.py`: capabilities Binance/HL/Bybit/OKX/lab
-- Solo Binance+lab `fetch_implemented=True`
-- `scan_multi_venue` omite venues sin fetch con warning (no silencio)
-- Tests: `test_alpha_venues_f6.py`
-
-### Limitación
-
-Fetch real HL/Bybit/OKX **no** implementado (declarativo).
+Default lab: `legacy_v1` / AlphaScanner.
 
 ---
 
 ## Pendiente
 
-7 Persistencia · 8 Workbench UX · 9 Perf · 10 Docs finales
+8 UX Workbench · 9 Perf · 10 Docs finales
