@@ -118,9 +118,36 @@ def test_binance_lab_pipeline_mock(binance_universe: dict[str, list[Bar]]) -> No
 
     assert out["ok"] is True
     assert out["kind"] == "binance_pipeline"
+    assert out["walk_forward"]["enabled"] is True
+    assert out["walk_forward"]["n_rank"] + out["walk_forward"]["n_backtest"] == 24
     batch = out["backtests"]
     assert batch["n_ok"] == 3
     assert batch["live_routing"] is False
+
+
+def test_binance_lab_pipeline_in_sample_opt_out(
+    binance_universe: dict[str, list[Bar]],
+) -> None:
+    symbols = list(binance_universe.keys())
+    with (
+        patch(
+            "quantlab.brokers.binance.public_md.BinancePublicMdClient.list_spot_symbols",
+            return_value=symbols,
+        ),
+        patch(
+            "quantlab.brokers.binance.public_md.fetch_universe_bars",
+            return_value=binance_universe,
+        ),
+    ):
+        out = lab_services.run_binance_lab_pipeline(
+            strategy_id="momentum",
+            top_n=2,
+            symbol_limit=5,
+            walk_forward=False,
+            experiment_id_prefix="test-pipe-is",
+        )
+    assert out["walk_forward"]["enabled"] is False
+    assert out["ok"] is True
 
 
 def test_binance_lab_scanner_interval_5m(binance_universe: dict[str, list[Bar]]) -> None:

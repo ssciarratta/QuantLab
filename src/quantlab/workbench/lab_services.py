@@ -726,42 +726,214 @@ def run_binance_lab_pipeline(
     experiment_id_prefix: str = "wb-bn-pipe",
     reports_dir: Path | None = None,
     base_url: str | None = None,
+    walk_forward: bool = True,
+    rank_fraction: float = 0.70,
+    profile: str = "legacy_v1",
 ) -> dict[str, Any]:
-    """Scan alpha Binance → backtest top-N en un solo paso (F111)."""
-    scan = run_binance_lab_scanner(
-        top_n=top_n,
-        symbol_limit=symbol_limit,
+    """Scan alpha Binance → backtest top-N.
+
+    Por defecto ``walk_forward=True``: ranking en la 1ª fracción de barras y
+    backtest en el tramo posterior (sin overlap), para reducir selección in-sample.
+    """
+    from quantlab.brokers.binance.public_md import (
+        DEFAULT_BASE_URL,
+        BinancePublicMdClient,
+        fetch_universe_bars,
+        validate_kline_interval,
+    )
+    from quantlab.research.alpha.quality import EligibilityConfig
+    from quantlab.research.alpha.universe import (
+        build_universe_from_symbol_bars,
+        exclusion_reason_counts,
+    )
+
+    if top_n < 1 or top_n > 10:
+        raise ValidationError("top_n debe estar entre 1 y 10")
+    if symbol_limit < 5 or symbol_limit > 30:
+        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    if kline_limit < 8 or kline_limit > 3000:
+        raise ValidationError("kline_limit debe estar entre 8 y 3000")
+    if walk_forward and kline_limit < 16:
+        raise ValidationError(
+            "walk_forward requiere kline_limit >= 16 (rank+backtest mínimos)"
+        )
+    interval = validate_kline_interval(interval)
+    prefix = validate_experiment_id(experiment_id_prefix)
+    profile_key = (profile or "legacy_v1").strip().lower()
+
+    url = base_url or DEFAULT_BASE_URL
+    client = BinancePublicMdClient(base_url=url)
+    symbols = client.list_spot_symbols(quote="USDT", limit=symbol_limit)
+    if not symbols:
+        raise ValidationError("sin símbolos USDT de Binance")
+
+    bars_by_symbol = fetch_universe_bars(
+        symbols,
         interval=interval,
         kline_limit=kline_limit,
-        base_url=base_url,
+        base_url=url,
     )
-    selected_symbols = list(scan.get("selected_symbols") or [])
+    fetch_failures = {
+        s: "klines omitidas o inválidas" for s in symbols if s not in bars_by_symbol
+    }
+    built = build_universe_from_symbol_bars(
+        venue="binance",
+        symbols=symbols,
+        bars_by_symbol=bars_by_symbol,
+        network="mainnet",
+        market_type="spot",
+        instrument_prefix="BN:",
+        eligibility_config=EligibilityConfig(min_bars=3, min_completeness=0.5),
+        fetch_failures=fetch_failures,
+    )
+    universe = built.eligible_bars
+    if not universe:
+        raise ValidationError("ningún símbolo elegible tras filtros de calidad")
+
+    symbol_map = {
+        inst.normalized_instrument: inst.original_symbol for inst in built.instruments
+    }
+    wf_meta: dict[str, Any]
+
+    if walk_forward:
+        from quantlab.research.alpha.walk_forward import split_bars_walk_forward
+
+        try:
+            split = split_bars_walk_forward(universe, rank_fraction=rank_fraction)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        rank_universe = split.rank_bars
+        bt_universe = split.backtest_bars
+        wf_meta = {"enabled": True, **split.to_dict()}
+    else:
+        rank_universe = universe
+        bt_universe = universe
+        wf_meta = {
+            "enabled": False,
+            "note": (
+                "Misma ventana para ranking y backtest (selección in-sample). "
+                "Preferí walk_forward=True."
+            ),
+        }
+
+    # Ranking
+    if profile_key in ("legacy_v1", "legacy"):
+        result = AlphaScanner().scan(rank_universe, top_n=top_n, min_bars=3)
+        selected_iids = list(result.selected)
+        scores_out = [dataclass_to_dict(s) for s in result.scores]
+        profile_key = "legacy_v1"
+    else:
+        from quantlab.research.alpha.profiles import build_profile, score_with_profile
+
+        try:
+            build_profile(profile_key)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        rows = score_with_profile(rank_universe, profile_key)
+        ranked = [r for r in rows if not r.excluded]
+        selected_iids = [r.instrument_id for r in ranked[: max(0, top_n)]]
+        scores_out = [
+            {
+                "instrument_id": r.instrument_id,
+                "composite": r.composite,
+                "components": [
+                    {
+                        "name": c.name,
+                        "raw": c.raw,
+                        "normalized": c.normalized,
+                        "weight": c.weight,
+                        "contribution": c.contribution,
+                        "available": c.available,
+                    }
+                    for c in r.components
+                ],
+            }
+            for r in ranked
+        ]
+
+    selected_symbols = [symbol_map.get(iid, iid) for iid in selected_iids]
+    scan_payload: dict[str, Any] = {
+        "ok": True,
+        "kind": "binance_scanner",
+        "venue": "binance",
+        "top_n": top_n,
+        "symbol_limit": symbol_limit,
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "fetched": len(symbols),
+        "eligible": len(universe),
+        "excluded": len(built.exclusions),
+        "exclusion_counts": exclusion_reason_counts(built.exclusions),
+        "exclusions": [e.to_dict() for e in built.exclusions],
+        "selected": selected_iids,
+        "selected_symbols": selected_symbols,
+        "scores": scores_out,
+        "profile": profile_key,
+        "walk_forward": wf_meta,
+        "read_only": True,
+        "live_routing": False,
+        "note": (
+            "Un score alto indica adecuación al perfil seleccionado, "
+            "no rentabilidad garantizada."
+        ),
+    }
+
     if not selected_symbols:
         return {
             "ok": False,
             "kind": "binance_pipeline",
             "error": "scanner sin selección",
-            "scanner": scan,
+            "scanner": scan_payload,
+            "walk_forward": wf_meta,
             "live_routing": False,
         }
 
-    batch = run_binance_lab_backtest_batch(
-        symbols=selected_symbols,
-        strategy_id=strategy_id,
-        params=params,
-        interval=interval,
-        kline_limit=kline_limit,
-        experiment_id_prefix=experiment_id_prefix,
-        reports_dir=reports_dir,
-        base_url=base_url,
-    )
+    # Backtest sobre ventana OOS (o misma si walk_forward=False)
+    runs: list[dict[str, Any]] = []
+    for iid, sym in zip(selected_iids, selected_symbols, strict=True):
+        sym_bars = bt_universe.get(iid)
+        if not sym_bars:
+            runs.append({"symbol": sym, "ok": False, "error": "sin barras OOS"})
+            continue
+        eid = f"{prefix}-{sym}"[:120]
+        try:
+            bt = run_lab_backtest(
+                strategy_id=strategy_id,
+                params=params,
+                bars=sym_bars,
+                instrument_id=iid,
+                data_source="binance_klines_walk_forward" if walk_forward else "binance_klines",
+                experiment_id=eid,
+                reports_dir=reports_dir,
+            )
+            runs.append({"symbol": sym, "ok": True, "result": bt})
+        except ValidationError as exc:
+            runs.append({"symbol": sym, "ok": False, "error": str(exc)})
+
+    ok_runs = [r for r in runs if r.get("ok")]
+    batch = {
+        "ok": len(ok_runs) > 0,
+        "kind": "binance_backtest_batch",
+        "venue": "binance",
+        "strategy_id": normalize_strategy_id(strategy_id),
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "n_requested": len(selected_symbols),
+        "n_ok": len(ok_runs),
+        "runs": runs,
+        "walk_forward": wf_meta,
+        "read_only": True,
+        "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
     return {
         "ok": batch.get("ok") is True,
         "kind": "binance_pipeline",
         "venue": "binance",
         "strategy_id": batch.get("strategy_id"),
-        "scanner": scan,
+        "scanner": scan_payload,
         "backtests": batch,
+        "walk_forward": wf_meta,
         "read_only": True,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,

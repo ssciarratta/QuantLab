@@ -1,7 +1,7 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 0–10 **COMPLETAS** (código)  
+**Fase actual:** FASE 0–10 **COMPLETAS** + walk-forward pipeline  
 **Cierre formal auditoría:** pendiente de APROBADO externo (no generar certificado)
 
 ---
@@ -10,22 +10,13 @@
 
 | Fase | Estado |
 |------|--------|
-| 0 Discovery | **DONE** |
-| 1 Contratos | **DONE** |
-| 2 Universo/calidad | **DONE** |
-| 3 Features | **DONE** |
-| 4 Scoring | **DONE** |
-| 5 Perfiles | **DONE** |
-| 6 Multi-venue | **DONE** |
-| 7 Persistencia | **DONE** |
-| 8 Workbench UX | **DONE** |
-| 9 Observabilidad | **DONE** |
-| 10 Docs | **DONE** — `docs/scanner/alpha-scanner-guide.md` |
+| 0–10 | **DONE** (ver abajo) |
+| Post | Walk-forward pipeline Binance (rank≠BT) **DONE** |
 
-**Default lab:** `legacy_v1` / `AlphaScanner` (parity tests).
+**Default lab:** `legacy_v1` / `AlphaScanner` (parity tests).  
+**Pipeline:** `walk_forward=True` por defecto (~70% rank / 30% BT, sin overlap).
 
-**Tests:** `52 passed` (alpha suite + F111).
-
+**Tests:** alpha + F111 + walk_forward.
 ### FASE 9
 
 - `observe.py`: progreso, `CancellationToken`, `ScoreCache` TTL, métricas

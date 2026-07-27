@@ -438,6 +438,9 @@
         interval: o.interval || "1h",
         kline_limit: o.kline_limit || 24,
         experiment_id: o.experiment_id || "wb-bn-pipe",
+        walk_forward: o.walk_forward !== false,
+        rank_fraction: o.rank_fraction != null ? o.rank_fraction : 0.7,
+        profile: o.profile || "legacy_v1",
       });
     },
     a3MdStatus: function () {

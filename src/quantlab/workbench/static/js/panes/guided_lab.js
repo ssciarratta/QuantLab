@@ -88,7 +88,7 @@
       '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab" data-tip="Escanea el lab SINTÉTICO local.\nNo son datos de Binance." data-i18n-tip="tip.gl.scan_lab">Scan lab (sintético)</button>' +
       '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none" data-tip="Lista pares USDT — MD HISTÓRICO/público Binance.\nSolo lectura." data-i18n-tip="tip.gl.scan_bn">Scan Binance (histórico)</button>' +
       '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none" data-tip="Ranking alpha sobre klines HISTÓRICAS Binance.\nÚltimas N velas hasta ahora." data-i18n-tip="tip.gl.scan_alpha">Ranking alpha (histórico)</button>' +
-      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Backtest top 5 sobre klines HISTÓRICAS Binance.\nPaper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
+      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Ranking en ~70% inicial + backtest en tramo posterior (walk-forward).\nKlines HISTÓRICAS Binance; paper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div class="pane-row" id="gl-alpha-opts" style="display:none;margin-top:0.4rem;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
@@ -832,6 +832,8 @@
     root.querySelector("#gl-pipeline-bn").addEventListener("click", function () {
       const strategy = root.querySelector("#gl-strategy").value;
       const barOpts = binanceBarOpts();
+      const profileEl = root.querySelector("#gl-alpha-profile");
+      const profile = profileEl ? profileEl.value : "legacy_v1";
       runStatus.textContent = t("guided_lab.status.pipeline_binance", "pipeline Binance…");
       resultEl.innerHTML = "";
       QLApi.binancePipeline(
@@ -841,6 +843,8 @@
             top_n: 5,
             symbol_limit: 15,
             experiment_id: "wb-bn-pipe",
+            walk_forward: true,
+            profile: profile,
           },
           barOpts
         )
@@ -853,6 +857,7 @@
           const scanner = data.scanner || {};
           const batch = data.backtests || {};
           const runs = batch.runs || [];
+          const wf = data.walk_forward || scanner.walk_forward || {};
           lastBinanceSymbols = (scanner.selected_symbols || []).slice();
           const zeroFills = runs.every(function (r) {
             return r.ok && Number((r.result || {}).n_fills || 0) === 0;
@@ -868,6 +873,13 @@
             : "últimas " +
               (scanner.kline_limit || barOpts.kline_limit) +
               " velas hasta ahora";
+          const wfTxt = wf.enabled
+            ? "Walk-forward: rank " +
+              esc(wf.n_rank) +
+              " barras → BT " +
+              esc(wf.n_backtest) +
+              " barras (sin overlap)."
+            : "Misma ventana rank+BT (in-sample).";
           scanOut.innerHTML =
             "<div class=\"bt-summary\">" +
             '<span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
@@ -877,13 +889,18 @@
             " × " +
             esc(scanner.kline_limit || barOpts.kline_limit) +
             ".<br>" +
-            "2) Ventana temporal: <span class=\"mono\">" +
+            "2) " +
+            wfTxt +
+            "<br>" +
+            "3) Ventana BT: <span class=\"mono\">" +
             esc(rangeTxt) +
-            "</span> (hacia atrás desde el momento de la consulta).<br>" +
-            "3) Ranking eligió pares; backtest corrió <span class=\"mono\">" +
+            "</span>.<br>" +
+            "4) Ranking (" +
+            esc(scanner.profile || profile) +
+            ") eligió pares; backtest <span class=\"mono\">" +
             esc(data.strategy_id) +
             "</span> (paper + fees; sin órdenes live).<br>" +
-            "4) fills = trades de la estrategia en ese histórico. Detalle abajo + panel Reports." +
+            "5) fills = trades de la estrategia en el tramo BT. Detalle abajo + panel Reports." +
             (zeroFills
               ? "<br><strong>Si ves 0 fills:</strong> la señal no cruzó el OHLC. Probá momentum o más klines."
               : "") +

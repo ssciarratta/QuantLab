@@ -1155,6 +1155,9 @@ def handle_post_binance_pipeline(state: WorkbenchState, body: dict[str, Any]) ->
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit", 24)
     experiment_id = body.get("experiment_id", "wb-bn-pipe")
+    walk_forward = body.get("walk_forward", True)
+    rank_fraction = body.get("rank_fraction", 0.70)
+    profile = body.get("profile", "legacy_v1")
     if not isinstance(top_n, int):
         raise ApiError(400, "top_n debe ser int")
     if not isinstance(symbol_limit, int):
@@ -1165,6 +1168,12 @@ def handle_post_binance_pipeline(state: WorkbenchState, body: dict[str, Any]) ->
         raise ApiError(400, "kline_limit debe ser int")
     if not isinstance(experiment_id, str) or not experiment_id.strip():
         raise ApiError(400, "experiment_id inválido")
+    if not isinstance(walk_forward, bool):
+        raise ApiError(400, "walk_forward debe ser bool")
+    if not isinstance(rank_fraction, (int, float)):
+        raise ApiError(400, "rank_fraction debe ser number")
+    if not isinstance(profile, str):
+        raise ApiError(400, "profile debe ser string")
     try:
         experiment_id = lab_services.validate_experiment_id(experiment_id)
         result = lab_services.run_binance_lab_pipeline(
@@ -1176,6 +1185,9 @@ def handle_post_binance_pipeline(state: WorkbenchState, body: dict[str, Any]) ->
             kline_limit=kline_limit,
             experiment_id_prefix=experiment_id,
             reports_dir=state.ensure_lab_reports_dir(),
+            walk_forward=walk_forward,
+            rank_fraction=float(rank_fraction),
+            profile=profile.strip(),
         )
         out = state.store_lab_result(result)
         _record_activity(
