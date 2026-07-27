@@ -1,13 +1,32 @@
-/** Panel Chat IA — asistente con memoria (F112/F113). */
+/** Panel Chat IA — asistente con memoria + acciones UI (abrir/correr). */
 (function (global) {
   "use strict";
 
   var QUICK_CHIPS = [
-    "Vamos a correr alpha en Binance y detectar monedas",
-    "Ya tengo el ranking, ¿qué MM probamos?",
-    "Dale, siguiente paso",
-    "¿Cómo empiezo?",
-    "Explícame inventory_mm",
+    {
+      label: "Abrí Guided Lab",
+      tip: "Pide al asistente que abra el panel Guided Lab.\nListo para venue → scan → simular.",
+    },
+    {
+      label: "Corré alpha en Binance",
+      tip: "Ejecuta ranking alpha con MD público Binance.\nSin órdenes; solo research.",
+    },
+    {
+      label: "Corré pipeline con inventory_mm",
+      tip: "Pipeline scan→backtest top-5 con inventory_mm.\nSimulación paper.",
+    },
+    {
+      label: "Ya tengo el ranking, ¿qué MM probamos?",
+      tip: "Pregunta de instructor: qué market making probar.\nUsa el contexto del último ranking.",
+    },
+    {
+      label: "Dale, siguiente paso",
+      tip: "Continúa el flujo sugerido por el asistente.\nFollow-up corto multi-turno.",
+    },
+    {
+      label: "¿Cómo empiezo?",
+      tip: "Guía paso a paso para arrancar el lab.\nExplica sin ejecutar aún.",
+    },
   ];
 
   function createChatPane() {
@@ -17,15 +36,15 @@
     root.innerHTML =
       '<div class="chat-safe-banner" role="status">' +
       '<span class="chat-safe-badge">asistente</span> ' +
-      "Memoria de conversación activa — no envía órdenes " +
-      '<button type="button" class="btn secondary" id="chat-clear" style="margin-left:0.5em">Limpiar memoria</button>' +
+      "Puede abrir paneles y correr alpha/pipeline (sin órdenes) " +
+      '<button type="button" class="btn secondary" id="chat-clear" style="margin-left:0.5em" data-tip="Borra el historial y la memoria local del chat.\nNo afecta otros paneles.">Limpiar memoria</button>' +
       "</div>" +
       '<div class="chat-chips pane-row" id="chat-chips"></div>' +
       '<div class="chat-history" id="chat-history" aria-live="polite"></div>' +
       '<form class="chat-compose" id="chat-form">' +
       '<input type="text" id="chat-input" maxlength="2000" ' +
-      'placeholder="Hablame natural: planes, dudas, «dale», «siguiente paso»…" autocomplete="off" />' +
-      '<button type="submit" class="btn" id="chat-send">Enviar</button>' +
+      'placeholder="Ej: abrí Guided Lab · corré alpha en Binance · corré pipeline…" autocomplete="off" />' +
+      '<button type="submit" class="btn" id="chat-send" data-tip="Envía el mensaje al asistente.\nPuede abrir paneles o correr alpha/pipeline.">Enviar</button>' +
       "</form>" +
       '<p class="muted mono chat-meta" id="chat-meta">tools —</p>';
 
@@ -47,6 +66,23 @@
       history.scrollTop = history.scrollHeight;
     }
 
+    function runActions(actions) {
+      if (!Array.isArray(actions) || !actions.length) return;
+      actions.forEach(function (act) {
+        if (!act || typeof act !== "object") return;
+        if (act.type === "open_pane" && act.pane && window.QLShell) {
+          try {
+            QLShell.open(String(act.pane));
+          } catch (e) {}
+        }
+        if (act.type === "toast" && act.message && window.QLToasts) {
+          try {
+            QLToasts.success(String(act.message));
+          } catch (e) {}
+        }
+      });
+    }
+
     function sendMessage(msg) {
       const trimmed = (msg || "").trim();
       if (!trimmed) return;
@@ -55,18 +91,20 @@
       QLApi.chat(trimmed, { pane: "chat", guided_lab: true })
         .then(function (data) {
           appendBubble("assistant", data.reply || "(sin respuesta)");
+          runActions(data.actions || []);
           memoryTurns = data.memory_turns || memoryTurns;
           const tools = (data.tools_used || []).join(", ") || "—";
+          const nAct = (data.actions || []).length;
           const prov = data.provider || "?";
           meta.textContent =
             "memoria=" +
             String(data.memory_turns || memoryTurns) +
             " · provider=" +
             prov +
+            " · actions=" +
+            String(nAct) +
             " · tools: " +
-            tools +
-            " · live_blocked=" +
-            String(data.live_blocked !== false);
+            tools;
         })
         .catch(function (err) {
           appendBubble("assistant", "Error: " + err.message);
@@ -82,10 +120,10 @@
           if (!msgs.length) {
             appendBubble(
               "system",
-              "Soy tu asistente QuantLab con memoria.\n\n" +
-                "Hablame como a un colega: «vamos a correr alpha en Binance», " +
-                "después «dale» o «siguiente paso», y sigo el hilo.\n\n" +
-                "Con QUANTLAB_LLM_API_KEY en .env respondo más natural (OpenAI-compatible)."
+              "Soy tu asistente QuantLab.\n\n" +
+                "Puedo ABRIR paneles («abrí Guided Lab») y CORRER cosas seguras:\n" +
+                "«corré alpha en Binance» · «corré pipeline con inventory_mm».\n" +
+                "No envío órdenes. A−/A+ en la barra de abajo agrandan la letra."
             );
             return;
           }
@@ -100,13 +138,14 @@
         });
     }
 
-    QUICK_CHIPS.forEach(function (label) {
+    QUICK_CHIPS.forEach(function (chip) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "btn secondary chat-chip";
-      btn.textContent = label;
+      btn.textContent = chip.label;
+      btn.setAttribute("data-tip", chip.tip);
       btn.addEventListener("click", function () {
-        sendMessage(label);
+        sendMessage(chip.label);
       });
       chipsEl.appendChild(btn);
     });
@@ -138,9 +177,7 @@
           "allowlist: " +
           ((t.allowlist || []).join(", ") || "—") +
           " · memoria_turns=" +
-          String(t.memory_turns || memoryTurns) +
-          " · safe_mode=" +
-          String(t.safe_mode !== false);
+          String(t.memory_turns || memoryTurns);
       } catch (err) {
         meta.textContent = "tools error: " + err.message;
       }

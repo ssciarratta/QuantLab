@@ -1712,6 +1712,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "desktop_notifications",
             "sound_alerts",
             "timezone",
+            "ui_font_scale",
             "version",
         )
     ):
@@ -1734,6 +1735,7 @@ def handle_put_settings(state: WorkbenchState, body: dict[str, Any]) -> dict[str
             "desktop_notifications",
             "sound_alerts",
             "timezone",
+            "ui_font_scale",
         ):
             if key in payload:
                 merged[key] = payload[key]

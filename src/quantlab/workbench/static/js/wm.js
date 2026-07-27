@@ -224,18 +224,29 @@
     controls.className = "win-controls";
     const btnMin = document.createElement("button");
     btnMin.type = "button";
-    btnMin.title = "Minimizar";
+    btnMin.setAttribute(
+      "data-tip",
+      "Minimizar esta ventana.\nQueda en la barra de tareas hasta restaurarla."
+    );
+    btnMin.setAttribute("aria-label", "Minimizar");
     btnMin.textContent = "—";
     const btnMax = document.createElement("button");
     btnMax.type = "button";
     btnMax.className = "btn-max";
-    btnMax.title = "Maximizar";
+    btnMax.setAttribute(
+      "data-tip",
+      "Maximizar al escritorio.\nDoble clic en el título también alterna."
+    );
     btnMax.setAttribute("aria-label", "Maximizar");
     btnMax.textContent = "□";
     const btnClose = document.createElement("button");
     btnClose.type = "button";
     btnClose.className = "btn-close";
-    btnClose.title = "Cerrar";
+    btnClose.setAttribute(
+      "data-tip",
+      "Cerrar esta ventana.\nEl layout se guarda en la sesión."
+    );
+    btnClose.setAttribute("aria-label", "Cerrar");
     btnClose.textContent = "×";
     controls.appendChild(btnMin);
     controls.appendChild(btnMax);
@@ -249,12 +260,30 @@
       body.appendChild(contentEl);
     }
 
-    const resize = document.createElement("div");
-    resize.className = "win-resize";
-
     win.appendChild(titlebar);
     win.appendChild(body);
-    win.appendChild(resize);
+
+    const self = this;
+    const handles = [
+      { cls: "win-resize win-resize-e", edge: "e", title: "Arrastrá para cambiar el ancho" },
+      { cls: "win-resize win-resize-s", edge: "s", title: "Arrastrá para cambiar el alto" },
+      { cls: "win-resize win-resize-se", edge: "se", title: "Arrastrá para cambiar ancho y alto" },
+      { cls: "win-resize win-resize-w", edge: "w", title: "Arrastrá para cambiar el ancho" },
+      { cls: "win-resize win-resize-n", edge: "n", title: "Arrastrá para cambiar el alto" },
+    ];
+    handles.forEach(function (h) {
+      const el = document.createElement("div");
+      el.className = h.cls;
+      el.setAttribute("data-tip", h.title);
+      el.setAttribute("aria-hidden", "true");
+      el.dataset.edge = h.edge;
+      win.appendChild(el);
+      el.addEventListener("mousedown", function (ev) {
+        if (win.classList.contains("maximized")) return;
+        self._startResize(win, ev, h.edge);
+      });
+    });
+
     this.workspace.appendChild(win);
 
     const taskBtn = document.createElement("button");
@@ -263,6 +292,12 @@
     taskBtn.textContent = title;
     taskBtn.dataset.id = id;
     taskBtn.setAttribute("aria-label", "Ventana " + title);
+    taskBtn.setAttribute(
+      "data-tip",
+      "Ventana «" +
+        title +
+        "».\nClic: enfocar / minimizar si ya está al frente."
+    );
     this.taskbar.appendChild(taskBtn);
 
     const record = {
@@ -276,7 +311,6 @@
     };
     this.windows.set(id, record);
 
-    const self = this;
     titlebar.addEventListener("mousedown", function (ev) {
       if (ev.target.closest(".win-controls")) return;
       if (win.classList.contains("maximized")) return;
@@ -292,10 +326,6 @@
       ev.preventDefault();
       self.focus(id);
       self._showWindowContextMenu(id, ev.clientX, ev.clientY);
-    });
-    resize.addEventListener("mousedown", function (ev) {
-      if (win.classList.contains("maximized")) return;
-      self._startResize(win, ev);
     });
     win.addEventListener("mousedown", function () {
       self.focus(id);
@@ -581,7 +611,12 @@
     if (!rec || !rec.btnMax) return;
     const isMax = rec.el.classList.contains("maximized");
     rec.btnMax.textContent = isMax ? "❐" : "□";
-    rec.btnMax.title = isMax ? "Restaurar" : "Maximizar";
+    rec.btnMax.setAttribute(
+      "data-tip",
+      isMax
+        ? "Restaurar tamaño anterior.\nVuelve a la posición y tamaño previos."
+        : "Maximizar al escritorio.\nDoble clic en el título también alterna."
+    );
     rec.btnMax.setAttribute(
       "aria-label",
       isMax ? "Restaurar" : "Maximizar"
@@ -783,20 +818,62 @@
     document.addEventListener("mouseup", onUp);
   };
 
-  WindowManager.prototype._startResize = function (win, ev) {
+  WindowManager.prototype._startResize = function (win, ev, edge) {
     ev.preventDefault();
     ev.stopPropagation();
+    const dir = edge || "se";
     const startX = ev.clientX;
     const startY = ev.clientY;
     const origW = win.offsetWidth;
     const origH = win.offsetHeight;
+    const origL = win.offsetLeft;
+    const origT = win.offsetTop;
+    const maxW = this.workspace.clientWidth || window.innerWidth;
+    const maxH = this.workspace.clientHeight || window.innerHeight;
     const self = this;
 
     function onMove(e) {
-      const nw = Math.max(280, origW + (e.clientX - startX));
-      const nh = Math.max(180, origH + (e.clientY - startY));
-      win.style.width = nw + "px";
-      win.style.height = nh + "px";
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      let left = origL;
+      let top = origT;
+      let w = origW;
+      let h = origH;
+
+      if (dir.indexOf("e") >= 0) {
+        w = Math.max(MIN_WIN_W, origW + dx);
+      }
+      if (dir.indexOf("s") >= 0) {
+        h = Math.max(MIN_WIN_H, origH + dy);
+      }
+      if (dir.indexOf("w") >= 0) {
+        w = Math.max(MIN_WIN_W, origW - dx);
+        left = origL + (origW - w);
+      }
+      if (dir.indexOf("n") >= 0) {
+        h = Math.max(MIN_WIN_H, origH - dy);
+        top = origT + (origH - h);
+      }
+
+      if (left < 0) {
+        w += left;
+        left = 0;
+      }
+      if (top < 0) {
+        h += top;
+        top = 0;
+      }
+      if (left + w > maxW) {
+        w = Math.max(MIN_WIN_W, maxW - left);
+      }
+      if (top + h > maxH) {
+        h = Math.max(MIN_WIN_H, maxH - top);
+      }
+
+      win.style.left = left + "px";
+      win.style.top = top + "px";
+      win.style.width = w + "px";
+      win.style.height = h + "px";
     }
     function onUp() {
       document.removeEventListener("mousemove", onMove);

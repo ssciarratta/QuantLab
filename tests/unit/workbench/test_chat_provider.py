@@ -75,7 +75,7 @@ def test_assistant_falls_back_when_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setenv("QUANTLAB_LLM_API_KEY", "test-invalid-key")
     tools = ToolRegistry(WorkbenchState())
     turn = AssistantProvider().complete(_req("cuál es el modo actual"), tools)
-    assert turn.provider == "fake"
+    assert turn.provider in {"fake", "fake_fallback"}
     assert "get_mode" in turn.tools_used
 
 

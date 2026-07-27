@@ -64,6 +64,7 @@ class ChatTurnResult:
     reply: str
     tools_used: list[str] = field(default_factory=list)
     provider: str = "fake"
+    actions: list[dict[str, Any]] = field(default_factory=list)
 
 
 @runtime_checkable
@@ -90,6 +91,7 @@ class FakeProvider:
         lower = text.lower()
         tools_used: list[str] = []
         parts: list[str] = []
+        actions: list[dict[str, Any]] = []
 
         # Contexto de sesión en cada turno (memoria operativa)
         try:
@@ -104,10 +106,46 @@ class FakeProvider:
         def use(tool_name: str, args: dict[str, Any] | None = None) -> dict[str, Any]:
             result = tools.call(tool_name, args)
             tools_used.append(tool_name)
+            raw_actions = result.get("ui_actions") if isinstance(result, dict) else None
+            if isinstance(raw_actions, list):
+                for act in raw_actions:
+                    if isinstance(act, dict):
+                        actions.append(act)
             return result
 
+        # Acciones: abrir / correr (antes de solo-explicar)
+        if _is_run_action(lower):
+            if _match(lower, ("pipeline", "backtest", "top 5", "top5", "mm", "inventory", "avellaneda")):
+                sid = "inventory_mm"
+                if _match(lower, ("avellaneda", "stoikov")):
+                    sid = "avellaneda_stoikov"
+                elif _match(lower, ("momentum",)):
+                    sid = "momentum"
+                data = use("run_binance_pipeline", {"strategy_id": sid, "top_n": 5})
+                syms = data.get("selected_symbols") or []
+                parts.append(
+                    f"Listo: corrí el pipeline Binance con {sid}.\n"
+                    f"Monedas: {', '.join(str(s) for s in syms) or '(ninguna)'}.\n"
+                    f"Backtests ok: {data.get('n_ok')}/{data.get('n_requested')}.\n"
+                    "Abrí Guided Lab para ver el detalle."
+                )
+            elif _match(lower, ("alpha", "scanner", "ranking", "schaner", "scan")):
+                data = use("run_binance_alpha", {"top_n": 5})
+                syms = data.get("selected_symbols") or []
+                parts.append(
+                    "Listo: corrí Ranking alpha Binance.\n"
+                    f"Top: {', '.join(str(s) for s in syms) or '(vacío)'}.\n"
+                    "Abrí Guided Lab. Decime «corré pipeline con inventory_mm» para backtest."
+                )
+            else:
+                data = use("open_pane", {"pane": "guided_lab"})
+                parts.append("Abrí Guided Lab. Decime qué querés correr (alpha / pipeline).")
+        elif _is_open_action(lower):
+            pane = _infer_pane(lower)
+            data = use("open_pane", {"pane": pane})
+            parts.append(f"Abriendo panel «{data.get('pane')}».")
         # Intents (orden importa: live antes que modo; resumen antes que docs/cómo)
-        if _match(lower, ("live", "orden", "órdenes", "ordenes", "flip", "routing")):
+        elif _match(lower, ("live", "orden", "órdenes", "ordenes", "flip", "routing")):
             data = use("explain_live_policy")
             parts.append(
                 "Política LIVE: "
@@ -358,7 +396,12 @@ class FakeProvider:
             if t not in seen:
                 seen.add(t)
                 ordered.append(t)
-        return ChatTurnResult(reply=reply, tools_used=ordered, provider=self.name)
+        return ChatTurnResult(
+            reply=reply,
+            tools_used=ordered,
+            provider=self.name,
+            actions=actions,
+        )
 
 
 class AssistantProvider:
@@ -384,7 +427,7 @@ class AssistantProvider:
                 # El último user ya está en memoria; evitar duplicar en history
                 if history and history[-1]["role"] == "user":
                     history = history[:-1]
-                reply, tools_used = complete_with_llm(
+                reply, tools_used, ui_actions = complete_with_llm(
                     system_prompt=request.system_prompt or "Sos el asistente QuantLab.",
                     history=history,
                     user_message=request.message,
@@ -394,6 +437,7 @@ class AssistantProvider:
                     reply=reply,
                     tools_used=tools_used,
                     provider="llm",
+                    actions=list(ui_actions),
                 )
             except Exception as exc:  # noqa: BLE001 — fallback a offline
                 base = self._fallback.complete(request, tools)
@@ -405,6 +449,7 @@ class AssistantProvider:
                     reply=note + base.reply,
                     tools_used=list(base.tools_used),
                     provider="fake_fallback",
+                    actions=list(base.actions),
                 )
         return self._fallback.complete(request, tools)
 
@@ -465,6 +510,103 @@ def _is_alpha_mm_flow(lower: str) -> bool:
     if has_binance and has_mm and has_run:
         return True
     return False
+
+
+def _is_run_action(lower: str) -> bool:
+    # "cómo hago para correr" / "vamos a correr" / "quiero correr" = plan, no ejecución
+    if _match(
+        lower,
+        (
+            "cómo hago",
+            "como hago",
+            "cómo lo hago",
+            "como lo hago",
+            "cómo se",
+            "como se",
+            "vamos a correr",
+            "quiero correr",
+            "me gustaría correr",
+            "me gustaria correr",
+            "para correr",
+        ),
+    ):
+        return False
+    return _match(
+        lower,
+        (
+            "corré",
+            "corre alpha",
+            "corre el ranking",
+            "corre ranking",
+            "corre scanner",
+            "corre el scanner",
+            "corre pipeline",
+            "corre el pipeline",
+            "corre backtest",
+            "correr ahora",
+            "ejecutá",
+            "ejecuta alpha",
+            "ejecuta el",
+            "ejecutar ahora",
+            "lanzá",
+            "lanza alpha",
+            "haceme el alpha",
+            "haceme alpha",
+            "haceme el ranking",
+            "haceme pipeline",
+            "hazme el alpha",
+            "dale corre",
+            "dale ejecut",
+            "run alpha",
+            "run scanner",
+            "run pipeline",
+            "run binance",
+        ),
+    )
+
+
+def _is_open_action(lower: str) -> bool:
+    return _match(
+        lower,
+        (
+            "abrí",
+            "abri",
+            "abrir",
+            "abrime",
+            "abríme",
+            "mostrá",
+            "mostra",
+            "mostrar",
+            "open ",
+            "abre ",
+            "abre el",
+            "abre la",
+        ),
+    )
+
+
+def _infer_pane(lower: str) -> str:
+    if _match(lower, ("guided", "lab", "alpha", "binance", "wizard")):
+        return "guided_lab"
+    if _match(lower, ("chat", "asistente", "ia")):
+        return "chat"
+    if _match(lower, ("backtest",)):
+        return "backtest"
+    if _match(lower, ("scanner", "ranking")):
+        return "scanner"
+    if _match(lower, ("setting", "ajuste", "preferenc", "letra", "fuente")):
+        return "settings"
+    if _match(lower, ("salud", "health", "modo")):
+        return "health"
+    if _match(lower, ("docs", "ayuda", "help")):
+        return "docs"
+    if _match(lower, ("report",)):
+        return "reports"
+    if _match(lower, ("blotter",)):
+        return "blotter"
+    if _match(lower, ("journal",)):
+        return "journal"
+    return "guided_lab"
 
 
 def _extract_query(message: str) -> str:

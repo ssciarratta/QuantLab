@@ -21,6 +21,14 @@
       '<option value="es">es</option>' +
       '<option value="en">en</option>' +
       "</select></label>" +
+      '<label class="field">Tamaño de letra<select id="set-font-scale">' +
+      '<option value="0.85">85% (chico)</option>' +
+      '<option value="1">100%</option>' +
+      '<option value="1.15" selected>115% (default)</option>' +
+      '<option value="1.3">130%</option>' +
+      '<option value="1.45">145%</option>' +
+      '<option value="1.6">160% (grande)</option>' +
+      "</select></label>" +
       '<label class="field">Timezone<select id="set-timezone">' +
       '<option value="UTC">UTC</option>' +
       '<option value="local">local</option>' +
@@ -71,6 +79,7 @@
     const strategyEl = root.querySelector("#set-strategy");
     const slipEl = root.querySelector("#set-slip");
     const localeEl = root.querySelector("#set-locale");
+    const fontScaleEl = root.querySelector("#set-font-scale");
     const timezoneEl = root.querySelector("#set-timezone");
     const accessLogEl = root.querySelector("#set-access-log");
     const desktopNotifEl = root.querySelector("#set-desktop-notif");
@@ -123,6 +132,11 @@
       venueEl.value = s.default_venue || "paper";
       slipEl.value = s.slippage_bps != null ? String(s.slippage_bps) : "0";
       localeEl.value = s.locale === "en" ? "en" : "es";
+      const fs = s.ui_font_scale != null ? String(s.ui_font_scale) : "1.15";
+      fontScaleEl.value = fs;
+      if (window.QLShell && QLShell.setFontScale) {
+        QLShell.setFontScale(Number(fs), false);
+      }
       timezoneEl.value = s.timezone === "local" ? "local" : "UTC";
       accessLogEl.checked = s.access_log !== false;
       desktopNotifEl.checked = s.desktop_notifications === true;
@@ -188,6 +202,7 @@
         default_strategy: strategyEl.value,
         slippage_bps: slipEl.value.trim() || "0",
         locale: localeEl.value === "en" ? "en" : "es",
+        ui_font_scale: Number(fontScaleEl.value) || 1.15,
         timezone: timezoneEl.value === "local" ? "local" : "UTC",
         access_log: !!accessLogEl.checked,
         desktop_notifications: !!desktopNotifEl.checked,

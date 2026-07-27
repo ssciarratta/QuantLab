@@ -103,7 +103,7 @@ def print_llm_status() -> None:
         print("  Tip: ejecutá configurar_chat_llm.bat o editá .env")
     else:
         print(f"Chat IA: ON  provider={provider}  (key oculta)")
-        print("  Si en el chat ves provider=fake, el servidor viejo no cargó .env → reiniciá.")
+        print("  Si en el chat ves provider=fake, el servidor viejo no cargo .env -> reinicia.")
 
 
 def main() -> int:
@@ -138,9 +138,9 @@ def main() -> int:
         return 1
 
     webbrowser.open(URL)
-    print("Navegador abierto →", URL)
-    print("Proba Chat IA: «quiero correr alpha scanner en binance como hago?»")
-    print("Abajo del chat deberías ver provider=llm (no fake).\n")
+    print("Navegador abierto ->", URL)
+    print("Proba Chat IA: quiero correr alpha scanner en binance como hago?")
+    print("Abajo del chat deberias ver provider=llm (no fake).\n")
     try:
         return int(proc.wait())
     except KeyboardInterrupt:

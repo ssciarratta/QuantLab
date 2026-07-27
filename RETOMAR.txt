@@ -2,28 +2,29 @@ QUANTLAB — CHECKPOINT DE REANUDACIÓN
 ====================================
 Actualizado: 2026-07-27
 Branch: cursor/modo-real-workbench-aafd
-Versión tip: 1.00.0 · F19–F110 INTERNAL
+Versión tip: 1.01.0 · F19–F111+ INTERNAL (chat/UX post-F111)
 
 ESTADO
 ------
-✅ F99–F110 Guided Lab completo + LIVE demo deuda cerrada + i18n + freeze v1.00
-✅ Smoke interno PASS
+✅ F99–F110 Guided Lab + LIVE demo + i18n + freeze v1.00
+✅ F111 Binance alpha klines + pipeline scan→backtest
+✅ Chat instructor/asistente: memoria · LLM opt-in · abrir paneles / correr alpha
+✅ UI: font scale · resize bordes · tooltips hover
 
 ÚLTIMO TRABAJO CERRADO
 ----------------------
-F110: freeze MILESTONE_V100_GUIDED_ARC_FREEZE.md
-F109: cancel/LIMIT/mirror demo
-F108: i18n + venue-aware
-F107: paper submit A3
+- Resize multi-borde + tips.js / data-tip / i18n tip.*
+- Chat tools open_pane + run_binance_* + ui_actions en shell
+- Font A−/A+ (ui_font_scale)
 
 ARRANQUE
 --------
 cd C:\Users\ssciarratta\Desktop\QuantLab
-uv run quantlab-workbench
-# http://127.0.0.1:8765 → Guided Lab
+arrancar_quantlab.bat
+# http://127.0.0.1:8765 → F5 si el static no refresca
 
-PRÓXIMO (post v1.00)
---------------------
+PRÓXIMO
+-------
 - Certificación externa Meta-Auditor (F19+)
 - Testnet manual E2E con keys reales
 - A3 MD env validación operativa

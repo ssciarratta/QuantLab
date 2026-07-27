@@ -25,6 +25,10 @@
   let clockTimezone = "UTC"; /* F74: settings.timezone UTC|local */
   let heartbeatPollSeconds = 5; /* F75: N seconds · GET /api/broker/heartbeat */
   let heartbeatTimer = null;
+  let uiFontScale = 1.15;
+  const FONT_MIN = 0.85;
+  const FONT_MAX = 1.6;
+  const FONT_STEP = 0.1;
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
 
@@ -53,6 +57,28 @@
     const t = theme === "high-contrast" ? "high-contrast" : "slate";
     document.documentElement.setAttribute("data-theme", t);
     if (document.body) document.body.setAttribute("data-theme", t);
+  }
+
+  function applyFontScale(scale, persist) {
+    let s = Number(scale);
+    if (!isFinite(s)) s = 1.15;
+    if (s < FONT_MIN) s = FONT_MIN;
+    if (s > FONT_MAX) s = FONT_MAX;
+    s = Math.round(s * 100) / 100;
+    uiFontScale = s;
+    document.documentElement.style.setProperty("--ql-font-scale", String(s));
+    const label = document.getElementById("sb-font-value");
+    if (label) label.textContent = Math.round(s * 100) + "%";
+    try {
+      localStorage.setItem("ql_ui_font_scale", String(s));
+    } catch (e) {}
+    if (persist && QLApi && QLApi.putSettings) {
+      QLApi.putSettings({ ui_font_scale: s }).catch(function () {});
+    }
+  }
+
+  function bumpFont(delta) {
+    applyFontScale(uiFontScale + delta, true);
   }
 
   function tr(key, fallback) {
@@ -350,6 +376,9 @@
         }
         setClockTimezone(data.settings.timezone);
       }
+      if (data && data.settings && data.settings.ui_font_scale != null) {
+        applyFontScale(data.settings.ui_font_scale, false);
+      }
     });
     wm.open("settings", tr("pane.settings", "Settings"), pane, mergeOpts("settings", { x: 280, y: 60, w: 440, h: 420 }));
     pane.refresh().catch(function () {});
@@ -460,6 +489,44 @@
     export_hb: openExportHb,
     validation: openValidation,
   };
+
+  window.QLShell = {
+    open: function (paneId) {
+      const fn = openers[paneId];
+      if (typeof fn === "function") {
+        fn();
+        return true;
+      }
+      return false;
+    },
+    openers: openers,
+    setFontScale: function (s, persist) {
+      applyFontScale(s, persist !== false);
+    },
+    getFontScale: function () {
+      return uiFontScale;
+    },
+  };
+
+  const fontDown = document.getElementById("sb-font-down");
+  const fontUp = document.getElementById("sb-font-up");
+  if (fontDown) {
+    fontDown.addEventListener("click", function () {
+      bumpFont(-FONT_STEP);
+    });
+  }
+  if (fontUp) {
+    fontUp.addEventListener("click", function () {
+      bumpFont(FONT_STEP);
+    });
+  }
+  try {
+    const stored = localStorage.getItem("ql_ui_font_scale");
+    if (stored) applyFontScale(stored, false);
+    else applyFontScale(uiFontScale, false);
+  } catch (e) {
+    applyFontScale(uiFontScale, false);
+  }
 
   const palette = new QLCommandPalette({
     openers: openers,
@@ -649,12 +716,20 @@
       btn.type = "button";
       btn.setAttribute("data-preset", p.name);
       btn.setAttribute("data-custom-preset", "1");
-      btn.title = p.description || p.name;
+      btn.setAttribute(
+        "data-tip",
+        (p.description || p.name) +
+          "\nPreset personalizado — abrí este layout guardado."
+      );
       btn.textContent = p.label || p.name;
       const del = document.createElement("button");
       del.type = "button";
       del.className = "preset-delete";
       del.setAttribute("data-preset-delete", p.name);
+      del.setAttribute(
+        "data-tip",
+        "Eliminar este preset personalizado.\nNo borra ventanas abiertas ahora."
+      );
       del.setAttribute(
         "aria-label",
         ((window.QLi18n && QLi18n.t && QLi18n.t("preset.delete")) || "Delete") +
@@ -901,6 +976,9 @@
         QLToasts.setSoundAlerts(settingsData.settings.sound_alerts === true);
       }
       setClockTimezone(settingsData.settings.timezone);
+      if (settingsData.settings.ui_font_scale != null) {
+        applyFontScale(settingsData.settings.ui_font_scale, false);
+      }
       updateStatusBar(settingsData);
       // Opcional: hidratar mensajes desde API (parity static JSON)
       if (QLApi.getI18n) {

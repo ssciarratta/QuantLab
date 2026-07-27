@@ -112,6 +112,49 @@ body {
   background: var(--bg-deep);
 }
 
+html {
+  /* Escala tipográfica global (A− / A+ en status bar) */
+  --ql-font-scale: 1.15;
+  font-size: calc(16px * var(--ql-font-scale));
+}
+
+.sb-font-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  margin-left: 0.25rem;
+}
+
+.sb-font-btn {
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 1.6rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  color: var(--text);
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.sb-font-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+.sb-font-btn:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+.sb-font-value {
+  font-size: 0.65rem;
+  min-width: 2.4rem;
+  text-align: center;
+}
+
 /* F59 — skip link (visible on focus) */
 .skip-link {
   position: absolute;
@@ -296,10 +339,47 @@ body {
 
 .win-resize {
   position: absolute;
+  z-index: 3;
+  background: transparent;
+}
+
+.win-resize-e {
+  top: 8px;
+  right: 0;
+  bottom: 8px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.win-resize-w {
+  top: 8px;
+  left: 0;
+  bottom: 8px;
+  width: 8px;
+  cursor: ew-resize;
+}
+
+.win-resize-s {
+  left: 8px;
+  right: 8px;
+  bottom: 0;
+  height: 8px;
+  cursor: ns-resize;
+}
+
+.win-resize-n {
+  left: 8px;
+  right: 8px;
+  top: 0;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.win-resize-se {
   right: 0;
   bottom: 0;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   cursor: nwse-resize;
   background:
     linear-gradient(
@@ -311,7 +391,35 @@ body {
       transparent 70%,
       var(--amber-dim) 70%
     );
-  opacity: 0.55;
+  opacity: 0.7;
+}
+
+.win:hover .win-resize-e,
+.win:hover .win-resize-w,
+.win:hover .win-resize-s,
+.win:hover .win-resize-n {
+  background: var(--amber-soft);
+}
+
+.win.focused .win-resize-se {
+  opacity: 1;
+}
+
+/* Tooltip flotante (1–2 líneas) — tips.js */
+.ql-float-tip {
+  position: fixed;
+  z-index: 400;
+  max-width: 17rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--bg-elevated);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-win);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  white-space: pre-line;
+  pointer-events: none;
 }
 
 /* —— Bottom chrome: status bar + taskbar —— */

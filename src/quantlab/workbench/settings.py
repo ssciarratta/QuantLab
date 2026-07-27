@@ -30,11 +30,32 @@ DEFAULT_AUTO_BACKUP_MINUTES = 0
 DEFAULT_DESKTOP_NOTIFICATIONS = False
 DEFAULT_SOUND_ALERTS = False
 DEFAULT_TIMEZONE = "UTC"
+DEFAULT_UI_FONT_SCALE = 1.15
+MIN_UI_FONT_SCALE = 0.85
+MAX_UI_FONT_SCALE = 1.6
 MIN_AUTO_BACKUP_MINUTES = 0
 MAX_AUTO_BACKUP_MINUTES = 24 * 60  # 1 día
 
 _VENUE_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]{0,31}$")
 _MAX_SLIPPAGE_BPS = Decimal("9999.9999")
+
+
+def parse_ui_font_scale(raw: Any) -> float:
+    """Valida ``ui_font_scale`` (float 0.85..1.6)."""
+    if raw is None:
+        return DEFAULT_UI_FONT_SCALE
+    if isinstance(raw, bool):
+        raise ValidationError("settings.ui_font_scale inválido (bool)")
+    try:
+        value = float(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValidationError(f"settings.ui_font_scale inválido: {raw!r}") from exc
+    if value < MIN_UI_FONT_SCALE or value > MAX_UI_FONT_SCALE:
+        raise ValidationError(
+            f"settings.ui_font_scale fuera de rango "
+            f"({MIN_UI_FONT_SCALE}..{MAX_UI_FONT_SCALE}): {value}"
+        )
+    return round(value, 2)
 
 
 def parse_auto_backup_minutes(raw: Any) -> int:
@@ -71,6 +92,7 @@ def default_settings() -> dict[str, Any]:
         "desktop_notifications": DEFAULT_DESKTOP_NOTIFICATIONS,
         "sound_alerts": DEFAULT_SOUND_ALERTS,
         "timezone": DEFAULT_TIMEZONE,
+        "ui_font_scale": DEFAULT_UI_FONT_SCALE,
     }
 
 
@@ -169,6 +191,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
     auto_backup_minutes = parse_auto_backup_minutes(
         payload.get("auto_backup_minutes", DEFAULT_AUTO_BACKUP_MINUTES)
     )
+    ui_font_scale = parse_ui_font_scale(payload.get("ui_font_scale", DEFAULT_UI_FONT_SCALE))
 
     venue = _validate_venue(payload.get("default_venue", DEFAULT_VENUE))
     strategy = _validate_strategy(payload.get("default_strategy", DEFAULT_STRATEGY))
@@ -186,6 +209,7 @@ def normalize_settings(payload: dict[str, Any] | None) -> dict[str, Any]:
         "desktop_notifications": desktop_notifications_raw,
         "sound_alerts": sound_alerts_raw,
         "timezone": timezone,
+        "ui_font_scale": ui_font_scale,
     }
 
 

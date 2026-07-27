@@ -215,6 +215,9 @@
       el.setAttribute("aria-label", val);
     } else if (attr === "placeholder") {
       el.setAttribute("placeholder", val);
+    } else if (attr === "tip") {
+      const existing = el.getAttribute("data-tip");
+      el.setAttribute("data-tip", t(key, existing || key));
     }
   }
 
@@ -231,6 +234,9 @@
     });
     scope.querySelectorAll("[data-i18n-placeholder]").forEach(function (el) {
       applyAttr(el, "placeholder", el.getAttribute("data-i18n-placeholder"));
+    });
+    scope.querySelectorAll("[data-i18n-tip]").forEach(function (el) {
+      applyAttr(el, "tip", el.getAttribute("data-i18n-tip"));
     });
   }
 

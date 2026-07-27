@@ -35,10 +35,35 @@ ALLOWED_TOOLS: frozenset[str] = frozenset(
         "get_session_summary",
         "list_reports",
         "list_strategies",
+        "open_pane",
+        "run_binance_alpha",
+        "run_binance_pipeline",
     }
 )
 
 DEFAULT_SESSION_ACTIVITY_LIMIT = 10
+
+ALLOWED_PANES: frozenset[str] = frozenset(
+    {
+        "guided_lab",
+        "chat",
+        "health",
+        "backtest",
+        "scanner",
+        "reports",
+        "settings",
+        "docs",
+        "market",
+        "blotter",
+        "journal",
+        "paper_session",
+        "positions",
+        "risk",
+        "metrics",
+        "venues",
+        "diagnostics",
+    }
+)
 
 FORBIDDEN_TOOLS: frozenset[str] = frozenset(
     {
@@ -104,6 +129,15 @@ _TOOL_META: dict[str, dict[str, str]] = {
     },
     "list_strategies": {
         "description": "Catálogo de estrategias workbench (ids/tags/defaults)",
+    },
+    "open_pane": {
+        "description": "Abrir panel UI (guided_lab, chat, backtest, scanner, etc.)",
+    },
+    "run_binance_alpha": {
+        "description": "Ejecutar ranking alpha Binance (MD público) y abrir Guided Lab",
+    },
+    "run_binance_pipeline": {
+        "description": "Ejecutar pipeline scan+backtest top-N Binance (read-only MD)",
     },
 }
 
@@ -274,6 +308,9 @@ class ToolRegistry:
             "get_session_summary": self._get_session_summary,
             "list_reports": self._list_reports,
             "list_strategies": self._list_strategies,
+            "open_pane": self._open_pane,
+            "run_binance_alpha": self._run_binance_alpha,
+            "run_binance_pipeline": self._run_binance_pipeline,
         }[tool]
         return handler(params)
 
@@ -508,5 +545,99 @@ class ToolRegistry:
             "strategies": strategies,
             "live_blocked": LIVE_BLOCKED is True,
             "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _open_pane(self, args: dict[str, Any]) -> dict[str, Any]:
+        raw = args.get("pane") or args.get("pane_id") or args.get("panel") or "guided_lab"
+        if not isinstance(raw, str) or not raw.strip():
+            raise ValidationError("open_pane: pane requerido")
+        pane = raw.strip().lower().replace("-", "_").replace(" ", "_")
+        aliases = {
+            "guided": "guided_lab",
+            "lab": "guided_lab",
+            "guide": "guided_lab",
+            "alpha": "guided_lab",
+            "binance": "guided_lab",
+            "ia": "chat",
+            "asistente": "chat",
+        }
+        pane = aliases.get(pane, pane)
+        if pane not in ALLOWED_PANES:
+            raise ValidationError(
+                f"open_pane: panel no permitido {pane!r}. "
+                f"Válidos: {', '.join(sorted(ALLOWED_PANES))}"
+            )
+        return {
+            "ok": True,
+            "kind": "open_pane",
+            "pane": pane,
+            "ui_actions": [{"type": "open_pane", "pane": pane}],
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _run_binance_alpha(self, args: dict[str, Any]) -> dict[str, Any]:
+        top_n = args.get("top_n", 5)
+        if not isinstance(top_n, int):
+            top_n = 5
+        result = lab_services.run_binance_lab_scanner(top_n=top_n, symbol_limit=15)
+        stored = self._state.store_lab_result(result)
+        symbols = list(stored.get("selected_symbols") or [])
+        self._state.chat_instructor_ctx = {
+            "lesson": "alpha_binance",
+            "symbols": symbols,
+            "awaiting": "mm_pick",
+        }
+        return {
+            "ok": True,
+            "kind": "binance_scanner",
+            "selected_symbols": symbols,
+            "n_symbols_fetched": stored.get("n_symbols_fetched"),
+            "scores_preview": (stored.get("scores") or [])[:5],
+            "ui_actions": [
+                {"type": "open_pane", "pane": "guided_lab"},
+                {"type": "toast", "message": "Alpha Binance listo: " + ", ".join(symbols[:5])},
+            ],
+            "live_routing": False,
+            "read_only": True,
+            "chat_mutations": False,
+        }
+
+    def _run_binance_pipeline(self, args: dict[str, Any]) -> dict[str, Any]:
+        strategy_id = str(args.get("strategy_id") or args.get("strategy") or "inventory_mm")
+        top_n = args.get("top_n", 5)
+        if not isinstance(top_n, int):
+            top_n = 5
+        result = lab_services.run_binance_lab_pipeline(
+            strategy_id=strategy_id,
+            top_n=top_n,
+            symbol_limit=15,
+            experiment_id_prefix="wb-chat-pipe",
+            reports_dir=self._state.ensure_lab_reports_dir(),
+        )
+        stored = self._state.store_lab_result(result)
+        scanner = stored.get("scanner") if isinstance(stored.get("scanner"), dict) else {}
+        symbols = list(scanner.get("selected_symbols") or [])
+        batch = stored.get("backtests") if isinstance(stored.get("backtests"), dict) else {}
+        return {
+            "ok": stored.get("ok") is True,
+            "kind": "binance_pipeline",
+            "strategy_id": stored.get("strategy_id"),
+            "selected_symbols": symbols,
+            "n_ok": batch.get("n_ok"),
+            "n_requested": batch.get("n_requested"),
+            "ui_actions": [
+                {"type": "open_pane", "pane": "guided_lab"},
+                {
+                    "type": "toast",
+                    "message": (
+                        f"Pipeline {strategy_id}: "
+                        f"{batch.get('n_ok', 0)}/{batch.get('n_requested', 0)} ok"
+                    ),
+                },
+            ],
+            "live_routing": False,
+            "read_only": True,
             "chat_mutations": False,
         }

@@ -109,8 +109,8 @@ def complete_with_llm(
     history: list[dict[str, str]],
     user_message: str,
     tools: ToolRegistry,
-) -> tuple[str, list[str]]:
-    """Una o más rondas chat/completions con tool calls (allowlist)."""
+) -> tuple[str, list[str], list[dict[str, Any]]]:
+    """Una o más rondas chat/completions. Retorna (reply, tools_used, ui_actions)."""
     api_key = os.environ.get("QUANTLAB_LLM_API_KEY", "").strip()
     if not api_key or api_key in {"DISABLED", "0", "false", "FALSE", "none", "NONE"}:
         raise ValidationError("QUANTLAB_LLM_API_KEY no configurada")
@@ -122,8 +122,11 @@ def complete_with_llm(
     messages.append({"role": "user", "content": user_message})
 
     tools_used: list[str] = []
+    ui_actions: list[dict[str, Any]] = []
     url = f"{base}/chat/completions"
     headers = {"Authorization": f"Bearer {api_key}"}
+    provider = os.environ.get("QUANTLAB_LLM_PROVIDER", "").strip().lower()
+    prefer_plain = provider in {"nvidia", "gemini"} or "nvidia.com" in base or "googleapis.com" in base
 
     for round_i in range(_MAX_TOOL_ROUNDS):
         payload: dict[str, Any] = {
@@ -131,15 +134,31 @@ def complete_with_llm(
             "messages": messages,
             "temperature": 0.4,
         }
-        # Tools: algunos free tiers fallan con tool_choice; reintentar sin tools.
-        if round_i == 0 or tools_used:
+        use_tools = (not prefer_plain) or (round_i > 0 and tools_used)
+        # Si el usuario pide abrir/correr, forzar tools aunque sea nvidia/gemini
+        lower_msg = user_message.lower()
+        if any(
+            w in lower_msg
+            for w in (
+                "corré",
+                "corre ",
+                "ejecut",
+                "haceme",
+                "abrí",
+                "abri ",
+                "abrir",
+                "run alpha",
+                "run pipeline",
+            )
+        ):
+            use_tools = True
+        if use_tools:
             payload["tools"] = _tool_specs()
             payload["tool_choice"] = "auto"
         try:
             data = _post_json(url, headers, payload)
         except ValidationError as exc:
-            if "tools" in payload and round_i == 0:
-                # Fallback: chat simple sin function-calling
+            if "tools" in payload:
                 payload.pop("tools", None)
                 payload.pop("tool_choice", None)
                 data = _post_json(url, headers, payload)
@@ -174,6 +193,11 @@ def complete_with_llm(
                     args = {}
                 result = tools.call(name, args)
                 tools_used.append(name)
+                raw_actions = result.get("ui_actions") if isinstance(result, dict) else None
+                if isinstance(raw_actions, list):
+                    for act in raw_actions:
+                        if isinstance(act, dict):
+                            ui_actions.append(act)
                 messages.append(
                     {
                         "role": "tool",
@@ -185,7 +209,7 @@ def complete_with_llm(
 
         content = msg.get("content")
         if isinstance(content, str) and content.strip():
-            return content.strip(), tools_used
+            return content.strip(), tools_used, ui_actions
         raise ValidationError("LLM respuesta vacía")
 
     raise ValidationError("LLM excedió rondas de tools")

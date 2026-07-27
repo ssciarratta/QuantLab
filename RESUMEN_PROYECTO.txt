@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión código actual: 1.01.0 (F111 Binance alpha + pipeline + chat copilot)
+Versión código actual: 1.01.0 (F111–F114 tip interno · Workbench UX)
 
 >>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
 >>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
@@ -9,23 +9,34 @@ Versión código actual: 1.01.0 (F111 Binance alpha + pipeline + chat copilot)
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos
-- F19–F111: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab v1.01: ranking alpha Binance · pipeline backtest top-5 · chat copilot chips
-- Doc operador: docs/GUIA_COMPLETA_QUANTLAB.md (copiable a otra IA)
+- F19–F111+: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab v1.01: ranking alpha Binance · pipeline backtest top-5 · chat asistente
+- Chat: memoria multi-turno · LLM NVIDIA/Gemini/OpenAI opt-in · tools abrir/correr (sin órdenes)
+- UI: escala de fuente A−/A+ · resize por bordes · tooltips flotantes 1–2 líneas
+- Doc operador: docs/GUIA_COMPLETA_QUANTLAB.md
 - LIVE_BLOCKED=True sin unlock · sin producción Binance · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F111 (1.01.0): Binance klines + AlphaScanner + pipeline + chat instructor (alpha→MM)
-F110 (1.00.0): Milestone freeze arco Guided F99–F109
-F109: LIVE demo cancel + LIMIT + mirror_to_paper
+2026-07-27 — Sync Workbench UX + chat actions
+- Resize ventanas por bordes N/S/E/W + esquina SE (wm.js)
+- Tooltips data-tip + tips.js + i18n tip.* (es/en)
+- Chat: open_pane / run_binance_alpha / run_binance_pipeline + ui_actions
+- Font scale global (settings ui_font_scale, default 1.15)
+- Arranque: arrancar_quantlab.bat / scripts/arrancar_workbench.py (mata :8765)
 
 PRÓXIMO PASO
 ------------
-- Validación manual pipeline Binance con red (Guided Lab venue binance)
-F113: Chat asistente con memoria multi-turno + LLM OpenAI-compatible opt-in
+- F5 en http://127.0.0.1:8765 tras sync (static + tips)
+- Validación manual pipeline Binance con red
 - Certificados externos F19+ solo con Meta-Auditor
 
 INVARIANTES
 -----------
 LIVE_BLOCKED=True · REAL=PAPER · sin api.binance.com órdenes · sin FASE_*_APPROVED INTERNAL
+
+ARRANQUE
+--------
+arrancar_quantlab.bat
+# o: .venv\Scripts\python.exe scripts\arrancar_workbench.py
+# URL: http://127.0.0.1:8765

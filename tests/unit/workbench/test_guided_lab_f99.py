@@ -17,8 +17,8 @@ def _static_root() -> Path:
 
 def test_live_blocked_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert __version__ == "1.01.0"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert not Path("docs/audit/FASE_99_APPROVED.md").exists()
 
 
@@ -51,26 +51,34 @@ def test_static_guided_lab_pane_present() -> None:
 
 
 def test_pane_never_enables_live() -> None:
+    import re
+
     js = (_static_root() / "js" / "panes" / "guided_lab.js").read_text(encoding="utf-8")
-    for banned in ("setLive", "flip_live", "place_order"):
+    for banned in ("setLive", "flip_live"):
         assert banned not in js
-    # Lab + live unlock + binance MD + demo submit + A3 paper connect (F104)
-    allowed_prefixes = (
-        "QLApi.labScanner",
-        "QLApi.labBacktest",
-        "QLApi.liveStatus",
-        "QLApi.liveUnlock",
-        "QLApi.liveLock",
-        "QLApi.binanceScan",
-        "QLApi.liveDemoSubmit",
-        "QLApi.liveDemoFills",
-        "QLApi.connect",
-        "QLApi.instruments",
-        "QLApi.a3MdStatus",
-        "QLApi.snapshot",
-    )
-    allowed = sum(js.count(p) for p in allowed_prefixes)
-    assert js.count("QLApi.") == allowed
+    # Lab + live unlock + binance MD + demo + A3 paper (F104+) — sin flip LIVE.
+    # intent_type "place_order" en paperSubmit es paper-only (permitido).
+    allowed = {
+        "labScanner",
+        "labBacktest",
+        "liveStatus",
+        "liveUnlock",
+        "liveLock",
+        "binanceScan",
+        "binanceScanner",
+        "binancePipeline",
+        "liveDemoSubmit",
+        "liveDemoFills",
+        "liveDemoCancel",
+        "liveDemoOpenOrders",
+        "connect",
+        "instruments",
+        "a3MdStatus",
+        "snapshot",
+        "paperSubmit",
+    }
+    used = set(re.findall(r"QLApi\.([A-Za-z_][A-Za-z0-9_]*)", js))
+    assert used <= allowed, f"QLApi no permitidos: {sorted(used - allowed)}"
     assert 'QLApi.connect("a3"' in js
 
 

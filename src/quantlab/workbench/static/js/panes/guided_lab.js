@@ -29,8 +29,8 @@
       '<div class="pane-row">' +
       '<input type="text" id="gl-user" placeholder="usuario" autocomplete="username">' +
       '<input type="password" id="gl-pass" placeholder="contraseña" autocomplete="current-password">' +
-      '<button type="button" class="btn secondary" id="gl-unlock" data-i18n="guided_lab.unlock.btn">Unlock</button>' +
-      '<button type="button" class="btn secondary" id="gl-lock" data-i18n="guided_lab.lock.btn">Lock</button>' +
+      '<button type="button" class="btn secondary" id="gl-unlock" data-i18n="guided_lab.unlock.btn" data-tip="Valida usuario/contraseña LIVE locales.\nSin unlock el demo sigue bloqueado." data-i18n-tip="tip.gl.unlock">Unlock</button>' +
+      '<button type="button" class="btn secondary" id="gl-lock" data-i18n="guided_lab.lock.btn" data-tip="Vuelve a LIVE_BLOCKED.\nCorta el camino demo hasta nuevo unlock." data-i18n-tip="tip.gl.lock">Lock</button>' +
       "</div>" +
       '<span class="mono muted" id="gl-unlock-status">—</span>' +
       "</div>" +
@@ -48,10 +48,10 @@
       '<option value="fake" data-i18n="guided_lab.a3.md_fake">fake (CI)</option>' +
       '<option value="env" data-i18n="guided_lab.a3.md_env">env (read-only)</option>' +
       "</select></label>" +
-      '<button type="button" class="btn secondary" id="gl-a3-status-btn" data-i18n="guided_lab.a3.status_btn">Estado MD A3</button>' +
-      '<button type="button" class="btn secondary" id="gl-a3-connect" data-i18n="guided_lab.a3.connect">Conectar paper A3</button>' +
-      '<button type="button" class="btn secondary" id="gl-a3-instr" data-i18n="guided_lab.a3.instruments">Listar instrumentos</button>' +
-      '<button type="button" class="btn secondary" id="gl-a3-snap" data-i18n="guided_lab.a3.snapshot">Snapshot</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-status-btn" data-i18n="guided_lab.a3.status_btn" data-tip="Consulta estado del MD A3 (fake/env).\nRead-only; no envía órdenes." data-i18n-tip="tip.gl.a3_status">Estado MD A3</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-connect" data-i18n="guided_lab.a3.connect" data-tip="Conecta PaperBroker A3 en esta sesión.\nSin routing a venue real." data-i18n-tip="tip.gl.a3_connect">Conectar paper A3</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-instr" data-i18n="guided_lab.a3.instruments" data-tip="Lista instrumentos disponibles en A3.\nÚtil antes del snapshot." data-i18n-tip="tip.gl.a3_instr">Listar instrumentos</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-snap" data-i18n="guided_lab.a3.snapshot" data-tip="Toma un snapshot MD del símbolo elegido.\nSolo lectura." data-i18n-tip="tip.gl.a3_snap">Snapshot</button>' +
       '<input type="text" id="gl-a3-sym" placeholder="símbolo" style="width:7em">' +
       '<span class="mono muted" id="gl-a3-status">—</span>' +
       "</div>" +
@@ -59,7 +59,7 @@
       '<div class="pane-row" style="margin-top:0.5em">' +
       '<select id="gl-a3-side"><option value="BUY">BUY</option><option value="SELL">SELL</option></select>' +
       '<input type="text" id="gl-a3-qty" value="1" style="width:5em" placeholder="qty">' +
-      '<button type="button" class="btn" id="gl-a3-paper" data-i18n="guided_lab.a3.paper_submit">Enviar paper (A3)</button>' +
+      '<button type="button" class="btn" id="gl-a3-paper" data-i18n="guided_lab.a3.paper_submit" data-tip="Envía una orden paper vía A3.\nNo hay routing a exchange real." data-i18n-tip="tip.gl.a3_paper">Enviar paper (A3)</button>' +
       '<span class="mono muted" id="gl-a3-paper-status">—</span>' +
       "</div>" +
       '<p class="muted" data-i18n="guided_lab.a3.footer">A3 = PaperBroker (sin routing venue). MD env: QUANTLAB_A3_MD_READONLY=1 + creds.</p>' +
@@ -68,10 +68,10 @@
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.scan">2. Escanear</h3>' +
       '<div class="pane-row">' +
-      '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab">Scan lab sintético</button>' +
-      '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none">Scan Binance USDT</button>' +
-      '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none">Ranking alpha Binance</button>' +
-      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none">Backtest top 5 Binance</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab" data-tip="Escanea el lab sintético local.\nSin red externa." data-i18n-tip="tip.gl.scan_lab">Scan lab sintético</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none" data-tip="Escanea pares USDT vía MD público Binance.\nSolo lectura; sin API de trading." data-i18n-tip="tip.gl.scan_bn">Scan Binance USDT</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none" data-tip="Ranking alpha con klines Binance.\nOrdena candidatos research." data-i18n-tip="tip.gl.scan_alpha">Ranking alpha Binance</button>' +
+      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Pipeline: ranking → backtest de los top 5.\nEstrategia elegida abajo; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 Binance</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
@@ -89,7 +89,7 @@
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.simulate">4. Simular (paper)</h3>' +
       '<div class="pane-row">' +
-      '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run">Simular backtest</button>' +
+      '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Simula un backtest paper con la estrategia elegida.\nNo envía órdenes a venue." data-i18n-tip="tip.gl.run">Simular backtest</button>' +
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
@@ -107,13 +107,13 @@
       '<label class="muted" style="display:flex;align-items:center;gap:0.35rem">' +
       '<input type="checkbox" id="gl-demo-mirror">' +
       '<span data-i18n="guided_lab.demo.mirror">Mirror a paper journal</span></label>' +
-      '<button type="button" class="btn" id="gl-demo-submit" data-i18n="guided_lab.demo.submit">Enviar demo</button>' +
+      '<button type="button" class="btn" id="gl-demo-submit" data-i18n="guided_lab.demo.submit" data-tip="Envía orden demo post-unlock.\nDefault: sim local; testnet solo con flag+keys." data-i18n-tip="tip.gl.demo_submit">Enviar demo</button>' +
       '<span class="mono muted" id="gl-demo-status">—</span>' +
       "</div>" +
       '<div class="pane-row">' +
       '<input type="text" id="gl-demo-cancel-id" placeholder="order_id" style="width:8em">' +
-      '<button type="button" class="btn secondary" id="gl-demo-cancel" data-i18n="guided_lab.demo.cancel">Cancelar orden</button>' +
-      '<button type="button" class="btn secondary" id="gl-demo-open" data-i18n="guided_lab.demo.open_orders">Ver abiertas</button>' +
+      '<button type="button" class="btn secondary" id="gl-demo-cancel" data-i18n="guided_lab.demo.cancel" data-tip="Cancela una orden demo por order_id.\nRequiere unlock activo." data-i18n-tip="tip.gl.demo_cancel">Cancelar orden</button>' +
+      '<button type="button" class="btn secondary" id="gl-demo-open" data-i18n="guided_lab.demo.open_orders" data-tip="Lista órdenes demo abiertas.\nSolo tras unlock." data-i18n-tip="tip.gl.demo_open">Ver abiertas</button>' +
       "</div>" +
       '<div class="mono" id="gl-demo-out">—</div>' +
       "</div>";

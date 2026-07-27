@@ -114,6 +114,7 @@ class ChatOrchestrator:
             "ok": True,
             "reply": turn.reply,
             "tools_used": list(turn.tools_used),
+            "actions": list(turn.actions),
             "mode": self._state.mode.value,
             "live_blocked": LIVE_BLOCKED is True,
             "safe_mode": True,
