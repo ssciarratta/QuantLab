@@ -1,22 +1,23 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Monte Carlo FASE 1 modelos
+Versión: 1.01.0 · Monte Carlo UX/trazabilidad v2
 
 ESTADO
 ------
-- LIVE_BLOCKED=True · REAL=PAPER
-- Monte Carlo FASE 0–1 DONE (audit + contratos tipados)
+- LIVE_BLOCKED=True
+- Alpha: F0–10 + walk-forward pipeline
+- Monte Carlo: F0–9 código (schema v2, UI enriquecida, histograma)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-FASE 1: MonteCarloExperimentContext / Config / Metrics + método
-price_shock_rerun único; CI wald_mean; as_of_time anti look-ahead.
-Status: docs/progress/montecarlo-improvement-status.md
+MC: context/config/metrics + persist hashes + UI cabecera/explicación/cards
+API: seed, scan_id, backtest_id, store_paths
+Compat lectura schema v1 → “No disponible”
 
 PRÓXIMO
 -------
-FASE 2+ MC: persistencia trazable → UI → tests/docs
+Navegación profunda Scan/BT; docs informe UX final; más tests F11
 
 INVARIANTES
 -----------

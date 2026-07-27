@@ -1,9 +1,10 @@
-"""Persistencia de corridas Monte Carlo por sesión — F34."""
+"""Persistencia de corridas Monte Carlo por sesión — F34 + trazabilidad v2."""
 
 from __future__ import annotations
 
 import json
 import re
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -12,11 +13,18 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.serialization import to_jsonable
 from quantlab.data.atomic_io import atomic_write_text
 from quantlab.execution.live_gate import LIVE_BLOCKED
+from quantlab.montecarlo.traceability import (
+    MONTECARLO_SCHEMA_VERSION_CURRENT,
+    hash_mapping,
+    normalize_montecarlo_payload,
+)
 
-MONTECARLO_SCHEMA_VERSION = 1
 MAX_MONTECARLO_LIST = 100
 _RUN_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 _SUMMARY_NAME = "summary.json"
+
+# Re-export para callers legacy.
+MONTECARLO_SCHEMA_VERSION = MONTECARLO_SCHEMA_VERSION_CURRENT
 
 
 def validate_run_id(run_id: str) -> str:
@@ -61,7 +69,7 @@ def persist_montecarlo_run(
     *,
     run_id: str | None = None,
 ) -> dict[str, Any]:
-    """Persiste summary JSON bajo ``montecarlo/<run_id>/summary.json``."""
+    """Persiste summary JSON bajo ``montecarlo/<run_id>/summary.json`` (schema v2)."""
     if not LIVE_BLOCKED:
         raise ValidationError("LIVE_BLOCKED debe ser True; abortando montecarlo persist")
     created_at = datetime.now(tz=UTC)
@@ -70,7 +78,7 @@ def persist_montecarlo_run(
     out_dir.mkdir(parents=True, exist_ok=True)
 
     body = dict(payload)
-    body["schema_version"] = MONTECARLO_SCHEMA_VERSION
+    body["schema_version"] = MONTECARLO_SCHEMA_VERSION_CURRENT
     body["run_id"] = rid
     body.setdefault("created_at", created_at.isoformat())
     body["persisted"] = True
@@ -78,12 +86,33 @@ def persist_montecarlo_run(
     body["live_routing"] = False
     body["live_blocked"] = True
 
+    # Hashes de reproducibilidad
+    cfg = body.get("config") if isinstance(body.get("config"), dict) else {}
+    body["config_hash"] = hash_mapping(cfg) if cfg else body.get("config_hash")
+    ctx = body.get("context") if isinstance(body.get("context"), dict) else {}
+    if isinstance(ctx, dict) and ctx.get("run_id") is None:
+        ctx = dict(ctx)
+        ctx["run_id"] = rid
+        body["context"] = ctx
+    relations = body.get("relations") if isinstance(body.get("relations"), dict) else {}
+    relations = dict(relations)
+    relations.setdefault("config_hash", body.get("config_hash"))
+    if isinstance(ctx, dict):
+        relations.setdefault("backtest_id", ctx.get("backtest_id"))
+        relations.setdefault("scan_id", ctx.get("scan_id"))
+        relations.setdefault("dataset_id", ctx.get("dataset_id"))
+        relations.setdefault("strategy_config_id", ctx.get("strategy_config_id"))
+        relations.setdefault("strategy_params_hash", ctx.get("strategy_params_hash"))
+        relations.setdefault("dataset_hash", ctx.get("dataset_hash"))
+        relations.setdefault("code_commit", ctx.get("code_commit"))
+    body["relations"] = relations
+
     jsonable = to_jsonable(body)
     if not isinstance(jsonable, dict):
         raise ValidationError("montecarlo payload serialización inválida")
     text = json.dumps(jsonable, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     atomic_write_text(out_dir / _SUMMARY_NAME, text)
-    return jsonable
+    return normalize_montecarlo_payload(jsonable)
 
 
 def list_montecarlo_runs(montecarlo_root: Path) -> dict[str, Any]:
@@ -103,17 +132,27 @@ def list_montecarlo_runs(montecarlo_root: Path) -> dict[str, Any]:
                 continue
             if not isinstance(raw, dict):
                 continue
+            norm = normalize_montecarlo_payload(raw)
+            ctx = norm.get("context") if isinstance(norm.get("context"), dict) else {}
             runs.append(
                 {
-                    "run_id": raw.get("run_id", folder.name),
-                    "created_at": raw.get("created_at"),
-                    "n_scenarios": raw.get("n_scenarios"),
-                    "n_bars": raw.get("n_bars"),
-                    "seed": raw.get("seed"),
-                    "mean_equity": raw.get("mean_equity"),
-                    "std_equity": raw.get("std_equity"),
-                    "ci_low": raw.get("ci_low"),
-                    "ci_high": raw.get("ci_high"),
+                    "run_id": norm.get("run_id", folder.name),
+                    "created_at": norm.get("created_at"),
+                    "n_scenarios": norm.get("n_scenarios"),
+                    "n_bars": norm.get("n_bars"),
+                    "seed": norm.get("seed"),
+                    "mean_equity": norm.get("mean_equity"),
+                    "std_equity": norm.get("std_equity"),
+                    "ci_low": norm.get("ci_low"),
+                    "ci_high": norm.get("ci_high"),
+                    "method": norm.get("method"),
+                    "strategy_id": ctx.get("strategy_id"),
+                    "symbols": ctx.get("symbols"),
+                    "timeframe": ctx.get("timeframe"),
+                    "backtest_id": ctx.get("backtest_id"),
+                    "scan_id": ctx.get("scan_id"),
+                    "orphan_technical_mode": ctx.get("orphan_technical_mode"),
+                    "schema_version": norm.get("schema_version"),
                     "path": str((folder / _SUMMARY_NAME).resolve()),
                 }
             )
@@ -143,4 +182,22 @@ def get_montecarlo_run(montecarlo_root: Path, run_id: str) -> dict[str, Any]:
     raw = json.loads(summary.read_text(encoding="utf-8"))
     if not isinstance(raw, dict):
         raise ValidationError("summary.json inválido")
-    return raw
+    return normalize_montecarlo_payload(raw)
+
+
+def delete_montecarlo_run(montecarlo_root: Path, run_id: str) -> dict[str, Any]:
+    """Elimina corrida completa del sandbox de sesión."""
+    if not LIVE_BLOCKED:
+        raise ValidationError("LIVE_BLOCKED debe ser True; abortando montecarlo delete")
+    rid = validate_run_id(run_id)
+    target = _safe_run_dir(montecarlo_root, rid)
+    if not target.is_dir():
+        raise ValidationError(f"montecarlo run no encontrado: {rid}")
+    shutil.rmtree(target)
+    return {
+        "ok": True,
+        "kind": "montecarlo_deleted",
+        "run_id": rid,
+        "live_routing": False,
+        "live_blocked": True,
+    }

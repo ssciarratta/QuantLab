@@ -3150,24 +3150,50 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
     n_scenarios = body.get("n_scenarios", 5)
     n_bars = body.get("n_bars", 16)
     noise_bps = body.get("noise_bps", 10.0)
+    seed = body.get("seed", 42)
+    scan_id = body.get("scan_id")
+    backtest_id = body.get("backtest_id")
+    strategy_id = body.get("strategy_id", "buy_once")
+    store_paths = body.get("store_paths", False)
     if not isinstance(n_scenarios, int):
         raise ApiError(400, "n_scenarios debe ser int")
     if not isinstance(n_bars, int):
         raise ApiError(400, "n_bars debe ser int")
     if not isinstance(noise_bps, (int, float)):
         raise ApiError(400, "noise_bps debe ser número")
+    if not isinstance(seed, int):
+        raise ApiError(400, "seed debe ser int")
+    if scan_id is not None and not isinstance(scan_id, str):
+        raise ApiError(400, "scan_id debe ser string")
+    if backtest_id is not None and not isinstance(backtest_id, str):
+        raise ApiError(400, "backtest_id debe ser string")
+    if not isinstance(strategy_id, str) or not strategy_id.strip():
+        raise ApiError(400, "strategy_id inválido")
+    if not isinstance(store_paths, bool):
+        raise ApiError(400, "store_paths debe ser bool")
     persist = body.get("persist", True)
     if not isinstance(persist, bool):
         raise ApiError(400, "persist debe ser bool")
     if "path" in body or "montecarlo_root" in body or "target_path" in body:
         raise ApiError(400, "path externo no permitido; montecarlo solo a sandbox de sesión")
     try:
+        session = state.ensure_session()
         result = lab_services.run_lab_montecarlo(
             n_scenarios=n_scenarios,
             n_bars=n_bars,
             noise_bps=float(noise_bps),
+            seed=seed,
             persist=persist,
             montecarlo_root=state.ensure_lab_montecarlo_dir() if persist else None,
+            session_id=session.session_id,
+            scan_id=scan_id.strip() if isinstance(scan_id, str) and scan_id.strip() else None,
+            backtest_id=(
+                backtest_id.strip()
+                if isinstance(backtest_id, str) and backtest_id.strip()
+                else None
+            ),
+            strategy_id=strategy_id.strip(),
+            store_paths=store_paths,
         )
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc

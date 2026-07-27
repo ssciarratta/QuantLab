@@ -1127,37 +1127,122 @@ def run_lab_montecarlo(
     n_scenarios: int = 5,
     n_bars: int = 16,
     noise_bps: float = 10.0,
+    seed: int = 42,
     persist: bool = True,
     montecarlo_root: Path | None = None,
+    session_id: str | None = None,
+    scan_id: str | None = None,
+    backtest_id: str | None = None,
+    strategy_id: str = "buy_once",
+    store_paths: bool = False,
 ) -> dict[str, Any]:
+    """Mini MC lab: barras sintéticas 1m + BuyOnce (trazable schema v2).
+
+    ``n_bars`` = cantidad de velas 1m del dataset sintético (no #escenarios).
+    """
+    from quantlab.montecarlo.models import METHOD_DISCLAIMER, MonteCarloConfig
+    from quantlab.montecarlo.traceability import (
+        build_lab_context,
+        hash_bars,
+        hash_mapping,
+        normalize_montecarlo_payload,
+    )
+
     if n_scenarios < 2 or n_scenarios > 20:
         raise ValidationError("n_scenarios debe estar entre 2 y 20 (mini)")
     if n_bars < 8 or n_bars > 60:
         raise ValidationError("n_bars debe estar entre 8 y 60")
+    if noise_bps < 0:
+        raise ValidationError("noise_bps debe ser >= 0")
+    if n_scenarios > 10:
+        # warning informativo en payload; no bloquea
+        size_warning = (
+            f"N={n_scenarios} es alto para el modo mini lab (máx 20); "
+            "el IC de la media se estrecha pero cuantiles son ruidosos."
+        )
+    else:
+        size_warning = None
+
     bars = make_synthetic_bars(n_bars)
+    initial_cash = Decimal("50000")
+    strategy_params = {"quantity": "1"}
 
     def runner(noisy: Any) -> SimulationResult:
         bt = BarBacktester(
-            BarBacktestConfig(experiment_id="wb-mc", initial_cash=Decimal("50000")),
+            BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
             fee_model=binance_spot_fee_model(),
         )
-        return bt.run(BuyOnceStrategy({"quantity": "1"}), noisy).simulation
+        return bt.run(BuyOnceStrategy(strategy_params), noisy).simulation
 
-    mc = MonteCarloSimulator(seed=42)
-    result = mc.run(bars, runner, n_scenarios=n_scenarios, noise_bps=noise_bps)
+    cfg = MonteCarloConfig(
+        n_scenarios=n_scenarios,
+        n_bars=n_bars,
+        seed=seed,
+        noise_bps=noise_bps,
+        persist_result=persist,
+    )
+    mc = MonteCarloSimulator(seed=seed)
+    result = mc.run(
+        bars,
+        runner,
+        config=cfg,
+        store_paths=store_paths,
+        max_paths_stored=16,
+        initial_equity=float(initial_cash),
+    )
+    ctx = build_lab_context(
+        session_id=session_id,
+        scan_id=scan_id,
+        backtest_id=backtest_id,
+        strategy_id=strategy_id,
+        strategy_params=strategy_params,
+        symbols=(bars[0].instrument_id,) if bars else ("WB:SYN",),
+        timeframe="1m",
+        dataset_source="synthetic",
+        dataset_id="wb-synthetic",
+        dataset_hash=hash_bars(bars),
+        initial_equity=float(initial_cash),
+        fee_model="binance_spot_vip0",
+        orphan=scan_id is None and backtest_id is None,
+    )
+    cfg_dict = cfg.to_dict()
+    metrics_dict = result.metrics.to_dict() if result.metrics else {}
     payload: dict[str, Any] = {
         "ok": True,
         "kind": "montecarlo",
+        "method": cfg.method.value,
+        "disclaimer": METHOD_DISCLAIMER,
         "n_scenarios": result.n_scenarios,
         "n_bars": n_bars,
+        "dataset_bar_count": n_bars,
+        "bar_horizon_label": cfg.bar_horizon_label("1m"),
         "noise_bps": float(noise_bps),
         "seed": result.seed,
         "mean_equity": result.mean_equity,
         "std_equity": result.std_equity,
         "ci_low": result.ci_low,
         "ci_high": result.ci_high,
-        "ci_level": 0.95,
+        "ci_level": result.ci_level,
+        "ci_kind": "wald_mean",
         "final_equities": list(result.final_equities),
+        "equity_paths": (
+            [list(p) for p in result.equity_paths] if result.equity_paths else None
+        ),
+        "context": ctx.to_dict(),
+        "config": cfg_dict,
+        "metrics": metrics_dict,
+        "config_hash": hash_mapping(cfg_dict),
+        "relations": {
+            "backtest_id": ctx.backtest_id,
+            "scan_id": ctx.scan_id,
+            "dataset_id": ctx.dataset_id,
+            "strategy_config_id": ctx.strategy_config_id,
+            "strategy_params_hash": ctx.strategy_params_hash,
+            "dataset_hash": ctx.dataset_hash,
+            "config_hash": hash_mapping(cfg_dict),
+            "code_commit": ctx.code_commit,
+        },
+        "warnings": [w for w in (size_warning, ctx.orphan_warning) if w],
         "persisted": False,
         "run_id": None,
         "path": None,
@@ -1170,6 +1255,8 @@ def run_lab_montecarlo(
         if not LIVE_BLOCKED:
             raise ValidationError("LIVE_BLOCKED debe ser True; abortando montecarlo persist")
         payload = persist_montecarlo_run(Path(montecarlo_root), payload)
+    else:
+        payload = normalize_montecarlo_payload(payload)
     return payload
 
 
