@@ -91,13 +91,29 @@
       '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Ranking en ~70% inicial + backtest en tramo posterior (walk-forward).\nKlines HISTÓRICAS Binance; paper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
-      '<div class="pane-row" id="gl-alpha-opts" style="display:none;margin-top:0.4rem;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
-      '<label class="muted">perfil ' +
+      '<div id="gl-alpha-opts" style="display:none;margin-top:0.4rem">' +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;align-items:center">' +
+      '<label class="muted"><span data-i18n="guided_lab.alpha.profile">perfil scoring</span> ' +
       '<select id="gl-alpha-profile">' +
-      '<option value="legacy_v1" selected>legacy_v1</option>' +
+      '<option value="legacy_v1" selected>legacy_v1 (default lab)</option>' +
       "</select></label>" +
-      '<label class="muted"><input type="checkbox" id="gl-alpha-advanced"> modo avanzado</label>' +
-      '<span class="muted" style="font-size:0.85em">score ≠ rentabilidad</span>' +
+      '<label class="muted"><input type="checkbox" id="gl-alpha-advanced"> ' +
+      '<span data-i18n="guided_lab.alpha.advanced">modo avanzado</span></label>' +
+      '<label class="muted" title="ON = ranking en tramo inicial, backtest en el posterior (sin overlap). OFF = misma ventana (in-sample).">' +
+      '<input type="checkbox" id="gl-walk-forward" checked> ' +
+      '<span data-i18n="guided_lab.wf.checkbox">walk-forward (rank ≠ BT)</span></label>' +
+      '<label class="muted" title="Fracción de velas para ranking (0.05–0.95). Default 0.70.">' +
+      '<span data-i18n="guided_lab.wf.rank_fraction">rank_fraction</span> ' +
+      '<input type="number" id="gl-rank-fraction" value="0.70" min="0.05" max="0.95" step="0.05" style="width:3.5em">' +
+      "</label>" +
+      '<span class="muted" style="font-size:0.85em" data-i18n="guided_lab.alpha.score_note">score ≠ rentabilidad</span>' +
+      "</div>" +
+      '<p class="muted" id="gl-wf-legend" style="margin:0.35rem 0 0;font-size:0.85em" data-i18n="guided_lab.wf.legend">' +
+      "<strong>Leyenda walk-forward:</strong> ON (default) — ranking en la 1ª fracción " +
+      "(rank_fraction, p.ej. 70%) de las velas; backtest en el tramo posterior, sin overlap. " +
+      "Desmarcar = opt-out → misma ventana rank+BT (selección in-sample; sesgo). " +
+      "No garantiza rentabilidad OOS. LIVE_BLOCKED." +
+      "</p>" +
       "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
       "</div>" +
@@ -463,6 +479,28 @@
       }
     }
 
+    function syncWalkForwardUi() {
+      const wfEl = root.querySelector("#gl-walk-forward");
+      const rfEl = root.querySelector("#gl-rank-fraction");
+      if (!rfEl) return;
+      const on = !wfEl || wfEl.checked;
+      rfEl.disabled = !on;
+      rfEl.title = on
+        ? "Fracción de velas para ranking (0.05–0.95). Default 0.70."
+        : "Solo aplica con walk-forward ON.";
+    }
+
+    function pipelineWalkForwardOpts() {
+      const wfEl = root.querySelector("#gl-walk-forward");
+      const rfEl = root.querySelector("#gl-rank-fraction");
+      const walkForward = !wfEl || wfEl.checked;
+      let rankFraction = rfEl ? Number(rfEl.value) : 0.7;
+      if (!(rankFraction >= 0.05 && rankFraction <= 0.95)) {
+        rankFraction = 0.7;
+      }
+      return { walk_forward: walkForward, rank_fraction: rankFraction };
+    }
+
     function loadAlphaProfiles() {
       const sel = root.querySelector("#gl-alpha-profile");
       if (!sel || !QLApi.alphaProfiles) return;
@@ -474,7 +512,7 @@
           profiles.forEach(function (p) {
             const opt = document.createElement("option");
             opt.value = p.name;
-            opt.textContent = p.name;
+            opt.textContent = p.label_es || p.name;
             if (p.description) opt.title = p.description;
             sel.appendChild(opt);
           });
@@ -829,11 +867,18 @@
         });
     });
 
+    const walkForwardEl = root.querySelector("#gl-walk-forward");
+    if (walkForwardEl) {
+      walkForwardEl.addEventListener("change", syncWalkForwardUi);
+    }
+    syncWalkForwardUi();
+
     root.querySelector("#gl-pipeline-bn").addEventListener("click", function () {
       const strategy = root.querySelector("#gl-strategy").value;
       const barOpts = binanceBarOpts();
       const profileEl = root.querySelector("#gl-alpha-profile");
       const profile = profileEl ? profileEl.value : "legacy_v1";
+      const wfOpts = pipelineWalkForwardOpts();
       runStatus.textContent = t("guided_lab.status.pipeline_binance", "pipeline Binance…");
       resultEl.innerHTML = "";
       QLApi.binancePipeline(
@@ -843,7 +888,8 @@
             top_n: 5,
             symbol_limit: 15,
             experiment_id: "wb-bn-pipe",
-            walk_forward: true,
+            walk_forward: wfOpts.walk_forward,
+            rank_fraction: wfOpts.rank_fraction,
             profile: profile,
           },
           barOpts
@@ -873,13 +919,17 @@
             : "últimas " +
               (scanner.kline_limit || barOpts.kline_limit) +
               " velas hasta ahora";
+          const rfShown =
+            wf.rank_fraction != null ? wf.rank_fraction : wfOpts.rank_fraction;
           const wfTxt = wf.enabled
-            ? "Walk-forward: rank " +
+            ? "Walk-forward ON · rank_fraction=" +
+              esc(rfShown) +
+              " · rank " +
               esc(wf.n_rank) +
               " barras → BT " +
               esc(wf.n_backtest) +
               " barras (sin overlap)."
-            : "Misma ventana rank+BT (in-sample).";
+            : "Walk-forward OFF · misma ventana rank+BT (in-sample).";
           scanOut.innerHTML =
             "<div class=\"bt-summary\">" +
             '<span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
@@ -914,6 +964,12 @@
             "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-real\">HISTÓRICO Binance</span></dd>" +
             "<dt>ventana</dt><dd class=\"mono\">" +
             esc(rangeTxt) +
+            "</dd>" +
+            "<dt>walk_forward</dt><dd class=\"mono\">" +
+            esc(wf.enabled === true ? "ON" : "OFF") +
+            "</dd>" +
+            "<dt>rank_fraction</dt><dd class=\"mono num\">" +
+            esc(wf.enabled ? rfShown : "n/a") +
             "</dd>" +
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +

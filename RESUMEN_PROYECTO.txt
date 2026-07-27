@@ -1,23 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Monte Carlo UX/trazabilidad v2
+Versión: 1.01.0 · Alpha Scanner WF UX
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha: F0–10 + walk-forward pipeline
-- Monte Carlo: F0–9 código (schema v2, UI enriquecida, histograma)
+- Alpha: F0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / label_es)
+- Monte Carlo: F0–9 código (otro hilo; no tocar)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Docs 2026-07-27: GUIA_COMPLETA + alpha-scanner-guide + montecarlo-guide
-(Alpha walk-forward default + Monte Carlo schema v2; CHANGELOG Unreleased)
-MC código previo: context/config/metrics + hashes + UI; compat v1
+Guided Lab: checkbox walk-forward (ON) + rank_fraction + leyenda
+GET /api/lab/alpha/profiles → label_es en selector
+Docs: alpha-scanner-guide.md (sección walk-forward) + progress status
 
 PRÓXIMO
 -------
-Navegación profunda Scan/BT; más tests F11; cierre formal auditoría pendiente
+Auditoría Alpha formal (sin certificado hasta APROBADO)
+MC: navegación profunda / informe UX (otro agente)
 
 INVARIANTES
 -----------

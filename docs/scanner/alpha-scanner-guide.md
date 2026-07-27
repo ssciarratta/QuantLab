@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-07-27  
 **Versión tip:** 1.01.0  
-**Estado código:** FASE 0–9 implementadas · cierre formal de auditoría **pendiente**
+**Estado código:** FASE 0–10 + walk-forward pipeline · cierre formal de auditoría **pendiente**
 
 ---
 
@@ -31,26 +31,35 @@ composite = 0.35·n(vol) + 0.35·n(volume) + 0.30·n(liquidity)
 | `funding` | funding/OI (renormaliza si faltan) |
 | `balanced` | mezcla + norm robusta |
 
-Catálogo: `GET /api/lab/alpha/profiles`
+Catálogo: `GET /api/lab/alpha/profiles`  
+Cada ítem incluye `name`, `description`, `label_es` (selector Guided Lab).
+
+## Walk-forward (pipeline Binance)
+
+Por defecto el pipeline `POST /api/lab/binance/pipeline` usa **walk-forward**:
+
+| Campo | Default | Rol |
+|-------|---------|-----|
+| `walk_forward` | `true` | Ranking en tramo inicial; backtest en tramo posterior |
+| `rank_fraction` | `0.70` | Fracción de velas para ranking (resto → BT) |
+
+- **Sin overlap** temporal entre rank y BT.
+- Requiere `kline_limit >= 16` cuando `walk_forward=true`.
+- Opt-out: `walk_forward=false` → misma ventana rank+BT (**selección in-sample**; sesgo).
+- Implementación: `research/alpha/walk_forward.py` · `lab_services.run_binance_lab_pipeline`.
+
+Guided Lab (venue Binance): checkbox **walk-forward (rank ≠ BT)** (ON por defecto), input **rank_fraction**, leyenda en el panel. El resumen del pipeline muestra `walk_forward` y `rank_fraction`.
+
+**Importante:** walk-forward reduce sesgo de selección in-sample; **no** garantiza rentabilidad out-of-sample.
 
 ## Exclusiones
 
 Motivos tipados (`fetch_failed`, `insufficient_history`, …).  
 Ausencia de funding/OI/depth → `None` (nunca 0 fingido).
 
-## Walk-forward (pipeline Binance)
-
-`POST /api/lab/binance/pipeline` con `walk_forward=True` (**default**):
-
-- ~70% barras → ranking / score
-- ~30% barras → backtest top-N
-- Sin overlap entre ventanas (`split_bars_walk_forward`)
-
-Con `walk_forward=False` rank y BT pueden compartir historia (selección in-sample; no recomendado).
-
 ## Limitaciones
 
-1. Con `walk_forward=False`, rank+backtest pueden compartir ventana (selección in-sample).
+1. Con `walk_forward=false`, pipeline rank+backtest comparte ventana (selección in-sample).
 2. Binance público sin `as_of` → no reproducible a fecha histórica exacta.
 3. HL/Bybit/OKX: capabilities declaradas; fetch MD **no** implementado.
 4. Spread sin order book = proxy HL/C.
@@ -58,9 +67,10 @@ Con `walk_forward=False` rank y BT pueden compartir historia (selección in-samp
 
 ## Archivos clave
 
-- `research/alpha/` — models, quality, universe, features, scoring, profiles, venues, persist, observe
+- `research/alpha/` — models, quality, universe, features, scoring, profiles, venues, persist, observe, walk_forward
 - `workbench/lab_services.run_binance_lab_scanner` — default legacy
-- Guided Lab — selector perfil + modo avanzado
+- `workbench/lab_services.run_binance_lab_pipeline` — walk-forward por defecto
+- Guided Lab — selector perfil (`label_es`) + modo avanzado + opt-out walk-forward
 
 ## Tests
 
@@ -82,4 +92,4 @@ Con `walk_forward=False` rank y BT pueden compartir historia (selección in-samp
 | 8 | UX Guided Lab |
 | 9 | Cache / progreso / cancel |
 | 10 | Esta guía |
-| Post | Walk-forward pipeline (rank ≠ BT) |
+| Post | Walk-forward pipeline + UI opt-out / rank_fraction |

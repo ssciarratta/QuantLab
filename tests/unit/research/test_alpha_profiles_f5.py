@@ -52,6 +52,19 @@ def test_catalog_has_expected_profiles() -> None:
         p = build_profile(n)
         assert p.factors
         assert abs(sum(f.weight for f in p.factors) - 1.0) < 1e-9
+        d = p.to_dict()
+        assert d["label_es"]
+        assert d["name"] in d["label_es"] or d["label_es"].startswith(d["name"])
+
+
+def test_profile_catalog_exposes_label_es() -> None:
+    from quantlab.research.alpha.profiles import profile_catalog
+
+    cat = profile_catalog()
+    assert len(cat) >= 7
+    assert all("label_es" in row and "description" in row for row in cat)
+    legacy = next(r for r in cat if r["name"] == PROFILE_LEGACY_V1)
+    assert "default lab" in legacy["label_es"]
 
 
 def test_legacy_profile_matches_alpha_scanner() -> None:

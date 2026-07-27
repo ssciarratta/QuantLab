@@ -30,6 +30,17 @@ PROFILE_BALANCED = "balanced"
 
 PROFILE_VERSION = "profiles-v1"
 
+# Labels cortos ES para selector Guided Lab / GET profiles.
+PROFILE_LABELS_ES: dict[str, str] = {
+    PROFILE_LEGACY_V1: "legacy_v1 (default lab)",
+    PROFILE_MOMENTUM: "momentum (tendencia)",
+    PROFILE_MEAN_REVERSION: "mean_reversion (media-reversión)",
+    PROFILE_MARKET_MAKING: "market_making (MM)",
+    PROFILE_AVELLANEDA_STOIKOV: "avellaneda_stoikov (AS)",
+    PROFILE_FUNDING: "funding (funding/OI)",
+    PROFILE_BALANCED: "balanced (equilibrado)",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class ScoringProfile:
@@ -46,6 +57,7 @@ class ScoringProfile:
             "name": self.name,
             "version": self.version,
             "description": self.description,
+            "label_es": PROFILE_LABELS_ES.get(self.name, self.name),
             "factors": [
                 {
                     "name": f.name,
@@ -222,6 +234,7 @@ __all__ = [
     "PROFILE_AVELLANEDA_STOIKOV",
     "PROFILE_BALANCED",
     "PROFILE_FUNDING",
+    "PROFILE_LABELS_ES",
     "PROFILE_LEGACY_V1",
     "PROFILE_MARKET_MAKING",
     "PROFILE_MEAN_REVERSION",

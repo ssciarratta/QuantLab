@@ -61,12 +61,14 @@ def test_pane_never_enables_live() -> None:
     allowed = {
         "labScanner",
         "labBacktest",
+        "labStrategies",
         "liveStatus",
         "liveUnlock",
         "liveLock",
         "binanceScan",
         "binanceScanner",
         "binancePipeline",
+        "alphaProfiles",
         "liveDemoSubmit",
         "liveDemoFills",
         "liveDemoCancel",
@@ -88,3 +90,18 @@ def test_i18n_locales_have_pane_key() -> None:
             (_static_root() / "i18n" / f"{locale}.json").read_text(encoding="utf-8")
         )
         assert "pane.guided_lab" in raw
+        assert "guided_lab.wf.checkbox" in raw
+        assert "guided_lab.wf.legend" in raw
+        assert "guided_lab.wf.rank_fraction" in raw
+
+
+def test_guided_lab_has_walk_forward_controls() -> None:
+    js = (_static_root() / "js" / "panes" / "guided_lab.js").read_text(encoding="utf-8")
+    assert 'id="gl-walk-forward"' in js
+    assert "checked" in js
+    assert 'id="gl-rank-fraction"' in js
+    assert "pipelineWalkForwardOpts" in js
+    assert "rank_fraction" in js
+    assert "gl-wf-legend" in js
+    assert "label_es" in js
+    assert "alphaProfiles" in js
