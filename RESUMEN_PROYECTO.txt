@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–3: exclusiones tipadas + FeatureCalculator modular
-Ausencia funding/OI/depth → None; legacy vol/volume/liq parity con AlphaScanner
-Scoring default sigue legacy_v1 (sin cambio de composite)
+Alpha Scanner FASE 2–4: universo/exclusiones + FeatureCalculator + CompositeScorer
+Normalización min-max/robust + missing policies + penalties (opt-in)
+Default lab sigue AlphaScanner legacy_v1 (parity verificada en tests)
 
 PRÓXIMO
 -------
-FASE 4: normalización robusta + CompositeScorer + PenaltyEngine + missing policies
+FASE 5: perfiles momentum / mean-reversion / MM / AS / funding / balanced
 
 DÓNDE VER DETALLE
 -----------------

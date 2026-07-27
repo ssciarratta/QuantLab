@@ -1,56 +1,47 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 3 — FeatureCalculator **COMPLETA**  
-**Siguiente:** FASE 4 — Normalización robusta + CompositeScorer + PenaltyEngine
+**Fase actual:** FASE 4 — Scoring **COMPLETA**  
+**Siguiente:** FASE 5 — Perfiles (momentum / MR / MM / AS / funding / balanced)
 
 ---
 
-## FASE 0–2 — hecho
+## FASE 0–3 — hecho
 
-Ver historial abajo. Scoring `legacy_v1` **sin cambio**.
+Scoring default lab: `AlphaScanner` / `legacy_v1` (sin cambio).
 
-## FASE 3 — hecho
+## FASE 4 — hecho
 
 | Ítem | Estado |
 |------|--------|
-| `FeatureCalculator` modular | OK — `research/alpha/features.py` |
-| Momentum / trend_quality / persistence | OK |
-| Liquidity + spread (book o proxy HL/C) | OK |
-| Depth / funding / OI | OK — `None` si no hay extras |
-| Volume quality / volatility quality | OK |
-| Legacy triple = AlphaScanner | OK — test parity |
-| Ausencia → None (no 0 fingido) | OK |
-| Scoring default cambiado | **No** |
+| `min_max_normalize` / `robust_normalize` | OK |
+| `CompositeScorer` + `FactorSpec` | OK |
+| `PenaltyEngine` (missing + quality) | OK |
+| Missing policies (exclude / renormalize / penalize / fallback) | OK |
+| Componentes con weight/contrib | OK |
+| Parity scorer ↔ AlphaScanner (min-max, sin penalties) | OK |
+| Default lab cambia de fórmula | **No** |
 
-### Archivos FASE 3
+### Archivos
 
-- Creados: `features.py`, `tests/unit/research/test_alpha_features_f3.py`
+- `src/quantlab/research/alpha/scoring.py`
+- `tests/unit/research/test_alpha_scoring_f4.py`
 
-### Limitaciones F3
+### Limitaciones
 
-- Spread sin book = proxy rango OHLC (explícito).
-- Features aún no alimentan el composite (FASE 4/5).
+- Robust norm aún no es default.
+- Quality penalties opt-in (`apply_quality_penalties=False` por defecto).
 
 ---
 
 ## Fases
 
-| Fase | Título | Estado |
-|------|--------|--------|
-| 0 | Discovery & baseline | **DONE** |
-| 1 | Modelos / contratos | **DONE** |
-| 2 | Universo + calidad datos | **DONE** |
-| 3 | Features modulares | **DONE** |
-| 4 | Normalización / scoring | PENDING |
-| 5–10 | Perfiles → auditoría | PENDING |
-
----
-
-## Detalle FASE 2
-
-| Ítem | Estado |
+| Fase | Estado |
 |------|--------|
-| `DataQualityReport` + exclusiones tipadas | OK |
-| Universe builder + API fetched/eligible/excluded | OK |
-| UI Guided Lab exclusiones | OK |
+| 0 Discovery | **DONE** |
+| 1 Contratos | **DONE** |
+| 2 Universo/calidad | **DONE** |
+| 3 Features | **DONE** |
+| 4 Scoring | **DONE** |
+| 5 Perfiles | PENDING |
+| 6–10 | PENDING |
