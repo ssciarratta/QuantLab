@@ -1,8 +1,8 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-26  
+**Actualizado:** 2026-07-27  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.98.0** (F105 A3 MD env Guided Lab)
+**Versión tip:** **0.98.0** (F106 Guided Lab A3 snapshot)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  

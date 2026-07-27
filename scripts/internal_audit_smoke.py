@@ -3658,7 +3658,7 @@ def check_f98_milestone_v090() -> None:
     assert "F93–F97" in freeze or "F93-F97" in freeze
     assert "LIVE_BLOCKED=True" in freeze
     changelog = (root / "CHANGELOG.md").read_text(encoding="utf-8")
-    for version in ("0.89.0", "0.98.0"):
+    for version in ("0.89.0", "0.90.0"):
         assert f"## [{version}]" in changelog, version
     assert not (root / "docs" / "audit" / "FASE_98_APPROVED.md").exists()
 
@@ -3849,6 +3849,24 @@ def check_f105_a3_md_guided() -> None:
     assert not (root / "docs" / "audit" / "FASE_105_APPROVED.md").exists()
 
 
+def check_f106_a3_snapshot_guided() -> None:
+    """F106: Guided Lab A3 snapshot MD post-connect."""
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "0.98.0"
+    assert PHASES_SUMMARY == "F19–F106 INTERNAL"
+    root = Path(__file__).resolve().parents[1]
+    js = (
+        root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
+    ).read_text(encoding="utf-8")
+    assert "gl-a3-snap" in js and "QLApi.snapshot" in js
+    assert (root / "docs" / "FASE_106_A3_SNAPSHOT_GUIDED.md").is_file()
+    assert not (root / "docs" / "audit" / "FASE_106_APPROVED.md").exists()
+
+
 def main() -> int:
     checks: list[tuple[str, Callable[[], None]]] = [
         ("LIVE_BLOCKED is True", check_live_blocked),
@@ -3940,6 +3958,7 @@ def main() -> int:
         ("F103 live arc freeze F99-F102", check_f103_live_arc_freeze),
         ("F104 guided lab A3 paper path", check_f104_guided_lab_a3),
         ("F105 A3 MD env guided lab", check_f105_a3_md_guided),
+        ("F106 A3 snapshot guided lab", check_f106_a3_snapshot_guided),
     ]
     ok = True
     for name, fn in checks:

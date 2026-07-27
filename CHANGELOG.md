@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.98.0] — 2026-07-27
+
+### Fase 106 — Guided Lab A3 snapshot MD
+
+#### Added
+- Guided Lab: input símbolo + botón Snapshot (`GET /api/broker/snapshot`)
+- Autocomplete símbolo al listar instrumentos A3
+- Docs `docs/FASE_106_A3_SNAPSHOT_GUIDED.md` · DEC-150
+
+#### Notes
+- Post-connect A3 paper; sin submit venue.
+
+---
+
 ## [0.97.0] — 2026-07-26
 
 ### Fase 105 — A3 MD env read-only en Guided Lab
