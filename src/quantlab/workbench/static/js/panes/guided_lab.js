@@ -226,19 +226,35 @@
       const res = r.result || {};
       const fills = Number(res.n_fills || 0);
       const orders = Number(res.n_orders || 0);
+      const eq0 = res.initial_equity != null ? res.initial_equity : "100000";
       const eq = res.final_equity;
+      const pnl = res.pnl != null ? res.pnl : "—";
       const fees = res.total_fees != null ? res.total_fees : "—";
-      const feeSched = res.fee_schedule || {};
-      const takerBps = feeSched.taker_bps != null ? feeSched.taker_bps : "10";
+      const avgFee =
+        res.avg_fee_per_fill != null ? res.avg_fee_per_fill : null;
+      const feeSide = res.fee_per_side || res.fee_schedule || {};
+      const takerBps = feeSide.taker_bps != null ? feeSide.taker_bps : "10";
+      const makerBps = feeSide.maker_bps != null ? feeSide.maker_bps : "10";
+      const takerPct = feeSide.taker_pct != null ? feeSide.taker_pct : "0.10";
+      const makerPct = feeSide.maker_pct != null ? feeSide.maker_pct : "0.10";
+      const feeAsOf = feeSide.as_of || (res.fee_schedule && res.fee_schedule.as_of) || "—";
       const verdict = res.verdict_es || "";
       const br = res.bar_range || {};
       const cls = fills > 0 ? "ok" : "warn";
       let meaning = "";
       if (fills > 0) {
         meaning =
-          "Hubo trades simulados. Fees Binance Spot VIP0 (~" +
+          "Hubo trades simulados. Fee por lado: maker " +
+          makerBps +
+          " bps (" +
+          makerPct +
+          "%) / taker " +
           takerBps +
-          " bps/lado) ya descontados del cash.";
+          " bps (" +
+          takerPct +
+          "%) — VIP0 Spot as_of " +
+          feeAsOf +
+          ". Ya descontados del cash.";
       } else if (orders > 0) {
         meaning =
           "Puso órdenes LIMIT pero el precio de la vela no las tocó → 0 fills. Capital intacto.";
@@ -254,9 +270,9 @@
           "<summary>Detalle fills (" +
           fillRows.length +
           (res.fills_truncated ? "+" : "") +
-          ")</summary>" +
+          ") — fee por operación</summary>" +
           '<table class="data-table"><thead><tr>' +
-          "<th>ts</th><th>side</th><th>px</th><th>qty</th><th>fee</th>" +
+          "<th>ts</th><th>side</th><th>px</th><th>qty</th><th>fee</th><th>ccy</th><th>liq</th>" +
           "</tr></thead><tbody>" +
           fillRows
             .map(function (f) {
@@ -271,6 +287,10 @@
                 esc(f.quantity) +
                 "</td><td class=\"mono num\">" +
                 esc(f.fee) +
+                "</td><td class=\"mono\">" +
+                esc(f.fee_currency || "—") +
+                "</td><td>" +
+                esc(f.liquidity || "—") +
                 "</td></tr>"
               );
             })
@@ -304,11 +324,25 @@
         "</strong> · estrategia <span class=\"mono\">" +
         esc(strategyId || res.strategy_id || "—") +
         "</span><br>" +
-        "capital final <span class=\"mono\">" +
+        "capital inicial <span class=\"mono\">" +
+        esc(eq0) +
+        "</span> → final <span class=\"mono\">" +
         esc(eq) +
-        "</span> · fees <span class=\"mono\">" +
+        "</span> · PnL <span class=\"mono\">" +
+        esc(pnl) +
+        "</span><br>" +
+        "fees totales <span class=\"mono\">" +
         esc(fees) +
-        "</span> · órdenes=" +
+        "</span>" +
+        (avgFee != null
+          ? " · fee medio/fill <span class=\"mono\">" + esc(avgFee) + "</span>"
+          : "") +
+        " · fee/lado <span class=\"mono\">" +
+        esc(takerBps) +
+        " bps (" +
+        esc(takerPct) +
+        "%)</span>" +
+        " · órdenes=" +
         esc(orders) +
         " · fills=" +
         esc(fills) +
@@ -1028,11 +1062,39 @@
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
             "</dd>" +
+            "<dt>capital inicial</dt><dd class=\"mono num\">" +
+            esc(data.initial_equity != null ? data.initial_equity : "100000") +
+            "</dd>" +
             "<dt>capital final</dt><dd class=\"mono num\">" +
             esc(data.final_equity) +
             "</dd>" +
-            "<dt>fees</dt><dd class=\"mono num\">" +
+            "<dt>PnL</dt><dd class=\"mono num\">" +
+            esc(data.pnl != null ? data.pnl : "—") +
+            "</dd>" +
+            "<dt>fees totales</dt><dd class=\"mono num\">" +
             esc(data.total_fees) +
+            "</dd>" +
+            "<dt>fee / operación (lado)</dt><dd class=\"mono\">" +
+            esc(
+              (data.fee_per_side && data.fee_per_side.taker_bps) ||
+                (data.fee_schedule && data.fee_schedule.taker_bps) ||
+                "10"
+            ) +
+            " bps (" +
+            esc(
+              (data.fee_per_side && data.fee_per_side.taker_pct) ||
+                (data.fee_schedule && data.fee_schedule.taker_pct) ||
+                "0.10"
+            ) +
+            "%) · as_of " +
+            esc(
+              (data.fee_per_side && data.fee_per_side.as_of) ||
+                (data.fee_schedule && data.fee_schedule.as_of) ||
+                "—"
+            ) +
+            "</dd>" +
+            "<dt>fee medio / fill</dt><dd class=\"mono num\">" +
+            esc(data.avg_fee_per_fill != null ? data.avg_fee_per_fill : "—") +
             "</dd>" +
             "<dt>fills (trades)</dt><dd class=\"mono num\">" +
             esc(data.n_fills) +

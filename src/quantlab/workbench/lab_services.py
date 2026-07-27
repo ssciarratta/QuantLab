@@ -354,11 +354,11 @@ def run_lab_backtest(
         n_used = n_bars
 
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
-    # Comisiones Binance Spot VIP0 (schedule publicado). Sin fee=0 en lab.
     fee_schedule = resolve_binance_spot_fee_schedule()
     fee_model = binance_spot_fee_model()
+    initial_cash = Decimal("100000")
     bt = BarBacktester(
-        BarBacktestConfig(experiment_id=experiment_id, initial_cash=Decimal("100000")),
+        BarBacktestConfig(experiment_id=experiment_id, initial_cash=initial_cash),
         fee_model=fee_model,
     )
     result = bt.run(strategy, run_bars)
@@ -377,6 +377,7 @@ def run_lab_backtest(
         else Decimal("0")
     )
     total_fees = result.accounting.total_fees
+    avg_fee_per_fill = (total_fees / n_fills) if n_fills > 0 else None
     detail = _serialize_trade_detail(result)
     bar_range: dict[str, Any] | None = None
     if run_bars:
@@ -393,6 +394,7 @@ def run_lab_backtest(
         n_bars=n_used,
         data_source=src,
     )
+    fee_dict = fee_schedule.to_dict()
     summary: dict[str, Any] = {
         "ok": True,
         "kind": "backtest",
@@ -404,9 +406,21 @@ def run_lab_backtest(
         "n_fills": n_fills,
         "n_orders": n_orders,
         "accounting_ok": result.accounting.ok,
+        "initial_equity": str(initial_cash),
         "final_equity": str(final_eq),
+        "pnl": str(final_eq - initial_cash),
         "total_fees": str(total_fees),
-        "fee_schedule": fee_schedule.to_dict(),
+        "avg_fee_per_fill": str(avg_fee_per_fill) if avg_fee_per_fill is not None else None,
+        "fee_per_side": {
+            "maker_bps": fee_dict["maker_bps"],
+            "taker_bps": fee_dict["taker_bps"],
+            "maker_pct": fee_dict["maker_pct"],
+            "taker_pct": fee_dict["taker_pct"],
+            "note": fee_dict["note"],
+            "as_of": fee_dict["as_of"],
+            "source_url": fee_dict["source_url"],
+        },
+        "fee_schedule": fee_dict,
         "fee_model": getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
         "bar_range": bar_range,
         "fills": detail["fills"],
@@ -1172,11 +1186,14 @@ def run_lab_montecarlo(
     bars = make_synthetic_bars(n_bars)
     initial_cash = Decimal("50000")
     strategy_params = {"quantity": "1"}
+    fee_schedule = resolve_binance_spot_fee_schedule()
+    fee_model = binance_spot_fee_model()
+    fee_dict = fee_schedule.to_dict()
 
     def runner(noisy: Any) -> SimulationResult:
         bt = BarBacktester(
             BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
-            fee_model=binance_spot_fee_model(),
+            fee_model=fee_model,
         )
         return bt.run(BuyOnceStrategy(strategy_params), noisy).simulation
 
@@ -1196,6 +1213,20 @@ def run_lab_montecarlo(
         max_paths_stored=16,
         initial_equity=float(initial_cash),
     )
+    # Fees agregados por escenario (desde SimulationResult en memoria)
+    fee_totals: list[float] = []
+    fill_counts: list[int] = []
+    for sim in result.results:
+        n_f = len(sim.fills)
+        fill_counts.append(n_f)
+        fee_sum = sum(float(f.fee.amount) for f in sim.fills)
+        fee_totals.append(fee_sum)
+    mean_total_fees = sum(fee_totals) / len(fee_totals) if fee_totals else 0.0
+    mean_fills = sum(fill_counts) / len(fill_counts) if fill_counts else 0.0
+    mean_fee_per_fill = (
+        mean_total_fees / mean_fills if mean_fills > 0 else None
+    )
+
     ctx = build_lab_context(
         session_id=session_id,
         scan_id=scan_id,
@@ -1208,11 +1239,37 @@ def run_lab_montecarlo(
         dataset_id="wb-synthetic",
         dataset_hash=hash_bars(bars),
         initial_equity=float(initial_cash),
-        fee_model="binance_spot_vip0",
+        fee_model=getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
         orphan=scan_id is None and backtest_id is None,
     )
     cfg_dict = cfg.to_dict()
     metrics_dict = result.metrics.to_dict() if result.metrics else {}
+    capital_summary = {
+        "initial_equity": float(initial_cash),
+        "mean_final_equity": result.mean_equity,
+        "median_final_equity": (
+            result.metrics.median_equity if result.metrics else None
+        ),
+        "currency": "USDT",
+    }
+    fee_summary = {
+        "schedule_id": fee_dict["schedule_id"],
+        "as_of": fee_dict["as_of"],
+        "source_url": fee_dict["source_url"],
+        "maker_bps": fee_dict["maker_bps"],
+        "taker_bps": fee_dict["taker_bps"],
+        "maker_pct": fee_dict["maker_pct"],
+        "taker_pct": fee_dict["taker_pct"],
+        "fee_per_side_note": (
+            f"Por operación (lado): maker {fee_dict['maker_bps']} bps "
+            f"({fee_dict['maker_pct']}%) · taker {fee_dict['taker_bps']} bps "
+            f"({fee_dict['taker_pct']}%)"
+        ),
+        "mean_total_fees": mean_total_fees,
+        "mean_fills_per_scenario": mean_fills,
+        "mean_fee_per_fill": mean_fee_per_fill,
+        "note": fee_dict["note"],
+    }
     payload: dict[str, Any] = {
         "ok": True,
         "kind": "montecarlo",
@@ -1224,6 +1281,7 @@ def run_lab_montecarlo(
         "bar_horizon_label": cfg.bar_horizon_label("1m"),
         "noise_bps": float(noise_bps),
         "seed": result.seed,
+        "initial_equity": float(initial_cash),
         "mean_equity": result.mean_equity,
         "std_equity": result.std_equity,
         "ci_low": result.ci_low,
@@ -1234,6 +1292,9 @@ def run_lab_montecarlo(
         "equity_paths": (
             [list(p) for p in result.equity_paths] if result.equity_paths else None
         ),
+        "capital_summary": capital_summary,
+        "fee_schedule": fee_dict,
+        "fee_summary": fee_summary,
         "context": ctx.to_dict(),
         "config": cfg_dict,
         "metrics": metrics_dict,

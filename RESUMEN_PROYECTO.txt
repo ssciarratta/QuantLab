@@ -1,24 +1,25 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Monte Carlo UX/trazabilidad v2 (probs + historial)
+Versión: 1.01.0 · Simulaciones: capital + fees por operación visibles
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
 - Alpha: F0–10 + walk-forward pipeline
 - Monte Carlo: F0–12 código (schema v2, cards probs, historial CRUD UI, nav Scan/BT)
+- Sim UI: capital inicial/final + fee/lado (VIP0 10 bps) en Guided Lab y MC
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-MC: prob_profit / prob_loss / prob_above_initial en metrics + UI %
-Historial: repetir (misma seed/config), eliminar c/confirm, copiar run_id
-API DELETE /api/lab/montecarlo/history/{run_id}
-Nav: QLShell.open(reports|backtest|scanner|guided_lab) + hint con IDs
+Backtest lab: initial_equity, pnl, fee_per_side, avg_fee_per_fill + UI detalle fills
+MC: capital_summary + fee_summary (bps/%, media fees/escenario, fee medio/fill)
+Tests: test_sim_capital_fees.py
+Schedule actual: Binance Spot VIP0 maker/taker 10 bps (0.10%) — revisar si actualizar
 
 PRÓXIMO
 -------
-Informe UX final opcional; deep-link por id dentro de paneles Scan/BT si se agrega API
+Usuario valida fees VIP0 vs cuenta real; deep-link Scan/BT por id si se agrega API
 
 INVARIANTES
 -----------

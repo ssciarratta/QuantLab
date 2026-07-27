@@ -250,6 +250,15 @@
         "). Seed=" +
         esc(na(data && data.seed)) +
         ". CI = IC de la <em>media</em> (Wald), no banda de un escenario individual.</p>" +
+        (data && data.fee_summary
+          ? "<p><strong>Fees:</strong> " +
+            esc(data.fee_summary.fee_per_side_note || "") +
+            " · as_of " +
+            esc(na(data.fee_summary.as_of)) +
+            " · media fees/escenario=" +
+            esc(money(data.fee_summary.mean_total_fees)) +
+            "</p>"
+          : "") +
         "<p class=\"muted\">" +
         esc((data && data.disclaimer) || "") +
         "</p>";
@@ -274,25 +283,57 @@
     function renderCards(data) {
       const m = (data && data.metrics) || {};
       const ctx = (data && data.context) || {};
-      const initial = ctx.initial_equity;
+      const cap = (data && data.capital_summary) || {};
+      const fee = (data && data.fee_summary) || {};
+      const initial =
+        cap.initial_equity != null
+          ? cap.initial_equity
+          : data.initial_equity != null
+            ? data.initial_equity
+            : ctx.initial_equity;
       const finals = (data && data.final_equities) || [];
       const minE = finals.length ? Math.min.apply(null, finals.map(Number)) : null;
       const maxE = finals.length ? Math.max.apply(null, finals.map(Number)) : null;
-      const mean = m.mean_equity != null ? m.mean_equity : data.mean_equity;
-      const med = m.median_equity;
+      const mean =
+        cap.mean_final_equity != null
+          ? cap.mean_final_equity
+          : m.mean_equity != null
+            ? m.mean_equity
+            : data.mean_equity;
+      const med =
+        cap.median_final_equity != null ? cap.median_final_equity : m.median_equity;
+      const feeSide =
+        fee.fee_per_side_note ||
+        (fee.taker_bps != null
+          ? "taker " + fee.taker_bps + " bps (" + fee.taker_pct + "%) / maker " +
+            fee.maker_bps +
+            " bps"
+          : "VIP0 Spot 10 bps/lado");
       cardsEl.style.display = "flex";
       cardsEl.style.flexWrap = "wrap";
       cardsEl.style.gap = "0.5rem";
       cardsEl.innerHTML =
-        card("Capital inicial", money(initial), "lab") +
+        card("Capital inicial", money(initial), (cap.currency || "USDT") + " lab") +
         card(
-          "Media de los escenarios simulados",
+          "Capital final (media escenarios)",
           money(mean),
           pctFromInitial(mean, initial)
         ) +
-        card("Mediana", money(med), pctFromInitial(med, initial)) +
+        card("Mediana final", money(med), pctFromInitial(med, initial)) +
         card("Mejor escenario", money(maxE), pctFromInitial(maxE, initial)) +
         card("Peor escenario", money(minE), pctFromInitial(minE, initial)) +
+        card(
+          "Fee por operación (lado)",
+          (fee.taker_bps != null ? fee.taker_bps + " bps" : "10 bps"),
+          feeSide
+        ) +
+        card(
+          "Fees totales (media escenarios)",
+          money(fee.mean_total_fees),
+          fee.mean_fee_per_fill != null
+            ? "media/fill " + money(fee.mean_fee_per_fill)
+            : "as_of " + na(fee.as_of)
+        ) +
         card("Prob. ganancia", pctProb(m.prob_profit), "final > inicial") +
         card("Prob. pérdida", pctProb(m.prob_loss), "final < inicial") +
         card(
