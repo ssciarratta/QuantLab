@@ -11,13 +11,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-MC: context/config/metrics + persist hashes + UI cabecera/explicación/cards
-API: seed, scan_id, backtest_id, store_paths
-Compat lectura schema v1 → “No disponible”
+Docs 2026-07-27: GUIA_COMPLETA + alpha-scanner-guide + montecarlo-guide
+(Alpha walk-forward default + Monte Carlo schema v2; CHANGELOG Unreleased)
+MC código previo: context/config/metrics + hashes + UI; compat v1
 
 PRÓXIMO
 -------
-Navegación profunda Scan/BT; docs informe UX final; más tests F11
+Navegación profunda Scan/BT; más tests F11; cierre formal auditoría pendiente
 
 INVARIANTES
 -----------

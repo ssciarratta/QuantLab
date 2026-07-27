@@ -17,7 +17,7 @@
 | 9 Historial enriquecido | **DONE** (parcial: abrir) |
 | 10 Navegación Scan/BT | **PARTIAL** (IDs + botones status) |
 | 11 Tests | **DONE** subset F1+F2 |
-| 12 Docs | **IN PROGRESS** |
+| 12 Docs | **DONE** (guía + links en GUIA_COMPLETA) |
 
 ## Notas
 

@@ -132,6 +132,20 @@ uv run quantlab-workbench                   # abre browser o ir a :8765
 3. Conectar paper A3
 4. Listar instrumentos → Snapshot → Enviar paper
 
+### Alpha walk-forward (pipeline Binance)
+
+El pipeline `POST /api/lab/binance/pipeline` usa **walk-forward por defecto** (`walk_forward=True`): ranking en ~70% de las barras y backtest en el 30% restante, **sin overlap**. Así el score no se valida sobre la misma ventana de selección.
+
+- Perfiles / scoring: panel Guided Lab (venue binance) o `GET /api/lab/alpha/profiles`
+- Docs: [`docs/scanner/alpha-scanner-guide.md`](scanner/alpha-scanner-guide.md) · estado [`docs/progress/alpha-scanner-optimization-status.md`](progress/alpha-scanner-optimization-status.md)
+
+### Monte Carlo v2
+
+Panel **Monte Carlo** del workbench: shocks sintéticos sobre dataset lab (BuyOnce demo). Payload **schema v2** con `context`, `config`, `metrics`, `relations` y hashes; lecturas legacy v1 se normalizan (“No disponible” si falta campo).
+
+- Parámetros UI: escenarios, barras, ruido bps, seed; API también `scan_id` / `backtest_id` / `store_paths`
+- Docs: [`docs/montecarlo/montecarlo-guide.md`](montecarlo/montecarlo-guide.md) · trazabilidad [`docs/montecarlo/montecarlo-traceability.md`](montecarlo/montecarlo-traceability.md) · métodos [`docs/montecarlo/montecarlo-methods.md`](montecarlo/montecarlo-methods.md)
+
 ---
 
 ## 6. Modos de operación
@@ -312,6 +326,8 @@ Ver `.env.example`. Nunca commitear `.env`.
 - `docs/ops/LIVE_CREDENTIAL_GATE.md` — unlock y demo
 - `docs/FASE_99` … `FASE_110` — Guided Lab arc
 - `docs/A3_RUNBOOK.md` — A3 CLI
+- `docs/scanner/` — Alpha Scanner + walk-forward
+- `docs/montecarlo/` — Monte Carlo v2 (guía, métodos, trazabilidad)
 - `RESUMEN_PROYECTO.txt` — estado operativo
 - `RETOMAR.txt` — checkpoint desarrollo
 

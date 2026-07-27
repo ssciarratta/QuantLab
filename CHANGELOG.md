@@ -12,10 +12,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - TD-05: `FixedLatencyModel.min_delay` wall-clock con `bar_times` en `BarSimulationEngine`
 - TD-03 research: federación de paper ledger (`node_id`, `reconcile_indexes`, `merge_from`)
 - CI Actions versionado: `.github/workflows/ci.yml` (espejo `docs/ci/ci.yml.example`)
+- Docs 2026-07-27: secciones cortas Alpha walk-forward + Monte Carlo schema v2 en `docs/GUIA_COMPLETA_QUANTLAB.md` (links a `docs/scanner/` y `docs/montecarlo/`)
 
 ### Changed
 - `.gitignore`: deja de excluir el workflow de CI
 - `sync_phase_github.sh`: `SKIP_WORKFLOWS` default `0` (escape hatch `=1`)
+- `docs/scanner/alpha-scanner-guide.md`: walk-forward default del pipeline Binance
 
 ---
 

@@ -38,9 +38,19 @@ Catálogo: `GET /api/lab/alpha/profiles`
 Motivos tipados (`fetch_failed`, `insufficient_history`, …).  
 Ausencia de funding/OI/depth → `None` (nunca 0 fingido).
 
+## Walk-forward (pipeline Binance)
+
+`POST /api/lab/binance/pipeline` con `walk_forward=True` (**default**):
+
+- ~70% barras → ranking / score
+- ~30% barras → backtest top-N
+- Sin overlap entre ventanas (`split_bars_walk_forward`)
+
+Con `walk_forward=False` rank y BT pueden compartir historia (selección in-sample; no recomendado).
+
 ## Limitaciones
 
-1. Pipeline rank+backtest puede compartir ventana (selección in-sample).
+1. Con `walk_forward=False`, rank+backtest pueden compartir ventana (selección in-sample).
 2. Binance público sin `as_of` → no reproducible a fecha histórica exacta.
 3. HL/Bybit/OKX: capabilities declaradas; fetch MD **no** implementado.
 4. Spread sin order book = proxy HL/C.
@@ -72,3 +82,4 @@ Ausencia de funding/OI/depth → `None` (nunca 0 fingido).
 | 8 | UX Guided Lab |
 | 9 | Cache / progreso / cancel |
 | 10 | Esta guía |
+| Post | Walk-forward pipeline (rank ≠ BT) |

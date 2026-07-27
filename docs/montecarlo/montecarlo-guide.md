@@ -21,10 +21,12 @@
 
 Es el intervalo de confianza de la **media** de equities finales, no una banda de un solo escenario.
 
-## Trazabilidad
+## Trazabilidad (schema v2)
 
 Payload schema v2: `context`, `config`, `metrics`, `relations`, hashes.  
 Legacy v1 se lee con `normalize_montecarlo_payload` (campos ausentes → No disponible).
+
+Detalle: [`montecarlo-traceability.md`](montecarlo-traceability.md) · métodos [`montecarlo-methods.md`](montecarlo-methods.md) · interpretación [`montecarlo-interpretation.md`](montecarlo-interpretation.md).
 
 ## Limitaciones
 
