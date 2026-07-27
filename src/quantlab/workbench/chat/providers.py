@@ -185,9 +185,9 @@ class FakeProvider:
                 lower, ("alpha", "binance", "detectar", "moneda", "correr", "corramos", "vamos")
             ):
                 lesson = "mm_after_alpha"
-            elif _match(lower, ("alpha", "ranking", "scanner", "detectar", "moneda")) and not _match(
-                lower, ("market mak", " mm", "inventory", "avellaneda")
-            ):
+            elif _match(
+                lower, ("alpha", "ranking", "scanner", "detectar", "moneda")
+            ) and not _match(lower, ("market mak", " mm", "inventory", "avellaneda")):
                 lesson = "alpha_binance"
             data = use("instructor_guide", {"lesson": lesson})
             parts.append(format_instructor_reply(data))
