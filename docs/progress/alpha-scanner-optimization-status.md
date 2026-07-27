@@ -1,47 +1,38 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 4 — Scoring **COMPLETA**  
-**Siguiente:** FASE 5 — Perfiles (momentum / MR / MM / AS / funding / balanced)
+**Fase actual:** FASE 5 — Perfiles **COMPLETA**  
+**Siguiente:** FASE 6 — Multi-venue (Binance + capabilities Hyperliquid/Bybit/OKX)
 
 ---
 
-## FASE 0–3 — hecho
+## Hecho (0–5)
 
-Scoring default lab: `AlphaScanner` / `legacy_v1` (sin cambio).
+| Fase | Resumen |
+|------|---------|
+| 0 | Auditoría + baseline sintético |
+| 1 | Contratos tipados `legacy_v1` |
+| 2 | Universo + exclusiones tipadas |
+| 3 | `FeatureCalculator` (ausencia→None) |
+| 4 | `CompositeScorer` + norm + penalties |
+| 5 | Perfiles nombrados + `score_with_profile` |
 
-## FASE 4 — hecho
+**Default lab:** sigue `AlphaScanner` / `legacy_v1` (parity en tests).
 
-| Ítem | Estado |
-|------|--------|
-| `min_max_normalize` / `robust_normalize` | OK |
-| `CompositeScorer` + `FactorSpec` | OK |
-| `PenaltyEngine` (missing + quality) | OK |
-| Missing policies (exclude / renormalize / penalize / fallback) | OK |
-| Componentes con weight/contrib | OK |
-| Parity scorer ↔ AlphaScanner (min-max, sin penalties) | OK |
-| Default lab cambia de fórmula | **No** |
+### Perfiles F5
 
-### Archivos
+`legacy_v1` · `momentum` · `mean_reversion` · `market_making` · `avellaneda_stoikov` · `funding` · `balanced`
 
-- `src/quantlab/research/alpha/scoring.py`
-- `tests/unit/research/test_alpha_scoring_f4.py`
-
-### Limitaciones
-
-- Robust norm aún no es default.
-- Quality penalties opt-in (`apply_quality_penalties=False` por defecto).
+Archivos: `research/alpha/profiles.py`, `tests/unit/research/test_alpha_profiles_f5.py`
 
 ---
 
-## Fases
+## Pendiente
 
-| Fase | Estado |
+| Fase | Título |
 |------|--------|
-| 0 Discovery | **DONE** |
-| 1 Contratos | **DONE** |
-| 2 Universo/calidad | **DONE** |
-| 3 Features | **DONE** |
-| 4 Scoring | **DONE** |
-| 5 Perfiles | PENDING |
-| 6–10 | PENDING |
+| 6 | Multi-venue |
+| 7 | Persistencia / reproducibilidad |
+| 8 | Workbench / Guided Lab UX |
+| 9 | Rendimiento / observabilidad |
+| 10 | Docs / auditoría final |

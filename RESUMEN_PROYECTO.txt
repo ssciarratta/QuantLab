@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–4: universo/exclusiones + FeatureCalculator + CompositeScorer
-Normalización min-max/robust + missing policies + penalties (opt-in)
-Default lab sigue AlphaScanner legacy_v1 (parity verificada en tests)
+Alpha Scanner FASE 2–5: calidad + features + CompositeScorer + perfiles
+Perfiles: legacy_v1, momentum, mean_reversion, MM, AS, funding, balanced
+Default Guided Lab / Binance scanner: legacy_v1 sin cambio de composite
 
 PRÓXIMO
 -------
-FASE 5: perfiles momentum / mean-reversion / MM / AS / funding / balanced
+FASE 6: multi-venue (Binance + capability stubs HL/Bybit/OKX)
 
 DÓNDE VER DETALLE
 -----------------
