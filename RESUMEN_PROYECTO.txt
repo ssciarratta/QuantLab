@@ -12,13 +12,14 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–8: research completo + UX Guided Lab
-Selector de perfil + modo avanzado (componentes/penalties) + catálogo API
-Default: legacy_v1; otros perfiles persisten scan_id en sesión
+Alpha Scanner FASE 0–10 (código): auditoría → features → scorer → perfiles →
+multi-venue → persist → Guided Lab UX → observe/cache → docs guía
+Default: legacy_v1. Guía: docs/scanner/alpha-scanner-guide.md
+52 tests alpha+F111 OK. Cierre formal APROBADO: pendiente auditoría
 
 PRÓXIMO
 -------
-FASE 9: rendimiento/observabilidad · FASE 10: docs/auditoría final
+Usar perfiles en Guided Lab; opcional fetch HL/Bybit/OKX; walk-forward split rank/BT
 
 DÓNDE VER DETALLE
 -----------------
