@@ -122,6 +122,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("lab", "binance"),
     ),
     ApiRoute(
+        "/api/lab/binance/scanner",
+        "POST",
+        "Binance alpha scanner on public klines (read-only)",
+        ("lab", "binance"),
+    ),
+    ApiRoute(
+        "/api/lab/binance/pipeline",
+        "POST",
+        "Binance alpha scan + backtest top-N (read-only MD)",
+        ("lab", "binance"),
+    ),
+    ApiRoute(
         "/api/lab/a3/md-status",
         "GET",
         "A3 MD capability status (env flag/creds; no secrets)",

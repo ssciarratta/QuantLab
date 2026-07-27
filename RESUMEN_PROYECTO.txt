@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión código actual: 1.00.0 (F110 Milestone freeze arco Guided Lab)
+Versión código actual: 1.01.0 (F111 Binance alpha + pipeline + chat copilot)
 
 >>> RETOMAR: leé RETOMAR.txt en la raíz o pegá en Cursor:
 >>> seguí desde donde quedaste — autónomo — branch cursor/modo-real-workbench-aafd
@@ -9,24 +9,23 @@ Versión código actual: 1.00.0 (F110 Milestone freeze arco Guided Lab)
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos
-- F19–F110: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Guided Lab v1.00: i18n es/en · venue-aware · LIVE demo cancel/LIMIT/mirror · A3 completo
+- F19–F111: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab v1.01: ranking alpha Binance · pipeline backtest top-5 · chat copilot chips
+- Doc operador: docs/GUIA_COMPLETA_QUANTLAB.md (copiable a otra IA)
 - LIVE_BLOCKED=True sin unlock · sin producción Binance · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F110 (1.00.0): Milestone freeze arco Guided F99–F109 — MILESTONE_V100_GUIDED_ARC_FREEZE.md
-F109: LIVE demo cancel + LIMIT resting + mirror_to_paper → journal binance_demo
-F108: i18n Guided Lab (guided_lab.* es/en) + UX venue-aware
-F107: paper submit A3 desde Guided Lab
+F111 (1.01.0): Binance klines + AlphaScanner + pipeline + chat instructor (alpha→MM)
+F110 (1.00.0): Milestone freeze arco Guided F99–F109
+F109: LIVE demo cancel + LIMIT + mirror_to_paper
 
 PRÓXIMO PASO
 ------------
+- Validación manual pipeline Binance con red (Guided Lab venue binance)
+F113: Chat asistente con memoria multi-turno + LLM OpenAI-compatible opt-in
 - Certificados externos F19+ solo con Meta-Auditor
-- Validación manual testnet E2E con keys del operador
-- A3 MD env real end-to-end (PyRofex) — validación operativa
-- LIVE producción: checklist + Meta-Auditor + dueño (fuera de alcance v1.00)
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER · sin api.binance.com · sin FASE_*_APPROVED INTERNAL
+LIVE_BLOCKED=True · REAL=PAPER · sin api.binance.com órdenes · sin FASE_*_APPROVED INTERNAL

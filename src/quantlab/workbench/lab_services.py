@@ -217,17 +217,18 @@ def run_lab_backtest(
     strategy_id: str = "momentum",
     params: dict[str, Any] | None = None,
     n_bars: int = 24,
+    bars: list[Bar] | None = None,
+    instrument_id: str | None = None,
+    data_source: str = "synthetic",
     experiment_id: str = "wb-lab-backtest",
     reports_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """Corre BarBacktester 5A sobre barras sintéticas.
+    """Corre BarBacktester 5A sobre barras sintéticas o ``bars`` provistas.
 
     Si ``reports_dir`` está set, persiste MetricsResult/summary (+ HTML) en
     sesión (F29 Report Viewer / Metrics History).
     """
     experiment_id = validate_experiment_id(experiment_id)
-    if n_bars < 4 or n_bars > 120:
-        raise ValidationError("n_bars debe estar entre 4 y 120")
     sid = normalize_strategy_id(strategy_id)
     # Lab backtest: momentum default lookback=2 (histórico F21) si no viene en params.
     caller = dict(params or {})
@@ -235,18 +236,34 @@ def run_lab_backtest(
         caller["lookback"] = 2
     strategy_params = merge_default_params(sid, caller)
 
-    bars = make_synthetic_bars(n_bars)
+    if bars is not None:
+        if len(bars) < 4:
+            raise ValidationError("bars requiere al menos 4 barras")
+        run_bars = bars
+        src = data_source
+        iid = instrument_id or (bars[0].instrument_id if bars else None)
+        n_used = len(run_bars)
+    else:
+        if n_bars < 4 or n_bars > 120:
+            raise ValidationError("n_bars debe estar entre 4 y 120")
+        run_bars = make_synthetic_bars(n_bars)
+        src = "synthetic"
+        iid = run_bars[0].instrument_id if run_bars else None
+        n_used = n_bars
+
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
     bt = BarBacktester(
         BarBacktestConfig(experiment_id=experiment_id, initial_cash=Decimal("100000"))
     )
-    result = bt.run(strategy, bars)
+    result = bt.run(strategy, run_bars)
     summary: dict[str, Any] = {
         "ok": True,
         "kind": "backtest",
         "strategy_id": sid,
         "params": strategy_params,
-        "n_bars": n_bars,
+        "n_bars": n_used,
+        "data_source": src,
+        "instrument_id": iid,
         "n_fills": len(result.simulation.fills),
         "n_orders": len(result.simulation.orders),
         "accounting_ok": result.accounting.ok,
@@ -293,6 +310,194 @@ def run_lab_scanner(*, top_n: int = 3) -> dict[str, Any]:
         "gap_events": list(result.gap_events),
         "schema_version": result.schema_version,
         "live_routing": False,
+    }
+
+
+def run_binance_lab_scanner(
+    *,
+    top_n: int = 5,
+    symbol_limit: int = 15,
+    interval: str = "1h",
+    kline_limit: int = 24,
+    base_url: str | None = None,
+) -> dict[str, Any]:
+    """AlphaScanner sobre klines Binance públicas (read-only)."""
+    from quantlab.brokers.binance.public_md import (
+        DEFAULT_BASE_URL,
+        BinancePublicMdClient,
+        fetch_universe_bars,
+    )
+
+    if top_n < 1 or top_n > 10:
+        raise ValidationError("top_n debe estar entre 1 y 10")
+    if symbol_limit < 5 or symbol_limit > 30:
+        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    if kline_limit < 8 or kline_limit > 120:
+        raise ValidationError("kline_limit debe estar entre 8 y 120")
+
+    url = base_url or DEFAULT_BASE_URL
+    client = BinancePublicMdClient(base_url=url)
+    symbols = client.list_spot_symbols(quote="USDT", limit=symbol_limit)
+    if not symbols:
+        raise ValidationError("sin símbolos USDT de Binance")
+
+    bars_by_symbol = fetch_universe_bars(
+        symbols,
+        interval=interval,
+        kline_limit=kline_limit,
+        base_url=url,
+    )
+    if not bars_by_symbol:
+        raise ValidationError("no se pudieron descargar klines Binance")
+
+    universe: dict[str, list[Bar]] = {}
+    symbol_map: dict[str, str] = {}
+    for sym, sym_bars in bars_by_symbol.items():
+        iid = f"BN:{sym}"
+        universe[iid] = sym_bars
+        symbol_map[iid] = sym
+
+    result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
+    selected_symbols = [symbol_map.get(iid, iid) for iid in result.selected]
+
+    return {
+        "ok": True,
+        "kind": "binance_scanner",
+        "venue": "binance",
+        "top_n": top_n,
+        "symbol_limit": symbol_limit,
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "n_symbols_fetched": len(bars_by_symbol),
+        "selected": list(result.selected),
+        "selected_symbols": selected_symbols,
+        "scores": [dataclass_to_dict(s) for s in result.scores],
+        "gap_events": list(result.gap_events),
+        "schema_version": result.schema_version,
+        "read_only": True,
+        "live_routing": False,
+    }
+
+
+def run_binance_lab_backtest_batch(
+    *,
+    symbols: Sequence[str],
+    strategy_id: str = "momentum",
+    params: dict[str, Any] | None = None,
+    interval: str = "1h",
+    kline_limit: int = 24,
+    experiment_id_prefix: str = "wb-bn-bt",
+    reports_dir: Path | None = None,
+    base_url: str | None = None,
+) -> dict[str, Any]:
+    """Backtest la misma estrategia sobre varios símbolos Binance (MD público)."""
+    from quantlab.brokers.binance.public_md import DEFAULT_BASE_URL, fetch_universe_bars
+
+    if not symbols:
+        raise ValidationError("symbols vacío")
+    if len(symbols) > 10:
+        raise ValidationError("máximo 10 símbolos por batch")
+    prefix = validate_experiment_id(experiment_id_prefix)
+
+    url = base_url or DEFAULT_BASE_URL
+    norm = [s.strip().upper() for s in symbols if s.strip()]
+    bars_by_symbol = fetch_universe_bars(
+        norm,
+        interval=interval,
+        kline_limit=kline_limit,
+        base_url=url,
+    )
+    if not bars_by_symbol:
+        raise ValidationError("sin klines para backtest batch")
+
+    runs: list[dict[str, Any]] = []
+    for sym in norm:
+        sym_bars = bars_by_symbol.get(sym)
+        if not sym_bars:
+            runs.append({"symbol": sym, "ok": False, "error": "sin klines"})
+            continue
+        eid = f"{prefix}-{sym}"[:120]
+        try:
+            bt = run_lab_backtest(
+                strategy_id=strategy_id,
+                params=params,
+                bars=sym_bars,
+                instrument_id=f"BN:{sym}",
+                data_source="binance_klines",
+                experiment_id=eid,
+                reports_dir=reports_dir,
+            )
+            runs.append({"symbol": sym, "ok": True, "result": bt})
+        except ValidationError as exc:
+            runs.append({"symbol": sym, "ok": False, "error": str(exc)})
+
+    ok_runs = [r for r in runs if r.get("ok")]
+    return {
+        "ok": len(ok_runs) > 0,
+        "kind": "binance_backtest_batch",
+        "venue": "binance",
+        "strategy_id": normalize_strategy_id(strategy_id),
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "n_requested": len(norm),
+        "n_ok": len(ok_runs),
+        "runs": runs,
+        "read_only": True,
+        "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
+    }
+
+
+def run_binance_lab_pipeline(
+    *,
+    strategy_id: str = "momentum",
+    params: dict[str, Any] | None = None,
+    top_n: int = 5,
+    symbol_limit: int = 15,
+    interval: str = "1h",
+    kline_limit: int = 24,
+    experiment_id_prefix: str = "wb-bn-pipe",
+    reports_dir: Path | None = None,
+    base_url: str | None = None,
+) -> dict[str, Any]:
+    """Scan alpha Binance → backtest top-N en un solo paso (F111)."""
+    scan = run_binance_lab_scanner(
+        top_n=top_n,
+        symbol_limit=symbol_limit,
+        interval=interval,
+        kline_limit=kline_limit,
+        base_url=base_url,
+    )
+    selected_symbols = list(scan.get("selected_symbols") or [])
+    if not selected_symbols:
+        return {
+            "ok": False,
+            "kind": "binance_pipeline",
+            "error": "scanner sin selección",
+            "scanner": scan,
+            "live_routing": False,
+        }
+
+    batch = run_binance_lab_backtest_batch(
+        symbols=selected_symbols,
+        strategy_id=strategy_id,
+        params=params,
+        interval=interval,
+        kline_limit=kline_limit,
+        experiment_id_prefix=experiment_id_prefix,
+        reports_dir=reports_dir,
+        base_url=base_url,
+    )
+    return {
+        "ok": batch.get("ok") is True,
+        "kind": "binance_pipeline",
+        "venue": "binance",
+        "strategy_id": batch.get("strategy_id"),
+        "scanner": scan,
+        "backtests": batch,
+        "read_only": True,
+        "live_routing": False,
+        "live_blocked": LIVE_BLOCKED is True,
     }
 
 

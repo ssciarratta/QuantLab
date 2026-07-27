@@ -24,6 +24,8 @@ from quantlab.workbench.api import (
     handle_get_broker_heartbeat,
     handle_get_catalog,
     handle_get_chat_tools,
+    handle_get_chat_history,
+    handle_post_chat_clear,
     handle_get_commands,
     handle_get_diagnostics,
     handle_get_diagnostics_download,
@@ -82,6 +84,8 @@ from quantlab.workbench.api import (
     handle_get_watchlist_export,
     handle_post_backups_run,
     handle_post_binance_scan,
+    handle_post_binance_scanner,
+    handle_post_binance_pipeline,
     handle_post_broker_connect,
     handle_post_broker_disconnect,
     handle_post_broker_reconnect,
@@ -582,6 +586,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/chat/tools":
                     self._send_json(handle_get_chat_tools(state))
                     return
+                if path == "/api/chat/history":
+                    self._send_json(handle_get_chat_history(state))
+                    return
                 if path in ("/", "/index.html"):
                     index = STATIC_ROOT / "index.html"
                     data = index.read_bytes()
@@ -631,6 +638,12 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/binance/scan":
                     self._send_json(handle_post_binance_scan(state, body))
+                    return
+                if path == "/api/lab/binance/scanner":
+                    self._send_json(handle_post_binance_scanner(state, body))
+                    return
+                if path == "/api/lab/binance/pipeline":
+                    self._send_json(handle_post_binance_pipeline(state, body))
                     return
                 if path == "/api/broker/connect":
                     self._send_json(handle_post_broker_connect(state, body))
@@ -682,6 +695,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/chat":
                     self._send_json(handle_post_chat(state, body))
+                    return
+                if path == "/api/chat/clear":
+                    self._send_json(handle_post_chat_clear(state, body))
                     return
                 if path == "/api/onboarding/complete":
                     self._send_json(handle_post_onboarding_complete(state, body))

@@ -157,6 +157,8 @@ class WorkbenchState:
     initial_cash: Decimal = field(default_factory=lambda: Decimal(DEFAULT_INITIAL_CASH))
     slippage_bps: Decimal = field(default_factory=lambda: Decimal("0"))
     last_lab_result: dict[str, Any] | None = None
+    chat_instructor_ctx: dict[str, Any] = field(default_factory=dict)
+    chat_memory: Any = field(default=None, repr=False)  # ChatMemory lazy
     paper_session: PaperSessionRunner | None = None
     paper_kill_engaged: bool = False
     paper_reconciliation: ReconciliationReport | None = None
@@ -1084,6 +1086,92 @@ def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dic
         return scan_binance_usdt(limit=limit)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+
+
+def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/binance/scanner — Alpha ranking sobre klines Binance (F111)."""
+    top_n = body.get("top_n", 5)
+    symbol_limit = body.get("symbol_limit", 15)
+    interval = body.get("interval", "1h")
+    kline_limit = body.get("kline_limit", 24)
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    if not isinstance(symbol_limit, int):
+        raise ApiError(400, "symbol_limit debe ser int")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    if not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int")
+    try:
+        result = lab_services.run_binance_lab_scanner(
+            top_n=top_n,
+            symbol_limit=symbol_limit,
+            interval=interval.strip(),
+            kline_limit=kline_limit,
+        )
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "scanner",
+            ok=True,
+            message="binance alpha scanner",
+            detail={"top_n": top_n, "kind": result.get("kind")},
+        )
+        return out
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def handle_post_binance_pipeline(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/binance/pipeline — scan alpha + backtest top-N (F111)."""
+    strategy_id = body.get("strategy_id", "momentum")
+    if not isinstance(strategy_id, str) or not strategy_id.strip():
+        raise ApiError(400, "strategy_id inválido")
+    params = body.get("params")
+    if params is None:
+        params_dict: dict[str, Any] = {}
+    elif isinstance(params, dict):
+        params_dict = params
+    else:
+        raise ApiError(400, "params debe ser objeto JSON")
+    top_n = body.get("top_n", 5)
+    symbol_limit = body.get("symbol_limit", 15)
+    interval = body.get("interval", "1h")
+    kline_limit = body.get("kline_limit", 24)
+    experiment_id = body.get("experiment_id", "wb-bn-pipe")
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    if not isinstance(symbol_limit, int):
+        raise ApiError(400, "symbol_limit debe ser int")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    if not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int")
+    if not isinstance(experiment_id, str) or not experiment_id.strip():
+        raise ApiError(400, "experiment_id inválido")
+    try:
+        experiment_id = lab_services.validate_experiment_id(experiment_id)
+        result = lab_services.run_binance_lab_pipeline(
+            strategy_id=strategy_id,
+            params=params_dict,
+            top_n=top_n,
+            symbol_limit=symbol_limit,
+            interval=interval.strip(),
+            kline_limit=kline_limit,
+            experiment_id_prefix=experiment_id,
+            reports_dir=state.ensure_lab_reports_dir(),
+        )
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "backtest",
+            ok=result.get("ok") is True,
+            message=f"binance pipeline {strategy_id}",
+            detail={"top_n": top_n, "kind": result.get("kind")},
+        )
+        return out
+    except ValidationError as exc:
+        raise _lab_validation_error(exc) from exc
 
 
 def handle_get_a3_md_status(state: WorkbenchState) -> dict[str, Any]:
@@ -3186,11 +3274,22 @@ def handle_get_chat_tools(state: WorkbenchState) -> dict[str, Any]:
     return state.ensure_chat().list_tools()
 
 
+def handle_get_chat_history(state: WorkbenchState) -> dict[str, Any]:
+    return state.ensure_chat().history_payload()
+
+
+def handle_post_chat_clear(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    _ = body
+    return state.ensure_chat().clear_history()
+
+
 def handle_post_chat(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     message = body.get("message")
     if not isinstance(message, str) or not message.strip():
         raise ApiError(400, "campo 'message' requerido (string no vacío)")
+    ui_context = body.get("context")
+    ui_ctx = ui_context if isinstance(ui_context, dict) else None
     try:
-        return state.ensure_chat().handle_message(message)
+        return state.ensure_chat().handle_message(message, ui_context=ui_ctx)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc

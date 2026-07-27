@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-27  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.00.0** (F110 Milestone freeze arco Guided Lab)
+**Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  
@@ -67,6 +67,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F108 | Guided Lab i18n + venue-aware UX · **1.00.0** |
 | F109 | LIVE demo cancel/LIMIT/mirror · **1.00.0** |
 | F110 | Milestone freeze arco Guided F99–F109 · **1.00.0** |
+| F111 | Binance alpha klines + pipeline + chat copilot · **1.01.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -163,8 +164,8 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 9. PaperBroker / Paper Session: fills simulados; sin venue submit
 10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
 11. Sin emitir `FASE_19`…`FASE_107_APPROVED.md` desde INTERNAL
-12. `phases_summary` tip: `F19–F110 INTERNAL`
-13. About / health `version` ≡ `__version__` (tip `1.00.0`)
+12. `phases_summary` tip: `F19–F111 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `1.01.0`)
 14. Journal PAPER append-only; mirror demo opt-in source `binance_demo`
 15. Guided Lab v1.00: i18n es/en · venue-aware · LIVE demo completo · A3 paper path
 

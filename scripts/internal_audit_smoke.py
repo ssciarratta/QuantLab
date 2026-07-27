@@ -109,7 +109,7 @@ def check_f47_chat_context() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert "get_session_summary" in ALLOWED_TOOLS
     assert "list_reports" in ALLOWED_TOOLS
     assert "list_strategies" in ALLOWED_TOOLS
@@ -171,7 +171,7 @@ def check_about_version_matches() -> None:
 
     assert __version__ == "1.00.0"
     assert __version__.startswith("1.00")
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     about = build_about_payload()
     assert about["version"] == __version__
@@ -198,7 +198,7 @@ def check_version_starts_with_084() -> None:
 
     assert __version__.startswith("1.00")
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     about = build_about_payload()
     assert about["version"].startswith("1.00")
     assert about["version"] == __version__
@@ -215,7 +215,7 @@ def check_f59_a11y() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     static = root / "src" / "quantlab" / "workbench" / "static"
@@ -242,7 +242,7 @@ def check_f60_i18n() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert DEFAULT_LOCALE == "es"
 
     es = load_messages("es")
@@ -282,7 +282,7 @@ def check_f61_access_log() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert default_settings()["access_log"] is True
 
     root = Path(__file__).resolve().parents[1]
@@ -317,7 +317,7 @@ def check_f62_access_log_ui() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_62_APPROVED.md").exists()
@@ -352,7 +352,7 @@ def check_f63_auto_backup() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert MAX_BACKUPS == 5
     assert default_settings()["auto_backup_minutes"] == 0
 
@@ -390,7 +390,7 @@ def check_f64_backups_ui() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_64_APPROVED.md").exists()
@@ -439,7 +439,7 @@ def check_f65_fills_csv() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_65_APPROVED.md").exists()
@@ -504,7 +504,7 @@ def check_f66_equity_curve() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_66_APPROVED.md").exists()
@@ -577,7 +577,7 @@ def check_f67_paper_pnl() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_67_APPROVED.md").exists()
@@ -665,7 +665,7 @@ def check_f69_risk_utilization() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_69_APPROVED.md").exists()
@@ -753,7 +753,7 @@ def check_f70_paper_kill() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_70_APPROVED.md").exists()
@@ -843,7 +843,7 @@ def check_f71_health_extended() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_71_APPROVED.md").exists()
@@ -911,7 +911,7 @@ def check_f72_desktop_notifications() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert default_settings()["desktop_notifications"] is False
 
     root = Path(__file__).resolve().parents[1]
@@ -961,7 +961,7 @@ def check_f73_sound_alerts() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert default_settings()["sound_alerts"] is False
 
     root = Path(__file__).resolve().parents[1]
@@ -1012,7 +1012,7 @@ def check_f74_clock_timezone() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert default_settings()["timezone"] == "UTC"
 
     root = Path(__file__).resolve().parents[1]
@@ -1063,7 +1063,7 @@ def check_f75_broker_heartbeat() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert HEARTBEAT_POLL_SECONDS == 5
 
     root = Path(__file__).resolve().parents[1]
@@ -1113,7 +1113,7 @@ def check_f76_broker_reconnect() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_76_APPROVED.md").exists()
@@ -1170,7 +1170,7 @@ def check_f77_broker_disconnect() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_77_APPROVED.md").exists()
@@ -1234,7 +1234,7 @@ def check_f79_watchlist_io() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_79_APPROVED.md").exists()
@@ -1289,7 +1289,7 @@ def check_f80_custom_presets() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_80_APPROVED.md").exists()
@@ -1351,7 +1351,7 @@ def check_f81_preset_delete() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_81_APPROVED.md").exists()
@@ -1407,7 +1407,7 @@ def check_f83_minimize_all() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_83_APPROVED.md").exists()
@@ -1451,7 +1451,7 @@ def check_f84_cascade_tile() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_84_APPROVED.md").exists()
@@ -1505,7 +1505,7 @@ def check_f85_zorder() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_85_APPROVED.md").exists()
@@ -1563,7 +1563,7 @@ def check_f86_maximize() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_86_APPROVED.md").exists()
@@ -1633,7 +1633,7 @@ def check_f87_broker_plugin_contract() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_87_APPROVED.md").exists()
 
@@ -1670,7 +1670,7 @@ def check_f82_window_snap() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_82_APPROVED.md").exists()
@@ -2801,7 +2801,7 @@ def check_f45_about() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = _smoke_tmp("quantlab-smoke-f45-about")
     root.mkdir(parents=True, exist_ok=True)
@@ -2855,7 +2855,7 @@ def check_f46_sessions() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f46-"))
     parent = root / "sessions"
@@ -2918,7 +2918,7 @@ def check_f48_themes() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     css = (STATIC_ROOT / "css" / "workbench.css").read_text(encoding="utf-8")
     for token in (
@@ -2983,7 +2983,7 @@ def check_f50_perf_baseline() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f50-"))
     session = WorkbenchSession.create_or_load(root, "smoke50")
@@ -3032,7 +3032,7 @@ def check_f51_rate_limit() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert DEFAULT_RATE_LIMIT_RPS >= 120.0
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f51-"))
@@ -3101,7 +3101,7 @@ def check_f52_shutdown() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     class _Md:
         symbol = "TEST"
@@ -3188,7 +3188,7 @@ def check_f53_dockerfile() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     dockerfile = root / "Dockerfile.workbench"
@@ -3229,7 +3229,7 @@ def check_f54_probes() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(tempfile.mkdtemp(prefix="quantlab-smoke-f54-"))
     session = WorkbenchSession.create_or_load(root, "smoke54")
@@ -3271,7 +3271,7 @@ def check_f55_openapi() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     routes = catalog_routes()
     paths = {(r.method, r.path) for r in routes}
@@ -3309,7 +3309,7 @@ def check_f56_security_headers() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert SECURITY_HEADERS["X-Content-Type-Options"] == "nosniff"
     assert SECURITY_HEADERS["X-Frame-Options"] == "DENY"
     assert SECURITY_HEADERS["Referrer-Policy"] == "no-referrer"
@@ -3335,7 +3335,7 @@ def check_f57_csp() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     csp = CONTENT_SECURITY_POLICY
     assert "default-src 'self'" in csp
     assert "script-src 'self'" in csp
@@ -3366,7 +3366,7 @@ def check_f88_paper_reconciliation() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     assert not (root / "docs" / "audit" / "FASE_88_APPROVED.md").exists()
     assert (root / "scripts" / "reconcile_paper_session.py").is_file()
@@ -3407,7 +3407,7 @@ def check_f89_a3_md_certification() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     report = run_fake_read_contract()
     assert report.status is A3ReadContractStatus.PASS
     assert report.write_calls == 0
@@ -3427,7 +3427,7 @@ def check_f90_reconciliation_ui() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     static = root / "src" / "quantlab" / "workbench" / "static"
@@ -3467,7 +3467,7 @@ def check_f91_paper_rehydrate() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     route = build_openapi_schema()["paths"]["/api/paper/reconciliation/rehydrate"]
     assert "post" in route and "get" not in route
@@ -3691,7 +3691,7 @@ def check_f100_live_credential_gate() -> None:
     reset_live_unlock_for_tests()
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     try:
         assert_live_routing_blocked()
         raise AssertionError("expected blocked without unlock")
@@ -3720,7 +3720,7 @@ def check_f101_binance_demo_routing() -> None:
     reset_live_unlock_for_tests()
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
 
     root = Path(__file__).resolve().parents[1]
     assert (root / "src" / "quantlab" / "brokers" / "binance" / "demo_router.py").is_file()
@@ -3774,7 +3774,7 @@ def check_f102_binance_testnet() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     assert testnet_remote_enabled() is False
     try:
         BinanceTestnetClient(
@@ -3797,7 +3797,7 @@ def check_f103_live_arc_freeze() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     freeze = (root / "docs" / "audit" / "MILESTONE_V095_LIVE_ARC_FREEZE.md").read_text(
         encoding="utf-8"
@@ -3816,7 +3816,7 @@ def check_f104_guided_lab_a3() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     js = (
         root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
@@ -3836,7 +3836,7 @@ def check_f105_a3_md_guided() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     st = a3_md_capability_status()
     assert st["kind"] == "a3_md_status"
     assert st["live_routing"] is False
@@ -3857,7 +3857,7 @@ def check_f106_a3_snapshot_guided() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     js = (
         root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
@@ -3875,7 +3875,7 @@ def check_f107_a3_paper_submit_guided() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     js = (
         root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
@@ -3893,7 +3893,7 @@ def check_f110_guided_arc_freeze() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     assert (root / "docs" / "audit" / "MILESTONE_V100_GUIDED_ARC_FREEZE.md").is_file()
     assert not (root / "docs" / "audit" / "FASE_110_APPROVED.md").exists()
@@ -3907,7 +3907,7 @@ def check_f109_live_demo_complete() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     js = (
         root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
@@ -3932,7 +3932,7 @@ def check_f108_guided_lab_i18n() -> None:
 
     assert LIVE_BLOCKED is True
     assert __version__ == "1.00.0"
-    assert PHASES_SUMMARY == "F19–F110 INTERNAL"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
     root = Path(__file__).resolve().parents[1]
     es = json.loads(
         (root / "src" / "quantlab" / "workbench" / "static" / "i18n" / "es.json").read_text(
@@ -3952,6 +3952,46 @@ def check_f108_guided_lab_i18n() -> None:
     ).read_text(encoding="utf-8")
     assert "applyVenueUi" in js and "data-i18n=" in js
     assert (root / "docs" / "FASE_108_GUIDED_LAB_I18N.md").is_file()
+
+
+def check_f111_binance_alpha_pipeline() -> None:
+    """F111: Binance alpha scanner + pipeline + chat copilot chips."""
+    from quantlab import __version__
+    from quantlab.execution.live_gate import LIVE_BLOCKED
+    from quantlab.workbench.about import PHASES_SUMMARY
+
+    assert LIVE_BLOCKED is True
+    assert __version__ == "1.01.0"
+    assert PHASES_SUMMARY == "F19–F111 INTERNAL"
+    root = Path(__file__).resolve().parents[1]
+    md = (
+        root / "src" / "quantlab" / "brokers" / "binance" / "public_md.py"
+    ).read_text(encoding="utf-8")
+    assert "def klines(" in md and "fetch_universe_bars" in md
+    lab = (root / "src" / "quantlab" / "workbench" / "lab_services.py").read_text(
+        encoding="utf-8"
+    )
+    assert "run_binance_lab_scanner" in lab and "run_binance_lab_pipeline" in lab
+    catalog = (root / "src" / "quantlab" / "workbench" / "api_catalog.py").read_text(
+        encoding="utf-8"
+    )
+    assert "/api/lab/binance/scanner" in catalog
+    assert "/api/lab/binance/pipeline" in catalog
+    js = (
+        root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "guided_lab.js"
+    ).read_text(encoding="utf-8")
+    assert "gl-scan-bn-alpha" in js and "binancePipeline" in js
+    chat = (
+        root / "src" / "quantlab" / "workbench" / "static" / "js" / "panes" / "chat.js"
+    ).read_text(encoding="utf-8")
+    assert "QUICK_CHIPS" in chat and "explain_guided_lab" not in chat
+    tools = (root / "src" / "quantlab" / "workbench" / "chat" / "tools.py").read_text(
+        encoding="utf-8"
+    )
+    assert "explain_guided_lab" in tools and "suggest_workflow" in tools
+    assert (root / "docs" / "GUIA_COMPLETA_QUANTLAB.md").is_file()
+    assert (root / "docs" / "FASE_111_BINANCE_ALPHA_PIPELINE.md").is_file()
+    assert not (root / "docs" / "audit" / "FASE_111_APPROVED.md").exists()
 
 
 def main() -> int:
@@ -4050,6 +4090,7 @@ def main() -> int:
         ("F108 guided lab i18n", check_f108_guided_lab_i18n),
         ("F109 live demo complete", check_f109_live_demo_complete),
         ("F110 guided arc freeze v1.00", check_f110_guided_arc_freeze),
+        ("F111 binance alpha pipeline + chat copilot", check_f111_binance_alpha_pipeline),
     ]
     ok = True
     for name, fn in checks:

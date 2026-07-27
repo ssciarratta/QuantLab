@@ -70,6 +70,8 @@
       '<div class="pane-row">' +
       '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab">Scan lab sintético</button>' +
       '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none">Scan Binance USDT</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none">Ranking alpha Binance</button>' +
+      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none">Backtest top 5 Binance</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
@@ -79,6 +81,8 @@
       '<select id="gl-strategy">' +
       '<option value="momentum">momentum</option>' +
       '<option value="buy_once">buy_once</option>' +
+      '<option value="inventory_mm">inventory_mm (MM)</option>' +
+      '<option value="avellaneda_stoikov">avellaneda_stoikov (MM)</option>' +
       "</select>" +
       '<label class="muted"> n_bars <input type="number" id="gl-bars" value="24" min="4" max="120" style="width:4em"></label>' +
       "</div>" +
@@ -134,19 +138,30 @@
       el.className = "mono status-bad";
     }
 
+    let lastBinanceSymbols = [];
+
     function applyVenueUi() {
       const venue = root.querySelector("#gl-venue").value;
       const a3Section = root.querySelector("#gl-section-a3");
       const demoSection = root.querySelector("#gl-section-demo");
       const scanBn = root.querySelector("#gl-scan-bn");
+      const scanBnAlpha = root.querySelector("#gl-scan-bn-alpha");
+      const pipelineBn = root.querySelector("#gl-pipeline-bn");
       if (a3Section) {
         a3Section.style.display = venue === "a3" ? "" : "none";
       }
       if (demoSection) {
         demoSection.style.display = venue === "binance" ? "" : "none";
       }
+      const showBn = venue === "binance";
       if (scanBn) {
-        scanBn.style.display = venue === "binance" ? "" : "none";
+        scanBn.style.display = showBn ? "" : "none";
+      }
+      if (scanBnAlpha) {
+        scanBnAlpha.style.display = showBn ? "" : "none";
+      }
+      if (pipelineBn) {
+        pipelineBn.style.display = showBn ? "" : "none";
       }
     }
 
@@ -375,6 +390,7 @@
           scanStatus.textContent = t("guided_lab.status.scan_binance_ok", "ok (binance MD)");
           scanStatus.className = "mono status-ok";
           const symbols = data.symbols || [];
+          lastBinanceSymbols = symbols.slice(0, 5);
           const tickers = data.tickers || [];
           scanOut.innerHTML =
             "símbolos=" +
@@ -391,6 +407,103 @@
         })
         .catch(function (err) {
           statusErr(scanStatus, err);
+        });
+    });
+
+    root.querySelector("#gl-scan-bn-alpha").addEventListener("click", function () {
+      scanStatus.textContent = t(
+        "guided_lab.status.scanning_binance_alpha",
+        "ranking alpha Binance…"
+      );
+      QLApi.binanceScanner({ top_n: 5, symbol_limit: 15 })
+        .then(function (data) {
+          scanStatus.textContent = t(
+            "guided_lab.status.scan_binance_alpha_ok",
+            "ok (alpha Binance)"
+          );
+          scanStatus.className = "mono status-ok";
+          const selected = data.selected_symbols || [];
+          lastBinanceSymbols = selected.slice();
+          const scores = data.scores || [];
+          scanOut.innerHTML =
+            "fetched=" +
+            esc(data.n_symbols_fetched) +
+            " · top=" +
+            esc(data.top_n) +
+            "<br>" +
+            selected
+              .map(function (sym, i) {
+                const sc = scores[i] || {};
+                return (
+                  esc(sym) +
+                  ' <span class="muted">composite=' +
+                  esc(sc.composite) +
+                  "</span>"
+                );
+              })
+              .join("<br>");
+        })
+        .catch(function (err) {
+          statusErr(scanStatus, err);
+        });
+    });
+
+    root.querySelector("#gl-pipeline-bn").addEventListener("click", function () {
+      const strategy = root.querySelector("#gl-strategy").value;
+      runStatus.textContent = t("guided_lab.status.pipeline_binance", "pipeline Binance…");
+      resultEl.innerHTML = "";
+      QLApi.binancePipeline({
+        strategy_id: strategy,
+        top_n: 5,
+        symbol_limit: 15,
+        experiment_id: "wb-bn-pipe",
+      })
+        .then(function (data) {
+          runStatus.textContent = data.ok
+            ? t("guided_lab.status.pipeline_ok", "pipeline ok")
+            : t("guided_lab.status.failed", "falló");
+          runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
+          const scanner = data.scanner || {};
+          const batch = data.backtests || {};
+          const runs = batch.runs || [];
+          lastBinanceSymbols = (scanner.selected_symbols || []).slice();
+          scanOut.innerHTML =
+            "<strong>alpha</strong> " +
+            esc((scanner.selected_symbols || []).join(", ")) +
+            "<br><strong>backtests</strong><br>" +
+            runs
+              .map(function (r) {
+                if (!r.ok) {
+                  return esc(r.symbol) + " ERROR " + esc(r.error);
+                }
+                const res = r.result || {};
+                return (
+                  esc(r.symbol) +
+                  " equity=" +
+                  esc(res.final_equity) +
+                  " fills=" +
+                  esc(res.n_fills)
+                );
+              })
+              .join("<br>");
+          resultEl.innerHTML =
+            "<dt>kind</dt><dd class=\"mono\">" +
+            esc(data.kind) +
+            "</dd>" +
+            "<dt>strategy</dt><dd class=\"mono\">" +
+            esc(data.strategy_id) +
+            "</dd>" +
+            "<dt>n_ok</dt><dd class=\"mono num\">" +
+            esc(batch.n_ok) +
+            "/" +
+            esc(batch.n_requested) +
+            "</dd>" +
+            "<dt>live_blocked</dt><dd class=\"mono\">" +
+            esc(data.live_blocked) +
+            "</dd>";
+        })
+        .catch(function (err) {
+          statusErr(runStatus, err);
         });
     });
 

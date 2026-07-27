@@ -10,10 +10,12 @@ import json
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from quantlab.core.exceptions import ValidationError
+from quantlab.core.types.market import Bar
 
 DEFAULT_BASE_URL = "https://api.binance.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
@@ -110,6 +112,78 @@ class BinancePublicMdClient:
             ask=_dec("askPrice"),
             last=None,
         )
+
+    def klines(
+        self,
+        symbol: str,
+        *,
+        interval: str = "1h",
+        limit: int = 24,
+    ) -> list[Bar]:
+        """OHLCV público → ``Bar`` (read-only)."""
+        sym = symbol.strip().upper()
+        if not sym:
+            raise ValidationError("symbol vacío")
+        if limit < 3 or limit > 500:
+            raise ValidationError("klines limit debe estar entre 3 y 500")
+        allowed = frozenset({"1m", "3m", "5m", "15m", "30m", "1h", "4h", "1d"})
+        iv = interval.strip()
+        if iv not in allowed:
+            raise ValidationError(f"interval inválido: {interval!r}")
+        path = f"/api/v3/klines?symbol={sym}&interval={iv}&limit={limit}"
+        payload = self._get_json(path)
+        if not isinstance(payload, list):
+            raise ValidationError("klines inválido")
+        out: list[Bar] = []
+        for row in payload:
+            if not isinstance(row, list) or len(row) < 7:
+                continue
+            try:
+                open_ms = int(row[0])
+                close_ms = int(row[6])
+                o = Decimal(str(row[1]))
+                h = Decimal(str(row[2]))
+                lo = Decimal(str(row[3]))
+                c = Decimal(str(row[4]))
+                vol = Decimal(str(row[5]))
+            except (TypeError, ValueError, InvalidOperation) as exc:
+                raise ValidationError(f"klines row inválida {sym}") from exc
+            t_open = datetime.fromtimestamp(open_ms / 1000.0, tz=UTC)
+            t_close = datetime.fromtimestamp(close_ms / 1000.0, tz=UTC)
+            out.append(
+                Bar(
+                    instrument_id=f"BN:{sym}",
+                    open=o,
+                    high=h,
+                    low=lo,
+                    close=c,
+                    volume=vol,
+                    timestamp_open=t_open,
+                    timestamp_close=t_close,
+                    timeframe=iv,
+                )
+            )
+        if len(out) < 3:
+            raise ValidationError(f"klines insuficientes para {sym}")
+        return out
+
+
+def fetch_universe_bars(
+    symbols: list[str],
+    *,
+    interval: str = "1h",
+    kline_limit: int = 24,
+    base_url: str = DEFAULT_BASE_URL,
+) -> dict[str, list[Bar]]:
+    """Descarga klines por símbolo; omite símbolos con error."""
+    client = BinancePublicMdClient(base_url=base_url)
+    out: dict[str, list[Bar]] = {}
+    for sym in symbols:
+        try:
+            out[sym] = client.klines(sym, interval=interval, limit=kline_limit)
+        except ValidationError:
+            continue
+    return out
 
 
 def scan_binance_usdt(*, limit: int = 20, base_url: str = DEFAULT_BASE_URL) -> dict[str, Any]:

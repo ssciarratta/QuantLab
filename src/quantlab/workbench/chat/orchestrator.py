@@ -1,4 +1,4 @@
-"""ChatOrchestrator — orquesta provider + tools + audit (safe-by-default)."""
+"""ChatOrchestrator — memoria, contexto y provider (safe-by-default)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,14 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.workbench.api import WorkbenchState
 from quantlab.workbench.chat.audit import ChatAuditLog
-from quantlab.workbench.chat.providers import ChatProvider, FakeProvider, build_default_provider
+from quantlab.workbench.chat.context import build_assistant_context, build_system_prompt
+from quantlab.workbench.chat.memory import ChatMemory
+from quantlab.workbench.chat.providers import (
+    ChatProvider,
+    ChatRequest,
+    FakeProvider,
+    build_default_provider,
+)
 from quantlab.workbench.chat.tools import ALLOWED_TOOLS, ToolRegistry
 
 
@@ -39,6 +46,18 @@ class ChatOrchestrator:
     def tools(self) -> ToolRegistry:
         return self._tools
 
+    def memory(self) -> ChatMemory:
+        if self._state.chat_memory is None:
+            session = self._state.ensure_session()
+            self._state.chat_memory = ChatMemory.load(session.chat_history_path)
+        mem: ChatMemory = self._state.chat_memory
+        return mem
+
+    def persist_memory(self) -> None:
+        mem = self.memory()
+        session = self._state.ensure_session()
+        mem.save(session.chat_history_path)
+
     def list_tools(self) -> dict[str, Any]:
         return {
             "ok": True,
@@ -47,15 +66,50 @@ class ChatOrchestrator:
             "live_blocked": LIVE_BLOCKED is True,
             "safe_mode": True,
             "mutations_allowed": False,
+            "memory_turns": len(self.memory().messages),
         }
 
-    def handle_message(self, message: str) -> dict[str, Any]:
+    def history_payload(self) -> dict[str, Any]:
+        mem = self.memory()
+        return {
+            "ok": True,
+            "count": len(mem.messages),
+            "messages": [m.to_dict() for m in mem.messages],
+            "live_blocked": LIVE_BLOCKED is True,
+        }
+
+    def clear_history(self) -> dict[str, Any]:
+        self.memory().clear()
+        self._state.chat_instructor_ctx = {}
+        self.persist_memory()
+        return {"ok": True, "cleared": True, "count": 0}
+
+    def handle_message(
+        self,
+        message: str,
+        *,
+        ui_context: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         if not isinstance(message, str) or not message.strip():
             raise ValidationError("campo 'message' requerido (string no vacío)")
         if not LIVE_BLOCKED:
             raise ValidationError("LIVE_BLOCKED debe ser True; chat aborta")
 
-        turn = self._provider.complete(message.strip(), self._tools)
+        mem = self.memory()
+        mem.append_user(message.strip())
+        ctx = build_assistant_context(self._state, mem, ui_context=ui_context)
+        request = ChatRequest(
+            message=message.strip(),
+            history=tuple(mem.recent(20)),
+            ui_context=ui_context,
+            assistant_context=ctx,
+            system_prompt=build_system_prompt(ctx),
+        )
+
+        turn = self._provider.complete(request, self._tools)
+        mem.append_assistant(turn.reply, tools_used=turn.tools_used, provider=turn.provider)
+        self.persist_memory()
+
         payload = {
             "ok": True,
             "reply": turn.reply,
@@ -64,6 +118,7 @@ class ChatOrchestrator:
             "live_blocked": LIVE_BLOCKED is True,
             "safe_mode": True,
             "provider": turn.provider,
+            "memory_turns": len(mem.messages),
         }
         self._audit.append(
             {
@@ -74,6 +129,7 @@ class ChatOrchestrator:
                 "mode": self._state.mode.value,
                 "live_blocked": True,
                 "provider": turn.provider,
+                "memory_turns": len(mem.messages),
             }
         )
         return payload
@@ -88,6 +144,6 @@ def build_orchestrator(
     audit = ChatAuditLog(audit_path) if audit_path is not None else ChatAuditLog()
     return ChatOrchestrator(
         state,
-        provider=provider if provider is not None else FakeProvider(),
+        provider=provider if provider is not None else build_default_provider(),
         audit=audit,
     )

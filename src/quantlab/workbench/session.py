@@ -136,6 +136,10 @@ class WorkbenchSession:
         return self._root / "chat_audit.jsonl"
 
     @property
+    def chat_history_path(self) -> Path:
+        return self._root / "chat_history.json"
+
+    @property
     def activity_path(self) -> Path:
         return self._root / "activity.jsonl"
 

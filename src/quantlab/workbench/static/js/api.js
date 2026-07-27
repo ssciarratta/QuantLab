@@ -332,8 +332,17 @@
     labReport: function (reportId) {
       return request("GET", "/api/lab/reports/" + encodeURIComponent(reportId));
     },
-    chat: function (message) {
-      return request("POST", "/api/chat", { message: message });
+    chat: function (message, context) {
+      return request("POST", "/api/chat", {
+        message: message,
+        context: context || { pane: "chat" },
+      });
+    },
+    chatHistory: function () {
+      return request("GET", "/api/chat/history");
+    },
+    chatClear: function () {
+      return request("POST", "/api/chat/clear", {});
     },
     chatTools: function () {
       return request("GET", "/api/chat/tools");
@@ -405,6 +414,27 @@
     },
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
+    },
+    binanceScanner: function (opts) {
+      const o = opts || {};
+      return request("POST", "/api/lab/binance/scanner", {
+        top_n: o.top_n || 5,
+        symbol_limit: o.symbol_limit || 15,
+        interval: o.interval || "1h",
+        kline_limit: o.kline_limit || 24,
+      });
+    },
+    binancePipeline: function (opts) {
+      const o = opts || {};
+      return request("POST", "/api/lab/binance/pipeline", {
+        strategy_id: o.strategy_id || "momentum",
+        params: o.params || {},
+        top_n: o.top_n || 5,
+        symbol_limit: o.symbol_limit || 15,
+        interval: o.interval || "1h",
+        kline_limit: o.kline_limit || 24,
+        experiment_id: o.experiment_id || "wb-bn-pipe",
+      });
     },
     a3MdStatus: function () {
       return request("GET", "/api/lab/a3/md-status");

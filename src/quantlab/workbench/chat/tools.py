@@ -12,6 +12,7 @@ from quantlab.infra.health import run_health_checks
 from quantlab.workbench import lab_services
 from quantlab.workbench.activity import clamp_limit, list_activity
 from quantlab.workbench.api import WorkbenchState
+from quantlab.workbench.chat.context import build_assistant_context
 from quantlab.workbench.docs_browser import default_docs_root, search_docs_files
 from quantlab.workbench.reports import list_lab_reports
 from quantlab.workbench.strategy_catalog import list_strategy_catalog
@@ -23,6 +24,11 @@ ALLOWED_TOOLS: frozenset[str] = frozenset(
         "list_capabilities",
         "list_venues",
         "explain_backtest",
+        "explain_guided_lab",
+        "explain_binance_lab",
+        "suggest_workflow",
+        "instructor_guide",
+        "get_assistant_context",
         "search_docs",
         "list_experiments",
         "explain_live_policy",
@@ -64,6 +70,21 @@ _TOOL_META: dict[str, dict[str, str]] = {
     "explain_backtest": {
         "description": "Guía de backtest + último summary de sesión si existe",
     },
+    "explain_guided_lab": {
+        "description": "Guía paso a paso del panel Guided Lab (venue, scan, simular)",
+    },
+    "explain_binance_lab": {
+        "description": "Binance MD público, alpha scanner y pipeline scan→backtest",
+    },
+    "suggest_workflow": {
+        "description": "Sugiere flujo según objetivo del operador (aprender, binance, a3)",
+    },
+    "instructor_guide": {
+        "description": "Lección paso a paso: alpha Binance, market making, flujo completo",
+    },
+    "get_assistant_context": {
+        "description": "Memoria de sesión, último lab, instructor y resumen conversación",
+    },
     "search_docs": {
         "description": "Busca keywords en docs/*.md y docs/ops/*.md locales",
     },
@@ -93,6 +114,108 @@ _BACKTEST_GUIDE = (
     "(lookback/quantity/half_spread/gamma). "
     "Resultado queda en sesión (GET /api/lab/metrics). Nunca envía órdenes live."
 )
+
+_GUIDED_LAB_GUIDE = (
+    "Guided Lab (QL → Guided Lab): wizard paso a paso. "
+    "0) Unlock LIVE opcional (QUANTLAB_LIVE_USER/PASSWORD en .env). "
+    "1) Venue: binance | paper | a3. "
+    "2) Escanear: lab sintético, Scan Binance USDT, Ranking alpha Binance. "
+    "3) Estrategia momentum/buy_once. "
+    "4) Simular backtest sintético O botón 'Backtest top 5 Binance' (pipeline F111). "
+    "5) Demo order solo binance+unlock. A3: connect paper, snapshot, paper submit."
+)
+
+_BINANCE_LAB_GUIDE = (
+    "Para correr Alpha Scanner en Binance desde la UI:\n"
+    "1) QL (abajo izquierda) → Guided Lab\n"
+    "2) Venue = binance\n"
+    "3) Clic «Ranking alpha Binance» (klines USDT reales, read-only)\n"
+    "4) Revisá el top de monedas\n"
+    "5) Para probar estrategia: elegí inventory_mm o momentum → "
+    "«Backtest top 5 Binance»\n"
+    "APIs (solo si las necesitás): "
+    "POST /api/lab/binance/scan · /scanner · /pipeline. "
+    "Demo órdenes solo post-unlock. Producción bloqueada."
+)
+
+_WORKFLOW_HINTS: dict[str, str] = {
+    "aprender": (
+        "Empezá: 1) uv run quantlab-workbench 2) QL→Guided Lab venue paper "
+        "3) Scan lab sintético 4) Simular backtest 5) Chat IA para dudas."
+    ),
+    "binance": (
+        "Binance sin operar: Guided Lab venue binance → Scan Binance USDT → "
+        "Ranking alpha Binance → Backtest top 5 Binance. Demo solo con unlock."
+    ),
+    "estrategia": (
+        "Probar estrategia: Guided Lab → elegir momentum/buy_once → Simular backtest. "
+        "Con datos reales Binance: Backtest top 5 Binance (pipeline)."
+    ),
+    "a3": (
+        "A3: .env QUANTLAB_A3_MD_READONLY=1 + creds → Guided Lab venue a3 → "
+        "connect paper → instrumentos → snapshot → paper submit."
+    ),
+    "alpha_mm": (
+        "Flujo alpha→MM: Guided Lab venue binance → Ranking alpha Binance → "
+        "elegir inventory_mm o avellaneda_stoikov → Backtest top 5 Binance."
+    ),
+}
+
+_MM_STRATEGIES: tuple[dict[str, str], ...] = (
+    {
+        "id": "inventory_mm",
+        "name": "Inventory MM",
+        "when": "Primera prueba MM: simple, bid/ask alrededor del mid con skew por inventario.",
+        "params": "quantity, half_spread (ej. 0.5), max_pos (ej. 10)",
+        "best_for": "Pares líquidos del ranking (BTCUSDT, ETHUSDT) — spreads estables.",
+    },
+    {
+        "id": "avellaneda_stoikov",
+        "name": "Avellaneda–Stoikov",
+        "when": "Después de inventory_mm: cotizador con reserva óptima e inventario.",
+        "params": "gamma, sigma, kappa, horizon_events, max_pos",
+        "best_for": "Monedas con volatilidad moderada del top alpha; requiere tunear sigma.",
+    },
+)
+
+_INSTRUCTOR_LESSONS: dict[str, dict[str, Any]] = {
+    "alpha_binance": {
+        "title": "Lección 1 — Detectar monedas con Alpha en Binance",
+        "steps": (
+            "Abrí el Workbench en http://127.0.0.1:8765 (si no corre: uv run quantlab-workbench).",
+            "QL (abajo izq) → Guided Lab.",
+            "Sección 1 Venue: elegí binance.",
+            "Sección 2 Escanear: clic en Ranking alpha Binance (lee klines USDT reales, read-only).",
+            "Esperá el resultado: verás hasta 5 símbolos con score composite (volatilidad, volumen, liquidez).",
+            "Anotá los símbolos (ej. BTCUSDT, ETHUSDT…). Opcional: Scan Binance USDT para bid/ask actual.",
+        ),
+        "next_prompt": "Cuando termines, escribime: «ya tengo el ranking, ¿qué MM probamos?»",
+    },
+    "mm_after_alpha": {
+        "title": "Lección 2 — Elegir estrategia Market Making para las monedas detectadas",
+        "steps": (
+            "Volvé a Guided Lab (venue binance).",
+            "Sección 3 Estrategia: elegí inventory_mm (empezá simple) o avellaneda_stoikov (avanzada).",
+            "Sección 4: clic Backtest top 5 Binance — corre la estrategia elegida sobre las monedas del ranking.",
+            "Revisá equity y fills por símbolo en el resultado del pipeline.",
+            "Compará: inventory_mm en pares muy volátiles del ranking puede necesitar half_spread más amplio.",
+            "Paper session automática con MM: panel Sesión Paper (después de validar backtest).",
+        ),
+        "next_prompt": "Si querés, preguntame: «explicame inventory_mm» o «qué parámetros tunear».",
+    },
+    "full_alpha_mm": {
+        "title": "Flujo completo — Alpha Binance → Market Making",
+        "steps": (
+            "PASO A — Detectar monedas: Guided Lab → venue binance → Ranking alpha Binance.",
+            "PASO B — Revisá el top 5: priorizá pares con buen composite y volumen (BTC/ETH suelen aparecer).",
+            "PASO C — Estrategia MM: empezá con inventory_mm; si ya la dominás, probá avellaneda_stoikov.",
+            "PASO D — Backtest: mismo Guided Lab → elegí la estrategia MM → Backtest top 5 Binance.",
+            "PASO E — Interpretá: compará final_equity y n_fills entre símbolos; no es asesoramiento financiero.",
+            "Recordá: LIVE_BLOCKED=True; esto es laboratorio paper, sin órdenes reales.",
+        ),
+        "next_prompt": "Decime «vamos al paso A» si querés que te guíe uno por uno.",
+    },
+}
 
 
 class ToolRegistry:
@@ -140,6 +263,11 @@ class ToolRegistry:
             "list_capabilities": self._list_capabilities,
             "list_venues": self._list_venues,
             "explain_backtest": self._explain_backtest,
+            "explain_guided_lab": self._explain_guided_lab,
+            "explain_binance_lab": self._explain_binance_lab,
+            "suggest_workflow": self._suggest_workflow,
+            "instructor_guide": self._instructor_guide,
+            "get_assistant_context": self._get_assistant_context,
             "search_docs": self._search_docs,
             "list_experiments": self._list_experiments,
             "explain_live_policy": self._explain_live_policy,
@@ -183,6 +311,120 @@ class ToolRegistry:
             "has_last": summary is not None,
             "live_routing": False,
         }
+
+    def _explain_guided_lab(self, _args: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "guide": _GUIDED_LAB_GUIDE,
+            "panel": "guided_lab",
+            "steps": ["unlock", "venue", "scan", "strategy", "simulate", "demo_a3"],
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _explain_binance_lab(self, _args: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "guide": _BINANCE_LAB_GUIDE,
+            "apis": [
+                "/api/lab/binance/scan",
+                "/api/lab/binance/scanner",
+                "/api/lab/binance/pipeline",
+            ],
+            "read_only_md": True,
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _suggest_workflow(self, args: dict[str, Any]) -> dict[str, Any]:
+        goal = str(args.get("goal") or args.get("objective") or "aprender").strip().lower()
+        if goal not in _WORKFLOW_HINTS:
+            for key in _WORKFLOW_HINTS:
+                if key in goal:
+                    goal = key
+                    break
+            else:
+                goal = "aprender"
+        return {
+            "goal": goal,
+            "workflow": _WORKFLOW_HINTS[goal],
+            "available_goals": sorted(_WORKFLOW_HINTS.keys()),
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _extract_last_binance_symbols(self) -> list[str]:
+        last = self._state.last_lab_result
+        if not isinstance(last, dict):
+            return []
+        kind = str(last.get("kind") or "")
+        if kind == "binance_scanner":
+            raw = last.get("selected_symbols")
+            return [str(s) for s in raw] if isinstance(raw, list) else []
+        if kind == "binance_pipeline":
+            scanner = last.get("scanner")
+            if isinstance(scanner, dict):
+                raw = scanner.get("selected_symbols")
+                return [str(s) for s in raw] if isinstance(raw, list) else []
+        if kind == "binance_backtest_batch":
+            runs = last.get("runs")
+            if isinstance(runs, list):
+                return [str(r["symbol"]) for r in runs if isinstance(r, dict) and r.get("symbol")]
+        return []
+
+    def _instructor_guide(self, args: dict[str, Any]) -> dict[str, Any]:
+        lesson = str(args.get("lesson") or "full_alpha_mm").strip().lower()
+        if lesson not in _INSTRUCTOR_LESSONS:
+            for key in _INSTRUCTOR_LESSONS:
+                if key in lesson:
+                    lesson = key
+                    break
+            else:
+                lesson = "full_alpha_mm"
+
+        payload = dict(_INSTRUCTOR_LESSONS[lesson])
+        symbols = self._extract_last_binance_symbols()
+        mm_only = [dict(s) for s in _MM_STRATEGIES]
+
+        recommendations: list[dict[str, str]] = []
+        for s in _MM_STRATEGIES:
+            rec = dict(s)
+            if symbols:
+                rec["note"] = (
+                    f"Probar en {', '.join(symbols[:3])}"
+                    + ("…" if len(symbols) > 3 else "")
+                )
+            recommendations.append(rec)
+
+        self._state.chat_instructor_ctx = {
+            "lesson": lesson,
+            "symbols": symbols,
+            "awaiting": "mm_pick" if lesson == "alpha_binance" else None,
+        }
+
+        return {
+            "ok": True,
+            "kind": "instructor",
+            "lesson": lesson,
+            "title": payload["title"],
+            "steps": list(payload["steps"]),
+            "next_prompt": payload.get("next_prompt"),
+            "detected_symbols": symbols,
+            "mm_strategies": mm_only,
+            "mm_recommendations": recommendations,
+            "has_prior_scan": len(symbols) > 0,
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _get_assistant_context(self, args: dict[str, Any]) -> dict[str, Any]:
+        from quantlab.workbench.chat.memory import ChatMemory
+
+        memory = self._state.chat_memory if isinstance(self._state.chat_memory, ChatMemory) else ChatMemory()
+        ui = args.get("ui_context")
+        ui_ctx = ui if isinstance(ui, dict) else None
+        ctx = build_assistant_context(self._state, memory, ui_context=ui_ctx)
+        ctx["chat_mutations"] = False
+        ctx["live_routing"] = False
+        return ctx
 
     def _search_docs(self, args: dict[str, Any]) -> dict[str, Any]:
         raw_q = args.get("query") or args.get("q") or args.get("keywords") or ""
