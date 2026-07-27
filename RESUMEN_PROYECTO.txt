@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.97.0 (F105 A3 MD env Guided Lab)
+Versión código actual: 0.98.0 (F105 A3 MD env Guided Lab)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -82,7 +82,7 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F105 A3 MD env Guided Lab (0.97.0): /api/lab/a3/md-status + selector fake|env.
+F105 A3 MD env Guided Lab (0.98.0): /api/lab/a3/md-status + selector fake|env.
 Banner LIVE con transport/fills. PaperBroker only. DEC-149.
 
 Previo — F104 Guided Lab A3 paper (0.96.0). DEC-148.

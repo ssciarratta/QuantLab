@@ -113,7 +113,7 @@ class BinanceTestnetClient:
         self, method: str, path: str, params: dict[str, str], *, signed: bool
     ) -> dict[str, Any]:
         payload = dict(params)
-        headers = {"User-Agent": "QuantLab/0.97 (+binance-testnet)", "X-MBX-APIKEY": self._key}
+        headers = {"User-Agent": "QuantLab/0.98 (+binance-testnet)", "X-MBX-APIKEY": self._key}
         if signed:
             payload["timestamp"] = str(int(time.time() * 1000))
             payload["signature"] = self._sign(payload)

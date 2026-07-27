@@ -41,6 +41,8 @@
       '<button type="button" class="btn secondary" id="gl-a3-status-btn">Estado MD A3</button>' +
       '<button type="button" class="btn secondary" id="gl-a3-connect">Conectar paper A3</button>' +
       '<button type="button" class="btn secondary" id="gl-a3-instr">Listar instrumentos</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-snap">Snapshot</button>' +
+      '<input type="text" id="gl-a3-sym" placeholder="símbolo" style="width:7em">' +
       '<span class="mono muted" id="gl-a3-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-a3-out">—</div>' +
@@ -203,12 +205,42 @@
           const items = data.instruments || data.items || [];
           a3Status.textContent = "ok (" + items.length + ")";
           a3Status.className = "mono status-ok";
+          if (items.length && !root.querySelector("#gl-a3-sym").value) {
+            root.querySelector("#gl-a3-sym").value = items[0].symbol || "";
+          }
           a3Out.innerHTML = items
             .slice(0, 12)
             .map(function (it) {
               return esc(it.symbol || it.instrument_id || JSON.stringify(it));
             })
             .join("<br>") || "—";
+        })
+        .catch(function (err) {
+          a3Status.textContent = "error: " + err.message;
+          a3Status.className = "mono status-bad";
+        });
+    });
+    root.querySelector("#gl-a3-snap").addEventListener("click", function () {
+      const sym = root.querySelector("#gl-a3-sym").value.trim();
+      if (!sym) {
+        a3Status.textContent = "ingresá símbolo o listá instrumentos";
+        a3Status.className = "mono status-bad";
+        return;
+      }
+      a3Status.textContent = "snapshot…";
+      QLApi.snapshot(sym)
+        .then(function (data) {
+          a3Status.textContent = "snapshot ok";
+          a3Status.className = "mono status-ok";
+          const s = data.snapshot || data;
+          a3Out.textContent =
+            esc(s.symbol || sym) +
+            " bid=" +
+            esc(s.bid) +
+            " ask=" +
+            esc(s.ask) +
+            " last=" +
+            esc(s.last);
         })
         .catch(function (err) {
           a3Status.textContent = "error: " + err.message;

@@ -1,3 +1,8 @@
+[2026-07-26] DEC-150 — Guided Lab A3 snapshot MD
+  Decisión: F106 agrega snapshot de símbolo post-connect A3 (API broker existente).
+  Sin submit venue. Bump 0.98.0.
+  Fase: 106.
+
 [2026-07-26] DEC-149 — A3 MD env opt-in en Guided Lab
   Decisión: F105 expone GET /api/lab/a3/md-status (sin secrets) y selector
   md_source fake|env en Guided Lab. Fills PaperBroker. Bump 0.97.0.
