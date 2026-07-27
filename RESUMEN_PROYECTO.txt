@@ -1,36 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · horizonte backtest ×20–50 + detalle fills
+Versión: 1.01.0 · Monte Carlo FASE 0 auditoría
 
 ESTADO
 ------
-- Lab Binance: klines paginadas hasta 3000 (default UI 1200 ≈ 20×60)
-- Backtest summary incluye fills/orders/bar_range + fees VIP0
-- 39 estrategias runnable / 11 stubs
-- LIVE_BLOCKED
+- LIVE_BLOCKED=True · REAL=PAPER
+- Alpha Scanner FASE 0–10 código completo (default legacy_v1)
+- Monte Carlo: FASE 0 auditoría DONE → docs/montecarlo/current-montecarlo-audit.md
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 0–10 (código): auditoría → features → scorer → perfiles →
-multi-venue → persist → Guided Lab UX → observe/cache → docs guía
-Default: legacy_v1. Guía: docs/scanner/alpha-scanner-guide.md
-52 tests alpha+F111 OK. Cierre formal APROBADO: pendiente auditoría
+FASE 0 Monte Carlo improvement: auditoría del motor existente
+(perturbación OHLC gaussiana + re-backtest BuyOnce sintético).
+n_bars=# velas 1m; noise_bps=σ en bps; CI95=IC de la media (Wald).
+Sin módulo paralelo. Progress: docs/progress/montecarlo-improvement-status.md
 
 PRÓXIMO
 -------
-Usar perfiles en Guided Lab; opcional fetch HL/Bybit/OKX; walk-forward split rank/BT
-
-DÓNDE VER DETALLE
------------------
-1) Guided Lab → resultado del pipeline (tabla fills por símbolo)
-2) Panel Reports → summary.json / HTML de cada corrida persistida
-3) Journal/Blotter = fills PAPER manuales (no el pipeline lab)
-
-PRÓXIMO
--------
-- Selector fecha start/end (opcional)
-- Stubs restantes / certificados externos
+FASE 1–12 MC: modelos contexto/config → persistencia → UI trazable → tests/docs
 
 INVARIANTES
 -----------
