@@ -20,6 +20,11 @@ from quantlab.core.types.market import Bar
 DEFAULT_BASE_URL = "https://api.binance.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 
+# Binance API: máx 1000 klines por request. Lab permite paginar hasta MAX_KLINES_TOTAL.
+MAX_KLINES_PER_REQUEST = 1000
+MAX_KLINES_TOTAL = 3000  # ~50× el default histórico de 60
+MIN_KLINES = 3
+
 # Intervalos Spot públicos (sin ticks/L2). 1m = más fino disponible aquí.
 ALLOWED_KLINE_INTERVALS: frozenset[str] = frozenset(
     {"1m", "3m", "5m", "15m", "30m", "1h", "4h", "1d"}
@@ -149,22 +154,7 @@ class BinancePublicMdClient:
             last=None,
         )
 
-    def klines(
-        self,
-        symbol: str,
-        *,
-        interval: str = "1h",
-        limit: int = 24,
-    ) -> list[Bar]:
-        """OHLCV público → ``Bar`` (read-only)."""
-        sym = symbol.strip().upper()
-        if not sym:
-            raise ValidationError("symbol vacío")
-        if limit < 3 or limit > 500:
-            raise ValidationError("klines limit debe estar entre 3 y 500")
-        iv = validate_kline_interval(interval)
-        path = f"/api/v3/klines?symbol={sym}&interval={iv}&limit={limit}"
-        payload = self._get_json(path)
+    def _parse_kline_rows(self, symbol: str, interval: str, payload: object) -> list[Bar]:
         if not isinstance(payload, list):
             raise ValidationError("klines inválido")
         out: list[Bar] = []
@@ -180,12 +170,12 @@ class BinancePublicMdClient:
                 c = Decimal(str(row[4]))
                 vol = Decimal(str(row[5]))
             except (TypeError, ValueError, InvalidOperation) as exc:
-                raise ValidationError(f"klines row inválida {sym}") from exc
+                raise ValidationError(f"klines row inválida {symbol}") from exc
             t_open = datetime.fromtimestamp(open_ms / 1000.0, tz=UTC)
             t_close = datetime.fromtimestamp(close_ms / 1000.0, tz=UTC)
             out.append(
                 Bar(
-                    instrument_id=f"BN:{sym}",
+                    instrument_id=f"BN:{symbol}",
                     open=o,
                     high=h,
                     low=lo,
@@ -193,10 +183,61 @@ class BinancePublicMdClient:
                     volume=vol,
                     timestamp_open=t_open,
                     timestamp_close=t_close,
-                    timeframe=iv,
+                    timeframe=interval,
                 )
             )
-        if len(out) < 3:
+        return out
+
+    def klines(
+        self,
+        symbol: str,
+        *,
+        interval: str = "1h",
+        limit: int = 24,
+    ) -> list[Bar]:
+        """OHLCV público → ``Bar`` (read-only).
+
+        ``limit`` hasta ``MAX_KLINES_TOTAL`` (pagina de a 1000 hacia atrás).
+        Sin ``startTime``/``endTime`` explícitos: siempre las **últimas N** velas
+        hasta el momento de la consulta.
+        """
+        sym = symbol.strip().upper()
+        if not sym:
+            raise ValidationError("symbol vacío")
+        if limit < MIN_KLINES or limit > MAX_KLINES_TOTAL:
+            raise ValidationError(
+                f"klines limit debe estar entre {MIN_KLINES} y {MAX_KLINES_TOTAL}"
+            )
+        iv = validate_kline_interval(interval)
+
+        by_open: dict[datetime, Bar] = {}
+        remaining = limit
+        end_ms: int | None = None
+        # Páginas hacia atrás hasta completar N o agotar historial.
+        max_pages = (MAX_KLINES_TOTAL // MAX_KLINES_PER_REQUEST) + 2
+        for _ in range(max_pages):
+            if remaining <= 0:
+                break
+            batch = min(MAX_KLINES_PER_REQUEST, remaining)
+            path = f"/api/v3/klines?symbol={sym}&interval={iv}&limit={batch}"
+            if end_ms is not None:
+                path += f"&endTime={end_ms}"
+            payload = self._get_json(path)
+            chunk = self._parse_kline_rows(sym, iv, payload)
+            if not chunk:
+                break
+            for bar in chunk:
+                by_open[bar.timestamp_open] = bar
+            oldest_open_ms = int(chunk[0].timestamp_open.timestamp() * 1000)
+            end_ms = oldest_open_ms - 1
+            remaining = limit - len(by_open)
+            if len(chunk) < batch:
+                break  # no hay más historial
+
+        out = sorted(by_open.values(), key=lambda b: b.timestamp_open)
+        if len(out) > limit:
+            out = out[-limit:]
+        if len(out) < MIN_KLINES:
             raise ValidationError(f"klines insuficientes para {sym}")
         return out
 

@@ -126,6 +126,38 @@ def test_binance_interval_rejects_ticks() -> None:
         lab_services.run_binance_lab_scanner(interval="1s", top_n=2, symbol_limit=5)
 
 
+def test_binance_kline_limit_allows_1200() -> None:
+    """Horizonte ampliado: 1200 ≈ 20× el default histórico de 60."""
+    symbols = ["BTCUSDT", "ETHUSDT"]
+    uni = {s: _fake_bars(s, n=40) for s in symbols}
+    with (
+        patch(
+            "quantlab.brokers.binance.public_md.BinancePublicMdClient.list_spot_symbols",
+            return_value=symbols,
+        ),
+        patch(
+            "quantlab.brokers.binance.public_md.fetch_universe_bars",
+            return_value=uni,
+        ) as fetch_mock,
+    ):
+        out = lab_services.run_binance_lab_scanner(
+            top_n=2,
+            symbol_limit=5,
+            interval="5m",
+            kline_limit=1200,
+        )
+    assert out["ok"] is True
+    assert out["kline_limit"] == 1200
+    assert fetch_mock.call_args.kwargs["kline_limit"] == 1200
+
+
+def test_binance_kline_limit_rejects_over_3000() -> None:
+    from quantlab.core.exceptions import ValidationError
+
+    with pytest.raises(ValidationError, match="3000"):
+        lab_services.run_binance_lab_scanner(kline_limit=3001, top_n=2, symbol_limit=5)
+
+
 def test_run_lab_backtest_with_bars(binance_universe: dict[str, list[Bar]]) -> None:
     bars = binance_universe["BTCUSDT"]
     out = lab_services.run_lab_backtest(

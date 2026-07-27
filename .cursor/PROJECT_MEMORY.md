@@ -174,14 +174,15 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 17. Estrategias F115: `strategy_catalog` por familia · `runnable`/`binance_ready` · stubs fail-closed · skill `strategy-expander`
 18. Backtest UX: `verdict_es` + Guided Lab explica fills/equity; MM half_spread escala al mid en alts
 19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
+20. Horizonte Binance: klines paginadas hasta 3000; UI default 1200; summary con fills/orders/bar_range
 
 ## Próximo
 
+- Selector fecha start/end opcional (hoy: últimas N hasta ahora)
 - Certificados externos F19+ (Meta-Auditor)
 - Testnet manual E2E · A3 MD env operativo
 - LIVE producción solo con checklist + dueño
 - Promover stubs restantes con datos reales (L2/opciones/multi-asset)
-- (Opcional) fee schedule por cuenta vía API autenticada post-unlock
 
 ## Checkpoint
 

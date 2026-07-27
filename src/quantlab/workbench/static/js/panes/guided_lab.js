@@ -19,6 +19,19 @@
       '<p class="muted" style="margin-top:0" data-i18n="guided_lab.intro">' +
       "Flujo: venue → scan → estrategia → simular. " +
       "LIVE solo tras usuario/contraseña (corte humano). Sin unlock = bloqueado.</p>" +
+      '<div class="data-legend" role="note">' +
+      '<div class="data-legend-row">' +
+      '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
+      "<span>Klines / ticks públicos reales del mercado. " +
+      "Ranking y <em>Backtest top 5</em> miran las últimas N velas hasta ahora " +
+      "(ej. de las 14:00 a las 15:01 según tamaño de vela).</span>" +
+      "</div>" +
+      '<div class="data-legend-row">' +
+      '<span class="data-badge data-badge-synth">SINTÉTICO lab</span>' +
+      "<span>Barras inventadas del laboratorio. " +
+      "<em>Scan lab</em> y <em>Simular backtest</em> — no son precios de Binance.</span>" +
+      "</div>" +
+      "</div>" +
       '<div class="mono" id="gl-live">LIVE_BLOCKED = True</div>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -67,11 +80,15 @@
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.scan">2. Escanear</h3>' +
+      '<p class="muted" style="margin:0 0 0.4rem;font-size:0.85em">' +
+      '<span class="data-badge data-badge-synth">SINTÉTICO</span> Scan lab · ' +
+      '<span class="data-badge data-badge-real">HISTÓRICO</span> Scan Binance / Ranking / Backtest top 5' +
+      "</p>" +
       '<div class="pane-row">' +
-      '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab" data-tip="Escanea el lab sintético local.\nSin red externa." data-i18n-tip="tip.gl.scan_lab">Scan lab sintético</button>' +
-      '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none" data-tip="Escanea pares USDT vía MD público Binance.\nSolo lectura; sin API de trading." data-i18n-tip="tip.gl.scan_bn">Scan Binance USDT</button>' +
-      '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none" data-tip="Ranking alpha con klines Binance.\nOrdena candidatos research." data-i18n-tip="tip.gl.scan_alpha">Ranking alpha Binance</button>' +
-      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Pipeline: ranking → backtest de los top 5.\nEstrategia elegida abajo; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 Binance</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan" data-i18n="guided_lab.scan.lab" data-tip="Escanea el lab SINTÉTICO local.\nNo son datos de Binance." data-i18n-tip="tip.gl.scan_lab">Scan lab (sintético)</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none" data-tip="Lista pares USDT — MD HISTÓRICO/público Binance.\nSolo lectura." data-i18n-tip="tip.gl.scan_bn">Scan Binance (histórico)</button>' +
+      '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none" data-tip="Ranking alpha sobre klines HISTÓRICAS Binance.\nÚltimas N velas hasta ahora." data-i18n-tip="tip.gl.scan_alpha">Ranking alpha (histórico)</button>' +
+      '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Backtest top 5 sobre klines HISTÓRICAS Binance.\nPaper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
@@ -81,6 +98,7 @@
       '<select id="gl-strategy"></select>' +
       '<p class="muted mono" id="gl-strategy-hint" style="margin:0.25rem 0 0">cargando catálogo…</p>' +
       '<div class="pane-row" style="margin-top:0.5rem;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
+      '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
       '<label class="muted" title="Intervalo de klines Binance (MD público). 1m = más fino disponible sin L2/ticks.">' +
       "velas " +
       '<select id="gl-interval">' +
@@ -93,20 +111,36 @@
       '<option value="4h">4h</option>' +
       '<option value="1d">1d</option>' +
       "</select></label>" +
-      '<label class="muted" title="Cantidad de velas: en Ranking/Pipeline = klines Binance (8–500). En Simular backtest = barras sintéticas del lab (4–120).">' +
+      '<label class="muted" title="Cantidad de velas Binance (8–3000). Pagina API de a 1000. Default 1200 ≈ 20× el histórico de 60.">' +
       "n_bars/klines " +
-      '<input type="number" id="gl-bars" value="60" min="8" max="500" style="width:4.5em">' +
+      '<input type="number" id="gl-bars" value="1200" min="8" max="3000" style="width:4.5em">' +
       "</label>" +
       "</div>" +
       '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
-      "Binance: interval + n_bars = historial de klines. Simular: solo n_bars sintéticas (máx 120). " +
-      "1m no es HFT real (sin order book / ticks)." +
+      "Ranking / Backtest top 5: mira el mercado REAL de Binance y toma las últimas N velas hasta ahora " +
+      "(ej. 5m×1200 ≈ desde hace ~4 días hasta este momento). Detalle fills abajo + panel Reports." +
       "</p>" +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.simulate">4. Simular (paper)</h3>' +
-      '<div class="pane-row">' +
-      '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Simula un backtest paper con la estrategia elegida.\nNo envía órdenes a venue." data-i18n-tip="tip.gl.run">Simular backtest</button>' +
+      '<p class="data-badge data-badge-synth" style="display:inline-block;margin:0 0 0.4rem">DATOS SINTÉTICOS (lab)</p>' +
+      '<p class="muted" style="margin:0 0 0.45rem;font-size:0.85em">' +
+      "No usa Binance. Genera barras inventadas del lab. " +
+      "Elegí <strong>días</strong> (o velas). Los <strong>trades no se fijan</strong>: los decide la estrategia." +
+      "</p>" +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;align-items:center">' +
+      '<label class="muted" title="Días de recorrido sintético. Se convierten a velas según el intervalo de arriba.">' +
+      "días sim " +
+      '<input type="number" id="gl-sim-days" value="7" min="1" max="90" style="width:3.5em">' +
+      "</label>" +
+      '<label class="muted" title="Velas sintéticas (4–2000). Si tocás días, se recalcula solo.">' +
+      "velas sim " +
+      '<input type="number" id="gl-sim-bars" value="2000" min="4" max="2000" style="width:4.5em">' +
+      "</label>" +
+      '<span class="mono muted" id="gl-sim-hint" style="font-size:0.8em">—</span>' +
+      "</div>" +
+      '<div class="pane-row" style="margin-top:0.4rem">' +
+      '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Backtest paper con barras SINTÉTICAS del lab.\nNo son klines de Binance; no envía órdenes." data-i18n-tip="tip.gl.run">Simular backtest (sintético)</button>' +
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
@@ -173,6 +207,7 @@
       const feeSched = res.fee_schedule || {};
       const takerBps = feeSched.taker_bps != null ? feeSched.taker_bps : "10";
       const verdict = res.verdict_es || "";
+      const br = res.bar_range || {};
       const cls = fills > 0 ? "ok" : "warn";
       let meaning = "";
       if (fills > 0) {
@@ -187,10 +222,59 @@
         meaning =
           "No generó órdenes. Con MM en alts baratas era común; ya hay fix de spread. Probá de nuevo o usá momentum.";
       }
+      const fillRows = Array.isArray(res.fills) ? res.fills : [];
+      let fillsHtml = "";
+      if (fillRows.length) {
+        fillsHtml =
+          "<details class=\"bt-fills\" open>" +
+          "<summary>Detalle fills (" +
+          fillRows.length +
+          (res.fills_truncated ? "+" : "") +
+          ")</summary>" +
+          '<table class="data-table"><thead><tr>' +
+          "<th>ts</th><th>side</th><th>px</th><th>qty</th><th>fee</th>" +
+          "</tr></thead><tbody>" +
+          fillRows
+            .map(function (f) {
+              return (
+                "<tr><td class=\"mono\">" +
+                esc((f.timestamp || "").slice(0, 19)) +
+                "</td><td>" +
+                esc(f.side || "—") +
+                "</td><td class=\"mono num\">" +
+                esc(f.price) +
+                "</td><td class=\"mono num\">" +
+                esc(f.quantity) +
+                "</td><td class=\"mono num\">" +
+                esc(f.fee) +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></details>";
+      }
+      const rangeLine =
+        br.start && br.end
+          ? "<br><span class=\"muted\">rango " +
+            esc(formatRangeHuman(br.start, br.end)) +
+            " (" +
+            esc(br.start) +
+            " → " +
+            esc(br.end) +
+            ")</span>"
+          : "";
+      const src = String(res.data_source || "");
+      const isHist = src.indexOf("binance") >= 0;
+      const badge = isHist
+        ? '<span class="data-badge data-badge-real">HISTÓRICO Binance</span> '
+        : src === "synthetic" || r.symbol === "SYN"
+          ? '<span class="data-badge data-badge-synth">SINTÉTICO lab</span> '
+          : "";
       return (
         "<div class=\"bt-run " +
         cls +
         "\">" +
+        badge +
         "<strong>" +
         esc(r.symbol) +
         "</strong> · estrategia <span class=\"mono\">" +
@@ -206,43 +290,138 @@
         esc(fills) +
         " · barras=" +
         esc(res.n_bars) +
+        rangeLine +
         "<br><span class=\"muted\">" +
         esc(verdict || meaning) +
-        "</span></div>"
+        "</span>" +
+        fillsHtml +
+        "</div>"
       );
+    }
+
+    function intervalMinutes(iv) {
+      const map = {
+        "1m": 1,
+        "3m": 3,
+        "5m": 5,
+        "15m": 15,
+        "30m": 30,
+        "1h": 60,
+        "4h": 240,
+        "1d": 1440,
+      };
+      return map[iv] || 5;
+    }
+
+    function daysToSimBars(days, iv) {
+      const mins = intervalMinutes(iv);
+      let n = Math.round((Number(days) * 24 * 60) / mins);
+      if (n < 4) n = 4;
+      if (n > 2000) n = 2000;
+      return n;
+    }
+
+    function approxDaysFromBars(nBars, iv) {
+      const mins = intervalMinutes(iv);
+      return ((Number(nBars) * mins) / (24 * 60)).toFixed(2);
+    }
+
+    function formatRangeHuman(startIso, endIso) {
+      if (!startIso || !endIso) return "";
+      function short(iso) {
+        try {
+          const d = new Date(iso);
+          if (isNaN(d.getTime())) return String(iso).slice(0, 16);
+          return d.toLocaleString("es-AR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {
+          return String(iso).slice(0, 16);
+        }
+      }
+      return short(startIso) + " → " + short(endIso);
     }
 
     function binanceBarOpts() {
       const intervalEl = root.querySelector("#gl-interval");
       const barsEl = root.querySelector("#gl-bars");
       let interval = (intervalEl && intervalEl.value) || "5m";
-      let klineLimit = Number(barsEl && barsEl.value) || 60;
+      let klineLimit = Number(barsEl && barsEl.value) || 1200;
       if (klineLimit < 8) klineLimit = 8;
-      if (klineLimit > 500) klineLimit = 500;
+      if (klineLimit > 3000) klineLimit = 3000;
       return { interval: interval, kline_limit: klineLimit };
+    }
+
+    function syncSimFromDays() {
+      const daysEl = root.querySelector("#gl-sim-days");
+      const simBarsEl = root.querySelector("#gl-sim-bars");
+      const hint = root.querySelector("#gl-sim-hint");
+      const iv = (root.querySelector("#gl-interval") || {}).value || "5m";
+      const days = Number(daysEl && daysEl.value) || 7;
+      const n = daysToSimBars(days, iv);
+      if (simBarsEl) simBarsEl.value = String(n);
+      if (hint) {
+        hint.textContent =
+          "≈ " +
+          n +
+          " velas sintéticas × " +
+          iv +
+          " (~" +
+          approxDaysFromBars(n, iv) +
+          " días lab). Trades = resultado de la estrategia, no un número fijo.";
+      }
     }
 
     function syncBarsHint() {
       const hint = root.querySelector("#gl-bars-hint");
-      const barsEl = root.querySelector("#gl-bars");
       const opts = binanceBarOpts();
-      if (!hint || !barsEl) return;
+      if (!hint) return;
       const n = opts.kline_limit;
       const iv = opts.interval;
+      const daysApprox = approxDaysFromBars(n, iv);
       hint.textContent =
-        "Ranking/Pipeline Binance: " +
+        "HISTÓRICO Binance: mira el mercado USDT real y toma las últimas " +
         n +
         " velas × " +
         iv +
-        " (~historial reciente). " +
-        "Simular backtest: usa n_bars sintéticas (clamp 4–120). " +
-        "Más fino disponible: 1m — research bar-based, no HFT L2.";
+        " (~" +
+        daysApprox +
+        " días hacia atrás hasta AHORA). Ej.: si son las 15:01 y pedís 12×1h, cubre ~03:01→15:01. " +
+        "Ranking y Backtest top 5 usan ESTO. Simular (abajo) es otra cosa: sintético.";
+      syncSimFromDays();
     }
 
     const glInterval = root.querySelector("#gl-interval");
     const glBars = root.querySelector("#gl-bars");
+    const glSimDays = root.querySelector("#gl-sim-days");
+    const glSimBars = root.querySelector("#gl-sim-bars");
     if (glInterval) glInterval.addEventListener("change", syncBarsHint);
     if (glBars) glBars.addEventListener("input", syncBarsHint);
+    if (glSimDays) {
+      glSimDays.addEventListener("input", syncSimFromDays);
+      glSimDays.addEventListener("change", syncSimFromDays);
+    }
+    if (glSimBars) {
+      glSimBars.addEventListener("input", function () {
+        const hint = root.querySelector("#gl-sim-hint");
+        const iv = (root.querySelector("#gl-interval") || {}).value || "5m";
+        let n = Number(glSimBars.value) || 24;
+        if (n < 4) n = 4;
+        if (n > 2000) n = 2000;
+        if (hint) {
+          hint.textContent =
+            n +
+            " velas sintéticas × " +
+            iv +
+            " (~" +
+            approxDaysFromBars(n, iv) +
+            " días). Trades = resultado de la estrategia.";
+        }
+      });
+    }
     syncBarsHint();
 
     let lastBinanceSymbols = [];
@@ -478,12 +657,15 @@
           scanStatus.className = "mono status-ok";
           const selected = data.selected || [];
           const scores = data.scores || [];
-          scanOut.innerHTML = selected
-            .map(function (id, i) {
-              const sc = scores[i] || {};
-              return esc(id) + ' <span class="muted">composite=' + esc(sc.composite) + "</span>";
-            })
-            .join("<br>");
+          scanOut.innerHTML =
+            '<div class="bt-summary"><span class="data-badge data-badge-synth">SINTÉTICO lab</span> ' +
+            "Ranking sobre barras inventadas del lab (no es Binance).</div>" +
+            selected
+              .map(function (id, i) {
+                const sc = scores[i] || {};
+                return esc(id) + ' <span class="muted">composite=' + esc(sc.composite) + "</span>";
+              })
+              .join("<br>");
         })
         .catch(function (err) {
           statusErr(scanStatus, err);
@@ -500,6 +682,8 @@
           lastBinanceSymbols = symbols.slice(0, 5);
           const tickers = data.tickers || [];
           scanOut.innerHTML =
+            '<div class="bt-summary"><span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
+            "MD público en vivo / book (solo lectura).</div>" +
             "símbolos=" +
             esc(data.n_symbols) +
             "<br>" +
@@ -535,6 +719,8 @@
           lastBinanceSymbols = selected.slice();
           const scores = data.scores || [];
           scanOut.innerHTML =
+            '<div class="bt-summary"><span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
+            "Ranking alpha sobre klines reales (últimas N velas hasta ahora).</div>" +
             "interval=" +
             esc(data.interval) +
             " · klines=" +
@@ -589,22 +775,35 @@
           const zeroFills = runs.every(function (r) {
             return r.ok && Number((r.result || {}).n_fills || 0) === 0;
           });
+          const firstRange =
+            runs.find(function (r) {
+              return r.ok && r.result && r.result.bar_range;
+            }) || null;
+          const br0 =
+            firstRange && firstRange.result ? firstRange.result.bar_range : null;
+          const rangeTxt = br0
+            ? formatRangeHuman(br0.start, br0.end)
+            : "últimas " +
+              (scanner.kline_limit || barOpts.kline_limit) +
+              " velas hasta ahora";
           scanOut.innerHTML =
             "<div class=\"bt-summary\">" +
+            '<span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
             "<strong>Qué se hizo</strong><br>" +
-            "1) Ranking alpha eligió pares (no elige estrategia).<br>" +
-            "2) Corrió <span class=\"mono\">" +
-            esc(data.strategy_id) +
-            "</span> en cada par con klines Binance " +
+            "1) Miró el mercado real Binance USDT y tomó klines " +
             esc(scanner.interval || barOpts.interval) +
             " × " +
             esc(scanner.kline_limit || barOpts.kline_limit) +
-            " (solo simulación, sin enviar órdenes reales).<br>" +
-            "3) <span class=\"mono\">fills</span> = trades del simulador. " +
-            "Fees Binance Spot VIP0 (0.10%/lado, schedule publicado) restan del cash.<br>" +
-            "4) capital final ≈ 100000 + fills=0 ⇒ no operó." +
+            ".<br>" +
+            "2) Ventana temporal: <span class=\"mono\">" +
+            esc(rangeTxt) +
+            "</span> (hacia atrás desde el momento de la consulta).<br>" +
+            "3) Ranking eligió pares; backtest corrió <span class=\"mono\">" +
+            esc(data.strategy_id) +
+            "</span> (paper + fees; sin órdenes live).<br>" +
+            "4) fills = trades de la estrategia en ese histórico. Detalle abajo + panel Reports." +
             (zeroFills
-              ? "<br><strong>Si ves 0 fills:</strong> la señal/MM no cruzó el OHLC. Probá <span class=\"mono\">momentum</span> o re-corré MM tras el fix de spread."
+              ? "<br><strong>Si ves 0 fills:</strong> la señal no cruzó el OHLC. Probá momentum o más klines."
               : "") +
             "</div>" +
             "<div class=\"bt-list\">" +
@@ -613,14 +812,16 @@
             }).join("") +
             "</div>";
           resultEl.innerHTML =
-            "<dt>qué es esto</dt><dd>Backtest paper sobre top-5 del ranking (MD Binance read-only)</dd>" +
+            "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-real\">HISTÓRICO Binance</span></dd>" +
+            "<dt>ventana</dt><dd class=\"mono\">" +
+            esc(rangeTxt) +
+            "</dd>" +
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
             "</dd>" +
-            "<dt>interval</dt><dd class=\"mono\">" +
+            "<dt>interval × klines</dt><dd class=\"mono\">" +
             esc(scanner.interval || barOpts.interval) +
-            "</dd>" +
-            "<dt>klines</dt><dd class=\"mono\">" +
+            " × " +
             esc(scanner.kline_limit || barOpts.kline_limit) +
             "</dd>" +
             "<dt>n_ok</dt><dd class=\"mono num\">" +
@@ -628,7 +829,7 @@
             "/" +
             esc(batch.n_requested) +
             "</dd>" +
-            "<dt>live</dt><dd class=\"mono\">bloqueado (no hay routing real)</dd>";
+            "<dt>live</dt><dd class=\"mono\">bloqueado</dd>";
         })
         .catch(function (err) {
           statusErr(runStatus, err);
@@ -637,41 +838,62 @@
 
     root.querySelector("#gl-run").addEventListener("click", function () {
       const strategy = root.querySelector("#gl-strategy").value;
-      let nBars = Number(root.querySelector("#gl-bars").value) || 24;
-      // Simular = barras sintéticas lab (rango distinto al kline Binance).
+      const iv = (root.querySelector("#gl-interval") || {}).value || "5m";
+      let nBars = Number(root.querySelector("#gl-sim-bars").value);
+      if (!nBars || nBars < 4) {
+        const days = Number(root.querySelector("#gl-sim-days").value) || 7;
+        nBars = daysToSimBars(days, iv);
+      }
       if (nBars < 4) nBars = 4;
-      if (nBars > 120) nBars = 120;
+      if (nBars > 2000) nBars = 2000;
       runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
       resultEl.innerHTML = "";
       QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars })
         .then(function (data) {
           runStatus.textContent = data.ok
-            ? t("guided_lab.status.simulation_ok", "simulación ok (paper)")
+            ? t("guided_lab.status.simulation_ok", "simulación ok (sintético)")
             : t("guided_lab.status.failed", "falló");
           runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
+          const br = data.bar_range || {};
+          const daysApprox = approxDaysFromBars(data.n_bars, iv);
           resultEl.innerHTML =
-            "<dt>data</dt><dd class=\"mono\">synthetic lab bars</dd>" +
-            "<dt>venue</dt><dd class=\"mono\">" +
-            esc(root.querySelector("#gl-venue").value) +
-            "</dd>" +
+            "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-synth\">SINTÉTICO lab</span> — no es Binance</dd>" +
+            "<dt>horizonte</dt><dd class=\"mono\">" +
+            esc(data.n_bars) +
+            " velas (~" +
+            esc(daysApprox) +
+            " días a intervalo UI " +
+            esc(iv) +
+            ")</dd>" +
+            (br.start
+              ? "<dt>rango sim</dt><dd class=\"mono\">" +
+                esc(formatRangeHuman(br.start, br.end)) +
+                "</dd>"
+              : "") +
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
             "</dd>" +
-            "<dt>n_bars</dt><dd class=\"mono\">" +
-            esc(data.n_bars) +
-            "</dd>" +
-            "<dt>final_equity</dt><dd class=\"mono num\">" +
+            "<dt>capital final</dt><dd class=\"mono num\">" +
             esc(data.final_equity) +
             "</dd>" +
-            "<dt>fills</dt><dd class=\"mono num\">" +
+            "<dt>fees</dt><dd class=\"mono num\">" +
+            esc(data.total_fees) +
+            "</dd>" +
+            "<dt>fills (trades)</dt><dd class=\"mono num\">" +
             esc(data.n_fills) +
-            "</dd>" +
-            "<dt>live_blocked</dt><dd class=\"mono\">" +
-            esc(data.live_blocked) +
-            "</dd>" +
-            "<dt>live_routing</dt><dd class=\"mono\">" +
-            esc(data.live_routing) +
+            " <span class=\"muted\">← los decide la estrategia, no el # de días</span></dd>" +
+            "<dt>veredicto</dt><dd>" +
+            esc(data.verdict_es || "—") +
             "</dd>";
+          if (Array.isArray(data.fills) && data.fills.length) {
+            resultEl.innerHTML +=
+              "<dt>detalle</dt><dd>" +
+              formatBacktestRun(
+                { ok: true, symbol: "SYN", result: data },
+                data.strategy_id
+              ) +
+              "</dd>";
+          }
         })
         .catch(function (err) {
           statusErr(runStatus, err);

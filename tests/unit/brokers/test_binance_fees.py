@@ -48,3 +48,8 @@ def test_lab_backtest_charges_binance_fees() -> None:
     assert Decimal(out["total_fees"]) > 0
     assert out["fee_schedule"]["schedule_id"] == "binance_spot_vip0"
     assert out["fee_schedule"]["taker_bps"] == "10"
+    assert isinstance(out["fills"], list)
+    assert len(out["fills"]) >= 1
+    assert out["fills"][0]["price"]
+    assert out["bar_range"] is not None
+    assert out["bar_range"]["n_bars"] == 12

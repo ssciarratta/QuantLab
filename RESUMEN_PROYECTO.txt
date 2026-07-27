@@ -1,31 +1,31 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · fees Binance Spot en lab
+Versión: 1.01.0 · horizonte backtest ×20–50 + detalle fills
 
 ESTADO
 ------
-- 50 strategies · 39 runnable · 11 stubs
-- Lab/backtest: fees Binance Spot VIP0 0.10%/0.10% (schedule publicado)
-- LIVE producción bloqueado (LIVE_BLOCKED)
+- Lab Binance: klines paginadas hasta 3000 (default UI 1200 ≈ 20×60)
+- Backtest summary incluye fills/orders/bar_range + fees VIP0
+- 39 estrategias runnable / 11 stubs
+- LIVE_BLOCKED
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Fees reales en backtest lab: VIP0 Spot 10 bps/lado (sin fee=0)
-Opcional BNB −25%: QUANTLAB_BINANCE_FEE_BNB_DISCOUNT=1
-Chat IA limpio (sin chips ni allowlist UI)
-Guided Lab: muestra total_fees por símbolo
+Leyendas claras HISTÓRICO Binance vs SINTÉTICO lab (Guided Lab + Backtest + Reports)
+Simular: días/velas sintéticas (4–2000); Binance klines 8–3000 + ventana horaria
+Fees VIP0; detalle fills
 
-NOTA fees
----------
-- No hay API pública sin auth de la VIP de TU cuenta → se usa schedule retail VIP0
-- Bar engine marca fills como taker → aplica taker_bps
-- Fuente: https://www.binance.com/en/fee/schedule
+DÓNDE VER DETALLE
+-----------------
+1) Guided Lab → resultado del pipeline (tabla fills por símbolo)
+2) Panel Reports → summary.json / HTML de cada corrida persistida
+3) Journal/Blotter = fills PAPER manuales (no el pipeline lab)
 
 PRÓXIMO
 -------
-- Stubs restantes (L2/opciones/multi-asset)
-- Certificados externos Meta-Auditor
+- Selector fecha start/end (opcional)
+- Stubs restantes / certificados externos
 
 INVARIANTES
 -----------

@@ -9,7 +9,10 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Reports / Metrics history</h3>" +
-      '<p class="muted" style="margin-top:0">Persistidos tras backtest lab en session <span class="mono">reports/</span>. Preview HTML (ReportGenerator) o JSON.</p>' +
+      '<p class="muted" style="margin-top:0">Persistidos tras backtest lab / pipeline Binance en session <span class="mono">reports/</span>. ' +
+      '<span class="data-badge data-badge-synth">SINTÉTICO</span> o ' +
+      '<span class="data-badge data-badge-real">HISTÓRICO</span> según la corrida. ' +
+      "JSON incluye <span class=\"mono\">fills</span>/<span class=\"mono\">orders</span>; HTML = preview.</p>" +
       '<div class="pane-row">' +
       '<button type="button" class="btn secondary" id="rp-refresh">Actualizar lista</button>' +
       '<span class="mono muted" id="rp-count">—</span>' +

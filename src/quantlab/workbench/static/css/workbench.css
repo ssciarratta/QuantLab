@@ -1208,6 +1208,70 @@ button.btn.danger.engaged {
   color: var(--text-muted);
 }
 
+.bt-fills {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+}
+
+.bt-fills summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.bt-fills .data-table {
+  margin-top: 0.25rem;
+  max-height: 12rem;
+  overflow: auto;
+  display: block;
+}
+
+.data-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+
+.data-badge-real {
+  background: color-mix(in srgb, var(--ok, #3d9a5f) 22%, transparent);
+  color: var(--ok, #3d9a5f);
+  border: 1px solid color-mix(in srgb, var(--ok, #3d9a5f) 45%, transparent);
+}
+
+.data-badge-synth {
+  background: color-mix(in srgb, var(--warn, #c9a227) 22%, transparent);
+  color: var(--warn, #c9a227);
+  border: 1px solid color-mix(in srgb, var(--warn, #c9a227) 45%, transparent);
+}
+
+.data-legend {
+  margin: 0.55rem 0 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border-soft, #333);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg-elevated, #1a1a1a) 80%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.data-legend-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.65rem;
+  align-items: flex-start;
+}
+
+.data-legend-row .data-badge {
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+}
+
 .universe-row {
   display: flex;
   align-items: center;

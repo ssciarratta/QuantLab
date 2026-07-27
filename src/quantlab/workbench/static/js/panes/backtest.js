@@ -8,10 +8,12 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Backtest 5A</h3>" +
-      '<p class="muted" style="margin-top:0">Estrategia sobre barras sintéticas — research-safe, sin LIVE.</p>' +
+      '<p class="muted" style="margin-top:0">' +
+      '<span class="data-badge data-badge-synth">SINTÉTICO lab</span> ' +
+      "Barras inventadas del laboratorio — no son klines de Binance. Research-safe, sin LIVE.</p>" +
       '<div class="pane-row">' +
       '<label class="field">Estrategia<select id="bt-strategy"></select></label>' +
-      '<label class="field">n_bars<input id="bt-nbars" type="number" value="24" min="4" max="120" /></label>' +
+      '<label class="field">n_bars<input id="bt-nbars" type="number" value="120" min="4" max="2000" /></label>' +
       "</div>" +
       '<div class="pane-row" id="bt-params-row"></div>' +
       '<div class="pane-row">' +

@@ -254,6 +254,60 @@ def _backtest_verdict(
     )
 
 
+def _serialize_trade_detail(
+    result: Any,
+    *,
+    max_rows: int = 2000,
+) -> dict[str, Any]:
+    """Fills + órdenes del simulador para UI/Reports (detalle, no solo resumen)."""
+    sim = result.simulation
+    order_by_id = {o.order_id: o for o in sim.orders}
+    fills_out: list[dict[str, Any]] = []
+    for f in sim.fills[:max_rows]:
+        ord_ = order_by_id.get(f.order_id)
+        fills_out.append(
+            {
+                "fill_id": f.fill_id,
+                "order_id": f.order_id,
+                "instrument_id": f.instrument_id,
+                "side": ord_.side.value if ord_ is not None else None,
+                "price": str(f.price),
+                "quantity": str(f.quantity),
+                "fee": str(f.fee.amount),
+                "fee_currency": f.fee.currency,
+                "liquidity": f.liquidity.value,
+                "timestamp": f.timestamp.isoformat(),
+            }
+        )
+    orders_out: list[dict[str, Any]] = []
+    for o in sim.orders[:max_rows]:
+        orders_out.append(
+            {
+                "order_id": o.order_id,
+                "client_order_id": o.client_order_id,
+                "instrument_id": o.instrument_id,
+                "side": o.side.value,
+                "order_type": o.order_type.value,
+                "quantity": str(o.quantity),
+                "filled_quantity": str(o.filled_quantity),
+                "price": str(o.price) if o.price is not None else None,
+                "status": o.status.value,
+                "created_at": o.created_at.isoformat(),
+            }
+        )
+    equity_tail = [
+        {"ts": p.timestamp.isoformat(), "equity": str(p.equity)}
+        for p in sim.equity_curve[-200:]
+    ]
+    return {
+        "fills": fills_out,
+        "orders": orders_out,
+        "fills_truncated": len(fills_out) < len(sim.fills),
+        "orders_truncated": len(orders_out) < len(sim.orders),
+        "equity_curve_tail": equity_tail,
+    }
+
+
 def run_lab_backtest(
     *,
     strategy_id: str = "momentum",
@@ -286,8 +340,8 @@ def run_lab_backtest(
         iid = instrument_id or (bars[0].instrument_id if bars else None)
         n_used = len(run_bars)
     else:
-        if n_bars < 4 or n_bars > 120:
-            raise ValidationError("n_bars debe estar entre 4 y 120")
+        if n_bars < 4 or n_bars > 2000:
+            raise ValidationError("n_bars debe estar entre 4 y 2000")
         run_bars = make_synthetic_bars(n_bars)
         src = "synthetic"
         iid = run_bars[0].instrument_id if run_bars else None
@@ -317,6 +371,15 @@ def run_lab_backtest(
         else Decimal("0")
     )
     total_fees = result.accounting.total_fees
+    detail = _serialize_trade_detail(result)
+    bar_range: dict[str, Any] | None = None
+    if run_bars:
+        bar_range = {
+            "start": run_bars[0].timestamp_open.isoformat(),
+            "end": run_bars[-1].timestamp_close.isoformat(),
+            "n_bars": len(run_bars),
+            "interval": run_bars[0].timeframe,
+        }
     verdict, verdict_es = _backtest_verdict(
         strategy_id=sid,
         n_fills=n_fills,
@@ -339,6 +402,12 @@ def run_lab_backtest(
         "total_fees": str(total_fees),
         "fee_schedule": fee_schedule.to_dict(),
         "fee_model": getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
+        "bar_range": bar_range,
+        "fills": detail["fills"],
+        "orders": detail["orders"],
+        "fills_truncated": detail["fills_truncated"],
+        "orders_truncated": detail["orders_truncated"],
+        "equity_curve_tail": detail["equity_curve_tail"],
         "verdict": verdict,
         "verdict_es": verdict_es,
         "metrics": dict(result.metrics.metrics),
@@ -402,8 +471,8 @@ def run_binance_lab_scanner(
         raise ValidationError("top_n debe estar entre 1 y 10")
     if symbol_limit < 5 or symbol_limit > 30:
         raise ValidationError("symbol_limit debe estar entre 5 y 30")
-    if kline_limit < 8 or kline_limit > 500:
-        raise ValidationError("kline_limit debe estar entre 8 y 500")
+    if kline_limit < 8 or kline_limit > 3000:
+        raise ValidationError("kline_limit debe estar entre 8 y 3000")
     interval = validate_kline_interval(interval)
 
     url = base_url or DEFAULT_BASE_URL
@@ -472,8 +541,8 @@ def run_binance_lab_backtest_batch(
         raise ValidationError("symbols vacío")
     if len(symbols) > 10:
         raise ValidationError("máximo 10 símbolos por batch")
-    if kline_limit < 8 or kline_limit > 500:
-        raise ValidationError("kline_limit debe estar entre 8 y 500")
+    if kline_limit < 8 or kline_limit > 3000:
+        raise ValidationError("kline_limit debe estar entre 8 y 3000")
     interval = validate_kline_interval(interval)
     prefix = validate_experiment_id(experiment_id_prefix)
 
