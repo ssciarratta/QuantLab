@@ -1,24 +1,25 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Monte Carlo FASE 0 auditoría
+Versión: 1.01.0 · walk-forward alpha + MC FASE 0
 
 ESTADO
 ------
 - LIVE_BLOCKED=True · REAL=PAPER
-- Alpha Scanner FASE 0–10 código completo (default legacy_v1)
-- Monte Carlo: FASE 0 auditoría DONE → docs/montecarlo/current-montecarlo-audit.md
+- Alpha Scanner F0–10 + walk-forward pipeline (rank≠BT por defecto)
+- Monte Carlo: FASE 0 auditoría DONE (agente autónomo → F1–12)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-FASE 0 Monte Carlo improvement: auditoría del motor existente
-(perturbación OHLC gaussiana + re-backtest BuyOnce sintético).
-n_bars=# velas 1m; noise_bps=σ en bps; CI95=IC de la media (Wald).
-Sin módulo paralelo. Progress: docs/progress/montecarlo-improvement-status.md
+1) Alpha walk-forward: ranking ~70% inicial, backtest tramo posterior
+2) MC FASE 0: auditoría motor (OHLC gaussiano + re-BT BuyOnce sintético)
+   n_bars=# velas 1m; noise_bps=σ bps; CI95=IC de la media (Wald)
+   docs/montecarlo/current-montecarlo-audit.md
 
 PRÓXIMO
 -------
-FASE 1–12 MC: modelos contexto/config → persistencia → UI trazable → tests/docs
+Agente MC: FASE 1–12 (contexto/UI/trazabilidad)
+Validar Guided Lab F5 (WF + perfiles)
 
 INVARIANTES
 -----------
