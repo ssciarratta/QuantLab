@@ -24,8 +24,8 @@ from quantlab.workbench.session import WorkbenchSession
 
 def test_live_blocked_and_version_f54() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.95.0"
-    assert PHASES_SUMMARY == "F19–F103 INTERNAL"
+    assert __version__ == "0.96.0"
+    assert PHASES_SUMMARY == "F19–F104 INTERNAL"
 
 
 def test_livez_payload_always_alive() -> None:
@@ -34,7 +34,7 @@ def test_livez_payload_always_alive() -> None:
     assert payload["alive"] is True
     assert payload["status"] == "alive"
     assert payload["kind"] == "livez"
-    assert payload["version"] == "0.95.0"
+    assert payload["version"] == "0.96.0"
     assert payload["live_blocked"] is True
     assert payload["live_routing"] is False
 

@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.95.0 (F103 freeze arco LIVE Guided Path)
+Versión código actual: 0.96.0 (F104 Guided Lab A3 paper)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -82,16 +82,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F103 Milestone freeze arco LIVE Guided Path F99–F102 (0.95.0):
-MILESTONE_V095_LIVE_ARC_FREEZE.md. Solo docs. DEC-147.
+F104 Guided Lab A3 paper/MD (0.96.0): connect + instrumentos en wizard.
+Solo PaperBroker; sin routing venue A3. DEC-148.
 
-Previo — F102 Binance Spot Testnet opt-in (0.94.0): doble gate unlock +
-QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_*. Default local_demo_sim. DEC-146.
-
-Previo — F101 Binance demo routing (0.93.0): LiveOrderRouter post-unlock sim local.
-DEC-145.
-
-Previo — F100 LIVE credential gate (0.92.0): unlock + Binance public scan. DEC-144.
+Previo — F103 freeze arco LIVE Guided Path F99–F102 (0.95.0). DEC-147.
+Previo — F102 testnet opt-in (0.94.0). DEC-146.
+Previo — F101 demo routing local (0.93.0). DEC-145.
+Previo — F100 credential gate (0.92.0). DEC-144.
 
 Previo — F98 Milestone Freeze arco ops F93–F97 (0.90.0):
 - MILESTONE_V090_OPS_ARC_FREEZE.md + CHANGELOG; sin cambios runtime

@@ -19,6 +19,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.96.0] — 2026-07-26
+
+### Fase 104 — Guided Lab camino A3 (paper/MD)
+
+#### Added
+- Guided Lab: Conectar paper A3 + listar instrumentos
+- Docs `docs/FASE_104_GUIDED_LAB_A3.md` · DEC-148
+
+#### Notes
+- Solo PaperBroker; sin routing venue A3.
+
+---
+
 ## [0.95.0] — 2026-07-26
 
 ### Fase 103 — Milestone freeze arco LIVE Guided Path (F99–F102)

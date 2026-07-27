@@ -1,3 +1,8 @@
+[2026-07-26] DEC-148 — Guided Lab camino A3 paper/MD
+  Decisión: F104 agrega connect+instrumentos A3 en Guided Lab (PaperBroker).
+  Sin routing venue A3. Bump 0.96.0.
+  Fase: 104.
+
 [2026-07-26] DEC-147 — Freeze arco LIVE Guided Path F99–F102 en v0.95
   Decisión: F103 congela docs del camino Guided Lab + unlock + demo/testnet
   Binance en MILESTONE_V095_LIVE_ARC_FREEZE.md. Sin runtime. Bump 0.95.0.

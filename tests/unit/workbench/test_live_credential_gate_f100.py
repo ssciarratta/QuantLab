@@ -42,8 +42,8 @@ def _clean_unlock() -> None:
 
 def test_live_blocked_constant_and_version() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.95.0"
-    assert PHASES_SUMMARY == "F19–F103 INTERNAL"
+    assert __version__ == "0.96.0"
+    assert PHASES_SUMMARY == "F19–F104 INTERNAL"
     assert not Path("docs/audit/FASE_100_APPROVED.md").exists()
 
 

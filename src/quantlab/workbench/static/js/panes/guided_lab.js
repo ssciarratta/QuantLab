@@ -32,6 +32,13 @@
       '<option value="paper">paper (simulado)</option>' +
       '<option value="a3">a3 (MD fake / paper)</option>' +
       "</select>" +
+      '<div class="pane-row" style="margin-top:0.5em">' +
+      '<button type="button" class="btn secondary" id="gl-a3-connect">Conectar paper A3</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-instr">Listar instrumentos A3</button>' +
+      '<span class="mono muted" id="gl-a3-status">—</span>' +
+      "</div>" +
+      '<div class="mono" id="gl-a3-out">—</div>' +
+      '<p class="muted">A3 en Guided Lab = PAPER (fills simulados). Sin routing venue A3.</p>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>2. Escanear</h3>" +
@@ -132,6 +139,42 @@
         })
         .catch(function (err) {
           unlockStatus.textContent = "error: " + err.message;
+        });
+    });
+
+    const a3Status = root.querySelector("#gl-a3-status");
+    const a3Out = root.querySelector("#gl-a3-out");
+    root.querySelector("#gl-a3-connect").addEventListener("click", function () {
+      a3Status.textContent = "conectando A3 paper…";
+      root.querySelector("#gl-venue").value = "a3";
+      QLApi.connect("a3", "paper", { md_source: "fake" })
+        .then(function (data) {
+          a3Status.textContent = data.ok ? "A3 paper conectado" : "falló";
+          a3Status.className = data.ok ? "mono status-ok" : "mono status-bad";
+          a3Out.textContent = esc(JSON.stringify(data.health || data, null, 0)).slice(0, 240);
+        })
+        .catch(function (err) {
+          a3Status.textContent = "error: " + err.message;
+          a3Status.className = "mono status-bad";
+        });
+    });
+    root.querySelector("#gl-a3-instr").addEventListener("click", function () {
+      a3Status.textContent = "listando…";
+      QLApi.instruments()
+        .then(function (data) {
+          const items = data.instruments || data.items || [];
+          a3Status.textContent = "ok (" + items.length + ")";
+          a3Status.className = "mono status-ok";
+          a3Out.innerHTML = items
+            .slice(0, 12)
+            .map(function (it) {
+              return esc(it.symbol || it.instrument_id || JSON.stringify(it));
+            })
+            .join("<br>") || "—";
+        })
+        .catch(function (err) {
+          a3Status.textContent = "error: " + err.message;
+          a3Status.className = "mono status-bad";
         });
     });
 
