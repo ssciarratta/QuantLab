@@ -487,16 +487,35 @@ def run_binance_lab_scanner(
         kline_limit=kline_limit,
         base_url=url,
     )
-    if not bars_by_symbol:
-        raise ValidationError("no se pudieron descargar klines Binance")
+    from quantlab.research.alpha.quality import EligibilityConfig
+    from quantlab.research.alpha.universe import (
+        build_universe_from_symbol_bars,
+        exclusion_reason_counts,
+    )
 
-    universe: dict[str, list[Bar]] = {}
-    symbol_map: dict[str, str] = {}
-    for sym, sym_bars in bars_by_symbol.items():
-        iid = f"BN:{sym}"
-        universe[iid] = sym_bars
-        symbol_map[iid] = sym
+    fetch_failures = {
+        s: "klines omitidas o inválidas" for s in symbols if s not in bars_by_symbol
+    }
+    built = build_universe_from_symbol_bars(
+        venue="binance",
+        symbols=symbols,
+        bars_by_symbol=bars_by_symbol,
+        network="mainnet",
+        market_type="spot",
+        instrument_prefix="BN:",
+        eligibility_config=EligibilityConfig(min_bars=3, min_completeness=0.5),
+        fetch_failures=fetch_failures,
+    )
+    universe = built.eligible_bars
+    if not universe:
+        raise ValidationError(
+            "ningún símbolo elegible tras filtros de calidad "
+            f"(fetched={len(bars_by_symbol)}, excluded={len(built.exclusions)})"
+        )
 
+    symbol_map = {
+        inst.normalized_instrument: inst.original_symbol for inst in built.instruments
+    }
     result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
     selected_symbols = [symbol_map.get(iid, iid) for iid in result.selected]
 
@@ -509,13 +528,24 @@ def run_binance_lab_scanner(
         "interval": interval,
         "kline_limit": kline_limit,
         "n_symbols_fetched": len(bars_by_symbol),
+        "fetched": len(symbols),
+        "eligible": len(universe),
+        "excluded": len(built.exclusions),
+        "exclusion_counts": exclusion_reason_counts(built.exclusions),
+        "exclusions": [e.to_dict() for e in built.exclusions],
         "selected": list(result.selected),
         "selected_symbols": selected_symbols,
         "scores": [dataclass_to_dict(s) for s in result.scores],
         "gap_events": list(result.gap_events),
         "schema_version": result.schema_version,
+        "scanner_version": "alpha-v2-contracts",
+        "profile": "legacy_v1",
         "read_only": True,
         "live_routing": False,
+        "note": (
+            "Un score alto indica adecuación al perfil seleccionado, "
+            "no rentabilidad garantizada."
+        ),
     }
 
 

@@ -726,9 +726,21 @@
             " · klines=" +
             esc(data.kline_limit) +
             " · fetched=" +
-            esc(data.n_symbols_fetched) +
+            esc(data.fetched != null ? data.fetched : data.n_symbols_fetched) +
+            " · eligible=" +
+            esc(data.eligible != null ? data.eligible : "—") +
+            " · excluded=" +
+            esc(data.excluded != null ? data.excluded : 0) +
             " · top=" +
             esc(data.top_n) +
+            (data.note
+              ? '<div class="muted" style="margin-top:4px">' + esc(data.note) + "</div>"
+              : "") +
+            (data.exclusion_counts
+              ? '<div class="muted">exclusiones: ' +
+                esc(JSON.stringify(data.exclusion_counts)) +
+                "</div>"
+              : "") +
             "<br>" +
             selected
               .map(function (sym, i) {
