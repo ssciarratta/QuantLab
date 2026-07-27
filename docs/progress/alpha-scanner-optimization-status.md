@@ -1,47 +1,56 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 1 — Modelos y contratos **COMPLETA** (legacy_v1 sin cambio de scores)  
-**Siguiente:** FASE 2 — UniverseBuilder + elegibilidad + DataQualityReport
+**Fase actual:** FASE 3 — FeatureCalculator **COMPLETA**  
+**Siguiente:** FASE 4 — Normalización robusta + CompositeScorer + PenaltyEngine
 
 ---
 
-## FASE 0 — hecho
+## FASE 0–2 — hecho
+
+Ver historial abajo. Scoring `legacy_v1` **sin cambio**.
+
+## FASE 3 — hecho
 
 | Ítem | Estado |
 |------|--------|
-| Mapa del scanner real | OK — ver auditoría |
-| Fórmula composite documentada | OK — 0.35/0.35/0.30 min-max |
-| Origen `fetched` / `top` | OK — `fetched` = label UI de `n_symbols_fetched` |
-| Ejemplo controlado | OK — `docs/scanner/fase0_baseline_synthetic.json` |
-| Tests subset alpha/F111 | OK — 27 passed |
-| Auditoría | OK — `docs/scanner/current-alpha-scanner-audit.md` |
+| `FeatureCalculator` modular | OK — `research/alpha/features.py` |
+| Momentum / trend_quality / persistence | OK |
+| Liquidity + spread (book o proxy HL/C) | OK |
+| Depth / funding / OI | OK — `None` si no hay extras |
+| Volume quality / volatility quality | OK |
+| Legacy triple = AlphaScanner | OK — test parity |
+| Ausencia → None (no 0 fingido) | OK |
+| Scoring default cambiado | **No** |
 
-## FASE 1 — hecho
+### Archivos FASE 3
 
-| Ítem | Estado |
-|------|--------|
-| `AlphaScanRequest` / `AlphaScanResult` / `RankedCandidate` | OK — `research/alpha/models.py` |
-| Adapter `run_legacy_v1_scan` | OK — `research/alpha/legacy.py` |
-| Breakdown componentes + summary | OK |
-| Nota “score ≠ rentabilidad” | OK |
-| Golden baseline F0 sigue igual | OK — test |
-| Tests F1 | OK — 3 nuevos + alpha suite PASS |
-| mypy strict alpha | OK |
-| Cambio de fórmula default | **No** |
+- Creados: `features.py`, `tests/unit/research/test_alpha_features_f3.py`
 
-### Archivos FASE 1
+### Limitaciones F3
 
-- Creados: `src/quantlab/research/alpha/models.py`, `legacy.py`, `tests/unit/research/test_alpha_models_f1.py`
-- Modificados: `research/alpha/__init__.py` (`__all__`)
+- Spread sin book = proxy rango OHLC (explícito).
+- Features aún no alimentan el composite (FASE 4/5).
 
 ---
 
-## Fases pendientes
+## Fases
 
 | Fase | Título | Estado |
 |------|--------|--------|
 | 0 | Discovery & baseline | **DONE** |
 | 1 | Modelos / contratos | **DONE** |
-| 2 | Universo + calidad datos | PENDING |
-| 3–10 | Features → auditoría final | PENDING |
+| 2 | Universo + calidad datos | **DONE** |
+| 3 | Features modulares | **DONE** |
+| 4 | Normalización / scoring | PENDING |
+| 5–10 | Perfiles → auditoría | PENDING |
+
+---
+
+## Detalle FASE 2
+
+| Ítem | Estado |
+|------|--------|
+| `DataQualityReport` + exclusiones tipadas | OK |
+| Universe builder + API fetched/eligible/excluded | OK |
+| UI Guided Lab exclusiones | OK |

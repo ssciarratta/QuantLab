@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 0+1: auditoría + contratos tipados legacy_v1 (sin cambiar scores)
-Baseline sintético WB:B>WB:C>WB:A fijado en docs/scanner/
-Leyendas HISTÓRICO/SINTÉTICO; klines 8–3000; fees VIP0
+Alpha Scanner FASE 2–3: exclusiones tipadas + FeatureCalculator modular
+Ausencia funding/OI/depth → None; legacy vol/volume/liq parity con AlphaScanner
+Scoring default sigue legacy_v1 (sin cambio de composite)
 
 PRÓXIMO
 -------
-FASE 2: UniverseBuilder + exclusiones tipadas + DataQualityReport
+FASE 4: normalización robusta + CompositeScorer + PenaltyEngine + missing policies
 
 DÓNDE VER DETALLE
 -----------------
