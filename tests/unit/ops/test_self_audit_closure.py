@@ -199,11 +199,14 @@ def test_avellaneda_max_pos_ask_only_and_lifecycle() -> None:
 
 
 def test_avellaneda_noop_px_and_noop_inv() -> None:
-    # Mid ~0 → bid negativo → noop-px
-    strat = AvellanedaStoikovStrategy({"quantity": "1", "gamma": 0.1, "sigma": 0.5, "kappa": 1.5})
+    # Inventario + γ/σ altos empujan reservation bajo 0 → noop-px
+    # (mid ~0 ya no noopea: δ se escala a fracción del mid para alts)
+    strat = AvellanedaStoikovStrategy(
+        {"quantity": "1", "gamma": 1.0, "sigma": 1.0, "kappa": 1.5, "max_pos": "10000"}
+    )
     intents = strat.on_event(
         _as_event(),
-        _as_ctx(best_bid="0.0001", best_ask="0.0002", inventory="0"),
+        _as_ctx(best_bid="99", best_ask="101", inventory="100"),
     )
     assert intents[0].intent_id == "as-noop-px"
 

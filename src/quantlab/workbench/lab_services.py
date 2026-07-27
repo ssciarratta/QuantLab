@@ -14,6 +14,10 @@ from pathlib import Path
 from typing import Any
 
 from quantlab.backtester import BarBacktestConfig, BarBacktester
+from quantlab.brokers.binance.fees import (
+    binance_spot_fee_model,
+    resolve_binance_spot_fee_schedule,
+)
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import ExperimentStatus
 from quantlab.core.types.manifests import ExecutionModelVersions, ExperimentManifest
@@ -44,6 +48,7 @@ from quantlab.workbench.optimizer_runs import persist_optimizer_run
 from quantlab.workbench.strategy_catalog import (
     CANONICAL_STRATEGY_IDS,
     build_strategy,
+    is_mm_strategy,
     list_strategy_catalog,
     list_strategy_ids,
     maybe_wrap_for_bar_backtest,
@@ -212,6 +217,43 @@ def _build_strategy(strategy_id: str, params: dict[str, Any]) -> Any:
     return build_strategy(strategy_id, params)
 
 
+def _backtest_verdict(
+    *,
+    strategy_id: str,
+    n_fills: int,
+    n_orders: int,
+    n_bars: int,
+    data_source: str,
+) -> tuple[str, str]:
+    """Mensaje corto para UI: qué pasó en el backtest."""
+    if n_fills > 0:
+        return (
+            "traded",
+            f"OK: {n_fills} fill(s) en {n_bars} barras ({data_source}). "
+            f"Equity cambia según PnL simulado; no es orden real.",
+        )
+    if n_orders > 0:
+        return (
+            "quoted_no_fill",
+            f"La estrategia emitió {n_orders} orden(es) LIMIT pero ninguna tocó el OHLC "
+            f"de la barra (fills=0). Equity queda en capital inicial. "
+            f"Probá más velas, interval más chico, o estrategia direccional (momentum/ema).",
+        )
+    mm = is_mm_strategy(strategy_id)
+    if mm:
+        return (
+            "no_orders_mm",
+            "Market making no llegó a cotizar (o cotizó inválido). "
+            "En alts baratas un spread fijo grande deja fills=0. "
+            "Re-corré el pipeline (fix aplicado) o probá momentum/rsi_momentum.",
+        )
+    return (
+        "no_signal",
+        f"Sin órdenes ni fills en {n_bars} barras: la señal no disparó entrada. "
+        "Subí n_bars/klines o cambió de estrategia (p. ej. momentum, breakout).",
+    )
+
+
 def run_lab_backtest(
     *,
     strategy_id: str = "momentum",
@@ -252,10 +294,36 @@ def run_lab_backtest(
         n_used = n_bars
 
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
+    # Comisiones Binance Spot VIP0 (schedule publicado). Sin fee=0 en lab.
+    fee_schedule = resolve_binance_spot_fee_schedule()
+    fee_model = binance_spot_fee_model()
     bt = BarBacktester(
-        BarBacktestConfig(experiment_id=experiment_id, initial_cash=Decimal("100000"))
+        BarBacktestConfig(experiment_id=experiment_id, initial_cash=Decimal("100000")),
+        fee_model=fee_model,
     )
     result = bt.run(strategy, run_bars)
+    n_fills = len(result.simulation.fills)
+    # El motor solo materializa Order al fill; contar PLACE en el log para UI honesta.
+    n_orders = sum(
+        1
+        for e in result.simulation.events_log
+        if isinstance(e, dict) and e.get("intent_type") == "place_order"
+    )
+    if n_orders == 0:
+        n_orders = len(result.simulation.orders)
+    final_eq = (
+        result.simulation.equity_curve[-1].equity
+        if result.simulation.equity_curve
+        else Decimal("0")
+    )
+    total_fees = result.accounting.total_fees
+    verdict, verdict_es = _backtest_verdict(
+        strategy_id=sid,
+        n_fills=n_fills,
+        n_orders=n_orders,
+        n_bars=n_used,
+        data_source=src,
+    )
     summary: dict[str, Any] = {
         "ok": True,
         "kind": "backtest",
@@ -264,14 +332,15 @@ def run_lab_backtest(
         "n_bars": n_used,
         "data_source": src,
         "instrument_id": iid,
-        "n_fills": len(result.simulation.fills),
-        "n_orders": len(result.simulation.orders),
+        "n_fills": n_fills,
+        "n_orders": n_orders,
         "accounting_ok": result.accounting.ok,
-        "final_equity": str(
-            result.simulation.equity_curve[-1].equity
-            if result.simulation.equity_curve
-            else Decimal("0")
-        ),
+        "final_equity": str(final_eq),
+        "total_fees": str(total_fees),
+        "fee_schedule": fee_schedule.to_dict(),
+        "fee_model": getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
+        "verdict": verdict,
+        "verdict_es": verdict_es,
         "metrics": dict(result.metrics.metrics),
         "metrics_version": result.metrics.metrics_version,
         "experiment_id": result.metrics.experiment_id,
@@ -579,7 +648,10 @@ def run_lab_optimize(
         strategy = SimpleMomentumStrategy(
             {"lookback": int(params["lookback"]), "quantity": str(params["quantity"])}
         )
-        bt = BarBacktester(BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000")))
+        bt = BarBacktester(
+            BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000")),
+            fee_model=binance_spot_fee_model(),
+        )
         result = bt.run(strategy, bars)
         m = result.metrics.metrics
         sharpe = _metric_float(m, "sharpe")
@@ -704,7 +776,10 @@ def run_lab_montecarlo(
     bars = make_synthetic_bars(n_bars)
 
     def runner(noisy: Any) -> SimulationResult:
-        bt = BarBacktester(BarBacktestConfig(experiment_id="wb-mc", initial_cash=Decimal("50000")))
+        bt = BarBacktester(
+            BarBacktestConfig(experiment_id="wb-mc", initial_cash=Decimal("50000")),
+            fee_model=binance_spot_fee_model(),
+        )
         return bt.run(BuyOnceStrategy({"quantity": "1"}), noisy).simulation
 
     mc = MonteCarloSimulator(seed=42)

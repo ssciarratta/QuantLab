@@ -139,6 +139,48 @@ def test_run_lab_backtest_with_bars(binance_universe: dict[str, list[Bar]]) -> N
     assert out["data_source"] == "binance_klines"
     assert out["instrument_id"] == "BN:BTCUSDT"
     assert out["n_bars"] == len(bars)
+    assert "verdict" in out
+    assert "verdict_es" in out
+
+
+def test_mm_backtest_cheap_alt_gets_fills() -> None:
+    """half_spread absoluto 0.5 no debe dejar fills=0 en alts ~$0.50."""
+    from datetime import UTC, datetime, timedelta
+    from decimal import Decimal
+
+    base = datetime(2024, 6, 1, tzinfo=UTC)
+    bars: list[Bar] = []
+    px = Decimal("0.50")
+    for i in range(40):
+        # oscilación ±2% para que LIMIT dentro del mid toque OHLC
+        wobble = Decimal("0.01") if i % 2 == 0 else Decimal("-0.01")
+        c = px + wobble
+        t0 = base + timedelta(minutes=i)
+        bars.append(
+            Bar(
+                instrument_id="BN:ADAUSDT",
+                open=c,
+                high=c * Decimal("1.02"),
+                low=c * Decimal("0.98"),
+                close=c,
+                volume=Decimal("1000"),
+                timestamp_open=t0,
+                timestamp_close=t0 + timedelta(minutes=1),
+                timeframe="1m",
+            )
+        )
+    for sid in ("inventory_mm", "avellaneda_stoikov", "adaptive_mm"):
+        out = lab_services.run_lab_backtest(
+            strategy_id=sid,
+            bars=bars,
+            instrument_id="BN:ADAUSDT",
+            data_source="binance_klines",
+            experiment_id=f"test-cheap-{sid[:8]}",
+            params={"quantity": "1", "half_spread": "0.5", "max_pos": "10"},
+        )
+        assert out["ok"] is True, sid
+        assert out["n_fills"] > 0, (sid, out.get("verdict_es"))
+        assert out["verdict"] == "traded", sid
 
 
 def test_chat_guided_lab_intent() -> None:

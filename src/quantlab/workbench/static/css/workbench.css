@@ -1172,6 +1172,42 @@ button.btn.danger.engaged {
   color: var(--warn);
 }
 
+.bt-summary {
+  margin: 0.4rem 0 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.bt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bt-run {
+  padding: 0.35rem 0.45rem;
+  border-left: 3px solid var(--border);
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+
+.bt-run.ok {
+  border-left-color: var(--ok);
+}
+
+.bt-run.warn {
+  border-left-color: var(--warn);
+}
+
+.bt-run.bad {
+  border-left-color: var(--danger);
+}
+
+.bt-run .muted {
+  color: var(--text-muted);
+}
+
 .universe-row {
   display: flex;
   align-items: center;
@@ -1468,11 +1504,6 @@ button.btn.danger.engaged {
 .chat-compose input {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.chat-meta {
-  margin: 0.35rem 0 0;
-  font-size: 0.68rem;
 }
 
 /* F41 — toasts + activity */

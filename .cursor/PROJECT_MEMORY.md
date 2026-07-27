@@ -172,14 +172,16 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 15. Guided Lab v1.01: alpha Binance · pipeline · chat asistente (abrir/correr sin órdenes)
 16. UI: `ui_font_scale` · resize bordes wm · `tips.js` / `data-tip` / i18n `tip.*`
 17. Estrategias F115: `strategy_catalog` por familia · `runnable`/`binance_ready` · stubs fail-closed · skill `strategy-expander`
+18. Backtest UX: `verdict_es` + Guided Lab explica fills/equity; MM half_spread escala al mid en alts
+19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
 
 ## Próximo
 
-- Promover stubs (ML/micro/opciones/arb) con datos reales cuando existan
-- Probar UI catálogo + backtest/paper/Binance demo con ids nuevos
 - Certificados externos F19+ (Meta-Auditor)
 - Testnet manual E2E · A3 MD env operativo
 - LIVE producción solo con checklist + dueño
+- Promover stubs restantes con datos reales (L2/opciones/multi-asset)
+- (Opcional) fee schedule por cuenta vía API autenticada post-unlock
 
 ## Checkpoint
 

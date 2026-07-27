@@ -61,8 +61,17 @@ class AvellanedaStoikovStrategy:
         if delta <= 0:
             return self._noop(event.instrument_id, "noop-delta2")
 
-        bid_px = Decimal(str(reservation - delta))
-        ask_px = Decimal(str(reservation + delta))
+        # δ del paper es adimensional/escala lab (~100). En crypto se lleva a fracción del mid
+        # para no cotizar ±0.64 USDT en alts (~$0.5) → bid inválido / 0 fills.
+        scale = float(self._parameters.get("delta_to_mid_scale", 0.01))
+        max_frac = float(self._parameters.get("max_spread_frac", 0.02))
+        mid_f = float(mid)
+        delta_px = mid_f * min(abs(delta) * scale, max_frac)
+        if delta_px <= 0:
+            return self._noop(event.instrument_id, "noop-delta3")
+
+        bid_px = Decimal(str(reservation - delta_px))
+        ask_px = Decimal(str(reservation + delta_px))
         if bid_px <= 0 or ask_px <= bid_px:
             return self._noop(event.instrument_id, "noop-px")
 

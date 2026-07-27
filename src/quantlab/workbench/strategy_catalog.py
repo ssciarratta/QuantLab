@@ -819,6 +819,9 @@ class BarSyntheticBookAdapter:
         half = self._half
         raw_half = self._inner.get_parameters().get("half_spread", half)
         half = Decimal(str(raw_half))
+        # half_spread absoluto (ej. 0.5) rompe alts baratos: escalar a bps del mid.
+        if mid > 0 and half / mid > Decimal("0.02"):
+            half = mid * Decimal("0.005")
         bid = mid - half
         ask = mid + half
         if bid <= 0:

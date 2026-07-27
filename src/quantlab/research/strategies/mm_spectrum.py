@@ -37,6 +37,9 @@ class DynamicSpreadMMStrategy(InventoryMMStrategy):
                 if diffs:
                     atr = sum(diffs, Decimal("0")) / Decimal(len(diffs))
                     mid = self._closes[-1]
+                    # base absoluto 0.5 rompe alts; anclar a bps del mid
+                    if mid > 0 and base / mid > Decimal("0.02"):
+                        base = mid * Decimal("0.005")
                     dyn = max(base, atr * mult)
                     # Evitar spreads absurdos vs mid
                     if mid > 0:
@@ -74,8 +77,15 @@ class MultiLevelMMStrategy:
                 ),
             )
         mid = (Decimal(str(bid_s)) + Decimal(str(ask_s))) / 2
+        book_half = (Decimal(str(ask_s)) - Decimal(str(bid_s))) / 2
         half = Decimal(str(self._parameters.get("half_spread", "0.5")))
+        if book_half > 0 and (mid <= 0 or half / mid > Decimal("0.02")):
+            half = book_half
+        elif mid > 0 and half / mid > Decimal("0.02"):
+            half = mid * Decimal("0.005")
         step = Decimal(str(self._parameters.get("level_step", "0.5")))
+        if mid > 0 and step / mid > Decimal("0.02"):
+            step = mid * Decimal("0.005")
         qty = Decimal(str(self._parameters.get("quantity", "1")))
         levels = int(self._parameters.get("levels", 2))
         levels = max(1, min(levels, 5))

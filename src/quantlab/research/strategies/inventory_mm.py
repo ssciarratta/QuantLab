@@ -38,7 +38,14 @@ class InventoryMMStrategy:
         bid = Decimal(str(bid_s))
         ask = Decimal(str(ask_s))
         mid = (bid + ask) / 2
+        # Preferir half del book inyectado (BarSyntheticBookAdapter ya escala alts).
+        # half_spread absoluto (0.5) en mid ~0.5 deja bid~0.01 → nunca toca OHLC.
+        book_half = (ask - bid) / 2
         half_spread = Decimal(str(self._parameters.get("half_spread", "0.5")))
+        if book_half > 0 and (mid <= 0 or half_spread / mid > Decimal("0.02")):
+            half_spread = book_half
+        elif mid > 0 and half_spread / mid > Decimal("0.02"):
+            half_spread = mid * Decimal("0.005")
         qty = Decimal(str(self._parameters.get("quantity", "1")))
         skew = Decimal(str(context.parameters.get("inventory_skew", "0")))
         # skew largo → bid más bajo, ask más bajo (vende)

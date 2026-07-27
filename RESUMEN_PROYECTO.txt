@@ -1,31 +1,30 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · F115 espectro estrategias
+Versión: 1.01.0 · fees Binance Spot en lab
 
 ESTADO
 ------
-- 50 strategies · 39 runnable (binance-ready) · 11 stubs
-- Runnable = backtest + paper + Binance demo/testnet post-unlock
-- Stubs restantes: multi-asset (sector/risk/allocation), queue L2, arb multi-venue, opciones greeks
+- 50 strategies · 39 runnable · 11 stubs
+- Lab/backtest: fees Binance Spot VIP0 0.10%/0.10% (schedule publicado)
 - LIVE producción bloqueado (LIVE_BLOCKED)
-- Skill: .cursor/skills/strategy-expander/SKILL.md
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Guided Lab: selector velas Binance (1m…1d) + n_bars/klines (8–500)
-F115: espectro estrategias 39 runnable / 11 stubs
-UI: resize bordes · tooltips · chat actions
+Fees reales en backtest lab: VIP0 Spot 10 bps/lado (sin fee=0)
+Opcional BNB −25%: QUANTLAB_BINANCE_FEE_BNB_DISCOUNT=1
+Chat IA limpio (sin chips ni allowlist UI)
+Guided Lab: muestra total_fees por símbolo
 
-NOTA n_bars
------------
-- Ranking/Pipeline: n_bars = cantidad de klines Binance del interval elegido
-- Simular backtest: n_bars = barras sintéticas lab (clamp 4–120 en API)
-- 1m = más fino vía MD público; NO es HFT real (sin L2/ticks)
+NOTA fees
+---------
+- No hay API pública sin auth de la VIP de TU cuenta → se usa schedule retail VIP0
+- Bar engine marca fills como taker → aplica taker_bps
+- Fuente: https://www.binance.com/en/fee/schedule
 
 PRÓXIMO
 -------
-- Datos multi-símbolo / L2 / opciones para stubs restantes
+- Stubs restantes (L2/opciones/multi-asset)
 - Certificados externos Meta-Auditor
 
 INVARIANTES

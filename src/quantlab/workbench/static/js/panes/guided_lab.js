@@ -155,6 +155,63 @@
       el.className = "mono status-bad";
     }
 
+    function formatBacktestRun(r, strategyId) {
+      if (!r.ok) {
+        return (
+          "<div class=\"bt-run bad\"><strong>" +
+          esc(r.symbol) +
+          "</strong> ERROR: " +
+          esc(r.error) +
+          "</div>"
+        );
+      }
+      const res = r.result || {};
+      const fills = Number(res.n_fills || 0);
+      const orders = Number(res.n_orders || 0);
+      const eq = res.final_equity;
+      const fees = res.total_fees != null ? res.total_fees : "—";
+      const feeSched = res.fee_schedule || {};
+      const takerBps = feeSched.taker_bps != null ? feeSched.taker_bps : "10";
+      const verdict = res.verdict_es || "";
+      const cls = fills > 0 ? "ok" : "warn";
+      let meaning = "";
+      if (fills > 0) {
+        meaning =
+          "Hubo trades simulados. Fees Binance Spot VIP0 (~" +
+          takerBps +
+          " bps/lado) ya descontados del cash.";
+      } else if (orders > 0) {
+        meaning =
+          "Puso órdenes LIMIT pero el precio de la vela no las tocó → 0 fills. Capital intacto.";
+      } else {
+        meaning =
+          "No generó órdenes. Con MM en alts baratas era común; ya hay fix de spread. Probá de nuevo o usá momentum.";
+      }
+      return (
+        "<div class=\"bt-run " +
+        cls +
+        "\">" +
+        "<strong>" +
+        esc(r.symbol) +
+        "</strong> · estrategia <span class=\"mono\">" +
+        esc(strategyId || res.strategy_id || "—") +
+        "</span><br>" +
+        "capital final <span class=\"mono\">" +
+        esc(eq) +
+        "</span> · fees <span class=\"mono\">" +
+        esc(fees) +
+        "</span> · órdenes=" +
+        esc(orders) +
+        " · fills=" +
+        esc(fills) +
+        " · barras=" +
+        esc(res.n_bars) +
+        "<br><span class=\"muted\">" +
+        esc(verdict || meaning) +
+        "</span></div>"
+      );
+    }
+
     function binanceBarOpts() {
       const intervalEl = root.querySelector("#gl-interval");
       const barsEl = root.querySelector("#gl-bars");
@@ -529,33 +586,34 @@
           const batch = data.backtests || {};
           const runs = batch.runs || [];
           lastBinanceSymbols = (scanner.selected_symbols || []).slice();
+          const zeroFills = runs.every(function (r) {
+            return r.ok && Number((r.result || {}).n_fills || 0) === 0;
+          });
           scanOut.innerHTML =
-            "<strong>alpha</strong> interval=" +
+            "<div class=\"bt-summary\">" +
+            "<strong>Qué se hizo</strong><br>" +
+            "1) Ranking alpha eligió pares (no elige estrategia).<br>" +
+            "2) Corrió <span class=\"mono\">" +
+            esc(data.strategy_id) +
+            "</span> en cada par con klines Binance " +
             esc(scanner.interval || barOpts.interval) +
-            " klines=" +
+            " × " +
             esc(scanner.kline_limit || barOpts.kline_limit) +
-            " · " +
-            esc((scanner.selected_symbols || []).join(", ")) +
-            "<br><strong>backtests</strong><br>" +
-            runs
-              .map(function (r) {
-                if (!r.ok) {
-                  return esc(r.symbol) + " ERROR " + esc(r.error);
-                }
-                const res = r.result || {};
-                return (
-                  esc(r.symbol) +
-                  " equity=" +
-                  esc(res.final_equity) +
-                  " fills=" +
-                  esc(res.n_fills)
-                );
-              })
-              .join("<br>");
+            " (solo simulación, sin enviar órdenes reales).<br>" +
+            "3) <span class=\"mono\">fills</span> = trades del simulador. " +
+            "Fees Binance Spot VIP0 (0.10%/lado, schedule publicado) restan del cash.<br>" +
+            "4) capital final ≈ 100000 + fills=0 ⇒ no operó." +
+            (zeroFills
+              ? "<br><strong>Si ves 0 fills:</strong> la señal/MM no cruzó el OHLC. Probá <span class=\"mono\">momentum</span> o re-corré MM tras el fix de spread."
+              : "") +
+            "</div>" +
+            "<div class=\"bt-list\">" +
+            runs.map(function (r) {
+              return formatBacktestRun(r, data.strategy_id);
+            }).join("") +
+            "</div>";
           resultEl.innerHTML =
-            "<dt>kind</dt><dd class=\"mono\">" +
-            esc(data.kind) +
-            "</dd>" +
+            "<dt>qué es esto</dt><dd>Backtest paper sobre top-5 del ranking (MD Binance read-only)</dd>" +
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
             "</dd>" +
@@ -570,9 +628,7 @@
             "/" +
             esc(batch.n_requested) +
             "</dd>" +
-            "<dt>live_blocked</dt><dd class=\"mono\">" +
-            esc(data.live_blocked) +
-            "</dd>";
+            "<dt>live</dt><dd class=\"mono\">bloqueado (no hay routing real)</dd>";
         })
         .catch(function (err) {
           statusErr(runStatus, err);
