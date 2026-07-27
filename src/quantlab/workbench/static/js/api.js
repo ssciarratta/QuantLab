@@ -308,6 +308,12 @@
     labMonteCarloGet: function (runId) {
       return request("GET", "/api/lab/montecarlo/history/" + encodeURIComponent(runId));
     },
+    labMonteCarloRun: function (runId) {
+      return this.labMonteCarloGet(runId);
+    },
+    labMonteCarloDelete: function (runId) {
+      return request("DELETE", "/api/lab/montecarlo/history/" + encodeURIComponent(runId));
+    },
     labFeatures: function (body) {
       return request("POST", "/api/lab/features/run", body || {});
     },

@@ -120,6 +120,12 @@ CAPABILITIES: tuple[dict[str, str], ...] = (
         "path": "/api/lab/montecarlo/history",
     },
     {
+        "id": "montecarlo_delete",
+        "label": "Delete Monte Carlo run",
+        "method": "DELETE",
+        "path": "/api/lab/montecarlo/history/{run_id}",
+    },
+    {
         "id": "features",
         "label": "Features pipeline demo",
         "method": "POST",

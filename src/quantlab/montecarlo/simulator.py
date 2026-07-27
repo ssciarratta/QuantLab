@@ -114,6 +114,7 @@ class MonteCarloSimulator:
         ci_high = mu + half
 
         sorted_finals = sorted(finals)
+        probs = _outcome_probs(finals, initial_equity)
         metrics = MonteCarloMetrics(
             mean_equity=mu,
             std_equity=sigma,
@@ -125,6 +126,9 @@ class MonteCarloSimulator:
             p05_equity=_percentile(sorted_finals, 0.05),
             p95_equity=_percentile(sorted_finals, 0.95),
             mean_return_pct=_mean_return_pct(finals, initial_equity),
+            prob_profit=probs[0],
+            prob_loss=probs[1],
+            prob_above_initial=probs[2],
             max_drawdown_mean=_mean_max_dd(paths) if paths else None,
             max_drawdown_p95=_p95_max_dd(paths) if paths else None,
             paths_available=bool(paths),
@@ -224,6 +228,19 @@ def _mean_return_pct(finals: Sequence[float], initial_equity: float | None) -> f
         return None
     rets = [(f / initial_equity - 1.0) * 100.0 for f in finals]
     return float(mean(rets))
+
+
+def _outcome_probs(
+    finals: Sequence[float], initial_equity: float | None
+) -> tuple[float | None, float | None, float | None]:
+    """(prob_profit, prob_loss, prob_above_initial) en [0,1], o Nones si no aplica."""
+    if initial_equity is None or not finals:
+        return None, None, None
+    n = len(finals)
+    profit = sum(1 for f in finals if f > initial_equity)
+    loss = sum(1 for f in finals if f < initial_equity)
+    above = sum(1 for f in finals if f >= initial_equity)
+    return profit / n, loss / n, above / n
 
 
 def _path_max_drawdown(path: Sequence[float]) -> float | None:

@@ -130,12 +130,35 @@ def normalize_montecarlo_payload(raw: Mapping[str, Any]) -> dict[str, Any]:
             "p05_equity": None,
             "p95_equity": None,
             "mean_return_pct": None,
+            "prob_profit": None,
+            "prob_loss": None,
+            "prob_above_initial": None,
             "max_drawdown_mean": None,
             "max_drawdown_p95": None,
             "paths_available": False,
             "finals_only": True,
             "notes": ["payload legacy o sin métricas enriquecidas"],
         }
+    else:
+        metrics = dict(metrics)
+
+    # Completar probs si hay final_equities + initial_equity (corridas viejas).
+    finals_raw = body.get("final_equities")
+    initial = ctx.initial_equity
+    if isinstance(finals_raw, list) and finals_raw and initial is not None:
+        try:
+            finals = [float(x) for x in finals_raw]
+            n = len(finals)
+            if metrics.get("prob_profit") is None:
+                metrics["prob_profit"] = sum(1 for f in finals if f > initial) / n
+            if metrics.get("prob_loss") is None:
+                metrics["prob_loss"] = sum(1 for f in finals if f < initial) / n
+            if metrics.get("prob_above_initial") is None:
+                metrics["prob_above_initial"] = (
+                    sum(1 for f in finals if f >= initial) / n
+                )
+        except (TypeError, ValueError):
+            pass
 
     relations = body.get("relations")
     if not isinstance(relations, dict):

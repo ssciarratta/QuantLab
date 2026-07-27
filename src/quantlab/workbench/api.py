@@ -64,6 +64,7 @@ from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.i18n import build_i18n_payload
 from quantlab.workbench.layout import load_layout, save_layout
 from quantlab.workbench.montecarlo_runs import (
+    delete_montecarlo_run,
     get_montecarlo_run,
     list_montecarlo_runs,
 )
@@ -3240,6 +3241,20 @@ def handle_get_lab_montecarlo_run(state: WorkbenchState, run_id: str) -> dict[st
         payload = get_montecarlo_run(state.ensure_lab_montecarlo_dir(), rid)
         payload["session_id"] = state.ensure_session().session_id
         return payload
+    except ValidationError as exc:
+        msg = str(exc)
+        if "no encontrado" in msg:
+            raise ApiError(404, msg) from exc
+        raise _lab_validation_error(exc) from exc
+
+
+def handle_delete_lab_montecarlo_run(state: WorkbenchState, run_id: str) -> dict[str, Any]:
+    """DELETE /api/lab/montecarlo/history/{run_id} — borra corrida del sandbox."""
+    try:
+        rid = validate_montecarlo_run_id(run_id)
+        result = delete_montecarlo_run(state.ensure_lab_montecarlo_dir(), rid)
+        result["session_id"] = state.ensure_session().session_id
+        return result
     except ValidationError as exc:
         msg = str(exc)
         if "no encontrado" in msg:

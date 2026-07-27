@@ -14,6 +14,7 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
+    handle_delete_lab_montecarlo_run,
     handle_delete_presets,
     handle_get_a3_md_status,
     handle_get_about,
@@ -782,6 +783,13 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         self._send_error_json(400, "preset name inválido en DELETE")
                         return
                     self._send_json(handle_delete_presets(state, name))
+                    return
+                if path.startswith("/api/lab/montecarlo/history/"):
+                    run_id = unquote(path[len("/api/lab/montecarlo/history/") :]).strip("/")
+                    if not _path_segment_ok(run_id):
+                        self._send_error_json(400, "run_id inválido")
+                        return
+                    self._send_json(handle_delete_lab_montecarlo_run(state, run_id))
                     return
                 self._send_error_json(404, f"ruta no encontrada: {path}")
             except ApiError as exc:

@@ -35,9 +35,10 @@
       '<div class="pane-section" id="mc-ctx-section">' +
       "<h3>Contexto del experimento</h3>" +
       '<div class="mono" id="mc-context">—</div>' +
-      '<div class="pane-row" style="margin-top:0.4rem;gap:0.4rem">' +
+      '<div class="pane-row" style="margin-top:0.4rem;gap:0.4rem;flex-wrap:wrap">' +
       '<button type="button" class="btn secondary" id="mc-open-bt" disabled>Abrir backtest</button>' +
       '<button type="button" class="btn secondary" id="mc-open-scan" disabled>Abrir scan</button>' +
+      '<span class="muted mono" id="mc-nav-hint" style="align-self:center"></span>' +
       "</div>" +
       "</div>" +
       '<div class="pane-section">' +
@@ -71,7 +72,9 @@
     const hist = root.querySelector("#mc-hist");
     const runsEl = root.querySelector("#mc-runs");
     const out = root.querySelector("#mc-out");
+    const navHint = root.querySelector("#mc-nav-hint");
     let lastData = null;
+    let lastRunsPayload = null;
 
     function esc(s) {
       return QLLabUI.escapeHtml(s);
@@ -96,6 +99,14 @@
       return sign + p.toFixed(4) + " %";
     }
 
+    function pctProb(v) {
+      if (v == null || !isFinite(Number(v))) return "No disponible";
+      return (Number(v) * 100).toLocaleString("es-AR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }) + " %";
+    }
+
     function scenarioWarning(n) {
       if (n < 100) {
         return (
@@ -117,9 +128,64 @@
       );
     }
 
+    function canOpenPane(paneId) {
+      return (
+        global.QLShell &&
+        typeof global.QLShell.open === "function" &&
+        global.QLShell.openers &&
+        typeof global.QLShell.openers[paneId] === "function"
+      );
+    }
+
+    function openWorkbenchPane(paneId) {
+      if (canOpenPane(paneId)) {
+        return !!global.QLShell.open(paneId);
+      }
+      return false;
+    }
+
+    function fillFormFromRun(data) {
+      if (!data) return;
+      const cfg = data.config || {};
+      const ctx = data.context || {};
+      if (data.n_scenarios != null) root.querySelector("#mc-n").value = data.n_scenarios;
+      else if (cfg.n_scenarios != null) root.querySelector("#mc-n").value = cfg.n_scenarios;
+      if (data.n_bars != null) root.querySelector("#mc-bars").value = data.n_bars;
+      else if (cfg.n_bars != null) root.querySelector("#mc-bars").value = cfg.n_bars;
+      if (data.noise_bps != null) root.querySelector("#mc-noise").value = data.noise_bps;
+      else if (cfg.noise_bps != null) root.querySelector("#mc-noise").value = cfg.noise_bps;
+      if (data.seed != null) root.querySelector("#mc-seed").value = data.seed;
+      else if (cfg.seed != null) root.querySelector("#mc-seed").value = cfg.seed;
+      root.querySelector("#mc-scan").value = (ctx.scan_id || data.relations && data.relations.scan_id) || "";
+      root.querySelector("#mc-bt").value =
+        (ctx.backtest_id || (data.relations && data.relations.backtest_id)) || "";
+      root.querySelector("#mc-paths").checked = !!(data.equity_paths && data.equity_paths.length);
+    }
+
+    function copyText(text, okMsg) {
+      if (!text) {
+        QLLabUI.setStatus(status, false, "sin texto");
+        return;
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(
+          function () {
+            QLLabUI.setStatus(status, true, okMsg || "copiado");
+          },
+          function () {
+            QLLabUI.setStatus(status, false, "no se pudo copiar");
+          }
+        );
+      } else {
+        QLLabUI.setStatus(status, false, "clipboard no disponible");
+      }
+    }
+
     function renderContext(data) {
       const ctx = (data && data.context) || {};
       const cfg = (data && data.config) || {};
+      const btId = ctx.backtest_id || null;
+      const scanId = ctx.scan_id || null;
       ctxEl.innerHTML =
         row("Estrategia", na(ctx.strategy_name || ctx.strategy_id)) +
         row("Símbolos", na((ctx.symbols || []).join(", "))) +
@@ -130,8 +196,8 @@
         row("Dataset", na(ctx.dataset_id)) +
         row("Fuente dataset", na(ctx.dataset_source)) +
         row("Capital inicial", money(ctx.initial_equity) + " (lab)") +
-        row("Backtest origen", na(ctx.backtest_id)) +
-        row("Scan origen", na(ctx.scan_id)) +
+        row("Backtest origen", na(btId)) +
+        row("Scan origen", na(scanId)) +
         row("run_id", na(data && data.run_id)) +
         row("schema", na(data && data.schema_version)) +
         (ctx.orphan_technical_mode
@@ -139,8 +205,26 @@
             esc(ctx.orphan_warning || "Modo técnico huérfano") +
             "</p>"
           : "");
-      root.querySelector("#mc-open-bt").disabled = !ctx.backtest_id;
-      root.querySelector("#mc-open-scan").disabled = !ctx.scan_id;
+      const btnBt = root.querySelector("#mc-open-bt");
+      const btnScan = root.querySelector("#mc-open-scan");
+      btnBt.disabled = !btId;
+      btnScan.disabled = !scanId;
+      const hints = [];
+      if (btId) {
+        hints.push(
+          canOpenPane("reports") || canOpenPane("backtest")
+            ? "Backtest: abre panel Reports/Backtest (id en contexto)"
+            : "backtest_id=" + btId + " — abrí Reports/Backtest manualmente"
+        );
+      }
+      if (scanId) {
+        hints.push(
+          canOpenPane("scanner") || canOpenPane("guided_lab")
+            ? "Scan: abre panel Scanner/Guided Lab (id en contexto)"
+            : "scan_id=" + scanId + " — abrí Scanner/Guided Lab manualmente"
+        );
+      }
+      navHint.textContent = hints.join(" · ");
     }
 
     function renderExplain(data) {
@@ -209,6 +293,13 @@
         card("Mediana", money(med), pctFromInitial(med, initial)) +
         card("Mejor escenario", money(maxE), pctFromInitial(maxE, initial)) +
         card("Peor escenario", money(minE), pctFromInitial(minE, initial)) +
+        card("Prob. ganancia", pctProb(m.prob_profit), "final > inicial") +
+        card("Prob. pérdida", pctProb(m.prob_loss), "final < inicial") +
+        card(
+          "Prob. ≥ equity inicial",
+          pctProb(m.prob_above_initial),
+          "final ≥ inicial"
+        ) +
         card(
           "IC media (CI95)",
           money(data.ci_low) + " → " + money(data.ci_high),
@@ -280,6 +371,7 @@
         ciBar.innerHTML = "";
         out.innerHTML = "";
         warnEl.textContent = "";
+        navHint.textContent = "";
         return;
       }
       const ok = data.ok !== false;
@@ -309,7 +401,62 @@
       out.innerHTML = QLLabUI.preJson(data);
     }
 
+    function bindRunActions() {
+      runsEl.querySelectorAll(".mc-open-run").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const id = btn.getAttribute("data-id");
+          QLApi.labMonteCarloRun(id)
+            .then(function (data) {
+              renderResult(data);
+              fillFormFromRun(data);
+            })
+            .catch(function (err) {
+              QLLabUI.setStatus(status, false, err.message);
+            });
+        });
+      });
+      runsEl.querySelectorAll(".mc-repeat-run").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const id = btn.getAttribute("data-id");
+          QLApi.labMonteCarloRun(id)
+            .then(function (data) {
+              fillFormFromRun(data);
+              root.querySelector("#mc-run").click();
+            })
+            .catch(function (err) {
+              QLLabUI.setStatus(status, false, err.message);
+            });
+        });
+      });
+      runsEl.querySelectorAll(".mc-copy-run").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          copyText(btn.getAttribute("data-id"), "run_id copiado");
+        });
+      });
+      runsEl.querySelectorAll(".mc-delete-run").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          const id = btn.getAttribute("data-id");
+          if (!id) return;
+          if (!window.confirm("¿Eliminar corrida Monte Carlo " + id + "?")) return;
+          QLApi.labMonteCarloDelete(id)
+            .then(function () {
+              if (lastData && lastData.run_id === id) {
+                renderResult(null);
+              }
+              return refresh();
+            })
+            .then(function () {
+              QLLabUI.setStatus(status, true, "eliminado " + id);
+            })
+            .catch(function (err) {
+              QLLabUI.setStatus(status, false, err.message);
+            });
+        });
+      });
+    }
+
     function renderRuns(listPayload) {
+      lastRunsPayload = listPayload;
       const runs = (listPayload && listPayload.runs) || [];
       if (!runs.length) {
         runsEl.innerHTML = '<p class="muted mono">sin corridas — corré simular</p>';
@@ -349,26 +496,26 @@
               '<td class="num">' +
               esc(money(r.ci_low) + "–" + money(r.ci_high)) +
               "</td>" +
-              '<td><button type="button" class="btn secondary mc-open-run" data-id="' +
+              '<td style="white-space:nowrap">' +
+              '<button type="button" class="btn secondary mc-open-run" data-id="' +
               esc(r.run_id) +
-              '">abrir</button></td>' +
+              '">abrir</button> ' +
+              '<button type="button" class="btn secondary mc-repeat-run" data-id="' +
+              esc(r.run_id) +
+              '" title="Misma seed/config">repetir</button> ' +
+              '<button type="button" class="btn secondary mc-copy-run" data-id="' +
+              esc(r.run_id) +
+              '">copiar id</button> ' +
+              '<button type="button" class="btn secondary mc-delete-run" data-id="' +
+              esc(r.run_id) +
+              '">eliminar</button>' +
+              "</td>" +
               "</tr>"
             );
           })
           .join("") +
         "</tbody></table>";
-      runsEl.querySelectorAll(".mc-open-run").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          const id = btn.getAttribute("data-id");
-          QLApi.labMonteCarloRun(id)
-            .then(function (data) {
-              renderResult(data);
-            })
-            .catch(function (err) {
-              QLLabUI.setStatus(status, false, err.message);
-            });
-        });
-      });
+      bindRunActions();
     }
 
     async function refresh() {
@@ -387,30 +534,49 @@
     });
 
     root.querySelector("#mc-copy-id").addEventListener("click", function () {
-      const id = lastData && lastData.run_id;
-      if (!id) {
-        QLLabUI.setStatus(status, false, "sin run_id");
-        return;
-      }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(id).then(
-          function () {
-            QLLabUI.setStatus(status, true, "run_id copiado");
-          },
-          function () {
-            QLLabUI.setStatus(status, false, "no se pudo copiar");
-          }
-        );
-      }
+      copyText(lastData && lastData.run_id, "run_id copiado");
     });
 
     root.querySelector("#mc-open-bt").addEventListener("click", function () {
-      const id = lastData && lastData.context && lastData.context.backtest_id;
-      if (id) QLLabUI.setStatus(status, true, "backtest_id=" + id + " (abrir panel Reports)");
+      const id =
+        lastData &&
+        lastData.context &&
+        lastData.context.backtest_id;
+      if (!id) return;
+      const opened =
+        openWorkbenchPane("reports") || openWorkbenchPane("backtest");
+      if (opened) {
+        QLLabUI.setStatus(
+          status,
+          true,
+          "backtest_id=" + id + " · panel abierto (buscá el id en Reports/Backtest)"
+        );
+      } else {
+        QLLabUI.setStatus(
+          status,
+          true,
+          "backtest_id=" + id + " — abrí el panel Reports/Backtest manualmente"
+        );
+      }
     });
     root.querySelector("#mc-open-scan").addEventListener("click", function () {
       const id = lastData && lastData.context && lastData.context.scan_id;
-      if (id) QLLabUI.setStatus(status, true, "scan_id=" + id + " (abrir Guided Lab / Scanner)");
+      if (!id) return;
+      const opened =
+        openWorkbenchPane("scanner") || openWorkbenchPane("guided_lab");
+      if (opened) {
+        QLLabUI.setStatus(
+          status,
+          true,
+          "scan_id=" + id + " · panel abierto (buscá el id en Scanner/Guided Lab)"
+        );
+      } else {
+        QLLabUI.setStatus(
+          status,
+          true,
+          "scan_id=" + id + " — abrí el panel Scanner/Guided Lab manualmente"
+        );
+      }
     });
 
     QLLabUI.bindRun(root, "#mc-run", "#mc-status", "#mc-out", function () {

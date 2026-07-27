@@ -313,6 +313,10 @@ class MonteCarloMetrics:
     p05_equity: float | None = None
     p95_equity: float | None = None
     mean_return_pct: float | None = None
+    # Fracciones 0..1 desde final_equities vs initial_equity (None si no hay datos).
+    prob_profit: float | None = None  # final > initial
+    prob_loss: float | None = None  # final < initial
+    prob_above_initial: float | None = None  # final >= initial
     max_drawdown_mean: float | None = None
     max_drawdown_p95: float | None = None
     paths_available: bool = False
@@ -331,6 +335,9 @@ class MonteCarloMetrics:
             "p05_equity": self.p05_equity,
             "p95_equity": self.p95_equity,
             "mean_return_pct": self.mean_return_pct,
+            "prob_profit": self.prob_profit,
+            "prob_loss": self.prob_loss,
+            "prob_above_initial": self.prob_above_initial,
             "max_drawdown_mean": self.max_drawdown_mean,
             "max_drawdown_p95": self.max_drawdown_p95,
             "paths_available": self.paths_available,

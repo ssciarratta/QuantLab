@@ -293,6 +293,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         "Monte Carlo run detail",
         ("lab",),
     ),
+    ApiRoute(
+        "/api/lab/montecarlo/history/{run_id}",
+        "DELETE",
+        "Delete Monte Carlo run",
+        ("lab",),
+    ),
     ApiRoute("/api/lab/validation", "GET", "Validation runs list", ("lab",)),
     ApiRoute(
         "/api/lab/validation/{run_id}",
