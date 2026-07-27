@@ -3803,7 +3803,7 @@ def check_f103_live_arc_freeze() -> None:
         encoding="utf-8"
     )
     assert "F99" in freeze and "F102" in freeze
-    assert "0.96.0" in freeze
+    assert "0.95.0" in freeze
     assert (root / "docs" / "FASE_103_LIVE_ARC_FREEZE.md").is_file()
     assert not (root / "docs" / "audit" / "FASE_103_APPROVED.md").exists()
 

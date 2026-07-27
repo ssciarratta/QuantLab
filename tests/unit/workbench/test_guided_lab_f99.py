@@ -52,18 +52,24 @@ def test_static_guided_lab_pane_present() -> None:
 
 def test_pane_never_enables_live() -> None:
     js = (_static_root() / "js" / "panes" / "guided_lab.js").read_text(encoding="utf-8")
-    for banned in ("setLive", "flip_live", "place_order", "QLApi.connect"):
+    for banned in ("setLive", "flip_live", "place_order"):
         assert banned not in js
-    # Lab + live unlock/status + binance MD scan (sin submit venue)
-    allowed = (
-        js.count("QLApi.labScanner")
-        + js.count("QLApi.labBacktest")
-        + js.count("QLApi.liveStatus")
-        + js.count("QLApi.liveUnlock")
-        + js.count("QLApi.liveLock")
-        + js.count("QLApi.binanceScan")
+    # Lab + live unlock + binance MD + demo submit + A3 paper connect (F104)
+    allowed_prefixes = (
+        "QLApi.labScanner",
+        "QLApi.labBacktest",
+        "QLApi.liveStatus",
+        "QLApi.liveUnlock",
+        "QLApi.liveLock",
+        "QLApi.binanceScan",
+        "QLApi.liveDemoSubmit",
+        "QLApi.liveDemoFills",
+        "QLApi.connect",
+        "QLApi.instruments",
     )
+    allowed = sum(js.count(p) for p in allowed_prefixes)
     assert js.count("QLApi.") == allowed
+    assert 'QLApi.connect("a3"' in js
 
 
 def test_i18n_locales_have_pane_key() -> None:
