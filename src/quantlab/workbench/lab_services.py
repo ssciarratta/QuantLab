@@ -326,14 +326,16 @@ def run_binance_lab_scanner(
         DEFAULT_BASE_URL,
         BinancePublicMdClient,
         fetch_universe_bars,
+        validate_kline_interval,
     )
 
     if top_n < 1 or top_n > 10:
         raise ValidationError("top_n debe estar entre 1 y 10")
     if symbol_limit < 5 or symbol_limit > 30:
         raise ValidationError("symbol_limit debe estar entre 5 y 30")
-    if kline_limit < 8 or kline_limit > 120:
-        raise ValidationError("kline_limit debe estar entre 8 y 120")
+    if kline_limit < 8 or kline_limit > 500:
+        raise ValidationError("kline_limit debe estar entre 8 y 500")
+    interval = validate_kline_interval(interval)
 
     url = base_url or DEFAULT_BASE_URL
     client = BinancePublicMdClient(base_url=url)
@@ -391,12 +393,19 @@ def run_binance_lab_backtest_batch(
     base_url: str | None = None,
 ) -> dict[str, Any]:
     """Backtest la misma estrategia sobre varios símbolos Binance (MD público)."""
-    from quantlab.brokers.binance.public_md import DEFAULT_BASE_URL, fetch_universe_bars
+    from quantlab.brokers.binance.public_md import (
+        DEFAULT_BASE_URL,
+        fetch_universe_bars,
+        validate_kline_interval,
+    )
 
     if not symbols:
         raise ValidationError("symbols vacío")
     if len(symbols) > 10:
         raise ValidationError("máximo 10 símbolos por batch")
+    if kline_limit < 8 or kline_limit > 500:
+        raise ValidationError("kline_limit debe estar entre 8 y 500")
+    interval = validate_kline_interval(interval)
     prefix = validate_experiment_id(experiment_id_prefix)
 
     url = base_url or DEFAULT_BASE_URL

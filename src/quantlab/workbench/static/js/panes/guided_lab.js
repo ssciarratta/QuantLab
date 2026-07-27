@@ -80,7 +80,28 @@
       '<h3 data-i18n="guided_lab.section.strategy">3. Estrategia</h3>' +
       '<select id="gl-strategy"></select>' +
       '<p class="muted mono" id="gl-strategy-hint" style="margin:0.25rem 0 0">cargando catálogo…</p>' +
-      '<label class="muted"> n_bars <input type="number" id="gl-bars" value="24" min="4" max="120" style="width:4em"></label>' +
+      '<div class="pane-row" style="margin-top:0.5rem;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
+      '<label class="muted" title="Intervalo de klines Binance (MD público). 1m = más fino disponible sin L2/ticks.">' +
+      "velas " +
+      '<select id="gl-interval">' +
+      '<option value="1m">1m (más fino)</option>' +
+      '<option value="3m">3m</option>' +
+      '<option value="5m" selected>5m</option>' +
+      '<option value="15m">15m</option>' +
+      '<option value="30m">30m</option>' +
+      '<option value="1h">1h</option>' +
+      '<option value="4h">4h</option>' +
+      '<option value="1d">1d</option>' +
+      "</select></label>" +
+      '<label class="muted" title="Cantidad de velas: en Ranking/Pipeline = klines Binance (8–500). En Simular backtest = barras sintéticas del lab (4–120).">' +
+      "n_bars/klines " +
+      '<input type="number" id="gl-bars" value="60" min="8" max="500" style="width:4.5em">' +
+      "</label>" +
+      "</div>" +
+      '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
+      "Binance: interval + n_bars = historial de klines. Simular: solo n_bars sintéticas (máx 120). " +
+      "1m no es HFT real (sin order book / ticks)." +
+      "</p>" +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.simulate">4. Simular (paper)</h3>' +
@@ -133,6 +154,39 @@
       el.textContent = t("guided_lab.status.error", "error") + ": " + err.message;
       el.className = "mono status-bad";
     }
+
+    function binanceBarOpts() {
+      const intervalEl = root.querySelector("#gl-interval");
+      const barsEl = root.querySelector("#gl-bars");
+      let interval = (intervalEl && intervalEl.value) || "5m";
+      let klineLimit = Number(barsEl && barsEl.value) || 60;
+      if (klineLimit < 8) klineLimit = 8;
+      if (klineLimit > 500) klineLimit = 500;
+      return { interval: interval, kline_limit: klineLimit };
+    }
+
+    function syncBarsHint() {
+      const hint = root.querySelector("#gl-bars-hint");
+      const barsEl = root.querySelector("#gl-bars");
+      const opts = binanceBarOpts();
+      if (!hint || !barsEl) return;
+      const n = opts.kline_limit;
+      const iv = opts.interval;
+      hint.textContent =
+        "Ranking/Pipeline Binance: " +
+        n +
+        " velas × " +
+        iv +
+        " (~historial reciente). " +
+        "Simular backtest: usa n_bars sintéticas (clamp 4–120). " +
+        "Más fino disponible: 1m — research bar-based, no HFT L2.";
+    }
+
+    const glInterval = root.querySelector("#gl-interval");
+    const glBars = root.querySelector("#gl-bars");
+    if (glInterval) glInterval.addEventListener("change", syncBarsHint);
+    if (glBars) glBars.addEventListener("input", syncBarsHint);
+    syncBarsHint();
 
     let lastBinanceSymbols = [];
 
@@ -411,7 +465,9 @@
         "guided_lab.status.scanning_binance_alpha",
         "ranking alpha Binance…"
       );
-      QLApi.binanceScanner({ top_n: 5, symbol_limit: 15 })
+      QLApi.binanceScanner(
+        Object.assign({ top_n: 5, symbol_limit: 15 }, binanceBarOpts())
+      )
         .then(function (data) {
           scanStatus.textContent = t(
             "guided_lab.status.scan_binance_alpha_ok",
@@ -422,7 +478,11 @@
           lastBinanceSymbols = selected.slice();
           const scores = data.scores || [];
           scanOut.innerHTML =
-            "fetched=" +
+            "interval=" +
+            esc(data.interval) +
+            " · klines=" +
+            esc(data.kline_limit) +
+            " · fetched=" +
             esc(data.n_symbols_fetched) +
             " · top=" +
             esc(data.top_n) +
@@ -446,14 +506,20 @@
 
     root.querySelector("#gl-pipeline-bn").addEventListener("click", function () {
       const strategy = root.querySelector("#gl-strategy").value;
+      const barOpts = binanceBarOpts();
       runStatus.textContent = t("guided_lab.status.pipeline_binance", "pipeline Binance…");
       resultEl.innerHTML = "";
-      QLApi.binancePipeline({
-        strategy_id: strategy,
-        top_n: 5,
-        symbol_limit: 15,
-        experiment_id: "wb-bn-pipe",
-      })
+      QLApi.binancePipeline(
+        Object.assign(
+          {
+            strategy_id: strategy,
+            top_n: 5,
+            symbol_limit: 15,
+            experiment_id: "wb-bn-pipe",
+          },
+          barOpts
+        )
+      )
         .then(function (data) {
           runStatus.textContent = data.ok
             ? t("guided_lab.status.pipeline_ok", "pipeline ok")
@@ -464,7 +530,11 @@
           const runs = batch.runs || [];
           lastBinanceSymbols = (scanner.selected_symbols || []).slice();
           scanOut.innerHTML =
-            "<strong>alpha</strong> " +
+            "<strong>alpha</strong> interval=" +
+            esc(scanner.interval || barOpts.interval) +
+            " klines=" +
+            esc(scanner.kline_limit || barOpts.kline_limit) +
+            " · " +
             esc((scanner.selected_symbols || []).join(", ")) +
             "<br><strong>backtests</strong><br>" +
             runs
@@ -489,6 +559,12 @@
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
             "</dd>" +
+            "<dt>interval</dt><dd class=\"mono\">" +
+            esc(scanner.interval || barOpts.interval) +
+            "</dd>" +
+            "<dt>klines</dt><dd class=\"mono\">" +
+            esc(scanner.kline_limit || barOpts.kline_limit) +
+            "</dd>" +
             "<dt>n_ok</dt><dd class=\"mono num\">" +
             esc(batch.n_ok) +
             "/" +
@@ -505,7 +581,10 @@
 
     root.querySelector("#gl-run").addEventListener("click", function () {
       const strategy = root.querySelector("#gl-strategy").value;
-      const nBars = Number(root.querySelector("#gl-bars").value) || 24;
+      let nBars = Number(root.querySelector("#gl-bars").value) || 24;
+      // Simular = barras sintéticas lab (rango distinto al kline Binance).
+      if (nBars < 4) nBars = 4;
+      if (nBars > 120) nBars = 120;
       runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
       resultEl.innerHTML = "";
       QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars })
@@ -515,11 +594,15 @@
             : t("guided_lab.status.failed", "falló");
           runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
           resultEl.innerHTML =
+            "<dt>data</dt><dd class=\"mono\">synthetic lab bars</dd>" +
             "<dt>venue</dt><dd class=\"mono\">" +
             esc(root.querySelector("#gl-venue").value) +
             "</dd>" +
             "<dt>strategy</dt><dd class=\"mono\">" +
             esc(data.strategy_id) +
+            "</dd>" +
+            "<dt>n_bars</dt><dd class=\"mono\">" +
+            esc(data.n_bars) +
             "</dd>" +
             "<dt>final_equity</dt><dd class=\"mono num\">" +
             esc(data.final_equity) +

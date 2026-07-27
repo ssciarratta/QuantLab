@@ -20,6 +20,42 @@ from quantlab.core.types.market import Bar
 DEFAULT_BASE_URL = "https://api.binance.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 
+# Intervalos Spot públicos (sin ticks/L2). 1m = más fino disponible aquí.
+ALLOWED_KLINE_INTERVALS: frozenset[str] = frozenset(
+    {"1m", "3m", "5m", "15m", "30m", "1h", "4h", "1d"}
+)
+
+_INTERVAL_ORDER: tuple[str, ...] = (
+    "1m",
+    "3m",
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "4h",
+    "1d",
+)
+
+
+def _interval_sort_key(interval: str) -> int:
+    try:
+        return _INTERVAL_ORDER.index(interval)
+    except ValueError:
+        return 99
+
+
+def validate_kline_interval(interval: str) -> str:
+    """Normaliza y valida interval de klines Binance."""
+    if not isinstance(interval, str) or not interval.strip():
+        raise ValidationError("interval requerido")
+    iv = interval.strip()
+    if iv not in ALLOWED_KLINE_INTERVALS:
+        raise ValidationError(
+            f"interval inválido: {interval!r}; "
+            f"permitidos: {', '.join(_INTERVAL_ORDER)}"
+        )
+    return iv
+
 
 @dataclass(frozen=True, slots=True)
 class BinancePublicTicker:
@@ -126,10 +162,7 @@ class BinancePublicMdClient:
             raise ValidationError("symbol vacío")
         if limit < 3 or limit > 500:
             raise ValidationError("klines limit debe estar entre 3 y 500")
-        allowed = frozenset({"1m", "3m", "5m", "15m", "30m", "1h", "4h", "1d"})
-        iv = interval.strip()
-        if iv not in allowed:
-            raise ValidationError(f"interval inválido: {interval!r}")
+        iv = validate_kline_interval(interval)
         path = f"/api/v3/klines?symbol={sym}&interval={iv}&limit={limit}"
         payload = self._get_json(path)
         if not isinstance(payload, list):

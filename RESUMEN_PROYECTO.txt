@@ -13,8 +13,15 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F115 completo: classic_bar + mm_spectrum + promoción proxies
-(stats/ML/micro/vol) · UI por familia · tests F27 verdes
+Guided Lab: selector velas Binance (1m…1d) + n_bars/klines (8–500)
+F115: espectro estrategias 39 runnable / 11 stubs
+UI: resize bordes · tooltips · chat actions
+
+NOTA n_bars
+-----------
+- Ranking/Pipeline: n_bars = cantidad de klines Binance del interval elegido
+- Simular backtest: n_bars = barras sintéticas lab (clamp 4–120 en API)
+- 1m = más fino vía MD público; NO es HFT real (sin L2/ticks)
 
 PRÓXIMO
 -------
