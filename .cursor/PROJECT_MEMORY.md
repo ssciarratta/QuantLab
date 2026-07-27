@@ -2,7 +2,7 @@
 
 **Actualizado:** 2026-07-26  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **0.96.0** (F104 Guided Lab A3 paper/MD)
+**Versión tip:** **0.97.0** (F105 A3 MD env Guided Lab)
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  
@@ -61,6 +61,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 | F102 | Binance Spot Testnet opt-in · **0.94.0** |
 | F103 | Freeze arco LIVE Guided Path F99–F102 · **0.95.0** |
 | F104 | Guided Lab A3 paper/MD · **0.96.0** |
+| F105 | A3 MD env Guided Lab · **0.97.0** |
 | Noche F19–F96 | `docs/audit/INTERNAL_AUDIT_F19_F96_NIGHT.md` |
 
 **Regla:** el auditor INTERNAL **no** emite `FASE_*_APPROVED.md` (reserva Meta-Auditor externo).
@@ -156,14 +157,14 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 8. Session paths fail-closed (`validate_session_id`, zip-slip)
 9. PaperBroker / Paper Session: fills simulados; sin venue submit
 10. Plugins externos siempre detrás de `ReadOnlyBrokerPort`; no submit/cancel
-11. Sin emitir `FASE_19`…`FASE_104_APPROVED.md` desde INTERNAL
-12. `phases_summary` tip: `F19–F104 INTERNAL`
-13. About / health `version` ≡ `__version__` (tip `0.96.0`)
+11. Sin emitir `FASE_19`…`FASE_105_APPROVED.md` desde INTERNAL
+12. `phases_summary` tip: `F19–F105 INTERNAL`
+13. About / health `version` ≡ `__version__` (tip `0.97.0`)
 14. Journal PAPER append-only autoritativo; rebuild solo CLI offline con backup
-15. OpenAPI: `/api/live/{status,unlock,lock,demo/submit,demo/fills}` permitidos; otros `/api/live/*` trading prohibidos
+15. OpenAPI: `/api/live/{status,unlock,lock,demo/submit,demo/fills}` + `/api/lab/a3/md-status` permitidos
 
 ## Próximo
 
-- A3 MD env read-only opt-in en Guided Lab (si QUANTLAB_A3_*)
+- Snapshot A3 en Guided Lab post-connect
 - Certificados externos F19+ solo con Meta-Auditor
 - Flip LIVE producción solo con checklist + Meta-Auditor + dueño + commit dedicado

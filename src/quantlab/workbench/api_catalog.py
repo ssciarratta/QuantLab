@@ -110,6 +110,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("lab", "binance"),
     ),
     ApiRoute(
+        "/api/lab/a3/md-status",
+        "GET",
+        "A3 MD capability status (env flag/creds; no secrets)",
+        ("lab", "a3"),
+    ),
+    ApiRoute(
         "/api/venues",
         "GET",
         "Broker registry: venues, plugins (contract v1 read-only) and connection",

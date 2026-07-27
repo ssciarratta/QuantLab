@@ -116,3 +116,34 @@ def resolve_a3_md_backend(
     detail["md_provider"] = "a3-fake"
     detail["md_source"] = MD_SOURCE_FAKE
     return FakeA3Backend(), detail
+
+
+def a3_md_capability_status() -> dict[str, Any]:
+    """Estado de capacidad MD A3 sin secrets (F105 Guided Lab)."""
+    flag = md_readonly_flag_enabled()
+    creds = has_a3_credentials()
+    raw_env = os.environ.get("QUANTLAB_A3_ENVIRONMENT", "simulation").strip().lower()
+    env_name = raw_env or "simulation"
+    ready = flag and creds
+    reason = "ok"
+    if not flag:
+        reason = f"{MD_READONLY_ENV}!=1"
+    elif not creds:
+        reason = "faltan QUANTLAB_A3_USER|PASSWORD|ACCOUNT"
+    return {
+        "ok": True,
+        "kind": "a3_md_status",
+        "md_readonly_flag": flag,
+        "credentials_configured": creds,
+        "env_ready": ready,
+        "environment": env_name,
+        "reason": reason,
+        "sources": sorted(VALID_MD_SOURCES),
+        "env_flag_key": MD_READONLY_ENV,
+        "note": (
+            "MD env solo con QUANTLAB_A3_MD_READONLY=1 + USER/PASSWORD/ACCOUNT. "
+            "Fills siguen en PaperBroker; sin submit venue A3. Secrets nunca en git."
+        ),
+        "live_routing": False,
+        "research_safe": True,
+    }

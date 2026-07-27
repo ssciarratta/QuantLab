@@ -15,6 +15,7 @@ from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
     handle_delete_presets,
+    handle_get_a3_md_status,
     handle_get_about,
     handle_get_access_log,
     handle_get_account,
@@ -347,6 +348,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/live/demo/fills":
                     self._send_json(handle_get_live_demo_fills(state))
+                    return
+                if path == "/api/lab/a3/md-status":
+                    self._send_json(handle_get_a3_md_status(state))
                     return
                 if path == "/api/diagnostics":
                     self._send_json(handle_get_diagnostics(state))

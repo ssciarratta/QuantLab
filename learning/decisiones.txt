@@ -1,3 +1,8 @@
+[2026-07-26] DEC-149 — A3 MD env opt-in en Guided Lab
+  Decisión: F105 expone GET /api/lab/a3/md-status (sin secrets) y selector
+  md_source fake|env en Guided Lab. Fills PaperBroker. Bump 0.97.0.
+  Fase: 105.
+
 [2026-07-26] DEC-148 — Guided Lab camino A3 paper/MD
   Decisión: F104 agrega connect+instrumentos A3 en Guided Lab (PaperBroker).
   Sin routing venue A3. Bump 0.96.0.

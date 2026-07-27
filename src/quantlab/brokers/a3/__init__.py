@@ -5,6 +5,7 @@ from quantlab.brokers.a3.md_backend import (
     MD_READONLY_ENV,
     MD_SOURCE_ENV,
     MD_SOURCE_FAKE,
+    a3_md_capability_status,
     resolve_a3_md_backend,
 )
 from quantlab.brokers.a3.read_contract import (
@@ -20,6 +21,7 @@ __all__ = [
     "MD_SOURCE_ENV",
     "MD_READONLY_ENV",
     "resolve_a3_md_backend",
+    "a3_md_capability_status",
     "A3ReadContractReport",
     "A3ReadContractStatus",
     "run_fake_read_contract",

@@ -400,6 +400,9 @@
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
     },
+    a3MdStatus: function () {
+      return request("GET", "/api/lab/a3/md-status");
+    },
     about: function () {
       return request("GET", "/api/about");
     },

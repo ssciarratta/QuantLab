@@ -11,8 +11,8 @@ from quantlab.workbench.about import PHASES_SUMMARY
 
 def test_version_f104() -> None:
     assert LIVE_BLOCKED is True
-    assert __version__ == "0.96.0"
-    assert PHASES_SUMMARY == "F19–F104 INTERNAL"
+    assert __version__ == "0.97.0"
+    assert PHASES_SUMMARY == "F19–F105 INTERNAL"
     assert not Path("docs/audit/FASE_104_APPROVED.md").exists()
 
 

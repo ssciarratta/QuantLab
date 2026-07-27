@@ -30,15 +30,21 @@
       '<select id="gl-venue">' +
       '<option value="binance">binance (MD público / demo)</option>' +
       '<option value="paper">paper (simulado)</option>' +
-      '<option value="a3">a3 (MD fake / paper)</option>' +
+      '<option value="a3">a3 (MD fake|env / paper)</option>' +
       "</select>" +
       '<div class="pane-row" style="margin-top:0.5em">' +
+      '<label class="muted">A3 md_source ' +
+      '<select id="gl-a3-md">' +
+      '<option value="fake">fake (CI)</option>' +
+      '<option value="env">env (read-only)</option>' +
+      "</select></label>" +
+      '<button type="button" class="btn secondary" id="gl-a3-status-btn">Estado MD A3</button>' +
       '<button type="button" class="btn secondary" id="gl-a3-connect">Conectar paper A3</button>' +
-      '<button type="button" class="btn secondary" id="gl-a3-instr">Listar instrumentos A3</button>' +
+      '<button type="button" class="btn secondary" id="gl-a3-instr">Listar instrumentos</button>' +
       '<span class="mono muted" id="gl-a3-status">—</span>' +
       "</div>" +
       '<div class="mono" id="gl-a3-out">—</div>' +
-      '<p class="muted">A3 en Guided Lab = PAPER (fills simulados). Sin routing venue A3.</p>' +
+      '<p class="muted">A3 = PAPER fills. MD env exige QUANTLAB_A3_MD_READONLY=1 + USER/PASSWORD/ACCOUNT. Sin submit venue.</p>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>2. Escanear</h3>" +
@@ -98,13 +104,18 @@
       return QLApi.liveStatus()
         .then(function (data) {
           const unlocked = data.unlocked === true;
+          const demo = data.demo || {};
+          const transport = demo.transport || (unlocked ? "—" : "blocked");
           liveEl.textContent =
             "LIVE_BLOCKED=" +
             data.live_blocked +
             " · unlocked=" +
             unlocked +
             " · configured=" +
-            data.credentials_configured;
+            data.credentials_configured +
+            " · transport=" +
+            transport +
+            (demo.n_fills != null ? " · fills=" + demo.n_fills : "");
           liveEl.className = unlocked ? "mono status-ok" : "mono status-bad";
           unlockStatus.textContent = unlocked
             ? "unlock activo (" + esc(data.venue_scope) + ")"
@@ -144,14 +155,41 @@
 
     const a3Status = root.querySelector("#gl-a3-status");
     const a3Out = root.querySelector("#gl-a3-out");
-    root.querySelector("#gl-a3-connect").addEventListener("click", function () {
-      a3Status.textContent = "conectando A3 paper…";
-      root.querySelector("#gl-venue").value = "a3";
-      QLApi.connect("a3", "paper", { md_source: "fake" })
+    function a3MdSource() {
+      return root.querySelector("#gl-a3-md").value || "fake";
+    }
+    root.querySelector("#gl-a3-status-btn").addEventListener("click", function () {
+      a3Status.textContent = "consultando…";
+      QLApi.a3MdStatus()
         .then(function (data) {
-          a3Status.textContent = data.ok ? "A3 paper conectado" : "falló";
+          a3Status.textContent = data.env_ready
+            ? "env listo"
+            : "env no listo (" + esc(data.reason) + ")";
+          a3Status.className = data.env_ready ? "mono status-ok" : "mono muted";
+          a3Out.textContent =
+            "flag=" +
+            data.md_readonly_flag +
+            " creds=" +
+            data.credentials_configured +
+            " env=" +
+            esc(data.environment) +
+            " · " +
+            esc(data.note);
+        })
+        .catch(function (err) {
+          a3Status.textContent = "error: " + err.message;
+          a3Status.className = "mono status-bad";
+        });
+    });
+    root.querySelector("#gl-a3-connect").addEventListener("click", function () {
+      const md = a3MdSource();
+      a3Status.textContent = "conectando A3 paper md=" + md + "…";
+      root.querySelector("#gl-venue").value = "a3";
+      QLApi.connect("a3", "paper", { md_source: md })
+        .then(function (data) {
+          a3Status.textContent = data.ok ? "A3 paper conectado (" + md + ")" : "falló";
           a3Status.className = data.ok ? "mono status-ok" : "mono status-bad";
-          a3Out.textContent = esc(JSON.stringify(data.health || data, null, 0)).slice(0, 240);
+          a3Out.textContent = esc(JSON.stringify(data.health || data, null, 0)).slice(0, 280);
         })
         .catch(function (err) {
           a3Status.textContent = "error: " + err.message;

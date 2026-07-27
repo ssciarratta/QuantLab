@@ -975,6 +975,14 @@ def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dic
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_get_a3_md_status(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/a3/md-status — capacidad MD A3 env (sin secrets) F105."""
+    from quantlab.brokers.a3.md_backend import a3_md_capability_status
+
+    _ = state
+    return a3_md_capability_status()
+
+
 def handle_get_diagnostics(state: WorkbenchState) -> dict[str, Any]:
     """GET /api/diagnostics — snapshot read-only agregado para soporte (F95).
 

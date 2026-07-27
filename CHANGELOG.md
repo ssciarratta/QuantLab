@@ -19,6 +19,20 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
 ---
 
+## [0.97.0] — 2026-07-26
+
+### Fase 105 — A3 MD env read-only en Guided Lab
+
+#### Added
+- `GET /api/lab/a3/md-status` (capacidad flag/creds, sin secrets)
+- Guided Lab: selector `md_source` fake|env + Estado MD + transport/fills en banner
+- Docs `docs/FASE_105_A3_MD_GUIDED.md` · DEC-149
+
+#### Notes
+- Fills siguen PaperBroker; sin submit venue A3.
+
+---
+
 ## [0.96.0] — 2026-07-26
 
 ### Fase 104 — Guided Lab camino A3 (paper/MD)

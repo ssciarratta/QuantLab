@@ -1,7 +1,7 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-26
-Versión código actual: 0.96.0 (F104 Guided Lab A3 paper)
+Versión código actual: 0.97.0 (F105 A3 MD env Guided Lab)
 Certificado F17: código 0.9.0 / Review v1.0
 Certificado F18: código 0.10.0 / Review v1.0 — APROBADO DEFINITIVO
 Auditoría INTERNAL F19–F48: APROBADO_INTERNO (externo pendiente) — milestone v0.40.0
@@ -75,20 +75,19 @@ Freeze v0.70: docs/audit/MILESTONE_V070_FREEZE.md
 ESTADO
 ------
 - F0–F18: CERTIFICADOS externos (FASE_18_APPROVED definitivo Meta-Auditor 2026-07-25)
-- F19–F103: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
-- Arco LIVE Guided Path F99–F102 congelado (v0.95) · demo/testnet sin producción
+- F19–F105: APROBADO_INTERNO Zero-Trust (código listo; certificados externos pendientes)
+- Guided Lab: Binance demo/testnet + A3 paper/MD env opt-in (sin producción)
 - Operating Modes TESTER / PAPER(=REAL) / LIVE + BrokerPort (+ generic_csv/rest + EP)
 - Research-prod LISTO · CI Actions ACTIVO · sin unlock LIVE bloqueado · secrets solo env local
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-F104 Guided Lab A3 paper/MD (0.96.0): connect + instrumentos en wizard.
-Solo PaperBroker; sin routing venue A3. DEC-148.
+F105 A3 MD env Guided Lab (0.97.0): /api/lab/a3/md-status + selector fake|env.
+Banner LIVE con transport/fills. PaperBroker only. DEC-149.
 
-Previo — F103 freeze arco LIVE Guided Path F99–F102 (0.95.0). DEC-147.
+Previo — F104 Guided Lab A3 paper (0.96.0). DEC-148.
+Previo — F103 freeze LIVE arc (0.95.0). DEC-147.
 Previo — F102 testnet opt-in (0.94.0). DEC-146.
-Previo — F101 demo routing local (0.93.0). DEC-145.
-Previo — F100 credential gate (0.92.0). DEC-144.
 
 Previo — F98 Milestone Freeze arco ops F93–F97 (0.90.0):
 - MILESTONE_V090_OPS_ARC_FREEZE.md + CHANGELOG; sin cambios runtime
