@@ -3,6 +3,7 @@
 **Actualizado:** 2026-07-27  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot; UI resize bordes + tooltips)  
+**Alpha Scanner opt:** FASE 0–3 hechas (`docs/progress/alpha-scanner-optimization-status.md`); scoring default sigue `legacy_v1`  
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
 **Milestone congelado arco LIVE v0.95:** F99–F102 · `docs/audit/MILESTONE_V095_LIVE_ARC_FREEZE.md`  

@@ -458,8 +458,10 @@ def run_binance_lab_scanner(
     interval: str = "1h",
     kline_limit: int = 24,
     base_url: str | None = None,
+    profile: str = "legacy_v1",
+    persist_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """AlphaScanner sobre klines Binance públicas (read-only)."""
+    """AlphaScanner / perfiles sobre klines Binance públicas (read-only)."""
     from quantlab.brokers.binance.public_md import (
         DEFAULT_BASE_URL,
         BinancePublicMdClient,
@@ -474,6 +476,7 @@ def run_binance_lab_scanner(
     if kline_limit < 8 or kline_limit > 3000:
         raise ValidationError("kline_limit debe estar entre 8 y 3000")
     interval = validate_kline_interval(interval)
+    profile_key = (profile or "legacy_v1").strip().lower()
 
     url = base_url or DEFAULT_BASE_URL
     client = BinancePublicMdClient(base_url=url)
@@ -516,10 +519,77 @@ def run_binance_lab_scanner(
     symbol_map = {
         inst.normalized_instrument: inst.original_symbol for inst in built.instruments
     }
-    result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
-    selected_symbols = [symbol_map.get(iid, iid) for iid in result.selected]
 
-    return {
+    scores_out: list[dict[str, Any]]
+    selected: list[str]
+    gap_events: list[str] = []
+    schema_version = "1.0"
+    persisted: dict[str, Any] | None = None
+
+    if profile_key in ("legacy_v1", "legacy"):
+        result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
+        selected = list(result.selected)
+        scores_out = [dataclass_to_dict(s) for s in result.scores]
+        gap_events = list(result.gap_events)
+        schema_version = result.schema_version
+        profile_key = "legacy_v1"
+    else:
+        from quantlab.research.alpha.profiles import build_profile, score_with_profile
+
+        try:
+            build_profile(profile_key)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        rows = score_with_profile(universe, profile_key)
+        ranked = [r for r in rows if not r.excluded]
+        selected = [r.instrument_id for r in ranked[: max(0, top_n)]]
+        scores_out = []
+        for r in ranked:
+            raw_by = {c.name: c.raw for c in r.components}
+            scores_out.append(
+                {
+                    "instrument_id": r.instrument_id,
+                    "volatility": raw_by.get("volatility"),
+                    "volume_score": raw_by.get("volume"),
+                    "liquidity_score": raw_by.get("liquidity"),
+                    "composite": r.composite,
+                    "base_score": r.base_score,
+                    "components": [
+                        {
+                            "name": c.name,
+                            "raw": c.raw,
+                            "normalized": c.normalized,
+                            "weight": c.weight,
+                            "contribution": c.contribution,
+                            "available": c.available,
+                        }
+                        for c in r.components
+                    ],
+                    "penalties": [
+                        {"name": p.name, "value": p.value, "detail": p.detail} for p in r.penalties
+                    ],
+                }
+            )
+        if persist_dir is not None:
+            from quantlab.research.alpha.persist import ScanStore, hash_bars_fingerprint
+
+            meta = ScanStore(persist_dir).save_scored(
+                profile=profile_key,
+                rows=rows,
+                bars_hash=hash_bars_fingerprint(universe),
+                request={
+                    "profile": profile_key,
+                    "top_n": top_n,
+                    "interval": interval,
+                    "kline_limit": kline_limit,
+                    "symbol_limit": symbol_limit,
+                },
+            )
+            persisted = meta.to_dict()
+
+    selected_symbols = [symbol_map.get(iid, iid) for iid in selected]
+
+    out: dict[str, Any] = {
         "ok": True,
         "kind": "binance_scanner",
         "venue": "binance",
@@ -533,15 +603,35 @@ def run_binance_lab_scanner(
         "excluded": len(built.exclusions),
         "exclusion_counts": exclusion_reason_counts(built.exclusions),
         "exclusions": [e.to_dict() for e in built.exclusions],
-        "selected": list(result.selected),
+        "selected": selected,
         "selected_symbols": selected_symbols,
-        "scores": [dataclass_to_dict(s) for s in result.scores],
-        "gap_events": list(result.gap_events),
-        "schema_version": result.schema_version,
+        "scores": scores_out,
+        "gap_events": gap_events,
+        "schema_version": schema_version,
         "scanner_version": "alpha-v2-contracts",
-        "profile": "legacy_v1",
+        "profile": profile_key,
         "read_only": True,
         "live_routing": False,
+        "note": (
+            "Un score alto indica adecuación al perfil seleccionado, "
+            "no rentabilidad garantizada."
+        ),
+    }
+    if persisted is not None:
+        out["persisted"] = persisted
+    return out
+
+
+def list_alpha_profiles() -> dict[str, Any]:
+    """Catálogo de perfiles Alpha Scanner (FASE 5/8)."""
+    from quantlab.research.alpha.profiles import profile_catalog
+    from quantlab.research.alpha.venues import list_venue_capabilities
+
+    return {
+        "ok": True,
+        "profiles": profile_catalog(),
+        "venues": [c.to_dict() for c in list_venue_capabilities()],
+        "default_profile": "legacy_v1",
         "note": (
             "Un score alto indica adecuación al perfil seleccionado, "
             "no rentabilidad garantizada."

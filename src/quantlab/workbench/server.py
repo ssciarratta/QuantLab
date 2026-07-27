@@ -49,6 +49,7 @@ from quantlab.workbench.api import (
     handle_get_lab_strategies,
     handle_get_lab_validation,
     handle_get_lab_validation_run,
+    handle_get_alpha_profiles,
     handle_get_layout,
     handle_get_live_demo_fills,
     handle_get_live_demo_open_orders,
@@ -520,6 +521,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/capabilities":
                     self._send_json(handle_get_lab_capabilities(state))
+                    return
+                if path == "/api/lab/alpha/profiles":
+                    self._send_json(handle_get_alpha_profiles(state))
                     return
                 if path == "/api/lab/strategies":
                     self._send_json(handle_get_lab_strategies(state))

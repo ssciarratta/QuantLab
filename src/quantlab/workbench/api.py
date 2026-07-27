@@ -1094,6 +1094,7 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
     symbol_limit = body.get("symbol_limit", 15)
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit", 24)
+    profile = body.get("profile", "legacy_v1")
     if not isinstance(top_n, int):
         raise ApiError(400, "top_n debe ser int")
     if not isinstance(symbol_limit, int):
@@ -1102,12 +1103,17 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
         raise ApiError(400, "interval debe ser string")
     if not isinstance(kline_limit, int):
         raise ApiError(400, "kline_limit debe ser int")
+    if not isinstance(profile, str):
+        raise ApiError(400, "profile debe ser string")
     try:
+        persist_dir = state.session.experiments_dir / "alpha_scans"
         result = lab_services.run_binance_lab_scanner(
             top_n=top_n,
             symbol_limit=symbol_limit,
             interval=interval.strip(),
             kline_limit=kline_limit,
+            profile=profile.strip(),
+            persist_dir=persist_dir if profile.strip().lower() not in ("legacy_v1", "legacy", "") else None,
         )
         out = state.store_lab_result(result)
         _record_activity(
@@ -1115,11 +1121,17 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
             "scanner",
             ok=True,
             message="binance alpha scanner",
-            detail={"top_n": top_n, "kind": result.get("kind")},
+            detail={"top_n": top_n, "kind": result.get("kind"), "profile": result.get("profile")},
         )
         return out
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+
+
+def handle_get_alpha_profiles(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/alpha/profiles — catálogo perfiles + venue capabilities."""
+    del state
+    return lab_services.list_alpha_profiles()
 
 
 def handle_post_binance_pipeline(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
