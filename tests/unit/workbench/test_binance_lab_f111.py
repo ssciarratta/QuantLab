@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -45,6 +46,33 @@ def binance_universe() -> dict[str, list[Bar]]:
     }
 
 
+def test_binance_lab_scanner_momentum_profile(
+    binance_universe: dict[str, list[Bar]], tmp_path: Path
+) -> None:
+    symbols = list(binance_universe.keys())
+    with (
+        patch(
+            "quantlab.brokers.binance.public_md.BinancePublicMdClient.list_spot_symbols",
+            return_value=symbols,
+        ),
+        patch(
+            "quantlab.brokers.binance.public_md.fetch_universe_bars",
+            return_value=binance_universe,
+        ),
+    ):
+        out = lab_services.run_binance_lab_scanner(
+            top_n=3,
+            symbol_limit=5,
+            profile="momentum",
+            persist_dir=tmp_path,
+        )
+    assert out["ok"] is True
+    assert out["profile"] == "momentum"
+    assert out["scores"][0].get("components")
+    assert out["persisted"]["scan_id"]
+    assert out["excluded"] >= 0
+
+
 def test_binance_lab_scanner_mock(binance_universe: dict[str, list[Bar]]) -> None:
     symbols = list(binance_universe.keys())
 
@@ -62,6 +90,7 @@ def test_binance_lab_scanner_mock(binance_universe: dict[str, list[Bar]]) -> Non
 
     assert out["ok"] is True
     assert out["kind"] == "binance_scanner"
+    assert out["profile"] == "legacy_v1"
     assert len(out["selected_symbols"]) == 3
     assert out["live_routing"] is False
     assert out["read_only"] is True

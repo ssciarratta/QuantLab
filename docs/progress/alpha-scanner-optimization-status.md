@@ -1,29 +1,28 @@
 # Alpha Scanner optimization — status
 
 **Actualizado:** 2026-07-27  
-**Fase actual:** FASE 7 — Persistencia **COMPLETA**  
-**Siguiente:** FASE 8 — Workbench / Guided Lab UX (perfiles, exclusiones, compare)
+**Fase actual:** FASE 8 — Workbench UX **COMPLETA**  
+**Siguiente:** FASE 9 — Rendimiento / observabilidad
 
 ---
 
-## Hecho 0–7
+## Hecho 0–8
 
-| Fase | Entrega clave |
-|------|----------------|
-| 0–1 | Auditoría + contratos legacy_v1 |
-| 2 | Universo + exclusiones tipadas |
+| Fase | Entrega |
+|------|---------|
+| 0–1 | Auditoría + contratos |
+| 2 | Universo + exclusiones |
 | 3 | FeatureCalculator |
-| 4 | CompositeScorer / penalties |
-| 5 | Perfiles nombrados |
+| 4 | CompositeScorer |
+| 5 | Perfiles |
 | 6 | Multi-venue capabilities |
-| 7 | `ScanStore` + hashes + compare |
+| 7 | ScanStore + hashes |
+| 8 | Guided Lab: selector perfil, modo avanzado, GET `/api/lab/alpha/profiles` |
 
-Archivo F7: `research/alpha/persist.py` · tests `test_alpha_persist_f7.py`
-
-Default lab: `legacy_v1` / AlphaScanner.
+Default ranking: `legacy_v1`. Perfiles no-legacy persisten en `experiments/alpha_scans/`.
 
 ---
 
 ## Pendiente
 
-8 UX Workbench · 9 Perf · 10 Docs finales
+9 Perf (concurrencia, rate limit, cache, progreso) · 10 Docs finales

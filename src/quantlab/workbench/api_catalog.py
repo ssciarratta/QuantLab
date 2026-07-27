@@ -128,6 +128,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("lab", "binance"),
     ),
     ApiRoute(
+        "/api/lab/alpha/profiles",
+        "GET",
+        "Alpha Scanner profile catalog + venue capabilities",
+        ("lab", "alpha"),
+    ),
+    ApiRoute(
         "/api/lab/binance/pipeline",
         "POST",
         "Binance alpha scan + backtest top-N (read-only MD)",

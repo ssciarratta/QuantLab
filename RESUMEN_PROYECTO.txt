@@ -12,13 +12,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Alpha Scanner FASE 2–7: pipeline research completo hasta persistencia
-ScanStore: scan_id, request/bars/result hashes, reload y compare
-Default Guided Lab: legacy_v1
+Alpha Scanner FASE 2–8: research completo + UX Guided Lab
+Selector de perfil + modo avanzado (componentes/penalties) + catálogo API
+Default: legacy_v1; otros perfiles persisten scan_id en sesión
 
 PRÓXIMO
 -------
-FASE 8: Workbench UX perfiles + exclusiones + comparación de scans
+FASE 9: rendimiento/observabilidad · FASE 10: docs/auditoría final
 
 DÓNDE VER DETALLE
 -----------------

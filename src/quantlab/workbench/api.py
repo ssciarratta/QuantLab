@@ -966,7 +966,7 @@ def handle_post_live_demo_submit(
         },
     )
     mirrored: dict[str, Any] | None = None
-    mirror_flag = body.get("mirror_to_paper") in {True, "true", "1", 1}
+    mirror_flag = body.get("mirror_to_paper") in {True, "true", "1"}
     if mirror_flag and ack.status == "FILLED":
         fills = get_shared_demo_router().recent_fills(limit=1)
         if fills:
@@ -1113,7 +1113,11 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
             interval=interval.strip(),
             kline_limit=kline_limit,
             profile=profile.strip(),
-            persist_dir=persist_dir if profile.strip().lower() not in ("legacy_v1", "legacy", "") else None,
+            persist_dir=(
+                persist_dir
+                if profile.strip().lower() not in ("legacy_v1", "legacy", "")
+                else None
+            ),
         )
         out = state.store_lab_result(result)
         _record_activity(

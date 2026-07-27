@@ -91,6 +91,14 @@
       '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Backtest top 5 sobre klines HISTÓRICAS Binance.\nPaper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
+      '<div class="pane-row" id="gl-alpha-opts" style="display:none;margin-top:0.4rem;flex-wrap:wrap;gap:0.5rem;align-items:center">' +
+      '<label class="muted">perfil ' +
+      '<select id="gl-alpha-profile">' +
+      '<option value="legacy_v1" selected>legacy_v1</option>' +
+      "</select></label>" +
+      '<label class="muted"><input type="checkbox" id="gl-alpha-advanced"> modo avanzado</label>' +
+      '<span class="muted" style="font-size:0.85em">score ≠ rentabilidad</span>' +
+      "</div>" +
       '<div class="mono" id="gl-scan-out">—</div>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -449,6 +457,33 @@
       if (pipelineBn) {
         pipelineBn.style.display = showBn ? "" : "none";
       }
+      const alphaOpts = root.querySelector("#gl-alpha-opts");
+      if (alphaOpts) {
+        alphaOpts.style.display = showBn ? "" : "none";
+      }
+    }
+
+    function loadAlphaProfiles() {
+      const sel = root.querySelector("#gl-alpha-profile");
+      if (!sel || !QLApi.alphaProfiles) return;
+      QLApi.alphaProfiles()
+        .then(function (data) {
+          const profiles = data.profiles || [];
+          const current = sel.value || "legacy_v1";
+          sel.innerHTML = "";
+          profiles.forEach(function (p) {
+            const opt = document.createElement("option");
+            opt.value = p.name;
+            opt.textContent = p.name;
+            if (p.description) opt.title = p.description;
+            sel.appendChild(opt);
+          });
+          sel.value = current;
+          if (!sel.value && profiles.length) sel.value = profiles[0].name;
+        })
+        .catch(function () {
+          /* catálogo opcional */
+        });
     }
 
     function refreshLive() {
@@ -706,8 +741,12 @@
         "guided_lab.status.scanning_binance_alpha",
         "ranking alpha Binance…"
       );
+      const profileEl = root.querySelector("#gl-alpha-profile");
+      const advancedEl = root.querySelector("#gl-alpha-advanced");
+      const profile = profileEl ? profileEl.value : "legacy_v1";
+      const advanced = advancedEl ? advancedEl.checked : false;
       QLApi.binanceScanner(
-        Object.assign({ top_n: 5, symbol_limit: 15 }, binanceBarOpts())
+        Object.assign({ top_n: 5, symbol_limit: 15, profile: profile }, binanceBarOpts())
       )
         .then(function (data) {
           scanStatus.textContent = t(
@@ -718,10 +757,48 @@
           const selected = data.selected_symbols || [];
           lastBinanceSymbols = selected.slice();
           const scores = data.scores || [];
+          let rowsHtml = selected
+            .map(function (sym, i) {
+              const sc = scores[i] || {};
+              let line =
+                esc(sym) +
+                ' <span class="muted">composite=' +
+                esc(sc.composite) +
+                "</span>";
+              if (advanced && sc.components && sc.components.length) {
+                line +=
+                  '<div class="muted" style="margin-left:0.5rem;font-size:0.85em">' +
+                  sc.components
+                    .map(function (c) {
+                      return (
+                        esc(c.name) +
+                        " w=" +
+                        esc(c.weight) +
+                        " n=" +
+                        esc(c.normalized) +
+                        " contrib=" +
+                        esc(c.contribution) +
+                        (c.available === false ? " (ausente)" : "")
+                      );
+                    })
+                    .join(" · ") +
+                  "</div>";
+              }
+              if (advanced && sc.penalties && sc.penalties.length) {
+                line +=
+                  '<div class="muted" style="margin-left:0.5rem;font-size:0.85em">penalties: ' +
+                  esc(JSON.stringify(sc.penalties)) +
+                  "</div>";
+              }
+              return line;
+            })
+            .join("<br>");
           scanOut.innerHTML =
             '<div class="bt-summary"><span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
             "Ranking alpha sobre klines reales (últimas N velas hasta ahora).</div>" +
-            "interval=" +
+            "profile=" +
+            esc(data.profile || profile) +
+            " · interval=" +
             esc(data.interval) +
             " · klines=" +
             esc(data.kline_limit) +
@@ -741,18 +818,11 @@
                 esc(JSON.stringify(data.exclusion_counts)) +
                 "</div>"
               : "") +
+            (data.persisted
+              ? '<div class="muted">scan_id=' + esc(data.persisted.scan_id) + "</div>"
+              : "") +
             "<br>" +
-            selected
-              .map(function (sym, i) {
-                const sc = scores[i] || {};
-                return (
-                  esc(sym) +
-                  ' <span class="muted">composite=' +
-                  esc(sc.composite) +
-                  "</span>"
-                );
-              })
-              .join("<br>");
+            rowsHtml;
         })
         .catch(function (err) {
           statusErr(scanStatus, err);
@@ -1074,6 +1144,7 @@
     };
 
     applyVenueUi();
+    loadAlphaProfiles();
     root.refresh();
     QLi18n.applyDom(root);
     return root;

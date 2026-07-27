@@ -422,7 +422,11 @@
         symbol_limit: o.symbol_limit || 15,
         interval: o.interval || "1h",
         kline_limit: o.kline_limit || 24,
+        profile: o.profile || "legacy_v1",
       });
+    },
+    alphaProfiles: function () {
+      return request("GET", "/api/lab/alpha/profiles");
     },
     binancePipeline: function (opts) {
       const o = opts || {};
