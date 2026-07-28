@@ -10,14 +10,12 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from quantlab.brokers.md_limits import MAX_KLINES_TOTAL, MIN_KLINES
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 
 DEFAULT_BASE_URL = "https://api.hyperliquid.xyz"
 DEFAULT_TIMEOUT_SECONDS = 10.0
-
-MIN_KLINES = 3
-MAX_KLINES_TOTAL = 3000
 
 _HL_INTERVAL: dict[str, str] = {
     "1m": "1m",

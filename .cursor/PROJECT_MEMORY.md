@@ -2,14 +2,16 @@
 
 **Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · **Simulador multi-venue** (solapas + `/api/lab/sim/*` + MD OKX/Bybit/HL/Binance fut)  
+**Versión tip:** **1.01.0** · Guided Lab solapas + Simulador monedas por venue (Nombre + TICKER)  
 **Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
-**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
-**Simulador panel:** Aprender/Histórico/Estrés/Practicar/Estrategias · controls comunes (spot/fut, lev, período, capital, fees metadata, gastos, bench) · manual `docs/manuales/35-simulador.md` · fills aún Binance Spot VIP0  
+**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado; **sim compare** inyecta `MakerTakerFeeModel` por venue (5A cobra taker_bps)  
+**Simulador panel:** Comparar | Estrategias (accordion + modal how_it_works) · `docs/manuales/35-simulador.md` · tope klines 8760  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
+**Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); tabs propias opcionales  
 **Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner muestra v local + GH tip + botón sync + hora última mod · `/api/update/*`  
+**Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)  
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  

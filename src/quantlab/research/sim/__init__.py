@@ -10,8 +10,10 @@ from quantlab.research.sim.costs import ExtraCost, apply_extra_costs
 from quantlab.research.sim.fee_schedules import (
     PRESETS,
     VenueFeeSchedule,
+    fee_model_from_schedule,
     get_fee_schedule,
     list_fee_schedules,
+    schedule_to_lab_fee_dict,
 )
 from quantlab.research.sim.leverage_overlay import (
     LeverageOverlayConfig,
@@ -40,10 +42,12 @@ __all__ = [
     "apply_leverage_overlay",
     "compute_benchmark",
     "estimate_n_bars",
+    "fee_model_from_schedule",
     "get_fee_schedule",
     "interval_minutes",
     "list_fee_schedules",
     "resolve_instrument",
     "run_sim_compare",
+    "schedule_to_lab_fee_dict",
     "validate_trade_size",
 ]

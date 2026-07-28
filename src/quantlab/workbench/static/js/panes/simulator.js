@@ -1,4 +1,4 @@
-/** Simulador multi-venue — solapas Aprender / Histórico / Estrés / Practicar / Estrategias. */
+/** Simulador multi-venue — Comparar + Estrategias (sin duplicar Guided/MC). */
 (function (global) {
   "use strict";
 
@@ -14,12 +14,26 @@
     { id: "365", label: "1 año", days: 365 },
   ];
   var VENUES = ["binance", "okx", "bybit", "hyperliquid"];
+  var FAMILY_ORDER = [
+    "demo",
+    "trend",
+    "momentum",
+    "mean_reversion",
+    "market_making",
+    "stats",
+    "ml",
+    "multi_asset",
+    "microstructure",
+    "arbitrage",
+    "options",
+  ];
 
   function esc(s) {
     return String(s == null ? "" : s)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 
   function optHtml(list, selected) {
@@ -39,16 +53,16 @@
     root.innerHTML =
       '<div class="pane-section">' +
       "<h3>Simulador</h3>" +
-      '<p class="muted" style="margin-top:0">Spot/Futuros · leverage · período · capital · fees · benchmark. LIVE bloqueado.</p>' +
+      '<p class="muted" style="margin-top:0">' +
+      "Compará venues (spot/futuros · leverage · capital · fees). " +
+      "Aprender/paper → <strong>Guided Lab</strong>. Estrés → <strong>Monte Carlo</strong>. LIVE bloqueado." +
+      "</p>" +
       '<div class="sim-tabs" role="tablist">' +
-      '<button type="button" class="sim-tab active" data-tab="aprender">Aprender</button>' +
-      '<button type="button" class="sim-tab" data-tab="historico">Histórico</button>' +
-      '<button type="button" class="sim-tab" data-tab="estres">Estrés</button>' +
-      '<button type="button" class="sim-tab" data-tab="practicar">Practicar</button>' +
+      '<button type="button" class="sim-tab active" data-tab="comparar">Comparar</button>' +
       '<button type="button" class="sim-tab" data-tab="estrategias">Estrategias</button>' +
       "</div></div>" +
       '<div class="pane-section sim-common">' +
-      "<h4>Controles comunes</h4>" +
+      "<h4>Controles de comparación</h4>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem">' +
       '<label class="muted">Modo <select id="sim-market">' +
       '<option value="spot">Spot</option><option value="futures" selected>Futuros</option></select></label>' +
@@ -57,7 +71,7 @@
       '<label class="muted"><input type="checkbox" id="sim-multi-x"> multi-x (1,2,5,10)</label>' +
       '<label class="muted">Período <select id="sim-period">' +
       optHtml(PERIODS, "30") +
-      '</select></label>' +
+      "</select></label>" +
       '<label class="muted">Intervalo <select id="sim-interval">' +
       optHtml(INTERVALS, "1h") +
       "</select></label>" +
@@ -79,49 +93,51 @@
       "</div>" +
       '<div id="sim-extra-costs" class="mono muted" style="font-size:0.8em"></div>' +
       "</div>" +
-      '<div class="pane-section sim-panel" data-panel="aprender">' +
-      "<h4>Aprender (datos inventados)</h4>" +
-      '<p class="muted">Badge INVENTADO — no es mercado real.</p>' +
-      '<div class="pane-row"><label class="muted">Estrategia <select id="sim-strat-learn"></select></label>' +
-      '<button type="button" class="btn" id="sim-run-learn">Ejecutar aprender</button></div>' +
-      '<div class="mono" id="sim-out-learn">—</div></div>' +
-      '<div class="pane-section sim-panel" data-panel="historico" style="display:none">' +
-      "<h4>Histórico (mercados reales)</h4>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem" id="sim-venues">' +
-      VENUES.map(function (v) {
-        return (
-          '<label class="muted"><input type="checkbox" class="sim-venue" value="' +
-          v +
-          '" checked> ' +
-          v +
-          "</label>"
-        );
-      }).join("") +
-      "</div>" +
-      '<div class="pane-row"><label class="muted">Símbolos (coma) <input id="sim-symbols" value="BTC,ETH" style="width:12em"></label>' +
+      '<div class="pane-section sim-panel" data-panel="comparar">' +
+      "<h4>Comparar mercados (histórico)</h4>" +
+      '<p class="muted" style="font-size:0.8em;margin:0 0 0.4rem">' +
+      "Activá un exchange y elegí monedas del menú (nombre completo + ticker). " +
+      "Cada par exchange×moneda se corre por separado." +
+      "</p>" +
+      '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem;margin-top:0.45rem">' +
       '<label class="muted">Estrategia <select id="sim-strat-hist"></select></label>' +
-      '<button type="button" class="btn" id="sim-run-hist">Correr y comparar</button></div>' +
+      '<button type="button" class="btn secondary" id="sim-strat-info" title="Detalle de la estrategia seleccionada">¿Cómo opera?</button>' +
+      '<button type="button" class="btn" id="sim-run-hist">Correr y comparar</button>' +
+      "</div>" +
+      '<p class="muted" style="font-size:0.8em;margin:0.35rem 0 0">' +
+      'Atajos: <button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button> ' +
+      '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button> ' +
+      '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
+      "</p>" +
       '<div class="mono" id="sim-out-hist">—</div></div>' +
-      '<div class="pane-section sim-panel" data-panel="estres" style="display:none">' +
-      "<h4>Estrés (Monte Carlo)</h4>" +
-      '<p class="muted">No es otro backtest: dispersión bajo shocks. Abrí el panel Monte Carlo con el último report.</p>' +
-      '<button type="button" class="btn" id="sim-open-mc">Abrir Monte Carlo</button></div>' +
-      '<div class="pane-section sim-panel" data-panel="practicar" style="display:none">' +
-      "<h4>Practicar (paper / demo)</h4>" +
-      '<p class="muted">Órdenes de mentira — no horizonte de meses. Abrí Guided Lab demo o Paper Blotter.</p>' +
-      '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button> ' +
-      '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button></div>' +
       '<div class="pane-section sim-panel" data-panel="estrategias" style="display:none">' +
-      "<h4>Catálogo de estrategias</h4>" +
-      '<div id="sim-strat-list" class="mono" style="max-height:280px;overflow:auto">cargando…</div></div>';
+      "<h4>Catálogo por familia</h4>" +
+      '<p class="muted" style="margin-top:0">Desplegá una familia · elegí una estrategia · popup con operación paso a paso.</p>' +
+      '<div id="sim-strat-list">cargando…</div></div>' +
+      '<div id="sim-strat-modal" class="sim-modal" hidden>' +
+      '<div class="sim-modal-backdrop" data-close="1"></div>' +
+      '<div class="sim-modal-card" role="dialog" aria-modal="true">' +
+      '<div class="sim-modal-head">' +
+      '<h3 id="sim-modal-title">Estrategia</h3>' +
+      '<button type="button" class="btn secondary" id="sim-modal-close">Cerrar</button>' +
+      "</div>" +
+      '<div class="sim-modal-body mono" id="sim-modal-body"></div>' +
+      '<div class="sim-modal-foot">' +
+      '<button type="button" class="btn" id="sim-modal-use">Usar en Comparar</button>' +
+      "</div></div></div>";
 
     var extraCosts = [];
     var feeSchedules = [];
-
-    function activeTab() {
-      var t = root.querySelector(".sim-tab.active");
-      return t ? t.getAttribute("data-tab") : "aprender";
-    }
+    var strategiesCache = [];
+    var familyLabels = {};
+    var modalStrategyId = null;
+    var coinsCache = [];
+    var venueMeta = [];
+    /** @type {Object.<string, string[]>} */
+    var selectedByVenue = {};
+    /** @type {Object.<string, boolean>} */
+    var venueEnabled = { binance: true, okx: false, bybit: false, hyperliquid: false };
 
     function showTab(name) {
       root.querySelectorAll(".sim-tab").forEach(function (b) {
@@ -130,6 +146,139 @@
       root.querySelectorAll(".sim-panel").forEach(function (p) {
         p.style.display = p.getAttribute("data-panel") === name ? "" : "none";
       });
+    }
+
+    function coinLabel(id) {
+      var c = coinsCache.find(function (x) {
+        return x.id === id;
+      });
+      return c ? c.label || c.name + " (" + c.id + ")" : id;
+    }
+
+    function renderVenuePicks() {
+      var box = root.querySelector("#sim-venue-picks");
+      if (!venueMeta.length) {
+        venueMeta = VENUES.map(function (v) {
+          return { id: v, name: v, label: v };
+        });
+      }
+      if (!coinsCache.length) {
+        box.textContent = "sin catálogo de monedas";
+        return;
+      }
+      box.innerHTML = venueMeta
+        .map(function (vm) {
+          var vid = vm.id;
+          if (!selectedByVenue[vid]) {
+            selectedByVenue[vid] = vid === "binance" ? ["BTC", "ETH"] : [];
+          }
+          if (venueEnabled[vid] == null) {
+            venueEnabled[vid] = selectedByVenue[vid].length > 0;
+          }
+          var checked = !!venueEnabled[vid];
+          var chips = (selectedByVenue[vid] || [])
+            .map(function (cid) {
+              return (
+                '<span class="sim-coin-chip">' +
+                esc(coinLabel(cid)) +
+                ' <button type="button" class="sim-coin-rm" data-venue="' +
+                esc(vid) +
+                '" data-coin="' +
+                esc(cid) +
+                '" title="Quitar">×</button></span>'
+              );
+            })
+            .join(" ");
+          var opts = coinsCache
+            .map(function (c) {
+              return (
+                "<option value=\"" +
+                esc(c.id) +
+                "\">" +
+                esc(c.label || c.name + " (" + c.id + ")") +
+                "</option>"
+              );
+            })
+            .join("");
+          return (
+            '<div class="sim-venue-row" data-venue="' +
+            esc(vid) +
+            '">' +
+            '<label class="muted"><input type="checkbox" class="sim-venue-on" value="' +
+            esc(vid) +
+            '"' +
+            (checked ? " checked" : "") +
+            "> <strong>" +
+            esc(vm.label || vm.name || vid) +
+            "</strong></label>" +
+            '<div class="sim-venue-pick-row">' +
+            '<select class="sim-coin-select" data-venue="' +
+            esc(vid) +
+            '"' +
+            (checked ? "" : " disabled") +
+            ">" +
+            '<option value="">— elegir moneda —</option>' +
+            opts +
+            "</select>" +
+            '<button type="button" class="btn secondary sim-coin-add" data-venue="' +
+            esc(vid) +
+            '"' +
+            (checked ? "" : " disabled") +
+            ">Agregar</button>" +
+            "</div>" +
+            '<div class="sim-coin-chips" data-venue="' +
+            esc(vid) +
+            '">' +
+            (chips || '<span class="muted">ninguna moneda</span>') +
+            "</div></div>"
+          );
+        })
+        .join("");
+
+      box.querySelectorAll(".sim-coin-add").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var vid = btn.getAttribute("data-venue");
+          var sel = box.querySelector('.sim-coin-select[data-venue="' + vid + '"]');
+          var cid = sel && sel.value;
+          if (!cid) return;
+          if (!selectedByVenue[vid]) selectedByVenue[vid] = [];
+          if (selectedByVenue[vid].indexOf(cid) < 0) {
+            selectedByVenue[vid].push(cid);
+          }
+          venueEnabled[vid] = true;
+          renderVenuePicks();
+          applyFeePreset();
+        });
+      });
+      box.querySelectorAll(".sim-coin-rm").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var vid = btn.getAttribute("data-venue");
+          var cid = btn.getAttribute("data-coin");
+          selectedByVenue[vid] = (selectedByVenue[vid] || []).filter(function (x) {
+            return x !== cid;
+          });
+          renderVenuePicks();
+          applyFeePreset();
+        });
+      });
+      box.querySelectorAll(".sim-venue-on").forEach(function (c) {
+        c.addEventListener("change", function () {
+          venueEnabled[c.value] = c.checked;
+          renderVenuePicks();
+          applyFeePreset();
+        });
+      });
+    }
+
+    function collectPairs() {
+      var pairs = [];
+      root.querySelectorAll(".sim-venue-on:checked").forEach(function (c) {
+        var vid = c.value;
+        (selectedByVenue[vid] || []).forEach(function (cid) {
+          pairs.push({ venue: vid, underlying: cid });
+        });
+      });
+      return pairs;
     }
 
     function periodDays() {
@@ -146,9 +295,13 @@
       }
       QLApi.simPeriod(days, iv)
         .then(function (d) {
-          el.textContent = d.n_bars_display || ("≈ " + d.n_bars + " velas");
-          el.title = d.exceeds_lab_cap_3000 ? d.note || "excede tope lab 3000" : "";
-          el.style.color = d.exceeds_lab_cap_3000 ? "#d4544a" : "";
+          el.textContent = d.n_bars_display || "≈ " + d.n_bars + " velas";
+          el.title =
+            d.exceeds_lab_cap || d.exceeds_lab_cap_3000
+              ? d.note || "excede tope lab " + (d.lab_kline_limit_max || 8760)
+              : "";
+          el.style.color =
+            d.exceeds_lab_cap || d.exceeds_lab_cap_3000 ? "#d4544a" : "";
         })
         .catch(function () {
           el.textContent = "≈ —";
@@ -189,7 +342,7 @@
 
     function applyFeePreset() {
       var venue = "binance";
-      var checked = root.querySelector(".sim-venue:checked");
+      var checked = root.querySelector(".sim-venue-on:checked");
       if (checked) venue = checked.value;
       var mt = root.querySelector("#sim-market").value;
       var hit = feeSchedules.find(function (s) {
@@ -206,55 +359,213 @@
       }
     }
 
+    function loadUniverse() {
+      var box = root.querySelector("#sim-venue-picks");
+      if (!QLApi.simUniverse) {
+        coinsCache = [
+          { id: "BTC", name: "Bitcoin", label: "Bitcoin (BTC)" },
+          { id: "ETH", name: "Ethereum", label: "Ethereum (ETH)" },
+        ];
+        renderVenuePicks();
+        return;
+      }
+      QLApi.simUniverse()
+        .then(function (d) {
+          coinsCache = d.coins || [];
+          venueMeta = d.venues || [];
+          renderVenuePicks();
+          applyFeePreset();
+        })
+        .catch(function (e) {
+          box.textContent = e.message || "error cargando monedas";
+        });
+    }
+
+    function findStrategy(id) {
+      return strategiesCache.find(function (s) {
+        return (s.id || s.strategy_id) === id;
+      });
+    }
+
+    function renderGuideHtml(s) {
+      var g = s.how_it_works || {};
+      var steps = (g.steps || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      var params = (g.params_explained || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      var risks = (g.risks || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      var notes = (g.lab_notes || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      return (
+        '<p><strong>Idea</strong></p><p>' +
+        esc(g.idea || s.description || "—") +
+        "</p>" +
+        "<p><strong>Runnable:</strong> " +
+        (s.runnable === false ? "no (stub research)" : "sí") +
+        (g.runnable_note ? " — " + esc(g.runnable_note) : "") +
+        "</p>" +
+        "<p><strong>Familia:</strong> " +
+        esc(s.family_label_es || s.family || "—") +
+        " · <span class=\"muted\">id=" +
+        esc(s.id) +
+        "</span></p>" +
+        "<p><strong>Cuándo compra</strong></p><p>" +
+        esc(g.when_buy || "—") +
+        "</p>" +
+        "<p><strong>Cuándo vende / flat</strong></p><p>" +
+        esc(g.when_sell || "—") +
+        "</p>" +
+        "<p><strong>Paso a paso</strong></p><ol style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
+        steps +
+        "</ol>" +
+        "<p><strong>Parámetros</strong></p><ul style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
+        params +
+        "</ul>" +
+        "<p><strong>Riesgos / límites</strong></p><ul style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
+        risks +
+        "</ul>" +
+        "<p><strong>Notas del lab</strong></p><ul style=\"margin:0 0 0.5rem 1.1rem;padding:0\">" +
+        notes +
+        "</ul>"
+      );
+    }
+
+    function openStrategyModal(id) {
+      var s = findStrategy(id);
+      if (!s) return;
+      modalStrategyId = id;
+      root.querySelector("#sim-modal-title").textContent =
+        (s.name || id) + (s.runnable === false ? " [stub]" : "");
+      root.querySelector("#sim-modal-body").innerHTML = renderGuideHtml(s);
+      var modal = root.querySelector("#sim-strat-modal");
+      modal.hidden = false;
+      modal.classList.add("open");
+    }
+
+    function closeStrategyModal() {
+      var modal = root.querySelector("#sim-strat-modal");
+      modal.hidden = true;
+      modal.classList.remove("open");
+      modalStrategyId = null;
+    }
+
     function loadStrategies() {
       QLApi.labStrategies()
         .then(function (d) {
-          var list = d.strategies || d.items || [];
-          var opts = list
+          strategiesCache = d.strategies || d.items || [];
+          familyLabels = d.family_labels_es || {};
+          var opts = strategiesCache
             .map(function (s) {
               var id = s.id || s.strategy_id;
-              var lab = (s.name || id) + (s.runnable === false ? " [stub]" : "");
-              return "<option value=\"" + esc(id) + "\">" + esc(lab) + "</option>";
-            })
-            .join("");
-          root.querySelector("#sim-strat-learn").innerHTML = opts;
-          root.querySelector("#sim-strat-hist").innerHTML = opts;
-          var html = list
-            .map(function (s) {
-              var id = s.id || s.strategy_id;
-              var runnable = s.runnable !== false;
-              var kinds = runnable
-                ? "Aprender · Histórico · Estrés · Practicar"
-                : "Solo research (stub)";
+              var lab =
+                (s.name || id) + (s.runnable === false ? " [stub]" : "");
               return (
-                "<div style=\"margin:0.35rem 0;padding:0.35rem;border:1px solid rgba(255,255,255,0.08)\">" +
-                "<strong>" +
-                esc(s.name || id) +
-                "</strong> <span class=\"muted\">" +
-                esc(id) +
-                "</span><br>" +
-                "<span class=\"muted\">" +
-                esc(s.description || "") +
-                "</span><br>" +
-                "Corridas: " +
-                esc(kinds) +
-                ' <button type="button" class="btn secondary sim-use-strat" data-id="' +
-                esc(id) +
-                '">Usar en Histórico</button></div>'
+                "<option value=\"" + esc(id) + "\">" + esc(lab) + "</option>"
               );
             })
             .join("");
-          root.querySelector("#sim-strat-list").innerHTML = html || "sin estrategias";
+          root.querySelector("#sim-strat-hist").innerHTML = opts;
+
+          var byFam = {};
+          strategiesCache.forEach(function (s) {
+            var f = s.family || "other";
+            if (!byFam[f]) byFam[f] = [];
+            byFam[f].push(s);
+          });
+          var famKeys = FAMILY_ORDER.filter(function (f) {
+            return byFam[f];
+          }).concat(
+            Object.keys(byFam)
+              .filter(function (f) {
+                return FAMILY_ORDER.indexOf(f) < 0;
+              })
+              .sort()
+          );
+
+          var html = famKeys
+            .map(function (fam, idx) {
+              var label = familyLabels[fam] || fam;
+              var items = byFam[fam] || [];
+              var open = idx === 0 ? " open" : "";
+              var rows = items
+                .map(function (s) {
+                  var id = s.id || s.strategy_id;
+                  var runnable = s.runnable !== false;
+                  return (
+                    '<div class="sim-strat-row">' +
+                    "<div>" +
+                    "<strong>" +
+                    esc(s.name || id) +
+                    "</strong> " +
+                    '<span class="muted mono">' +
+                    esc(id) +
+                    "</span>" +
+                    (runnable
+                      ? ""
+                      : ' <span class="data-badge data-badge-synth">stub</span>') +
+                    "<br><span class=\"muted\">" +
+                    esc(s.description || "") +
+                    "</span></div>" +
+                    '<div class="sim-strat-actions">' +
+                    '<button type="button" class="btn secondary sim-strat-detail" data-id="' +
+                    esc(id) +
+                    '">Cómo opera</button> ' +
+                    '<button type="button" class="btn sim-use-strat" data-id="' +
+                    esc(id) +
+                    '"' +
+                    (runnable ? "" : " disabled") +
+                    ">Usar</button>" +
+                    "</div></div>"
+                  );
+                })
+                .join("");
+              return (
+                '<details class="sim-strat-group"' +
+                open +
+                ">" +
+                "<summary>" +
+                esc(label) +
+                " <span class=\"muted\">(" +
+                items.length +
+                ")</span></summary>" +
+                '<div class="sim-strat-group-body">' +
+                rows +
+                "</div></details>"
+              );
+            })
+            .join("");
+          root.querySelector("#sim-strat-list").innerHTML =
+            html || "sin estrategias";
+
           root.querySelectorAll(".sim-use-strat").forEach(function (btn) {
             btn.addEventListener("click", function () {
               var id = btn.getAttribute("data-id");
               root.querySelector("#sim-strat-hist").value = id;
-              showTab("historico");
+              showTab("comparar");
+            });
+          });
+          root.querySelectorAll(".sim-strat-detail").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              openStrategyModal(btn.getAttribute("data-id"));
             });
           });
         })
         .catch(function (e) {
-          root.querySelector("#sim-strat-list").textContent = e.message || "error";
+          root.querySelector("#sim-strat-list").textContent =
+            e.message || "error";
         });
     }
 
@@ -297,10 +608,10 @@
       return [Number(root.querySelector("#sim-lev").value) || 1];
     }
 
-    function runCompare(venues, underlyings, strategyId) {
-      var body = {
-        venues: venues,
-        underlyings: underlyings,
+    function runCompare(strategyId) {
+      var pairs = collectPairs();
+      return QLApi.simCompare({
+        pairs: pairs,
         market_type: root.querySelector("#sim-market").value,
         leverages: leverages(),
         strategy_id: strategyId,
@@ -314,15 +625,14 @@
         extra_costs: collectExtraCosts(),
         maker_bps: root.querySelector("#sim-maker").value || undefined,
         taker_bps: root.querySelector("#sim-taker").value || undefined,
-      };
-      return QLApi.simCompare(body);
+      });
     }
 
     function formatRows(data) {
       var rows = data.rows || [];
       if (!rows.length) return "sin filas";
       return (
-        "<table class=\"mono\" style=\"width:100%;font-size:0.75em\"><thead><tr>" +
+        '<table class="mono" style="width:100%;font-size:0.75em"><thead><tr>' +
         "<th>venue</th><th>modo</th><th>sym</th><th>x</th><th>final</th><th>pnl</th><th>bench</th><th>liq</th></tr></thead><tbody>" +
         rows
           .map(function (r) {
@@ -373,9 +683,6 @@
       });
       root.querySelector(sel).addEventListener("input", refreshSizing);
     });
-    root.querySelectorAll(".sim-venue").forEach(function (c) {
-      c.addEventListener("change", applyFeePreset);
-    });
     root.querySelector("#sim-add-cost").addEventListener("click", function () {
       var name = window.prompt("Nombre del gasto", "retiro");
       if (!name) return;
@@ -385,44 +692,16 @@
       extraCosts.push({ name: name, kind: kind, amount: amount });
       renderExtraCosts();
     });
-    root.querySelector("#sim-run-learn").addEventListener("click", function () {
-      var out = root.querySelector("#sim-out-learn");
-      out.textContent = "corriendo (lab inventado vía binance path sintético)…";
-      // Aprender: usa compare con venue lab-like — backtest sintético local
-      QLApi.labBacktest({
-        strategy_id: root.querySelector("#sim-strat-learn").value,
-        n_bars: Math.min(2000, Math.max(24, periodDays() * 24)),
-        initial_cash: root.querySelector("#sim-capital").value,
-      })
-        .then(function (d) {
-          out.innerHTML =
-            '<span class="data-badge data-badge-synth">INVENTADO</span> ' +
-            "final=" +
-            esc(d.final_equity) +
-            " pnl=" +
-            esc(d.pnl) +
-            " fees=" +
-            esc(d.total_fees);
-        })
-        .catch(function (e) {
-          out.textContent = e.message || String(e);
-        });
-    });
     root.querySelector("#sim-run-hist").addEventListener("click", function () {
       var out = root.querySelector("#sim-out-hist");
-      var venues = [];
-      root.querySelectorAll(".sim-venue:checked").forEach(function (c) {
-        venues.push(c.value);
-      });
-      var syms = root
-        .querySelector("#sim-symbols")
-        .value.split(",")
-        .map(function (s) {
-          return s.trim();
-        })
-        .filter(Boolean);
-      out.textContent = "comparando…";
-      runCompare(venues, syms, root.querySelector("#sim-strat-hist").value)
+      var pairs = collectPairs();
+      if (!pairs.length) {
+        out.textContent =
+          "Elegí al menos un exchange activo y agregá una moneda (menú Nombre (TICKER)).";
+        return;
+      }
+      out.textContent = "comparando " + pairs.length + " pares…";
+      runCompare(root.querySelector("#sim-strat-hist").value)
         .then(function (d) {
           out.innerHTML =
             '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
@@ -431,6 +710,22 @@
         .catch(function (e) {
           out.textContent = e.message || String(e);
         });
+    });
+    root.querySelector("#sim-strat-info").addEventListener("click", function () {
+      openStrategyModal(root.querySelector("#sim-strat-hist").value);
+    });
+    root.querySelector("#sim-modal-close").addEventListener("click", closeStrategyModal);
+    root.querySelector("#sim-strat-modal").addEventListener("click", function (ev) {
+      if (ev.target && ev.target.getAttribute("data-close") === "1") {
+        closeStrategyModal();
+      }
+    });
+    root.querySelector("#sim-modal-use").addEventListener("click", function () {
+      if (modalStrategyId) {
+        root.querySelector("#sim-strat-hist").value = modalStrategyId;
+      }
+      closeStrategyModal();
+      showTab("comparar");
     });
     root.querySelector("#sim-open-mc").addEventListener("click", function () {
       if (global.QLShell && QLShell.open) QLShell.open("montecarlo");
@@ -446,6 +741,7 @@
       refreshNBars();
       refreshSizing();
       loadFees();
+      loadUniverse();
       loadStrategies();
       renderExtraCosts();
     };

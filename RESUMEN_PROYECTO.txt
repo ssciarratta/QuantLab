@@ -1,25 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Simulador multi-venue (solapas + compare API)
+Versión: 1.01.0 · Guided Lab solapas + Simulador monedas por venue
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Panel Simulador: Aprender/Histórico/Estrés/Practicar/Estrategias
-- MD público: Binance spot+fut, OKX, Bybit, Hyperliquid
-- API: /api/lab/sim/{fees,period,compare,sizing}
-- Capital, por-trade, fees preset, gastos extra, bench anual temporalizado
+- Guided Lab: 5 solapas (Empezar/Inventado/Histórico/Practicar/Unlock)
+- Simulador: menú moneda por exchange — Nombre (TICKER) + chips
+- compare API: pairs[{venue,underlying}] · universe GET
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Motor research/sim + adapters MD + UI Simulador + manuals 35
+UX Guided tabs + sim universe/coins UI
 
 PRÓXIMO
 -------
-F5 workbench → QL → Simulador; probar Histórico 1 venue corto
-Ampliar tope klines >3000 para 1 año @ 5m
+F5 workbench → probar ambos paneles
+Commit/push si el usuario lo pide
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL inventados
+LIVE_BLOCKED=True · REAL=PAPER

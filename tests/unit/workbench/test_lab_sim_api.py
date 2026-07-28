@@ -190,17 +190,17 @@ def test_handle_post_lab_sim_compare_validation_error(tmp_path: Path) -> None:
     with pytest.raises(ApiError) as exc:
         handle_post_lab_sim_compare(state, {})
     assert exc.value.status == 400
-    assert "venues y underlyings" in exc.value.message
+    assert "venues+underlyings" in exc.value.message or "pairs" in exc.value.message
 
 
-def test_compare_accepts_fee_overrides_as_metadata() -> None:
-    """maker/taker bps van a metadata; fills siguen Binance VIP0 (v1)."""
+def test_compare_fee_overrides_wire_into_fills_note() -> None:
+    """maker/taker bps del request alimentan MakerTakerFeeModel (taker en 5A)."""
     import inspect
 
     from quantlab.research.sim import compare as compare_mod
 
     src = inspect.getsource(compare_mod.run_sim_compare)
     assert 'request.get("maker_bps")' in src
-    assert 'request.get("taker_bps")' in src
-    assert "get_fee_schedule" in src
+    assert "fee_model_from_schedule" in src
+    assert "fee_model=" in src
     assert "fee_fills_note" in src

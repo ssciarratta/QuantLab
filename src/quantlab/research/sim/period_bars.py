@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX
 from quantlab.core.exceptions import ValidationError
 
 # Temporalidades estilo Binance Spot/Futures USDT (lab)
@@ -88,10 +89,12 @@ def estimate_n_bars(
         "interval_minutes": str(mins),
         "n_bars": n,
         "n_bars_display": f"≈ {n:,} velas".replace(",", "."),
-        "exceeds_lab_cap_3000": n > 3000,
+        "exceeds_lab_cap": n > LAB_KLINE_LIMIT_MAX,
+        "exceeds_lab_cap_3000": n > LAB_KLINE_LIMIT_MAX,  # alias legacy UI
+        "lab_kline_limit_max": LAB_KLINE_LIMIT_MAX,
         "note": (
-            "Si n_bars > 3000 el lab actual puede truncar o pedir intervalo más grueso."
-            if n > 3000
+            f"Si n_bars > {LAB_KLINE_LIMIT_MAX} el lab trunca o pide intervalo más grueso."
+            if n > LAB_KLINE_LIMIT_MAX
             else None
         ),
         "binance_intervals": list(BINANCE_INTERVALS),

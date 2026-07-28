@@ -13,13 +13,28 @@ from quantlab.research.sim.period_bars import estimate_n_bars, interval_minutes
 def test_one_month_5m_bars() -> None:
     out = estimate_n_bars(period_days=30, interval="5m")
     assert out["n_bars"] == 30 * 24 * 12  # 8640
+    # 8640 < 8760 → dentro del tope lab
+    assert out["exceeds_lab_cap"] is False
+    assert out["lab_kline_limit_max"] == 8760
+
+
+def test_one_year_5m_exceeds_cap() -> None:
+    out = estimate_n_bars(period_days=365, interval="5m")
+    assert out["n_bars"] == 365 * 24 * 12
+    assert out["exceeds_lab_cap"] is True
     assert out["exceeds_lab_cap_3000"] is True
 
 
 def test_one_year_1d() -> None:
     out = estimate_n_bars(period_days=365, interval="1d")
     assert out["n_bars"] == 365
-    assert out["exceeds_lab_cap_3000"] is False
+    assert out["exceeds_lab_cap"] is False
+
+
+def test_one_year_1h_within_cap() -> None:
+    out = estimate_n_bars(period_days=365, interval="1h")
+    assert out["n_bars"] == 365 * 24  # 8760
+    assert out["exceeds_lab_cap"] is False
 
 
 def test_interval_minutes_1h() -> None:

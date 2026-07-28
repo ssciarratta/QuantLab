@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
 from quantlab.brokers.binance.public_md import fetch_universe_bars
+from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX, LAB_KLINE_LIMIT_MIN
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 from quantlab.research.sim.symbol_map import ResolvedInstrument, resolve_instrument
@@ -21,8 +22,10 @@ def fetch_bars_for_instrument(
 ) -> tuple[ResolvedInstrument, list[Bar]]:
     """Descarga klines para un subyacente en venue/modo."""
     resolved = resolve_instrument(underlying, venue=venue, market_type=market_type)
-    if kline_limit < 8 or kline_limit > 3000:
-        raise ValidationError("kline_limit debe estar entre 8 y 3000")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
 
     v = resolved.venue
     mt = resolved.market_type

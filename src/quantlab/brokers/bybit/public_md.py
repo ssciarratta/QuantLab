@@ -9,15 +9,14 @@ from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from quantlab.brokers.md_limits import MAX_KLINES_TOTAL, MIN_KLINES
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 
 DEFAULT_BASE_URL = "https://api.bybit.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
 
-MIN_KLINES = 3
 MAX_KLINES_PER_REQUEST = 1000
-MAX_KLINES_TOTAL = 3000
 
 _BYBIT_INTERVAL: dict[str, str] = {
     "1m": "1",
@@ -158,7 +157,10 @@ class BybitPublicMdClient:
         interval: str = "1h",
         limit: int = 24,
     ) -> list[Bar]:
-        """OHLCV linear → ``Bar`` (read-only)."""
+        """OHLCV linear → ``Bar`` (read-only).
+
+        ``limit`` hasta ``MAX_KLINES_TOTAL`` (pagina de a 1000 hacia atrás con ``end``).
+        """
         sym = symbol.strip().upper()
         if not sym:
             raise ValidationError("symbol vacío")
@@ -168,18 +170,39 @@ class BybitPublicMdClient:
             )
         iv = validate_kline_interval(interval)
         bybit_iv = _BYBIT_INTERVAL[iv]
-        lim = min(limit, MAX_KLINES_PER_REQUEST)
-        path = (
-            f"/v5/market/kline?category=linear&symbol={sym}"
-            f"&interval={bybit_iv}&limit={lim}"
-        )
-        payload = self._get_json(path)
-        bars = self._parse_kline_rows(sym, iv, payload)
-        if len(bars) > limit:
-            bars = bars[-limit:]
-        if len(bars) < MIN_KLINES:
+
+        by_open: dict[datetime, Bar] = {}
+        remaining = limit
+        end_ms: int | None = None
+        max_pages = (MAX_KLINES_TOTAL // MAX_KLINES_PER_REQUEST) + 2
+        for _ in range(max_pages):
+            if remaining <= 0:
+                break
+            batch = min(MAX_KLINES_PER_REQUEST, remaining)
+            path = (
+                f"/v5/market/kline?category=linear&symbol={sym}"
+                f"&interval={bybit_iv}&limit={batch}"
+            )
+            if end_ms is not None:
+                path += f"&end={end_ms}"
+            payload = self._get_json(path)
+            chunk = self._parse_kline_rows(sym, iv, payload)
+            if not chunk:
+                break
+            for bar in chunk:
+                by_open[bar.timestamp_open] = bar
+            oldest_open_ms = int(chunk[0].timestamp_open.timestamp() * 1000)
+            end_ms = oldest_open_ms - 1
+            remaining = limit - len(by_open)
+            if len(chunk) < batch:
+                break
+
+        out = sorted(by_open.values(), key=lambda b: b.timestamp_open)
+        if len(out) > limit:
+            out = out[-limit:]
+        if len(out) < MIN_KLINES:
             raise ValidationError(f"klines insuficientes para {sym}")
-        return bars
+        return out
 
     def funding_rates(
         self,

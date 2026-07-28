@@ -7,6 +7,7 @@ from decimal import Decimal
 from typing import Any
 
 from quantlab.core.exceptions import ValidationError
+from quantlab.execution.fees import MakerTakerFeeModel
 from quantlab.research.sim.symbol_map import MARKET_TYPES, VENUES
 
 
@@ -124,3 +125,30 @@ def get_fee_schedule(venue: str, market_type: str) -> VenueFeeSchedule:
 def list_fee_schedules() -> list[dict[str, Any]]:
     """Lista todos los presets como dicts serializables."""
     return [s.to_dict() for s in PRESETS.values()]
+
+
+def fee_model_from_schedule(sched: VenueFeeSchedule) -> MakerTakerFeeModel:
+    """Bridge VenueFeeSchedule → modelo que cobra fills reales (taker en 5A)."""
+    return MakerTakerFeeModel(
+        maker_bps=sched.maker_bps,
+        taker_bps=sched.taker_bps,
+        model_id=f"fee.{sched.venue}_{sched.market_type}_vip0.v1",
+    )
+
+
+def schedule_to_lab_fee_dict(sched: VenueFeeSchedule) -> dict[str, Any]:
+    """Shape compatible con fee_schedule / fee_per_side del lab backtest."""
+    d = sched.to_dict()
+    return {
+        "schedule_id": f"{sched.venue}_{sched.market_type}_vip0",
+        "as_of": "2026-07-28",
+        "source_url": "",
+        "maker_bps": d["maker_bps"],
+        "taker_bps": d["taker_bps"],
+        "maker_pct": d["maker_pct"],
+        "taker_pct": d["taker_pct"],
+        "use_bnb_discount": False,
+        "note": sched.notes,
+        "venue": sched.venue,
+        "market_type": sched.market_type,
+    }

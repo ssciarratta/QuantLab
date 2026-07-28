@@ -468,6 +468,9 @@
     simFees: function () {
       return request("GET", "/api/lab/sim/fees");
     },
+    simUniverse: function () {
+      return request("GET", "/api/lab/sim/universe");
+    },
     simPeriod: function (periodDays, interval) {
       var q =
         "period_days=" +

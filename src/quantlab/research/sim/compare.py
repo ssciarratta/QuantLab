@@ -9,13 +9,18 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX, LAB_KLINE_LIMIT_MIN
 from quantlab.brokers.md_router import fetch_bars_for_instrument, fetch_funding_rates
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.research.sim.benchmark import compute_benchmark
 from quantlab.research.sim.costs import ExtraCost, apply_extra_costs
-from quantlab.research.sim.fee_schedules import get_fee_schedule
+from quantlab.research.sim.fee_schedules import (
+    fee_model_from_schedule,
+    get_fee_schedule,
+    schedule_to_lab_fee_dict,
+)
 from quantlab.research.sim.leverage_overlay import LeverageOverlayConfig, apply_leverage_overlay
 from quantlab.research.sim.models import SimCompareRow, SimOverlayResult
 from quantlab.research.sim.sizing import validate_trade_size
@@ -72,7 +77,7 @@ def _resolve_kline_limit(
         hours = Decimal(str(period_days)) * Decimal("24")
         bar_hours = _interval_hours(interval)
         limit = math.ceil(float(hours / bar_hours))
-        return max(8, min(limit, 3000))
+        return max(LAB_KLINE_LIMIT_MIN, min(limit, LAB_KLINE_LIMIT_MAX))
     return 24
 
 
@@ -130,15 +135,37 @@ def _apply_extra_costs_to_overlay(
 
 
 def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
-    """Compara backtest + overlay leverage por venue×underlying×leverage."""
-    venues_raw = request.get("venues") or []
-    underlyings_raw = request.get("underlyings") or []
-    if not venues_raw or not underlyings_raw:
-        raise ValidationError("venues y underlyings son obligatorios")
+    """Compara backtest + overlay leverage por venue×underlying×leverage.
 
-    underlyings = [str(u).strip() for u in underlyings_raw[:_MAX_UNDERLYINGS]]
-    if len(underlyings_raw) > _MAX_UNDERLYINGS:
-        raise ValidationError(f"máximo {_MAX_UNDERLYINGS} underlyings")
+    Acepta ``pairs: [{venue, underlying}, ...]`` (preferido UI) o el producto
+    cartesiano ``venues`` × ``underlyings``.
+    """
+    pairs_raw = request.get("pairs")
+    work: list[tuple[str, str]] = []
+    if isinstance(pairs_raw, list) and pairs_raw:
+        for item in pairs_raw:
+            if not isinstance(item, dict):
+                raise ValidationError("pairs: cada item debe ser {venue, underlying}")
+            v = str(item.get("venue", "")).strip().lower()
+            u = str(item.get("underlying", "")).strip()
+            if not v or not u:
+                raise ValidationError("pairs: venue y underlying obligatorios")
+            work.append((v, u))
+        if len(work) > _MAX_UNDERLYINGS * 4:
+            raise ValidationError("demasiados pairs")
+    else:
+        venues_raw = request.get("venues") or []
+        underlyings_raw = request.get("underlyings") or []
+        if not venues_raw or not underlyings_raw:
+            raise ValidationError(
+                "venues+underlyings u pairs [{venue,underlying}] son obligatorios"
+            )
+        underlyings = [str(u).strip() for u in underlyings_raw[:_MAX_UNDERLYINGS]]
+        if len(underlyings_raw) > _MAX_UNDERLYINGS:
+            raise ValidationError(f"máximo {_MAX_UNDERLYINGS} underlyings")
+        for venue in venues_raw:
+            for underlying in underlyings:
+                work.append((str(venue).strip().lower(), underlying))
 
     market_type = str(request.get("market_type", "futures")).strip().lower()
     if market_type not in MARKET_TYPES:
@@ -155,7 +182,6 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
     apply_funding = bool(request.get("apply_funding", True))
     annual_bench_rate = _dec(request.get("annual_bench_rate", "0.05"), field="annual_bench_rate")
     extra_costs = _parse_extra_costs(request.get("extra_costs"))
-    # Overrides UI (metadata v1; el motor de fills sigue Binance Spot VIP0).
     maker_bps_override = (
         _dec(request["maker_bps"], field="maker_bps")
         if request.get("maker_bps") is not None
@@ -179,68 +205,69 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
     rows: list[SimCompareRow] = []
     bench_by_key: dict[str, dict[str, Any]] = {}
 
-    for venue in venues_raw:
-        v = str(venue).strip().lower()
+    for v, underlying in work:
         if v not in VENUES:
             for lev in leverages:
                 rows.append(
                     SimCompareRow(
                         venue=v,
                         market_type=market_type,
-                        underlying="",
+                        underlying=underlying,
                         instrument_id="",
                         leverage=lev,
                         strategy_id=strategy_id,
                         ok=False,
-                        error=f"venue desconocido: {venue!r}",
+                        error=f"venue desconocido: {v!r}",
                     )
                 )
             continue
 
-        for underlying in underlyings:
-            try:
-                resolved, bars = fetch_bars_for_instrument(
-                    underlying,
-                    venue=v,
-                    market_type=market_type,
-                    interval=interval,
-                    kline_limit=resolved_limit,
-                )
-            except ValidationError as exc:
-                for lev in leverages:
-                    rows.append(
-                        SimCompareRow(
-                            venue=v,
-                            market_type=market_type,
-                            underlying=underlying,
-                            instrument_id="",
-                            leverage=lev,
-                            strategy_id=strategy_id,
-                            ok=False,
-                            error=str(exc),
-                        )
-                    )
-                continue
-
-            duration = _bar_duration(bars)
-            bench = compute_benchmark(initial_capital, annual_bench_rate, duration)
-            bench_by_key[f"{v}:{resolved.underlying}"] = bench.to_dict()
-
-            fee_sched = get_fee_schedule(v, market_type)
-            if maker_bps_override is not None or taker_bps_override is not None:
-                fee_sched = type(fee_sched)(
-                    venue=fee_sched.venue,
-                    market_type=fee_sched.market_type,
-                    maker_bps=maker_bps_override
-                    if maker_bps_override is not None
-                    else fee_sched.maker_bps,
-                    taker_bps=taker_bps_override
-                    if taker_bps_override is not None
-                    else fee_sched.taker_bps,
-                    notes=fee_sched.notes + " (override UI; fills aún Binance VIP0)",
-                )
-
+        try:
+            resolved, bars = fetch_bars_for_instrument(
+                underlying,
+                venue=v,
+                market_type=market_type,
+                interval=interval,
+                kline_limit=resolved_limit,
+            )
+        except ValidationError as exc:
             for lev in leverages:
+                rows.append(
+                    SimCompareRow(
+                        venue=v,
+                        market_type=market_type,
+                        underlying=underlying,
+                        instrument_id="",
+                        leverage=lev,
+                        strategy_id=strategy_id,
+                        ok=False,
+                        error=str(exc),
+                    )
+                )
+            continue
+
+        duration = _bar_duration(bars)
+        bench = compute_benchmark(initial_capital, annual_bench_rate, duration)
+        bench_by_key[f"{v}:{resolved.underlying}"] = bench.to_dict()
+
+        fee_sched = get_fee_schedule(v, market_type)
+        if maker_bps_override is not None or taker_bps_override is not None:
+            fee_sched = type(fee_sched)(
+                venue=fee_sched.venue,
+                market_type=fee_sched.market_type,
+                maker_bps=maker_bps_override
+                if maker_bps_override is not None
+                else fee_sched.maker_bps,
+                taker_bps=taker_bps_override
+                if taker_bps_override is not None
+                else fee_sched.taker_bps,
+                notes=fee_sched.notes + " (override UI)",
+            )
+
+        fee_model = fee_model_from_schedule(fee_sched)
+        fee_meta = schedule_to_lab_fee_dict(fee_sched)
+
+        for lev in leverages:
                 sizing = validate_trade_size(
                     initial_capital,
                     per_trade_usd,
@@ -271,6 +298,8 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                         data_source=f"{v}_{market_type}",
                         initial_cash=initial_capital,
                         experiment_id=f"sim-compare-{v}-{resolved.underlying}-{lev}",
+                        fee_model=fee_model,
+                        fee_schedule_meta=fee_meta,
                     )
                 except ValidationError as exc:
                     rows.append(
@@ -349,7 +378,8 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
             if taker_bps_override is not None
             else None,
             "fee_fills_note": (
-                "fee_schedule_venue es metadata; fills del backtest usan Binance Spot VIP0"
+                "fills usan MakerTakerFeeModel del schedule venue "
+                "(bar-based 5A cobra siempre taker_bps)"
             ),
         },
         "live_blocked": LIVE_BLOCKED is True,

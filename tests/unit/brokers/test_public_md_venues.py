@@ -128,6 +128,32 @@ def test_bybit_klines_interval_mapping() -> None:
     assert "category=linear" in path
 
 
+def test_bybit_klines_paginates_with_end() -> None:
+    client = BybitPublicMdClient()
+    page1 = [_bybit_row(i, base_ms=2_000_000) for i in range(1000, 2000)]
+    page2 = [_bybit_row(i, base_ms=2_000_000) for i in range(800, 1000)]
+    page1_api = list(reversed(page1))
+    page2_api = list(reversed(page2))
+    calls: list[str] = []
+
+    def fake_get(path: str) -> dict[str, object]:
+        calls.append(path)
+        rows = page1_api if "end=" not in path else page2_api
+        return {
+            "retCode": 0,
+            "retMsg": "OK",
+            "result": {"symbol": "BTCUSDT", "category": "linear", "list": rows},
+        }
+
+    client._get_json = fake_get  # type: ignore[method-assign]
+    bars = client.klines("BTCUSDT", interval="1h", limit=1200)
+    assert len(bars) == 1200
+    assert len(calls) >= 2
+    assert "end=" in calls[1]
+    assert bars[0].timestamp_open < bars[-1].timestamp_open
+    assert bars[0].instrument_id == "BYB:BTCUSDT"
+
+
 def test_bybit_funding_rates() -> None:
     client = BybitPublicMdClient()
     client._get_json = MagicMock(  # type: ignore[method-assign]

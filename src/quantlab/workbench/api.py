@@ -2904,6 +2904,17 @@ def handle_get_lab_sim_fees(_state: WorkbenchState) -> dict[str, Any]:
     }
 
 
+def handle_get_lab_sim_universe(_state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/sim/universe — monedas (nombre + ticker) por venue."""
+    from quantlab.research.sim.universe import list_sim_universe
+
+    _ = _state
+    payload = list_sim_universe()
+    payload["live_blocked"] = LIVE_BLOCKED is True
+    payload["live_routing"] = False
+    return payload
+
+
 def handle_get_lab_sim_period(state: WorkbenchState, query: str) -> dict[str, Any]:
     """GET /api/lab/sim/period?period_days=&interval= — estima N velas."""
     from urllib.parse import parse_qs

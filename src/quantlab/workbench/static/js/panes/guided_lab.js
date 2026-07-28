@@ -17,8 +17,9 @@
       '<div class="pane-section">' +
       '<h3 data-i18n="pane.guided_lab">Guided Lab</h3>' +
       '<p class="muted" style="margin-top:0" data-i18n="guided_lab.intro">' +
-      "Flujo: venue → scan → estrategia → simular. " +
-      "LIVE solo tras usuario/contraseña (corte humano). Sin unlock = bloqueado.</p>" +
+      "Flujo guiado: venue → scan → estrategia → simular/paper. " +
+      "Para comparar varios exchanges/leverage usá el panel <strong>Simulador</strong>. " +
+      "LIVE solo tras unlock. Sin unlock = bloqueado.</p>" +
       '<div class="data-legend" role="note">' +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
@@ -136,9 +137,9 @@
       '<option value="4h">4h</option>' +
       '<option value="1d">1d</option>' +
       "</select></label>" +
-      '<label class="muted" title="Cantidad de velas Binance (8–3000). Pagina API de a 1000. Default 1200 ≈ 20× el histórico de 60.">' +
+      '<label class="muted" title="Cantidad de velas Binance (8–8760). Pagina API. Default 1200.">' +
       "n_bars/klines " +
-      '<input type="number" id="gl-bars" value="1200" min="8" max="3000" style="width:4.5em">' +
+      '<input type="number" id="gl-bars" value="1200" min="8" max="8760" style="width:4.5em">' +
       "</label>" +
       "</div>" +
       '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
@@ -424,7 +425,7 @@
       let interval = (intervalEl && intervalEl.value) || "5m";
       let klineLimit = Number(barsEl && barsEl.value) || 1200;
       if (klineLimit < 8) klineLimit = 8;
-      if (klineLimit > 3000) klineLimit = 3000;
+      if (klineLimit > 8760) klineLimit = 8760;
       return { interval: interval, kline_limit: klineLimit };
     }
 
@@ -499,6 +500,135 @@
 
     let lastBinanceSymbols = [];
 
+    function installGuidedTabs() {
+      var sections = Array.prototype.slice.call(
+        root.querySelectorAll(":scope > .pane-section")
+      );
+      if (sections.length < 6) return;
+      var header = sections[0];
+      var unlock = sections[1];
+      var venue = sections[2];
+      var scan = sections[3];
+      var strategy = sections[4];
+      var simulate = sections[5];
+      var demo = sections[6] || null;
+
+      var tabBar = document.createElement("div");
+      tabBar.className = "sim-tabs gl-tabs";
+      tabBar.setAttribute("role", "tablist");
+      var tabs = [
+        { id: "empezar", label: "1. Empezar" },
+        { id: "inventado", label: "2. Inventado" },
+        { id: "historico", label: "3. Histórico Binance" },
+        { id: "practicar", label: "4. Practicar" },
+        { id: "avanzado", label: "5. Unlock LIVE" },
+      ];
+      tabs.forEach(function (tb, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "sim-tab" + (i === 0 ? " active" : "");
+        b.setAttribute("data-tab", tb.id);
+        b.textContent = tb.label;
+        tabBar.appendChild(b);
+      });
+      header.appendChild(tabBar);
+
+      var tip = document.createElement("p");
+      tip.className = "muted";
+      tip.style.cssText = "margin:0.45rem 0 0;font-size:0.85em";
+      tip.innerHTML =
+        "<strong>Cómo leer este panel:</strong> " +
+        "Empezar = elegí venue · Inventado = datos falsos del lab · " +
+        "Histórico = klines reales Binance · Practicar = paper/A3/demo · " +
+        "Unlock = solo si querés demo LIVE gated. " +
+        "Comparar varios exchanges → panel <em>Simulador</em>.";
+      header.appendChild(tip);
+
+      // Move A3 block under practicar container
+      var a3 = root.querySelector("#gl-section-a3");
+      var practicarWrap = document.createElement("div");
+      practicarWrap.className = "pane-section gl-panel";
+      practicarWrap.setAttribute("data-panel", "practicar");
+      var practicarTitle = document.createElement("h3");
+      practicarTitle.textContent = "Practicar (paper / A3 / demo)";
+      practicarWrap.appendChild(practicarTitle);
+      var practicarHint = document.createElement("p");
+      practicarHint.className = "muted";
+      practicarHint.style.marginTop = "0";
+      practicarHint.textContent =
+        "Órdenes de mentira o demo gated. No es backtest histórico multi-venue.";
+      practicarWrap.appendChild(practicarHint);
+      if (a3) {
+        a3.style.display = "";
+        practicarWrap.appendChild(a3);
+      }
+      if (demo) {
+        demo.style.display = "";
+        practicarWrap.appendChild(demo);
+      }
+      root.appendChild(practicarWrap);
+
+      unlock.classList.add("gl-panel");
+      unlock.setAttribute("data-panel", "avanzado");
+      venue.classList.add("gl-panel");
+      venue.setAttribute("data-panel", "empezar");
+      scan.classList.add("gl-panel");
+      scan.setAttribute("data-panel", "historico");
+      strategy.classList.add("gl-panel");
+      strategy.setAttribute("data-panel", "historico");
+      simulate.classList.add("gl-panel");
+      simulate.setAttribute("data-panel", "inventado");
+
+      // Inventado also needs Scan lab button — clone tip + move scan lab visibility note
+      var invNote = document.createElement("p");
+      invNote.className = "muted";
+      invNote.style.fontSize = "0.85em";
+      invNote.innerHTML =
+        '<span class="data-badge data-badge-synth">SINTÉTICO</span> ' +
+        "Esta solapa usa barras inventadas. Para Scan lab (sintético) también podés " +
+        "usar el botón en Histórico cuando el venue no es solo Binance — " +
+        "el botón <em>Scan lab</em> sigue en la solapa Histórico arriba del ranking.";
+      simulate.insertBefore(invNote, simulate.firstChild.nextSibling);
+
+      // Put Scan lab more visible: add shortcut buttons on inventado
+      var invActions = document.createElement("div");
+      invActions.className = "pane-row";
+      invActions.style.marginBottom = "0.4rem";
+      var btnScanLab = document.createElement("button");
+      btnScanLab.type = "button";
+      btnScanLab.className = "btn secondary";
+      btnScanLab.textContent = "Scan lab (sintético)";
+      btnScanLab.addEventListener("click", function () {
+        var real = root.querySelector("#gl-scan");
+        if (real) real.click();
+      });
+      invActions.appendChild(btnScanLab);
+      simulate.insertBefore(invActions, invNote.nextSibling);
+
+      function showGlTab(name) {
+        root.querySelectorAll(".gl-tabs .sim-tab").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-tab") === name);
+        });
+        root.querySelectorAll(".gl-panel").forEach(function (p) {
+          var pan = p.getAttribute("data-panel");
+          p.style.display = pan === name ? "" : "none";
+        });
+        // Venue section always shows venue select on empezar; keep a3 parent logic
+        if (name === "empezar" && a3 && a3.parentElement === practicarWrap) {
+          // a3 stays in practicar
+        }
+      }
+
+      root.querySelectorAll(".gl-tabs .sim-tab").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          showGlTab(btn.getAttribute("data-tab"));
+        });
+      });
+
+      root.showGlTab = showGlTab;
+      showGlTab("empezar");
+    }
+
     function applyVenueUi() {
       const venue = root.querySelector("#gl-venue").value;
       const a3Section = root.querySelector("#gl-section-a3");
@@ -525,6 +655,12 @@
       const alphaOpts = root.querySelector("#gl-alpha-opts");
       if (alphaOpts) {
         alphaOpts.style.display = showBn ? "" : "none";
+      }
+      if (typeof root.showGlTab === "function") {
+        if (venue === "a3") root.showGlTab("practicar");
+        else if (venue === "binance") {
+          /* stay; user elige Histórico o Practicar */
+        } else if (venue === "paper") root.showGlTab("inventado");
       }
     }
 
@@ -1336,6 +1472,7 @@
             esc(focus.message || "Usá → Monte Carlo o Ranking/Backtest.") +
             "</p>";
         }
+        if (typeof root.showGlTab === "function") root.showGlTab("historico");
       }
     };
 
@@ -1359,6 +1496,7 @@
         });
     };
 
+    installGuidedTabs();
     applyVenueUi();
     loadAlphaProfiles();
     root.refresh();

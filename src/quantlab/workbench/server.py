@@ -50,6 +50,7 @@ from quantlab.workbench.api import (
     handle_get_lab_reports,
     handle_get_lab_sim_fees,
     handle_get_lab_sim_period,
+    handle_get_lab_sim_universe,
     handle_get_lab_strategies,
     handle_get_lab_validation,
     handle_get_lab_validation_run,
@@ -542,6 +543,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/sim/fees":
                     self._send_json(handle_get_lab_sim_fees(state))
+                    return
+                if path == "/api/lab/sim/universe":
+                    self._send_json(handle_get_lab_sim_universe(state))
                     return
                 if path == "/api/lab/sim/period":
                     self._send_json(handle_get_lab_sim_period(state, parsed.query))

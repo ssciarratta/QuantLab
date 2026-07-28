@@ -18,6 +18,7 @@ from quantlab.brokers.binance.fees import (
     binance_spot_fee_model,
     resolve_binance_spot_fee_schedule,
 )
+from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX, LAB_KLINE_LIMIT_MIN
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import ExperimentStatus
 from quantlab.core.types.manifests import ExecutionModelVersions, ExperimentManifest
@@ -325,11 +326,16 @@ def run_lab_backtest(
     experiment_id: str = "wb-lab-backtest",
     reports_dir: Path | None = None,
     initial_cash: Decimal | None = None,
+    fee_model: Any | None = None,
+    fee_schedule_meta: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Corre BarBacktester 5A sobre barras sintéticas o ``bars`` provistas.
 
     Si ``reports_dir`` está set, persiste MetricsResult/summary (+ HTML) en
     sesión (F29 Report Viewer / Metrics History).
+
+    ``fee_model`` opcional: si None, Binance Spot VIP0 (comportamiento histórico).
+    ``fee_schedule_meta`` alinea fee_schedule/fee_per_side del summary con el model.
     """
     experiment_id = validate_experiment_id(experiment_id)
     sid = normalize_strategy_id(strategy_id)
@@ -355,8 +361,25 @@ def run_lab_backtest(
         n_used = n_bars
 
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
-    fee_schedule = resolve_binance_spot_fee_schedule()
-    fee_model = binance_spot_fee_model()
+    if fee_model is None:
+        fee_schedule = resolve_binance_spot_fee_schedule()
+        fee_model = binance_spot_fee_model()
+        fee_dict = fee_schedule.to_dict()
+    else:
+        if fee_schedule_meta is not None:
+            fee_dict = dict(fee_schedule_meta)
+        else:
+            fee_dict = {
+                "schedule_id": getattr(fee_model, "model_id", "custom"),
+                "as_of": "",
+                "source_url": "",
+                "maker_bps": str(getattr(fee_model, "maker_bps", "")),
+                "taker_bps": str(getattr(fee_model, "taker_bps", "")),
+                "maker_pct": "",
+                "taker_pct": "",
+                "use_bnb_discount": False,
+                "note": "fee_model custom",
+            }
     if initial_cash is None:
         initial_cash = Decimal("100000")
     elif initial_cash <= Decimal("0"):
@@ -398,7 +421,6 @@ def run_lab_backtest(
         n_bars=n_used,
         data_source=src,
     )
-    fee_dict = fee_schedule.to_dict()
     summary: dict[str, Any] = {
         "ok": True,
         "kind": "backtest",
@@ -416,13 +438,13 @@ def run_lab_backtest(
         "total_fees": str(total_fees),
         "avg_fee_per_fill": str(avg_fee_per_fill) if avg_fee_per_fill is not None else None,
         "fee_per_side": {
-            "maker_bps": fee_dict["maker_bps"],
-            "taker_bps": fee_dict["taker_bps"],
-            "maker_pct": fee_dict["maker_pct"],
-            "taker_pct": fee_dict["taker_pct"],
-            "note": fee_dict["note"],
-            "as_of": fee_dict["as_of"],
-            "source_url": fee_dict["source_url"],
+            "maker_bps": fee_dict.get("maker_bps"),
+            "taker_bps": fee_dict.get("taker_bps"),
+            "maker_pct": fee_dict.get("maker_pct"),
+            "taker_pct": fee_dict.get("taker_pct"),
+            "note": fee_dict.get("note", ""),
+            "as_of": fee_dict.get("as_of", ""),
+            "source_url": fee_dict.get("source_url", ""),
         },
         "fee_schedule": fee_dict,
         "fee_model": getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
@@ -497,8 +519,10 @@ def run_binance_lab_scanner(
         raise ValidationError("top_n debe estar entre 1 y 10")
     if symbol_limit < 5 or symbol_limit > 30:
         raise ValidationError("symbol_limit debe estar entre 5 y 30")
-    if kline_limit < 8 or kline_limit > 3000:
-        raise ValidationError("kline_limit debe estar entre 8 y 3000")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
     interval = validate_kline_interval(interval)
     profile_key = (profile or "legacy_v1").strip().lower()
 
@@ -685,8 +709,10 @@ def run_binance_lab_backtest_batch(
         raise ValidationError("symbols vacío")
     if len(symbols) > 10:
         raise ValidationError("máximo 10 símbolos por batch")
-    if kline_limit < 8 or kline_limit > 3000:
-        raise ValidationError("kline_limit debe estar entre 8 y 3000")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
     interval = validate_kline_interval(interval)
     prefix = validate_experiment_id(experiment_id_prefix)
 
@@ -775,8 +801,10 @@ def run_binance_lab_pipeline(
         raise ValidationError("top_n debe estar entre 1 y 10")
     if symbol_limit < 5 or symbol_limit > 30:
         raise ValidationError("symbol_limit debe estar entre 5 y 30")
-    if kline_limit < 8 or kline_limit > 3000:
-        raise ValidationError("kline_limit debe estar entre 8 y 3000")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
     if walk_forward and kline_limit < 16:
         raise ValidationError(
             "walk_forward requiere kline_limit >= 16 (rank+backtest mínimos)"
@@ -1815,7 +1843,9 @@ def lab_capabilities() -> dict[str, Any]:
 
 
 def lab_strategies() -> dict[str, Any]:
-    """GET /api/lab/strategies — catálogo con metadata (F27/F115)."""
+    """GET /api/lab/strategies — catálogo con metadata + guías (F27/F115)."""
+    from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES
+
     strategies = list_strategy_catalog()
     runnable = [s["id"] for s in strategies if s.get("runnable")]
     families = sorted({str(s.get("family") or "") for s in strategies if s.get("family")})
@@ -1826,10 +1856,14 @@ def lab_strategies() -> dict[str, Any]:
         "ids": list_strategy_ids(),
         "runnable_ids": runnable,
         "families": families,
+        "family_labels_es": {
+            f: FAMILY_LABELS_ES.get(f, f) for f in families
+        },
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
         "note": (
             "runnable=true → backtest/paper/Binance demo post-unlock. "
+            "how_it_works = guía paso a paso para UI. "
             "LIVE producción sigue bloqueado (LIVE_BLOCKED)."
         ),
     }

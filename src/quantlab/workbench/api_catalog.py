@@ -80,6 +80,12 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ),
     ApiRoute("/api/lab/sim/fees", "GET", "Fee presets VIP0 por venue", ("lab", "sim")),
     ApiRoute(
+        "/api/lab/sim/universe",
+        "GET",
+        "Monedas lab (nombre completo + ticker) por venue",
+        ("lab", "sim"),
+    ),
+    ApiRoute(
         "/api/lab/sim/period",
         "GET",
         "Estima N velas para period_days × interval",
