@@ -1,26 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Deep-link Scan/BT/MC + corrección Monte Carlo
+Versión: 1.01.0 · Manuales de uso por panel + Help allowlist
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
 - Alpha Scanner F0–10 + walk-forward
 - Monte Carlo: 2…1e6 · batching · jobs · DatasetReference
-- Navegación: QLNav deep-link Reports↔MC↔Guided Lab · botones → Monte Carlo
+- Deep-link Scan/BT/Reports ↔ MC
+- Docs: `docs/manuales/` (35 MD) visibles en Help (ops/manuales/montecarlo/scanner)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Deep-link Workbench (nav.js + shell.open opts):
-- Reports: focus report_id + botón → Monte Carlo (mode normal)
-- Backtest lab: → Monte Carlo con report_id
-- Guided Lab: → Monte Carlo con scan_id / backtest_id
-- MC Abrir backtest/scan: abre panel y enfoca id
+Manuales de uso para todos los paneles Workbench + actualización de instructivos:
+- `docs/manuales/00-INDICE.md` … `34-about.md`
+- `docs/MANUALES.md` · GUIA_COMPLETA · montecarlo-guide · scanner-guide · FASE_38 paths
+- `docs_browser.py`: allowlist `manuales`, `montecarlo`, `scanner`
 
 PRÓXIMO
 -------
-Validar en UI (F5); opcional GET scan por id + preview JSON
+Validar en UI: QL → Help / Docs → `manuales/00-INDICE.md` (F5)
 
 INVARIANTES
 -----------

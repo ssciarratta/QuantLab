@@ -2,7 +2,8 @@
 
 **Fecha:** 2026-07-27  
 **Versión tip:** 1.01.0  
-**Estado código:** FASE 0–10 + walk-forward pipeline · cierre formal de auditoría **pendiente**
+**Estado código:** FASE 0–10 + walk-forward pipeline · cierre formal de auditoría **pendiente**  
+**Manual de panel:** [`../manuales/03-alpha-scanner.md`](../manuales/03-alpha-scanner.md) · índice [`../manuales/00-INDICE.md`](../manuales/00-INDICE.md)
 
 ---
 

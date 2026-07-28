@@ -53,3 +53,8 @@ Categoría: `Finance`. Comment en español (LIVE bloqueado).
 - Bind default: `127.0.0.1` (loopback)
 - Host distinto de `127.0.0.1` / `::1` / `localhost` → abort exit 2 salvo `--allow-non-loopback`
 - Sin auth HTTP (trust loopback); no exponer a WAN
+
+## Documentación de uso
+
+Tras arrancar: QL → **Help / Docs** → `manuales/00-INDICE.md`  
+Entrada rápida: `docs/MANUALES.md` · guía: `docs/GUIA_COMPLETA_QUANTLAB.md`

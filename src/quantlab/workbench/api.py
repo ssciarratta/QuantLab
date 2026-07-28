@@ -1653,7 +1653,7 @@ def handle_post_onboarding_complete(
 
 
 def handle_get_docs(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/docs — lista docs/*.md y docs/ops/*.md (paths relativos safe)."""
+    """GET /api/docs — lista docs/*.md y subdirs allowlist (ops/manuales/montecarlo/scanner)."""
     _ = state.ensure_session()
     try:
         payload = list_docs()

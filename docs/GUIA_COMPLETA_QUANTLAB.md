@@ -1,9 +1,9 @@
-# Guía completa QuantLab v1.00+ — Para operadores e IAs
+# Guía completa QuantLab v1.01+ — Para operadores e IAs
 
 **Propósito:** documento autocontenido para copiar a otra IA y que guíe al usuario en operación diaria.  
 **Repo:** QuantLab · laboratorio cuantitativo (NO bot de trading automático).  
 **UI:** Workbench loopback `http://127.0.0.1:8765`  
-**Versión referencia:** 1.00.0 · F19–F110 INTERNAL
+**Versión referencia:** 1.01.0 · F19–F112 tip · manuales por panel en `docs/manuales/`
 
 ---
 
@@ -71,22 +71,28 @@ uv run quantlab-workbench                   # abre browser o ir a :8765
 
 ### 4.3 Paneles principales
 
-| Panel | Función |
-|-------|---------|
-| **Guided Lab** | Wizard paso a paso (recomendado principiantes) |
-| **Chat IA** | Asistente safe-mode (guía, no opera) |
-| **Salud / Modo** | Versión, modo tester/paper |
-| **Paper Blotter** | Enviar órdenes paper manual |
-| **Journal** | Fills paper (incl. mirror binance_demo) |
-| **Sesión Paper** | Runner estrategia automática paper |
-| **Backtest** | Backtest lab API |
-| **Alpha Scanner** | Ranking sintético WB:A/B/C |
-| **Market Data** | Snapshot broker |
-| **Diagnostics** | Snapshot sistema |
-| **Venues** | Registry brokers |
-| **API Explorer** | OpenAPI read-only |
-| **Reports / Metrics** | Historial backtests sesión |
-| **Chat IA** | QL → Chat IA o Ctrl+K → chat |
+Índice completo con manual por función: [`manuales/00-INDICE.md`](manuales/00-INDICE.md) · entrada [`MANUALES.md`](MANUALES.md).
+
+| Panel | Función | Manual |
+|-------|---------|--------|
+| **Guided Lab** | Wizard scan → BT → paper/LIVE gated | `manuales/01-…` |
+| **Backtest** | Backtest lab + fees/capital | `02` |
+| **Alpha Scanner** | Ranking perfiles / Binance MD | `03` |
+| **Monte Carlo** | Estrés N hasta 1e6 + deep-links | `04` |
+| **Validation / Optimizer / Features** | Research lab | `05–07` |
+| **Export HB** | Export Hummingbot | `08` |
+| **Metrics / Reports / Experiments** | Historial sesión | `09–11` |
+| **Salud / Market / Universe / Catalog** | Datos y modo | `12–15` |
+| **Blotter / Journal / Sesión Paper** | Paper trading | `16–18` |
+| **Posiciones / Riesgo / Reconciliación** | Book paper | `19–21` |
+| **Venues / API Explorer / Diagnostics** | Ops read-only | `22–24` |
+| **Help / Docs** | Markdown allowlist (manuales, ops, mc, scanner) | `25` |
+| **Chat IA** | Safe-mode (no órdenes) | `26` |
+| **Settings / Sessions / Activity** | Preferencias y auditoría | `27–29` |
+| **Access Log / Backups / Ops Metrics** | Ops | `30–32` |
+| **Shell / About** | Navegación, presets, deep-links | `33–34` |
+
+**Help en UI:** QL → Help / Docs → carpeta `manuales/`.
 
 ---
 
@@ -139,12 +145,12 @@ El pipeline `POST /api/lab/binance/pipeline` usa **walk-forward por defecto** (`
 - Perfiles / scoring: panel Guided Lab (venue binance) o `GET /api/lab/alpha/profiles`
 - Docs: [`docs/scanner/alpha-scanner-guide.md`](scanner/alpha-scanner-guide.md) · estado [`docs/progress/alpha-scanner-optimization-status.md`](progress/alpha-scanner-optimization-status.md)
 
-### Monte Carlo v2
+### Monte Carlo (corrección tip)
 
-Panel **Monte Carlo** del workbench: shocks sintéticos sobre dataset lab (BuyOnce demo). Payload **schema v2** con `context`, `config`, `metrics`, `relations` y hashes; lecturas legacy v1 se normalizan (“No disponible” si falta campo).
+Panel **Monte Carlo**: shocks sintéticos / DatasetReference; **N = 2…1_000_000** (batching + jobs async; confirmación si N≥100k). `n_bars` = velas **por escenario**. Trayectorias persistidas acotadas (~16) **no** limitan N. Mode `normal` exige `backtest_id`. Deep-link desde Reports / Backtest / Guided Lab.
 
-- Parámetros UI: escenarios, barras, ruido bps, seed; API también `scan_id` / `backtest_id` / `store_paths`
-- Docs: [`docs/montecarlo/montecarlo-guide.md`](montecarlo/montecarlo-guide.md) · trazabilidad [`docs/montecarlo/montecarlo-traceability.md`](montecarlo/montecarlo-traceability.md) · métodos [`docs/montecarlo/montecarlo-methods.md`](montecarlo/montecarlo-methods.md)
+- Manual: [`manuales/04-montecarlo.md`](manuales/04-montecarlo.md)
+- Guía: [`montecarlo/montecarlo-guide.md`](montecarlo/montecarlo-guide.md) · trazabilidad / métodos / interpretación en la misma carpeta
 
 ---
 
@@ -323,11 +329,14 @@ Ver `.env.example`. Nunca commitear `.env`.
 
 ## 16. Documentación adicional en repo
 
+- **`docs/manuales/`** — manual de uso por cada panel (empezar por `00-INDICE.md`)
+- `docs/MANUALES.md` — entrada rápida a manuales
 - `docs/ops/LIVE_CREDENTIAL_GATE.md` — unlock y demo
-- `docs/FASE_99` … `FASE_110` — Guided Lab arc
+- `docs/ops/WORKBENCH_1CLICK.md` — arranque 1-click
+- `docs/FASE_99` … `FASE_111` — Guided Lab / Binance alpha
 - `docs/A3_RUNBOOK.md` — A3 CLI
 - `docs/scanner/` — Alpha Scanner + walk-forward
-- `docs/montecarlo/` — Monte Carlo v2 (guía, métodos, trazabilidad)
+- `docs/montecarlo/` — Monte Carlo (guía, métodos, trazabilidad, corrección)
 - `RESUMEN_PROYECTO.txt` — estado operativo
 - `RETOMAR.txt` — checkpoint desarrollo
 
@@ -337,12 +346,13 @@ Ver `.env.example`. Nunca commitear `.env`.
 
 Cuando el usuario pregunte cómo operar:
 
-1. Identificar objetivo: aprender / binance MD / demo / A3 / backtest
-2. Verificar prerequisitos (workbench corriendo, .env si aplica)
-3. Dar pasos numerados en Guided Lab o panel específico
-4. Recordar LIVE_BLOCKED y que REAL=PAPER
-5. No pedir secrets en chat; indicar variables .env
-6. Si pide "5 monedas + estrategia": en v1.00 guiar manual; post-F111 usar pipeline Binance
+1. Identificar objetivo: aprender / binance MD / demo / A3 / backtest / Monte Carlo
+2. Abrir el manual del panel en `docs/manuales/` (o citar pasos de esta guía)
+3. Verificar prerequisitos (workbench corriendo, .env si aplica)
+4. Dar pasos numerados en Guided Lab o panel específico
+5. Recordar LIVE_BLOCKED y que REAL=PAPER
+6. No pedir secrets en chat; indicar variables .env
+7. Si pide "5 monedas + estrategia": pipeline Binance (F111) + walk-forward; no afirmar rentabilidad
 
 ---
 

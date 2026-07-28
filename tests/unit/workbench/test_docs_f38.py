@@ -60,6 +60,15 @@ def docs_tree(tmp_path: Path) -> Path:
     ops = root / "ops"
     ops.mkdir()
     (ops / "RUN.md").write_text("# Runbook\n\n- step one\n", encoding="utf-8")
+    manuals = root / "manuales"
+    manuals.mkdir()
+    (manuals / "00-INDICE.md").write_text("# Indice\n\nmanuales\n", encoding="utf-8")
+    mc = root / "montecarlo"
+    mc.mkdir()
+    (mc / "montecarlo-guide.md").write_text("# MC\n\nguide\n", encoding="utf-8")
+    scanner = root / "scanner"
+    scanner.mkdir()
+    (scanner / "alpha-scanner-guide.md").write_text("# Scanner\n\nguide\n", encoding="utf-8")
     (root / "secret.txt").write_text("nope", encoding="utf-8")
     nested = root / "audit"
     nested.mkdir()
@@ -71,13 +80,25 @@ def test_live_blocked_still_true() -> None:
     assert LIVE_BLOCKED is True
 
 
-def test_list_docs_only_root_and_ops(docs_tree: Path) -> None:
+def test_list_docs_allowlisted_subdirs(docs_tree: Path) -> None:
     payload = list_docs(docs_root=docs_tree)
     assert payload["ok"] is True
     assert payload["live_blocked"] is True
     assert payload["live_routing"] is False
+    assert set(payload["allowed_subdirs"]) == {
+        "manuales",
+        "montecarlo",
+        "ops",
+        "scanner",
+    }
     paths = {d["path"] for d in payload["docs"]}
-    assert paths == {"HELLO.md", "ops/RUN.md"}
+    assert paths == {
+        "HELLO.md",
+        "ops/RUN.md",
+        "manuales/00-INDICE.md",
+        "montecarlo/montecarlo-guide.md",
+        "scanner/alpha-scanner-guide.md",
+    }
     assert "secret.txt" not in paths
     assert "audit/NESTED.md" not in paths
 

@@ -111,7 +111,7 @@ _TOOL_META: dict[str, dict[str, str]] = {
         "description": "Memoria de sesión, último lab, instructor y resumen conversación",
     },
     "search_docs": {
-        "description": "Busca keywords en docs/*.md y docs/ops/*.md locales",
+        "description": "Busca keywords en docs/*.md y docs/{ops,manuales,montecarlo,scanner}/*.md locales",
     },
     "list_experiments": {
         "description": "Lista experimentos del registry de sesión",

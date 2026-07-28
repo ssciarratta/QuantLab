@@ -34,10 +34,18 @@ Respuesta incluye: `live_blocked`, `live_routing:false`, `research_safe:true`.
 
 | Relativo | Ejemplo |
 |----------|---------|
-| `*.md` en raíz docs | `FASE_37_ONBOARDING.md` |
+| `*.md` en raíz docs | `GUIA_COMPLETA_QUANTLAB.md` |
 | `ops/*.md` | `ops/WORKBENCH_1CLICK.md` |
+| `manuales/*.md` | `manuales/00-INDICE.md` (extensión tip 2026-07-27) |
+| `montecarlo/*.md` | `montecarlo/montecarlo-guide.md` |
+| `scanner/*.md` | `scanner/alpha-scanner-guide.md` |
 
 Rechazados (fail-closed): `..`, absolutos, `audit/…`, otros subdirs, no-`.md`, symlinks fuera de raíz.
+
+### Extensión tip (post-F38)
+
+Allowlist ampliada a `manuales`, `montecarlo`, `scanner` para que Help / Docs muestre los instructivos de usuario sin servir `docs/audit/`. Tests: `tests/unit/workbench/test_docs_f38.py`.
+
 
 ## UI
 

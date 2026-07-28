@@ -1,6 +1,7 @@
 """Docs / Help browser — lista y lee markdown bajo ``docs/`` (F38).
 
-Solo paths relativos safe: ``*.md`` en ``docs/`` y ``docs/ops/``.
+Paths relativos safe: ``*.md`` en raíz ``docs/`` y subdirs allowlist
+(``ops``, ``manuales``, ``montecarlo``, ``scanner``).
 Path traversal y escapes fuera de ``docs/`` → fail-closed.
 """
 
@@ -17,8 +18,10 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _DEFAULT_DOCS_ROOT = _REPO_ROOT / "docs"
 
-# Subdirs relativas permitidas (vacío = raíz docs/).
-_ALLOWED_SUBDIRS: frozenset[str] = frozenset({"", "ops"})
+# Subdirs relativas permitidas ("" = raíz docs/).
+_ALLOWED_SUBDIRS: frozenset[str] = frozenset(
+    {"", "ops", "manuales", "montecarlo", "scanner"}
+)
 
 _MAX_CONTENT_BYTES = 512_000
 
@@ -56,7 +59,10 @@ def normalize_docs_relpath(raw: str) -> str:
         return name
     if len(parts) == 2 and parts[0] in _ALLOWED_SUBDIRS - {""}:
         return f"{parts[0]}/{name}"
-    raise ValidationError(f"path fuera de docs/*.md o docs/ops/*.md: {raw!r}")
+    allowed = ", ".join(sorted(s for s in _ALLOWED_SUBDIRS if s))
+    raise ValidationError(
+        f"path fuera de docs/*.md o docs/{{{allowed}}}/*.md: {raw!r}"
+    )
 
 
 def resolve_docs_file(relpath: str, *, docs_root: Path | None = None) -> Path:
@@ -68,16 +74,20 @@ def resolve_docs_file(relpath: str, *, docs_root: Path | None = None) -> Path:
     candidate = (root / safe_rel).resolve()
     if not candidate.is_relative_to(root):
         raise ValidationError(f"path fuera de docs/ (path traversal): {relpath!r}")
-    # Debe quedar exactamente en raíz o en ops/
     try:
         rel = candidate.relative_to(root)
     except ValueError as exc:
         raise ValidationError(f"path fuera de docs/: {relpath!r}") from exc
     parts = rel.parts
-    if len(parts) == 1 or (len(parts) == 2 and parts[0] == "ops"):
+    if len(parts) == 1:
+        pass
+    elif len(parts) == 2 and parts[0] in _ALLOWED_SUBDIRS - {""}:
         pass
     else:
-        raise ValidationError(f"path fuera de docs/*.md o docs/ops/*.md: {relpath!r}")
+        allowed = ", ".join(sorted(s for s in _ALLOWED_SUBDIRS if s))
+        raise ValidationError(
+            f"path fuera de docs/*.md o docs/{{{allowed}}}/*.md: {relpath!r}"
+        )
     if not candidate.is_file():
         raise ValidationError(f"doc no encontrado: {safe_rel}")
     if candidate.suffix.lower() != ".md":
@@ -86,24 +96,26 @@ def resolve_docs_file(relpath: str, *, docs_root: Path | None = None) -> Path:
 
 
 def list_docs(*, docs_root: Path | None = None) -> dict[str, Any]:
-    """Lista ``docs/*.md`` y ``docs/ops/*.md`` (paths relativos safe)."""
+    """Lista ``docs/*.md`` y subdirs allowlist (paths relativos safe)."""
     root = resolve_docs_root(docs_root)
     items: list[dict[str, Any]] = []
     if root.is_dir():
         for path in sorted(root.glob("*.md")):
             if path.is_file():
                 items.append(_doc_meta(path, root, subdir=""))
-        ops = root / "ops"
-        if ops.is_dir():
-            for path in sorted(ops.glob("*.md")):
-                if path.is_file():
-                    items.append(_doc_meta(path, root, subdir="ops"))
+        for sub in sorted(s for s in _ALLOWED_SUBDIRS if s):
+            folder = root / sub
+            if folder.is_dir():
+                for path in sorted(folder.glob("*.md")):
+                    if path.is_file():
+                        items.append(_doc_meta(path, root, subdir=sub))
     return {
         "ok": True,
         "kind": "docs",
         "docs_root": str(root),
         "count": len(items),
         "docs": items,
+        "allowed_subdirs": sorted(s for s in _ALLOWED_SUBDIRS if s),
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
         "research_safe": True,
@@ -122,12 +134,13 @@ def read_docs_content(relpath: str, *, docs_root: Path | None = None) -> dict[st
     except OSError as exc:
         raise ValidationError(f"no se pudo leer doc: {exc}") from exc
     safe_rel = str(path.relative_to(root)).replace("\\", "/")
+    subdir = safe_rel.split("/", 1)[0] if "/" in safe_rel else ""
     return {
         "ok": True,
         "kind": "docs_content",
         "path": safe_rel,
         "name": path.name,
-        "subdir": "ops" if "/" in safe_rel else "",
+        "subdir": subdir,
         "size": size,
         "content": text,
         "html": markdown_to_simple_html(text),
@@ -141,7 +154,7 @@ def read_docs_content(relpath: str, *, docs_root: Path | None = None) -> dict[st
 def search_docs_files(
     query: str, *, docs_root: Path | None = None, limit: int = 8
 ) -> dict[str, Any]:
-    """Busca keywords en ``docs/*.md`` y ``docs/ops/*.md`` (chat search_docs)."""
+    """Busca keywords en docs allowlist (chat search_docs)."""
     if not isinstance(query, str):
         raise ValidationError("search_docs: query debe ser string")
     keywords = [k for k in re.split(r"\s+", query.strip().lower()) if k]
@@ -243,15 +256,12 @@ def markdown_to_simple_html(text: str) -> str:
 
 def _inline_md(text: str) -> str:
     """Énfasis/código inline sobre texto ya escapado (sin HTML crudo)."""
-    # `code`
     text = re.sub(
         r"`([^`]+)`",
         r'<code class="mono">\1</code>',
         text,
     )
-    # **bold**
     text = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", text)
-    # *italic* (simple)
     text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"<em>\1</em>", text)
     return text
 
