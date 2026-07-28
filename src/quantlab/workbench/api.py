@@ -34,6 +34,7 @@ from quantlab.infra.health import run_health_checks
 from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.about import build_about_payload
+from quantlab.workbench.git_update import apply_git_update, build_update_status
 from quantlab.workbench.access_log import AccessLog, list_access_log
 from quantlab.workbench.access_log import clamp_limit as clamp_access_limit
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
@@ -801,6 +802,27 @@ def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
     )
     payload.update(_workbench_ops_flags(state))
     return payload
+
+
+def handle_get_update_status(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/update/status — versión local vs GitHub + última modificación."""
+    state.ensure_session()
+    payload = build_update_status(fetch_remote=True)
+    payload["session_id"] = state.session.session_id
+    return payload
+
+
+def handle_post_update_apply(state: WorkbenchState, body: dict[str, Any] | None = None) -> dict[str, Any]:
+    """POST /api/update/apply — git pull --ff-only desde origin/main (+ uv sync)."""
+    _ = body
+    state.ensure_session()
+    if not LIVE_BLOCKED:
+        raise ApiError(403, "update bloqueado si LIVE_BLOCKED=False")
+    result = apply_git_update()
+    result["session_id"] = state.session.session_id
+    if not result.get("ok"):
+        raise ApiError(400, str(result.get("error") or "update falló"))
+    return result
 
 
 def handle_get_mode(state: WorkbenchState) -> dict[str, Any]:

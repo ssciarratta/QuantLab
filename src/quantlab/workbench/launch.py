@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import os
 import signal
 import sys
 import threading
@@ -13,11 +14,13 @@ from collections.abc import Sequence
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
+from quantlab import __version__
 from quantlab.brokers.mode import OperatingMode, default_mode, resolve_mode
 from quantlab.brokers.paper.book import DEFAULT_INITIAL_CASH
 from quantlab.core.exceptions import ValidationError
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.workbench.api import WorkbenchState
+from quantlab.workbench.instance_lock import claim_singleton, clear_lock, default_lock_path
 from quantlab.workbench.server import create_server, is_loopback_host
 from quantlab.workbench.session import DEFAULT_SESSION_PARENT, WorkbenchSession
 from quantlab.workbench.shutdown import perform_graceful_shutdown
@@ -144,7 +147,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         print("slippage-bps debe ser < 10000", file=sys.stderr)
         return 2
 
+    port = int(args.port)
+    # Una sola instancia: mata Workbench anterior en el puerto / PID lock.
+    claim = claim_singleton(host=host if host not in ("0.0.0.0", "::") else "127.0.0.1", port=port)
+    if claim.get("killed_pids"):
+        print(
+            f"Instancia previa terminada (pids={claim['killed_pids']}); "
+            "sesión anterior cerrada.",
+            file=sys.stderr,
+        )
+    if not claim.get("port_free"):
+        print(
+            f"ABORT: puerto {port} sigue ocupado tras intentar matar la sesión anterior.",
+            file=sys.stderr,
+        )
+        return 2
+
     root_parent = Path(args.session_root) if args.session_root else None
+    # Sin --session-id → siempre sesión nueva (no reutiliza la anterior).
     try:
         session = WorkbenchSession.create_or_load(
             root_parent,
@@ -155,7 +175,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"sesión inválida: {exc}", file=sys.stderr)
         return 2
 
-    port = int(args.port)
     state = WorkbenchState(
         mode=mode,
         session=session,
@@ -164,18 +183,23 @@ def main(argv: Sequence[str] | None = None) -> int:
         slippage_bps=slippage_bps,
     )
     state.ensure_session()
-    server = create_server(
-        host=host,
-        port=port,
-        state=state,
-        allow_non_loopback=bool(args.allow_non_loopback),
-    )
+    try:
+        server = create_server(
+            host=host,
+            port=port,
+            state=state,
+            allow_non_loopback=bool(args.allow_non_loopback),
+        )
+    except OSError as exc:
+        print(f"ABORT: no se pudo bind {host}:{port}: {exc}", file=sys.stderr)
+        clear_lock(default_lock_path(), only_if_pid=os.getpid())
+        return 2
     bound_host, bound_port = server.server_address[:2]
     # server_address tipado como (str | bytes, int) en stdlib
     host_s = bound_host.decode() if isinstance(bound_host, bytes) else str(bound_host)
     url = f"http://{host_s}:{int(bound_port)}/"
 
-    print(f"QuantLab Workbench v0.17 — {url}")
+    print(f"QuantLab Workbench v{__version__} — {url}")
     print(f"mode={mode.value}  LIVE_BLOCKED={LIVE_BLOCKED}  real_alias=paper")
     print(f"session_id={session.session_id}  root={session.root}")
     print(f"slippage_bps={slippage_bps}")
@@ -213,6 +237,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         perform_graceful_shutdown(state, reason="finally", stop_server=True)
         with contextlib.suppress(Exception):
             server.server_close()
+        clear_lock(default_lock_path(), only_if_pid=os.getpid())
     return 0
 
 

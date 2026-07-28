@@ -66,6 +66,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute("/api/livez", "GET", "Liveness probe", ("ops",)),
     ApiRoute("/api/readyz", "GET", "Readiness probe (LIVE_BLOCKED + writable)", ("ops",)),
     ApiRoute("/api/about", "GET", "About / version / phases INTERNAL", ("meta",)),
+    ApiRoute(
+        "/api/update/status",
+        "GET",
+        "Versión local vs GitHub + última modificación",
+        ("meta", "ops"),
+    ),
+    ApiRoute(
+        "/api/update/apply",
+        "POST",
+        "git pull --ff-only origin/main (+ uv sync); requiere reinicio",
+        ("meta", "ops"),
+    ),
     ApiRoute("/api/commands", "GET", "Command palette registry", ("meta",)),
     ApiRoute("/api/ops/metrics", "GET", "Ops metrics JSON", ("ops",)),
     ApiRoute("/api/ops/prometheus", "GET", "Prometheus text exposition", ("ops",)),

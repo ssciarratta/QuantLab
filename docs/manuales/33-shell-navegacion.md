@@ -16,9 +16,22 @@ Escritorio flotante del Workbench.
 
 ## Layout
 
-- Banner superior: modo, LIVE_BLOCKED, session, avisos
+- Banner superior: modo, LIVE_BLOCKED, **versión local · GH tip**, botón **Actualizar/Sincronizar**, **hora última mod**, session, avisos
 - Escritorio: ventanas (paneles)
 - Barra inferior: status + **QL**
+
+## Sesión única al abrir
+
+Cada arranque de QuantLab:
+
+1. Mata el proceso Workbench anterior (PID lock + puerto 8765).
+2. Crea una **sesión nueva** (salvo que pases `--session-id`).
+
+## Actualizar desde GitHub
+
+- El banner consulta `GET /api/update/status` (versión en `main` de GitHub).
+- Botón **Actualizar** / **Sincronizar** → `POST /api/update/apply` (`git pull --ff-only` + `uv sync`).
+- Después hay que **reiniciar** QuantLab para cargar el código nuevo.
 
 ## Abrir paneles
 

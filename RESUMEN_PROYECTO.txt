@@ -1,26 +1,25 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Manuales de uso por panel + Help allowlist
+Versión: 1.01.0 · Banner versión GitHub + singleton al arrancar
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha Scanner F0–10 + walk-forward
-- Monte Carlo: 2…1e6 · batching · jobs · DatasetReference
-- Deep-link Scan/BT/Reports ↔ MC
-- Docs: `docs/manuales/` (35 MD) visibles en Help (ops/manuales/montecarlo/scanner)
+- Arranque: mata instancia previa (PID lock + puerto 8765) → sesión nueva
+- Banner: v local · GH tip · botón Actualizar/Sincronizar · hora última mod
+- API: GET /api/update/status · POST /api/update/apply (git pull --ff-only)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Manuales de uso para todos los paneles Workbench + actualización de instructivos:
-- `docs/manuales/00-INDICE.md` … `34-about.md`
-- `docs/MANUALES.md` · GUIA_COMPLETA · montecarlo-guide · scanner-guide · FASE_38 paths
-- `docs_browser.py`: allowlist `manuales`, `montecarlo`, `scanner`
+Singleton Workbench + banner de versión:
+- `instance_lock.py` claim al launch
+- `git_update.py` tip GitHub (pyproject + commit date)
+- UI top-banner versión / sync / mod
 
 PRÓXIMO
 -------
-Validar en UI: QL → Help / Docs → `manuales/00-INDICE.md` (F5)
+Validar F5: abrir QuantLab dos veces → solo una; banner muestra GH version
 
 INVARIANTES
 -----------

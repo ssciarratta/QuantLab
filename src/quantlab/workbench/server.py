@@ -81,6 +81,7 @@ from quantlab.workbench.api import (
     handle_get_snapshot,
     handle_get_support_bundle,
     handle_get_universe,
+    handle_get_update_status,
     handle_get_venues,
     handle_get_watchlist,
     handle_get_watchlist_export,
@@ -119,6 +120,7 @@ from quantlab.workbench.api import (
     handle_post_sessions_new,
     handle_post_sessions_switch,
     handle_post_shutdown,
+    handle_post_update_apply,
     handle_post_watchlist_import,
     handle_put_layout,
     handle_put_settings,
@@ -346,6 +348,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/about":
                     self._send_json(handle_get_about(state))
+                    return
+                if path == "/api/update/status":
+                    self._send_json(handle_get_update_status(state))
                     return
                 if path == "/api/commands":
                     self._send_json(handle_get_commands(state))
@@ -637,6 +642,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 body = _read_json(self, max_bytes=max_body)
                 if path == "/api/mode":
                     self._send_json(handle_post_mode(state, body))
+                    return
+                if path == "/api/update/apply":
+                    self._send_json(handle_post_update_apply(state, body))
                     return
                 if path == "/api/live/unlock":
                     self._send_json(handle_post_live_unlock(state, body))

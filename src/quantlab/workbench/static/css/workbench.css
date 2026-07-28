@@ -45,7 +45,7 @@ body[data-theme="slate"] {
   --sans: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", sans-serif;
   --taskbar-h: 40px;
   --status-bar-h: 28px;
-  --banner-h: 36px;
+  --banner-h: 40px;
   --radius: 2px;
   --shadow-win: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--border);
   --shadow-modal: 0 18px 48px rgba(0, 0, 0, 0.45);
@@ -201,6 +201,8 @@ html {
   font-size: 0.8rem;
   letter-spacing: 0.02em;
   z-index: 50;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .brand {
@@ -220,6 +222,36 @@ html {
   font-family: var(--mono);
   font-size: 0.75rem;
   text-transform: uppercase;
+}
+
+.banner-version {
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.banner-updated {
+  font-size: 0.68rem;
+}
+
+.banner-update-btn {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  padding: 0.12rem 0.45rem;
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  background: rgba(212, 140, 50, 0.12);
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+}
+
+.banner-update-btn:hover:not(:disabled) {
+  background: rgba(212, 140, 50, 0.28);
+}
+
+.banner-update-btn:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
 .live-badge {

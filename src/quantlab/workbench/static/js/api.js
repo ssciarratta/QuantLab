@@ -465,6 +465,12 @@
     about: function () {
       return request("GET", "/api/about");
     },
+    updateStatus: function () {
+      return request("GET", "/api/update/status");
+    },
+    updateApply: function () {
+      return request("POST", "/api/update/apply", {});
+    },
     sessionExport: function () {
       return request("GET", "/api/session/export");
     },

@@ -64,6 +64,16 @@ def test_main_allows_loopback_default(
             return None
 
     monkeypatch.setattr(
+        "quantlab.workbench.launch.claim_singleton",
+        lambda **_kwargs: {
+            "ok": True,
+            "killed_pids": [],
+            "port_free": True,
+            "pid": 1,
+            "lock_path": str(tmp_path / "workbench.pid"),
+        },
+    )
+    monkeypatch.setattr(
         "quantlab.workbench.launch.create_server",
         lambda **_kwargs: _FakeServer(),
     )
@@ -88,6 +98,16 @@ def test_main_allows_non_loopback_with_flag_and_warns(
         def server_close(self) -> None:
             return None
 
+    monkeypatch.setattr(
+        "quantlab.workbench.launch.claim_singleton",
+        lambda **_kwargs: {
+            "ok": True,
+            "killed_pids": [],
+            "port_free": True,
+            "pid": 1,
+            "lock_path": str(tmp_path / "workbench.pid"),
+        },
+    )
     monkeypatch.setattr(
         "quantlab.workbench.launch.create_server",
         lambda **_kwargs: _FakeServer(),

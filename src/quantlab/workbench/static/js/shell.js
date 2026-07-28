@@ -7,6 +7,9 @@
   const bannerMode = document.getElementById("banner-mode");
   const bannerLive = document.getElementById("banner-live");
   const bannerSession = document.getElementById("banner-session");
+  const bannerVersion = document.getElementById("banner-version");
+  const bannerUpdated = document.getElementById("banner-updated");
+  const bannerUpdateBtn = document.getElementById("banner-update-btn");
   const clockEl = document.getElementById("sb-clock");
   const startBtn = document.getElementById("btn-start");
   const startMenu = document.getElementById("start-menu");
@@ -145,6 +148,98 @@
         });
       })
       .catch(function () {});
+    refreshUpdateBanner();
+  }
+
+  function refreshUpdateBanner() {
+    if (!QLApi || !QLApi.updateStatus) return;
+    QLApi.updateStatus()
+      .then(function (data) {
+        if (!data) return;
+        const localV = data.local_version || data.package_version || "—";
+        const ghV = data.github_version;
+        let label = "v" + localV;
+        if (ghV) {
+          if (ghV === localV && !data.update_available) {
+            label = "v" + localV + " · GH ok";
+          } else {
+            label = "v" + localV + " · GH " + ghV;
+          }
+        }
+        if (bannerVersion) bannerVersion.textContent = label;
+        if (sbVersion && localV && localV !== "—") {
+          cachedVersion = localV;
+          sbVersion.textContent = "v" + localV;
+        }
+        if (bannerUpdated) {
+          bannerUpdated.textContent =
+            "mod " + (data.last_modified_display || "—");
+          if (data.last_modified_at) {
+            bannerUpdated.title =
+              "Última modificación: " + data.last_modified_at;
+          }
+        }
+        document.title = "QuantLab Workbench v" + localV;
+        if (bannerUpdateBtn) {
+          bannerUpdateBtn.hidden = false;
+          bannerUpdateBtn.disabled = false;
+          bannerUpdateBtn.textContent = data.update_available
+            ? "Actualizar"
+            : "Sincronizar";
+          bannerUpdateBtn.title = data.update_available
+            ? "Hay versión nueva en GitHub — git pull + reinicio"
+            : "Forzar sync con GitHub (git pull) aunque ya estés al día";
+        }
+      })
+      .catch(function () {
+        if (bannerVersion && !bannerVersion.textContent.startsWith("v")) {
+          bannerVersion.textContent = "v—";
+        }
+      });
+  }
+
+  function onBannerUpdateClick() {
+    if (!QLApi || !QLApi.updateApply || !bannerUpdateBtn) return;
+    if (
+      !window.confirm(
+        "¿Descargar la última versión desde GitHub (git pull)?\n" +
+          "Después tenés que reiniciar QuantLab para aplicar el código."
+      )
+    ) {
+      return;
+    }
+    bannerUpdateBtn.disabled = true;
+    bannerUpdateBtn.textContent = "…";
+    QLApi.updateApply()
+      .then(function (data) {
+        const msg =
+          (data && data.message) ||
+          "Actualizado. Reiniciá QuantLab para cargar el código.";
+        if (window.QLToasts && QLToasts.show) {
+          QLToasts.show("ok", msg);
+        } else {
+          window.alert(msg);
+        }
+        refreshUpdateBanner();
+      })
+      .catch(function (err) {
+        const msg =
+          (err && err.message) ||
+          "No se pudo actualizar (¿cambios locales sin commit?).";
+        if (window.QLToasts && QLToasts.show) {
+          QLToasts.show("error", msg);
+        } else {
+          window.alert(msg);
+        }
+        if (bannerUpdateBtn) {
+          bannerUpdateBtn.disabled = false;
+          bannerUpdateBtn.textContent = "Actualizar";
+        }
+      });
+  }
+
+  if (bannerUpdateBtn) {
+    bannerUpdateBtn.addEventListener("click", onBannerUpdateClick);
   }
 
   function updateBanner(modePayload) {
