@@ -1,26 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · tip en origin/main = 59711e6
+Versión: 1.01.0 · Monte Carlo corrección (1e6 escenarios, batching, trazabilidad)
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- F0–F18: certificados externos (histórico)
-- Alpha: F0–10 + walk-forward pipeline
-- Monte Carlo: F0–12 (schema v2, probs, historial, nav)
-- Sim UI: capital inicial/final + fee/lado VIP0 10 bps
-- GitHub: main sincronizado (celular/web al día)
+- Alpha Scanner F0–10 + walk-forward
+- Monte Carlo: límites 2…1e6 · batching · jobs async · DatasetReference · anti-huérfano
+- UI: presets, velas/escenario, Abrir dataset/scan/BT, progreso/cancel
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Sync main ← workbench (264 commits): Alpha + MC + capital/fees + auditoría 2026-07-26
-QA gate: mypy strict + ruff + 1390 passed
-Remote limpio (sin token en URL)
+Corrección MC (docs/montecarlo/montecarlo-correction-audit.md):
+- Cap 20 eliminado como tope técnico; 16 = solo trayectorias
+- Stats incrementales + storage_mode summary_and_sample
+- mode technical_lab (contexto completo LAB) vs normal (exige backtest_id)
+- Tests: 45 passed (suite MC)
 
 PRÓXIMO
 -------
-Validar fees VIP0 vs cuenta; F5 en workbench local tras cambios static
+F5 workbench; validar UI presets/confirm; deep-link Scan/BT por id si se pide
 
 INVARIANTES
 -----------

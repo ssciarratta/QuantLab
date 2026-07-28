@@ -314,6 +314,16 @@
     labMonteCarloDelete: function (runId) {
       return request("DELETE", "/api/lab/montecarlo/history/" + encodeURIComponent(runId));
     },
+    labMontecarloJob: function (jobId) {
+      return request("GET", "/api/lab/montecarlo/jobs/" + encodeURIComponent(jobId));
+    },
+    labMontecarloCancel: function (jobId) {
+      return request(
+        "POST",
+        "/api/lab/montecarlo/jobs/" + encodeURIComponent(jobId) + "/cancel",
+        {}
+      );
+    },
     labFeatures: function (body) {
       return request("POST", "/api/lab/features/run", body || {});
     },

@@ -173,8 +173,8 @@ class MonteCarloExperimentContext:
 class MonteCarloConfig:
     """Configuración del experimento MC.
 
-    ``n_bars`` / ``dataset_bar_count``: cantidad de velas del dataset de entrada
-    (en lab sintético: velas 1m). No es el número de escenarios.
+    ``n_bars`` / ``dataset_bar_count``: velas utilizadas **por escenario**
+    (lab sintético: timeframe 1m). No es el número de escenarios ni de trayectorias.
     """
 
     method: MonteCarloMethod = MonteCarloMethod.PRICE_SHOCK_RERUN
@@ -193,21 +193,29 @@ class MonteCarloConfig:
     persist_result: bool = True
     # Alias semántico para UI (mismo valor que n_bars).
     dataset_bar_count: int | None = None
+    batch_size: int = 1000
+    max_persisted_trajectories: int = 16
+    store_paths: bool = False
 
     def __post_init__(self) -> None:
+        from quantlab.montecarlo.limits import validate_n_scenarios
+
         if self.method not in IMPLEMENTED_METHODS:
             raise ValidationError(
                 f"método MC no implementado: {self.method!r}; "
                 f"disponibles={[m.value for m in IMPLEMENTED_METHODS]}"
             )
-        if self.n_scenarios < 2:
-            raise ValidationError("n_scenarios >= 2")
+        validate_n_scenarios(self.n_scenarios)
         if self.n_bars < 1:
             raise ValidationError("n_bars >= 1")
         if self.noise_bps < 0:
             raise ValidationError("noise_bps debe ser >= 0")
         if not (0.0 < self.ci_level < 1.0):
             raise ValidationError("ci_level debe estar en (0, 1)")
+        if self.batch_size < 1:
+            raise ValidationError("batch_size >= 1")
+        if self.max_persisted_trajectories < 0:
+            raise ValidationError("max_persisted_trajectories >= 0")
         if self.bootstrap_block_size is not None:
             raise ValidationError(
                 "bootstrap_block_size no aplica al método price_shock_rerun "
@@ -229,12 +237,12 @@ class MonteCarloConfig:
         return METHOD_DISCLAIMER
 
     def bar_horizon_label(self, timeframe: str | None) -> str:
-        """Etiqueta precisa para UI (evita \"Bars\" ambiguo)."""
+        """Etiqueta precisa: velas por escenario (no #escenarios)."""
         tf = timeframe or "desconocido"
         n = self.effective_bar_count
         dur = _duration_hint(n, tf)
-        base = f"{n} velas del dataset ({tf})"
-        return f"{base}; horizonte ≈ {dur}" if dur else base
+        base = f"{n} velas utilizadas por escenario ({tf})"
+        return f"{base}; duración ≈ {dur}" if dur else base
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -244,6 +252,7 @@ class MonteCarloConfig:
             "n_scenarios": self.n_scenarios,
             "n_bars": self.n_bars,
             "dataset_bar_count": self.effective_bar_count,
+            "n_bars_label_es": "Velas utilizadas por escenario",
             "seed": self.seed,
             "ci_level": self.ci_level,
             "noise_bps": self.noise_bps,
@@ -255,6 +264,9 @@ class MonteCarloConfig:
             "preserve_instrument_id": self.preserve_instrument_id,
             "as_of_time": self.as_of_time.isoformat() if self.as_of_time else None,
             "persist_result": self.persist_result,
+            "batch_size": self.batch_size,
+            "max_persisted_trajectories": self.max_persisted_trajectories,
+            "store_paths": self.store_paths,
         }
 
     @classmethod
@@ -292,6 +304,9 @@ class MonteCarloConfig:
             as_of_time=as_of_time,
             persist_result=bool(raw.get("persist_result", True)),
             dataset_bar_count=None,
+            batch_size=int(raw.get("batch_size", 1000)),
+            max_persisted_trajectories=int(raw.get("max_persisted_trajectories", 16)),
+            store_paths=bool(raw.get("store_paths", False)),
         )
 
 

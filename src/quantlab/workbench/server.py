@@ -42,6 +42,7 @@ from quantlab.workbench.api import (
     handle_get_lab_features_store,
     handle_get_lab_metrics,
     handle_get_lab_montecarlo_history,
+    handle_get_lab_montecarlo_job,
     handle_get_lab_montecarlo_run,
     handle_get_lab_optimize_history,
     handle_get_lab_optimize_run,
@@ -96,6 +97,7 @@ from quantlab.workbench.api import (
     handle_post_lab_export_hb,
     handle_post_lab_features,
     handle_post_lab_montecarlo,
+    handle_post_lab_montecarlo_job_cancel,
     handle_post_lab_optimize,
     handle_post_lab_scanner,
     handle_post_lab_validation_run,
@@ -558,6 +560,13 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/montecarlo/history":
                     self._send_json(handle_get_lab_montecarlo_history(state))
                     return
+                if path.startswith("/api/lab/montecarlo/jobs/"):
+                    job_id = unquote(path[len("/api/lab/montecarlo/jobs/") :]).strip("/")
+                    if not _path_segment_ok(job_id):
+                        self._send_error_json(400, "job_id inválido")
+                        return
+                    self._send_json(handle_get_lab_montecarlo_job(state, job_id))
+                    return
                 if path.startswith("/api/lab/montecarlo/history/"):
                     run_id = unquote(path[len("/api/lab/montecarlo/history/") :]).strip("/")
                     if not _path_segment_ok(run_id):
@@ -688,6 +697,13 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/montecarlo":
                     self._send_json(handle_post_lab_montecarlo(state, body))
+                    return
+                if path.startswith("/api/lab/montecarlo/jobs/") and path.endswith("/cancel"):
+                    mid = path[len("/api/lab/montecarlo/jobs/") : -len("/cancel")].strip("/")
+                    if not _path_segment_ok(mid):
+                        self._send_error_json(400, "job_id inválido")
+                        return
+                    self._send_json(handle_post_lab_montecarlo_job_cancel(state, mid))
                     return
                 if path in ("/api/lab/features", "/api/lab/features/run"):
                     self._send_json(handle_post_lab_features(state, body))

@@ -3150,21 +3150,37 @@ def handle_get_lab_optimize_run(state: WorkbenchState, run_id: str) -> dict[str,
 
 
 def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    n_scenarios = body.get("n_scenarios", 5)
-    n_bars = body.get("n_bars", 16)
+    from quantlab.montecarlo.limits import (
+        ASYNC_JOB_THRESHOLD,
+        CONFIRM_LARGE_THRESHOLD,
+        DEFAULT_BARS,
+        DEFAULT_SCENARIOS,
+        estimate_cost,
+    )
+    from quantlab.workbench.montecarlo_jobs import get_job_store
+
+    n_scenarios = body.get("n_scenarios", DEFAULT_SCENARIOS)
+    n_bars = body.get("n_bars", DEFAULT_BARS)
     noise_bps = body.get("noise_bps", 10.0)
     seed = body.get("seed", 42)
     scan_id = body.get("scan_id")
     backtest_id = body.get("backtest_id")
     strategy_id = body.get("strategy_id", "buy_once")
     store_paths = body.get("store_paths", False)
-    if not isinstance(n_scenarios, int):
+    max_persisted_trajectories = body.get("max_persisted_trajectories", 16)
+    batch_size = body.get("batch_size", 1000)
+    mode = body.get("mode", "technical_lab")
+    confirm_large = body.get("confirm_large", False)
+    async_job = body.get("async")
+    estimate_only = body.get("estimate_only", False)
+
+    if not isinstance(n_scenarios, int) or isinstance(n_scenarios, bool):
         raise ApiError(400, "n_scenarios debe ser int")
-    if not isinstance(n_bars, int):
+    if not isinstance(n_bars, int) or isinstance(n_bars, bool):
         raise ApiError(400, "n_bars debe ser int")
-    if not isinstance(noise_bps, (int, float)):
+    if not isinstance(noise_bps, (int, float)) or isinstance(noise_bps, bool):
         raise ApiError(400, "noise_bps debe ser número")
-    if not isinstance(seed, int):
+    if not isinstance(seed, int) or isinstance(seed, bool):
         raise ApiError(400, "seed debe ser int")
     if scan_id is not None and not isinstance(scan_id, str):
         raise ApiError(400, "scan_id debe ser string")
@@ -3174,34 +3190,100 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         raise ApiError(400, "strategy_id inválido")
     if not isinstance(store_paths, bool):
         raise ApiError(400, "store_paths debe ser bool")
+    if not isinstance(max_persisted_trajectories, int) or isinstance(
+        max_persisted_trajectories, bool
+    ):
+        raise ApiError(400, "max_persisted_trajectories debe ser int")
+    if not isinstance(batch_size, int) or isinstance(batch_size, bool):
+        raise ApiError(400, "batch_size debe ser int")
+    if not isinstance(mode, str):
+        raise ApiError(400, "mode debe ser string")
+    if not isinstance(confirm_large, bool):
+        raise ApiError(400, "confirm_large debe ser bool")
     persist = body.get("persist", True)
     if not isinstance(persist, bool):
         raise ApiError(400, "persist debe ser bool")
     if "path" in body or "montecarlo_root" in body or "target_path" in body:
         raise ApiError(400, "path externo no permitido; montecarlo solo a sandbox de sesión")
+
+    if estimate_only:
+        return {
+            "ok": True,
+            "kind": "montecarlo_estimate",
+            "estimate": estimate_cost(
+                n_scenarios=n_scenarios,
+                n_bars=n_bars,
+                store_paths=store_paths,
+                max_persisted_trajectories=max_persisted_trajectories,
+            ),
+            "requires_confirm": n_scenarios >= CONFIRM_LARGE_THRESHOLD,
+            "live_routing": False,
+        }
+
+    scan_clean = scan_id.strip() if isinstance(scan_id, str) and scan_id.strip() else None
+    bt_clean = (
+        backtest_id.strip()
+        if isinstance(backtest_id, str) and backtest_id.strip()
+        else None
+    )
+    use_async = async_job if isinstance(async_job, bool) else (n_scenarios >= ASYNC_JOB_THRESHOLD)
+
     try:
         session = state.ensure_session()
-        result = lab_services.run_lab_montecarlo(
-            n_scenarios=n_scenarios,
-            n_bars=n_bars,
-            noise_bps=float(noise_bps),
-            seed=seed,
-            persist=persist,
-            montecarlo_root=state.ensure_lab_montecarlo_dir() if persist else None,
-            session_id=session.session_id,
-            scan_id=scan_id.strip() if isinstance(scan_id, str) and scan_id.strip() else None,
-            backtest_id=(
-                backtest_id.strip()
-                if isinstance(backtest_id, str) and backtest_id.strip()
-                else None
-            ),
-            strategy_id=strategy_id.strip(),
-            store_paths=store_paths,
-        )
+        kwargs: dict[str, Any] = {
+            "n_scenarios": n_scenarios,
+            "n_bars": n_bars,
+            "noise_bps": float(noise_bps),
+            "seed": seed,
+            "persist": persist,
+            "montecarlo_root": state.ensure_lab_montecarlo_dir() if persist else None,
+            "session_id": session.session_id,
+            "scan_id": scan_clean,
+            "backtest_id": bt_clean,
+            "strategy_id": strategy_id.strip(),
+            "store_paths": store_paths,
+            "max_persisted_trajectories": max_persisted_trajectories,
+            "batch_size": batch_size,
+            "mode": mode.strip(),
+            "confirm_large": confirm_large,
+        }
+        if use_async:
+            store = get_job_store()
+            job = store.start(runner=lab_services.run_lab_montecarlo, kwargs=kwargs)
+            return store.to_public(job)
+        result = lab_services.run_lab_montecarlo(**kwargs)
     except ValidationError as exc:
         raise _lab_validation_error(exc) from exc
     result["session_id"] = state.ensure_session().session_id
     return state.store_lab_result(result)
+
+
+def handle_get_lab_montecarlo_job(state: WorkbenchState, job_id: str) -> dict[str, Any]:
+    from quantlab.workbench.montecarlo_jobs import get_job_store
+
+    _ = state.ensure_session()
+    store = get_job_store()
+    job = store.get(job_id.strip())
+    if job is None:
+        raise ApiError(404, f"job no encontrado: {job_id}")
+    out = store.to_public(job)
+    if job.status == "completed" and isinstance(job.result, dict):
+        job.result["session_id"] = state.ensure_session().session_id
+        out["result"] = state.store_lab_result(job.result)
+    return out
+
+
+def handle_post_lab_montecarlo_job_cancel(
+    state: WorkbenchState, job_id: str
+) -> dict[str, Any]:
+    from quantlab.workbench.montecarlo_jobs import get_job_store
+
+    _ = state.ensure_session()
+    store = get_job_store()
+    job = store.cancel(job_id.strip())
+    if job is None:
+        raise ApiError(404, f"job no encontrado: {job_id}")
+    return store.to_public(job)
 
 
 def handle_get_lab_montecarlo_history(state: WorkbenchState) -> dict[str, Any]:

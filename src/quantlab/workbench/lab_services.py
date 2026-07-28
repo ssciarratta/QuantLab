@@ -1144,8 +1144,8 @@ def run_lab_optimize(
 
 def run_lab_montecarlo(
     *,
-    n_scenarios: int = 5,
-    n_bars: int = 16,
+    n_scenarios: int = 1000,
+    n_bars: int = 60,
     noise_bps: float = 10.0,
     seed: int = 42,
     persist: bool = True,
@@ -1155,11 +1155,29 @@ def run_lab_montecarlo(
     backtest_id: str | None = None,
     strategy_id: str = "buy_once",
     store_paths: bool = False,
+    max_persisted_trajectories: int = 16,
+    batch_size: int = 1000,
+    mode: str = "technical_lab",
+    confirm_large: bool = False,
+    cancellation: Any | None = None,
+    on_progress: Any | None = None,
 ) -> dict[str, Any]:
-    """Mini MC lab: barras sintéticas 1m + BuyOnce (trazable schema v2).
+    """MC lab: velas sintéticas 1m + estrategia (default BuyOnce), schema v2+.
 
-    ``n_bars`` = cantidad de velas 1m del dataset sintético (no #escenarios).
+    ``n_bars`` = velas utilizadas **por escenario** (timeframe 1m), no #escenarios.
+    ``mode``:
+      - ``technical_lab``: sintético permitido; contexto completo auto-rellenado.
+      - ``normal``: exige ``backtest_id`` (anti-huérfano).
     """
+    from quantlab.montecarlo.dataset import DatasetReference
+    from quantlab.montecarlo.limits import (
+        CONFIRM_EXTREME_THRESHOLD,
+        CONFIRM_LARGE_THRESHOLD,
+        DEFAULT_MAX_PERSISTED_TRAJECTORIES,
+        estimate_cost,
+        validate_n_bars,
+        validate_n_scenarios,
+    )
     from quantlab.montecarlo.models import METHOD_DISCLAIMER, MonteCarloConfig
     from quantlab.montecarlo.traceability import (
         build_lab_context,
@@ -1168,34 +1186,67 @@ def run_lab_montecarlo(
         normalize_montecarlo_payload,
     )
 
-    if n_scenarios < 2 or n_scenarios > 20:
-        raise ValidationError("n_scenarios debe estar entre 2 y 20 (mini)")
-    if n_bars < 8 or n_bars > 60:
-        raise ValidationError("n_bars debe estar entre 8 y 60")
+    validate_n_scenarios(n_scenarios)
+    validate_n_bars(n_bars)
     if noise_bps < 0:
         raise ValidationError("noise_bps debe ser >= 0")
-    if n_scenarios > 10:
-        # warning informativo en payload; no bloquea
-        size_warning = (
-            f"N={n_scenarios} es alto para el modo mini lab (máx 20); "
-            "el IC de la media se estrecha pero cuantiles son ruidosos."
+    if max_persisted_trajectories < 0:
+        raise ValidationError("max_persisted_trajectories >= 0")
+    if max_persisted_trajectories == 0:
+        store_paths = False
+    if max_persisted_trajectories > DEFAULT_MAX_PERSISTED_TRAJECTORIES * 4:
+        max_persisted_trajectories = DEFAULT_MAX_PERSISTED_TRAJECTORIES * 4
+
+    mode_key = (mode or "technical_lab").strip().lower()
+    if mode_key not in ("technical_lab", "normal"):
+        raise ValidationError("mode debe ser 'technical_lab' o 'normal'")
+    if mode_key == "normal" and not backtest_id:
+        raise ValidationError(
+            "modo normal: se requiere backtest_id (flujo Backtest → Monte Carlo)"
         )
-    else:
-        size_warning = None
+    if n_scenarios >= CONFIRM_LARGE_THRESHOLD and not confirm_large:
+        raise ValidationError(
+            f"n_scenarios>={CONFIRM_LARGE_THRESHOLD} requiere confirm_large=true "
+            "(estimá coste y confirmá en UI)"
+        )
+    if n_scenarios >= CONFIRM_EXTREME_THRESHOLD and not confirm_large:
+        raise ValidationError(
+            "1.000.000 escenarios requiere confirmación explícita (confirm_large=true)"
+        )
+
+    size_warning = None
+    if n_scenarios >= CONFIRM_LARGE_THRESHOLD:
+        size_warning = (
+            f"N={n_scenarios}: corrida grande — batching + memoria acotada; "
+            "trayectorias limitadas a max_persisted_trajectories."
+        )
 
     bars = make_synthetic_bars(n_bars)
     initial_cash = Decimal("50000")
+    equity_currency = "LAB"  # capital sintético de laboratorio (no USDT de exchange)
     strategy_params = {"quantity": "1"}
+    sid = normalize_strategy_id(strategy_id) if strategy_id else "buy_once"
     fee_schedule = resolve_binance_spot_fee_schedule()
     fee_model = binance_spot_fee_model()
     fee_dict = fee_schedule.to_dict()
+    ds_hash = hash_bars(bars)
+    dataset_ref = DatasetReference.from_synthetic_bars(
+        bars, dataset_hash=ds_hash, seed=seed
+    )
+
+    fee_totals: list[float] = []
+    fill_counts: list[int] = []
 
     def runner(noisy: Any) -> SimulationResult:
         bt = BarBacktester(
             BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
             fee_model=fee_model,
         )
-        return bt.run(BuyOnceStrategy(strategy_params), noisy).simulation
+        sim = bt.run(BuyOnceStrategy(strategy_params), noisy).simulation
+        n_f = len(sim.fills)
+        fill_counts.append(n_f)
+        fee_totals.append(sum(float(f.fee.amount) for f in sim.fills))
+        return sim
 
     cfg = MonteCarloConfig(
         n_scenarios=n_scenarios,
@@ -1203,6 +1254,9 @@ def run_lab_montecarlo(
         seed=seed,
         noise_bps=noise_bps,
         persist_result=persist,
+        batch_size=batch_size,
+        max_persisted_trajectories=max_persisted_trajectories,
+        store_paths=store_paths,
     )
     mc = MonteCarloSimulator(seed=seed)
     result = mc.run(
@@ -1210,47 +1264,68 @@ def run_lab_montecarlo(
         runner,
         config=cfg,
         store_paths=store_paths,
-        max_paths_stored=16,
+        max_paths_stored=max_persisted_trajectories,
         initial_equity=float(initial_cash),
+        batch_size=batch_size,
+        retain_results=False,
+        cancellation=cancellation,
+        on_progress=on_progress,
     )
-    # Fees agregados por escenario (desde SimulationResult en memoria)
-    fee_totals: list[float] = []
-    fill_counts: list[int] = []
-    for sim in result.results:
-        n_f = len(sim.fills)
-        fill_counts.append(n_f)
-        fee_sum = sum(float(f.fee.amount) for f in sim.fills)
-        fee_totals.append(fee_sum)
     mean_total_fees = sum(fee_totals) / len(fee_totals) if fee_totals else 0.0
     mean_fills = sum(fill_counts) / len(fill_counts) if fill_counts else 0.0
     mean_fee_per_fill = (
         mean_total_fees / mean_fills if mean_fills > 0 else None
     )
 
+    orphan = mode_key == "technical_lab" and not backtest_id and not scan_id
     ctx = build_lab_context(
         session_id=session_id,
         scan_id=scan_id,
         backtest_id=backtest_id,
-        strategy_id=strategy_id,
+        strategy_id=sid,
         strategy_params=strategy_params,
-        symbols=(bars[0].instrument_id,) if bars else ("WB:SYN",),
-        timeframe="1m",
+        symbols=(dataset_ref.symbol,) if dataset_ref.symbol else ("WB:SYN",),
+        timeframe=dataset_ref.timeframe,
         dataset_source="synthetic",
-        dataset_id="wb-synthetic",
-        dataset_hash=hash_bars(bars),
+        dataset_id=dataset_ref.dataset_id,
+        dataset_hash=ds_hash,
         initial_equity=float(initial_cash),
         fee_model=getattr(fee_model, "model_id", "fee.binance_spot_vip0.v1"),
-        orphan=scan_id is None and backtest_id is None,
+        orphan=orphan,
     )
+    ctx_dict = ctx.to_dict()
+    ctx_dict["strategy_name"] = ctx_dict.get("strategy_name") or sid
+    ctx_dict["lab_mode"] = mode_key
+    ctx_dict["equity_currency"] = equity_currency
+    if mode_key == "technical_lab" and orphan:
+        ctx_dict["orphan_warning"] = (
+            "Modo laboratorio técnico: dataset sintético WB:SYN, estrategia BuyOnce, "
+            f"capital inicial {initial_cash} {equity_currency}. "
+            "No es un backtest de mercado real."
+        )
+
     cfg_dict = cfg.to_dict()
     metrics_dict = result.metrics.to_dict() if result.metrics else {}
+    cost = estimate_cost(
+        n_scenarios=n_scenarios,
+        n_bars=n_bars,
+        store_paths=store_paths,
+        max_persisted_trajectories=max_persisted_trajectories,
+        scenarios_per_second=result.scenarios_per_second,
+    )
     capital_summary = {
         "initial_equity": float(initial_cash),
         "mean_final_equity": result.mean_equity,
         "median_final_equity": (
             result.metrics.median_equity if result.metrics else None
         ),
-        "currency": "USDT",
+        "currency": equity_currency,
+        "min_final_equity": (
+            min(result.final_equities) if result.final_equities else None
+        ),
+        "max_final_equity": (
+            max(result.final_equities) if result.final_equities else None
+        ),
     }
     fee_summary = {
         "schedule_id": fee_dict["schedule_id"],
@@ -1270,18 +1345,37 @@ def run_lab_montecarlo(
         "mean_fee_per_fill": mean_fee_per_fill,
         "note": fee_dict["note"],
     }
+    ds_dict = dataset_ref.to_dict()
+    bars_meta = {
+        "label_es": "Velas utilizadas por escenario",
+        "n_bars": n_bars,
+        "timeframe": dataset_ref.timeframe,
+        "duration_label": ds_dict.get("duration_label"),
+        "start_time": ds_dict.get("start_time"),
+        "end_time": ds_dict.get("end_time"),
+        "tooltip_es": (
+            f"Cada escenario vuelve a ejecutar la estrategia sobre estas {n_bars} "
+            f"velas {dataset_ref.timeframe} perturbadas."
+        ),
+    }
     payload: dict[str, Any] = {
-        "ok": True,
+        "ok": result.status == "completed",
         "kind": "montecarlo",
         "method": cfg.method.value,
         "disclaimer": METHOD_DISCLAIMER,
         "n_scenarios": result.n_scenarios,
+        "n_scenarios_requested": n_scenarios,
+        "n_scenarios_completed": result.n_scenarios_completed,
+        "n_scenarios_failed": result.n_scenarios_failed,
+        "n_scenarios_cancelled": result.n_scenarios_cancelled,
         "n_bars": n_bars,
         "dataset_bar_count": n_bars,
-        "bar_horizon_label": cfg.bar_horizon_label("1m"),
+        "bars_meta": bars_meta,
+        "bar_horizon_label": cfg.bar_horizon_label(dataset_ref.timeframe),
         "noise_bps": float(noise_bps),
         "seed": result.seed,
         "initial_equity": float(initial_cash),
+        "equity_currency": equity_currency,
         "mean_equity": result.mean_equity,
         "std_equity": result.std_equity,
         "ci_low": result.ci_low,
@@ -1289,13 +1383,29 @@ def run_lab_montecarlo(
         "ci_level": result.ci_level,
         "ci_kind": "wald_mean",
         "final_equities": list(result.final_equities),
+        "sample_final_equities": (
+            list(result.sample_final_equities) if result.sample_final_equities else None
+        ),
         "equity_paths": (
             [list(p) for p in result.equity_paths] if result.equity_paths else None
         ),
+        "max_persisted_trajectories": max_persisted_trajectories,
+        "trajectories_stored": (
+            len(result.equity_paths) if result.equity_paths else 0
+        ),
+        "storage_mode": result.storage_mode,
+        "histogram": result.histogram,
+        "percentiles_approximate": result.percentiles_approximate,
+        "status": result.status,
+        "partial": result.partial,
+        "elapsed_seconds": result.elapsed_seconds,
+        "scenarios_per_second": result.scenarios_per_second,
+        "cost_estimate": cost,
+        "dataset": ds_dict,
         "capital_summary": capital_summary,
         "fee_schedule": fee_dict,
         "fee_summary": fee_summary,
-        "context": ctx.to_dict(),
+        "context": ctx_dict,
         "config": cfg_dict,
         "metrics": metrics_dict,
         "config_hash": hash_mapping(cfg_dict),
@@ -1309,18 +1419,21 @@ def run_lab_montecarlo(
             "config_hash": hash_mapping(cfg_dict),
             "code_commit": ctx.code_commit,
         },
-        "warnings": [w for w in (size_warning, ctx.orphan_warning) if w],
+        "mode": mode_key,
+        "warnings": [w for w in (size_warning, ctx_dict.get("orphan_warning")) if w],
         "persisted": False,
         "run_id": None,
         "path": None,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
     }
-    if persist:
+    if persist and result.status == "completed" and not result.partial:
         if montecarlo_root is None:
             raise ValidationError("montecarlo_root requerido para persist=True")
         if not LIVE_BLOCKED:
-            raise ValidationError("LIVE_BLOCKED debe ser True; abortando montecarlo persist")
+            raise ValidationError(
+                "LIVE_BLOCKED debe ser True; abortando montecarlo persist"
+            )
         payload = persist_montecarlo_run(Path(montecarlo_root), payload)
     else:
         payload = normalize_montecarlo_payload(payload)
