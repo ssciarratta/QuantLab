@@ -20,6 +20,9 @@ def test_every_strategy_has_guide() -> None:
         assert g["params_explained"]
         assert g["risks"]
         assert g["lab_notes"]
+        assert g.get("when_to_use")
+        assert isinstance(g["when_to_use"], list)
+        assert len(g["when_to_use"]) >= 1
 
 
 def test_catalog_rows_include_how_it_works() -> None:
@@ -31,6 +34,7 @@ def test_catalog_rows_include_how_it_works() -> None:
     assert all("family_label_es" in r for r in rows)
     assert all(r["how_it_works"].get("example") for r in rows)
     assert all(r["how_it_works"].get("in_plain_words") for r in rows)
+    assert all(r["how_it_works"].get("when_to_use") for r in rows)
 
 
 def test_lab_strategies_exposes_family_labels() -> None:
@@ -57,7 +61,11 @@ def test_simulator_js_has_accordion_and_guide_window() -> None:
     ).read_text(encoding="utf-8")
     assert 'data-tab="comparar"' in js
     assert 'data-tab="estrategias"' in js
+    assert "Guías de estrategias" in js
     assert "sim-strat-group" in js
+    assert "sim-strat-card" in js
+    assert "when_to_use" in js
+    assert "sim-strat-search" in js
     assert "openStrategyGuide" in js
     assert "in_plain_words" in js
     assert "sim-fee-source" in js

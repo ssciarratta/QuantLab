@@ -1,26 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Simulador multi-venue + HL HIP-3 + capital/margen
+Versión: 1.01.0 · Guías de estrategias + Simulador multi-venue
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Simulador: Binance/OKX/Bybit/HL/A3 · Futuros/Spot
-- HL: core crypto + HIP-3 (commodities/equities/FX) ~470 · buscador
-- Capital: monto fijo | sin monto · margen/trade + pico + ¿faltó?
-- Auto-add ticker entre venues tildados · resumen por moneda + rentab% + fee/op
+- Simulador: solapas «1 · Comparar» / «2 · Guías de estrategias» (visibles)
+- Guías: 50 fichas · En simple + Detalle + Cuándo usarla + ejemplo · stubs marcados
+- HL HIP-3 + buscador · capital fijo/sin monto · auto-add ticker
+- Alpha Scanner → recomendaciones: diseño acordado; implementación pendiente
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Auto-add moneda a venues tildados (mismo ticker corto)
-Resumen ordenado moneda→rentabilidad% · columna Fee/op
-Buscador productos + orden A→Z · HL HIP-3
+Fix UX: solapa Guías ya no queda tapada por controles de Comparar
+Fichas expandibles + búsqueda · when_to_use por familia
+Diseño AS→estrategias: 6A/7A/8C/9B/10C (próxima fase)
 
 PRÓXIMO
 -------
-F5 / reiniciar workbench si el panel quedó viejo
-Pulir mapeo A3↔crypto si hace falta (hoy no auto-copia A3)
+Ctrl+F5 + reiniciar workbench → solapa «2 · Guías de estrategias»
+Luego: Alpha Scanner sugiere familia + 2–3 estrategias + TF
 
 INVARIANTES
 -----------

@@ -388,6 +388,8 @@
   function openSimulator() {
     if (wm.windows.has("simulator")) {
       wm.focus("simulator");
+      const root = wm.windows.get("simulator").body.firstElementChild;
+      if (root && root.refresh) root.refresh();
       return;
     }
     const pane = QLPanes.createSimulatorPane();
@@ -395,7 +397,7 @@
       "simulator",
       tr("pane.simulator", "Simulador"),
       pane,
-      mergeOpts("simulator", { x: 80, y: 40, w: 720, h: 580 })
+      mergeOpts("simulator", { x: 60, y: 30, w: 860, h: 640 })
     );
     if (pane.refresh) pane.refresh();
   }

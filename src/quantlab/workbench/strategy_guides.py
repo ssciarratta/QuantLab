@@ -28,6 +28,58 @@ _LAB_COMMON = [
     "LIVE real sigue bloqueado: esto es investigación / paper, no trading en vivo.",
 ]
 
+# Recomendaciones generales por familia (fijas; el Alpha Scanner las enriquecerá después).
+FAMILY_WHEN_TO_USE: dict[str, list[str]] = {
+    "demo": [
+        "Usala solo para probar que el panel y el motor responden.",
+        "No sirve para decidir si una moneda ‘está buena’.",
+    ],
+    "trend": [
+        "Cuando el mercado tiene dirección clara (sube o baja con fuerza durante muchas velas).",
+        "Mejor en temporalidades medias/altas (ej. 1h, 4h, 1d) para filtrar ruido.",
+        "Evitala en rangos laterales estrechos: entra y sale demasiado.",
+    ],
+    "momentum": [
+        "Cuando el precio ya se movió con fuerza y querés ‘seguir la ola’ un tramo más.",
+        "Útil tras rupturas o noticias que empujan el precio.",
+        "Cuidado si el movimiento ya se agotó: podés llegar tarde.",
+    ],
+    "mean_reversion": [
+        "Cuando el precio suele volver a un promedio (bandas, sobrecompra/sobreventa).",
+        "Mejor en mercados laterales o con ida y vuelta, no en tendencias fuertes.",
+        "En tendencias violentas puede comprar ‘barato’ y seguir bajando.",
+    ],
+    "market_making": [
+        "Cuando hay ida y vuelta frecuente y querés ganar el ‘spread’ (comprar un poco más abajo / vender un poco más arriba).",
+        "No es una apuesta direccional fuerte.",
+        "En lab es un proxy: no es el libro real del exchange.",
+    ],
+    "stats": [
+        "Cuando querés un filtro estadístico (residual, pairs simplificado) sobre una serie.",
+        "Requiere entender que es un proxy de research, no arbitraje real multi-venue.",
+    ],
+    "ml": [
+        "Solo como stub de research por ahora: aún no corre completa en el lab.",
+        "Cuando exista modelo entrenado, se usará con datos históricos validados.",
+    ],
+    "multi_asset": [
+        "Pensada para varias monedas a la vez; hoy puede ser stub.",
+        "Útil cuando compares pares o canastas, no una sola serie aislada.",
+    ],
+    "microstructure": [
+        "Proxies de microestructura sobre OHLC (no libro L2 real todavía).",
+        "Usala para explorar ideas, no como señal de producción.",
+    ],
+    "arbitrage": [
+        "Ideas de arbitraje / bases; muchas están en stub.",
+        "En lab single-serie no hay true cross-venue arb.",
+    ],
+    "options": [
+        "Proxies de volatilidad/opciones; revisar si está runnable.",
+        "No es un pricer de opciones de exchange.",
+    ],
+}
+
 
 def _params_lines(meta: StrategyMeta) -> list[str]:
     out: list[str] = []
@@ -50,17 +102,20 @@ def _guide(
     runnable_note: str | None = None,
     in_plain_words: str | None = None,
     example: str | None = None,
+    when_to_use: list[str] | None = None,
 ) -> dict[str, Any]:
     plain = (in_plain_words or idea).strip()
     ex = (example or "").strip() or (
-        "Ejemplo: imaginá BTC a 100. Si la estrategia dice ‘comprar’, el lab compra en esa vela. "
-        "Si más tarde dice ‘salir’, vende y vuelve a efectivo. "
-        "Si no hay señal, no opera (ahorra fees)."
+        "Ejemplo paso a paso: imaginá BTC a 100 en la vela 1. "
+        "Si la estrategia dice ‘comprar’, el lab compra ahí. "
+        "En la vela 20 el precio está 110 y dice ‘salir’: vende y vuelve a efectivo. "
+        "Entre medias, si no hay señal, no opera (ahorra fees)."
     )
     return {
         "idea": idea,
         "in_plain_words": plain,
         "example": ex,
+        "when_to_use": list(when_to_use or []),
         "steps": steps,
         "when_buy": when_buy,
         "when_sell": when_sell,
@@ -511,6 +566,7 @@ def _family_template(meta: StrategyMeta) -> dict[str, Any]:
         idea=idea,
         in_plain_words=plain,
         example=example,
+        when_to_use=list(FAMILY_WHEN_TO_USE.get(fam, [])),
         steps=steps,
         when_buy=when_buy,
         when_sell=when_sell,
@@ -529,7 +585,10 @@ def get_strategy_guide(strategy_id: str) -> dict[str, Any]:
     meta = next((m for m in STRATEGY_CATALOG if m.id == strategy_id), None)
     if meta is None:
         raise KeyError(strategy_id)
-    base = _GUIDES.get(strategy_id) or _family_template(meta)
+    base = dict(_GUIDES.get(strategy_id) or _family_template(meta))
+    # Asegurar when_to_use (guías viejas sin el campo)
+    if not base.get("when_to_use"):
+        base["when_to_use"] = list(FAMILY_WHEN_TO_USE.get(meta.family, []))
     return {
         "id": meta.id,
         "name": meta.name,
@@ -555,6 +614,7 @@ def attach_guides_to_catalog_rows(rows: list[dict[str, Any]]) -> list[dict[str, 
             "idea": guide["idea"],
             "in_plain_words": guide["in_plain_words"],
             "example": guide["example"],
+            "when_to_use": guide.get("when_to_use") or [],
             "steps": guide["steps"],
             "when_buy": guide["when_buy"],
             "when_sell": guide["when_sell"],

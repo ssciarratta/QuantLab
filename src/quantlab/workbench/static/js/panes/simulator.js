@@ -130,10 +130,16 @@
       "TradingView = solo gráfico (link TV en cada chip). " +
       "Futuros A3: margen + diferencias diarias (alerta al agregar). LIVE bloqueado." +
       "</p>" +
-      '<div class="sim-tabs" role="tablist">' +
-      '<button type="button" class="sim-tab active" data-tab="comparar">Comparar</button>' +
-      '<button type="button" class="sim-tab" data-tab="estrategias">Estrategias</button>' +
-      "</div></div>" +
+      '<div class="sim-tabs sticky-tabs" role="tablist" aria-label="Secciones del Simulador">' +
+      '<button type="button" class="sim-tab active" data-tab="comparar">' +
+      "1 · Comparar mercados</button>" +
+      '<button type="button" class="sim-tab" data-tab="estrategias">' +
+      "2 · Guías de estrategias</button>" +
+      "</div>" +
+      '<p class="muted sim-tab-hint" style="font-size:0.75em;margin:0.25rem 0 0">' +
+      "Tip: la solapa <strong>Guías de estrategias</strong> lista las 50 fichas por tipo. " +
+      "Los controles de capital/fees solo se ven en Comparar." +
+      "</p></div>" +
       '<div class="pane-section sim-common">' +
       "<h4>Controles de comparación</h4>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem">' +
@@ -197,8 +203,17 @@
       "</p>" +
       '<div class="mono" id="sim-out-hist">—</div></div>' +
       '<div class="pane-section sim-panel" data-panel="estrategias" style="display:none">' +
-      "<h4>Catálogo por familia</h4>" +
-      '<p class="muted" style="margin-top:0">Desplegá una familia · «Cómo opera» abre una ventana del escritorio · Usar la pone en Comparar.</p>' +
+      "<h4>Guías de estrategias (todas · por tipo)</h4>" +
+      '<p class="muted" style="margin-top:0">' +
+      "Abrí una familia · en cada ficha: <strong>En simple</strong>, " +
+      "<strong>Detalle</strong> (colapsable), <strong>Cuándo usarla</strong> y ejemplo. " +
+      "Stub = aún no corre. «Usar en Comparar» prellena y cambia de solapa." +
+      "</p>" +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin:0.35rem 0">' +
+      '<input type="search" id="sim-strat-search" placeholder="Buscar estrategia o familia…" ' +
+      'style="flex:1;min-width:12rem;font-size:0.8rem">' +
+      '<span class="mono muted" id="sim-strat-count">—</span>' +
+      "</div>" +
       '<div id="sim-strat-list">cargando…</div></div>';
 
     var extraCosts = [];
@@ -227,12 +242,30 @@
     var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
     function showTab(name) {
+      var tab = name || "comparar";
       root.querySelectorAll(".sim-tab").forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-tab") === name);
+        b.classList.toggle("active", b.getAttribute("data-tab") === tab);
       });
       root.querySelectorAll(".sim-panel").forEach(function (p) {
-        p.style.display = p.getAttribute("data-panel") === name ? "" : "none";
+        p.style.display = p.getAttribute("data-panel") === tab ? "" : "none";
       });
+      // Controles de capital/fees solo en Comparar (antes tapaban Guías)
+      var common = root.querySelector(".sim-common");
+      if (common) {
+        common.style.display = tab === "comparar" ? "" : "none";
+      }
+      var hint = root.querySelector(".sim-tab-hint");
+      if (hint) {
+        hint.style.display = tab === "comparar" ? "" : "none";
+      }
+      if (tab === "estrategias") {
+        // Evitar que el scroll quede abajo de Comparar
+        try {
+          root.scrollTop = 0;
+          var win = root.closest && root.closest(".win-body");
+          if (win) win.scrollTop = 0;
+        } catch (_e) {}
+      }
     }
 
     function productFor(venue, id) {
@@ -808,11 +841,22 @@
           return "<li>" + esc(x) + "</li>";
         })
         .join("");
+      var whenUse = (g.when_to_use || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
       return (
         '<p class="sim-guide-plain"><strong>En simple</strong><br>' +
         esc(g.in_plain_words || g.idea || s.description || "—") +
         "</p>" +
-        '<p class="sim-guide-example"><strong>Ejemplo</strong><br>' +
+        (whenUse
+          ? "<p><strong>Cuándo usarla (recomendación general)</strong></p>" +
+            '<ul style="margin:0 0 0.75rem 1.1rem;padding:0">' +
+            whenUse +
+            "</ul>"
+          : "") +
+        '<p class="sim-guide-example"><strong>Ejemplo detallado</strong><br>' +
         esc(g.example || "—") +
         "</p>" +
         "<p><strong>Runnable:</strong> " +
@@ -824,6 +868,7 @@
         " · <span class=\"muted\">id=" +
         esc(s.id) +
         "</span></p>" +
+        "<details class=\"sim-guide-detail\"><summary><strong>Detalle técnico</strong> (pasos, compra/venta, params)</summary>" +
         "<p><strong>Cuándo compra</strong></p><p>" +
         esc(g.when_buy || "—") +
         "</p>" +
@@ -841,8 +886,147 @@
         "</ul>" +
         "<p><strong>Notas del lab</strong></p><ul style=\"margin:0 0 0.5rem 1.1rem;padding:0\">" +
         notes +
-        "</ul>"
+        "</ul></details>"
       );
+    }
+
+    function strategyCardHtml(s) {
+      var id = s.id || s.strategy_id;
+      var runnable = s.runnable !== false;
+      var g = s.how_it_works || {};
+      return (
+        '<details class="sim-strat-card" data-strat-id="' +
+        esc(id) +
+        '">' +
+        "<summary>" +
+        "<strong>" +
+        esc(s.name || id) +
+        "</strong> " +
+        '<span class="muted mono">' +
+        esc(id) +
+        "</span>" +
+        (runnable
+          ? ' <span class="data-badge">runnable</span>'
+          : ' <span class="data-badge data-badge-synth">stub · aún no corre</span>') +
+        "</summary>" +
+        '<div class="sim-strat-card-body">' +
+        renderGuideHtml(s) +
+        '<div class="sim-strat-actions" style="margin-top:0.5rem">' +
+        '<button type="button" class="btn sim-use-strat" data-id="' +
+        esc(id) +
+        '"' +
+        (runnable ? "" : " disabled title=\"Stub: todavía no se puede correr\"") +
+        ">Usar en Comparar</button> " +
+        '<button type="button" class="btn secondary sim-strat-detail" data-id="' +
+        esc(id) +
+        '">Abrir en ventana</button>' +
+        "</div></div></details>"
+      );
+    }
+
+    function bindStratListActions() {
+      root.querySelectorAll(".sim-use-strat").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var id = btn.getAttribute("data-id");
+          var sel = root.querySelector("#sim-strat-hist");
+          if (sel) sel.value = id;
+          showTab("comparar");
+        });
+      });
+      root.querySelectorAll(".sim-strat-detail").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          openStrategyGuide(btn.getAttribute("data-id"));
+        });
+      });
+    }
+
+    function renderStratCatalog() {
+      var listEl = root.querySelector("#sim-strat-list");
+      var countEl = root.querySelector("#sim-strat-count");
+      var q = foldText(
+        (root.querySelector("#sim-strat-search") &&
+          root.querySelector("#sim-strat-search").value) ||
+          ""
+      );
+      var byFamSelect = {};
+      strategiesCache.forEach(function (s) {
+        var f = s.family || "other";
+        if (!byFamSelect[f]) byFamSelect[f] = [];
+        byFamSelect[f].push(s);
+      });
+      var selFamKeys = FAMILY_ORDER.filter(function (f) {
+        return byFamSelect[f];
+      }).concat(
+        Object.keys(byFamSelect)
+          .filter(function (f) {
+            return FAMILY_ORDER.indexOf(f) < 0;
+          })
+          .sort()
+      );
+      var shown = 0;
+      var html = selFamKeys
+        .map(function (fam, idx) {
+          var label = familyLabels[fam] || fam;
+          var items = (byFamSelect[fam] || [])
+            .slice()
+            .sort(function (a, b) {
+              var ka = alphaKey(a.name || a.id || "");
+              var kb = alphaKey(b.name || b.id || "");
+              if (ka < kb) return -1;
+              if (ka > kb) return 1;
+              return 0;
+            })
+            .filter(function (s) {
+              if (!q) return true;
+              var hay = foldText(
+                [
+                  s.id,
+                  s.name,
+                  s.description,
+                  s.family,
+                  s.family_label_es,
+                  (s.how_it_works && s.how_it_works.in_plain_words) || "",
+                ].join(" ")
+              );
+              return hay.indexOf(q) >= 0;
+            });
+          if (!items.length) return "";
+          shown += items.length;
+          var open = !q && idx === 0 ? " open" : q ? " open" : "";
+          var whenFam =
+            (items[0].how_it_works && items[0].how_it_works.when_to_use) || [];
+          var famIntro =
+            whenFam.length > 0
+              ? '<p class="muted sim-fam-when" style="font-size:0.75em;margin:0.25rem 0 0.45rem">' +
+                "<strong>Cuándo usar esta familia:</strong> " +
+                esc(whenFam[0]) +
+                "</p>"
+              : "";
+          return (
+            '<details class="sim-strat-group"' +
+            open +
+            ">" +
+            "<summary>" +
+            esc(label) +
+            ' <span class="muted">(' +
+            items.length +
+            ")</span></summary>" +
+            '<div class="sim-strat-group-body">' +
+            famIntro +
+            items.map(strategyCardHtml).join("") +
+            "</div></details>"
+          );
+        })
+        .join("");
+      listEl.innerHTML = html || '<p class="muted">sin coincidencias</p>';
+      if (countEl) {
+        countEl.textContent = shown + " / " + strategiesCache.length;
+      }
+      bindStratListActions();
     }
 
     function openStrategyGuide(id) {
@@ -961,83 +1145,7 @@
             })
             .join("");
           root.querySelector("#sim-strat-hist").innerHTML = opts;
-
-          var byFam = byFamSelect;
-          var famKeys = selFamKeys;
-
-          var html = famKeys
-            .map(function (fam, idx) {
-              var label = familyLabels[fam] || fam;
-              var items = (byFam[fam] || []).slice().sort(function (a, b) {
-                var ka = alphaKey(a.name || a.id || a.strategy_id || "");
-                var kb = alphaKey(b.name || b.id || b.strategy_id || "");
-                if (ka < kb) return -1;
-                if (ka > kb) return 1;
-                return 0;
-              });
-              var open = idx === 0 ? " open" : "";
-              var rows = items
-                .map(function (s) {
-                  var id = s.id || s.strategy_id;
-                  var runnable = s.runnable !== false;
-                  return (
-                    '<div class="sim-strat-row">' +
-                    "<div>" +
-                    "<strong>" +
-                    esc(s.name || id) +
-                    "</strong> " +
-                    '<span class="muted mono">' +
-                    esc(id) +
-                    "</span>" +
-                    (runnable
-                      ? ""
-                      : ' <span class="data-badge data-badge-synth">stub</span>') +
-                    "<br><span class=\"muted\">" +
-                    esc(s.description || "") +
-                    "</span></div>" +
-                    '<div class="sim-strat-actions">' +
-                    '<button type="button" class="btn secondary sim-strat-detail" data-id="' +
-                    esc(id) +
-                    '">Cómo opera</button> ' +
-                    '<button type="button" class="btn sim-use-strat" data-id="' +
-                    esc(id) +
-                    '"' +
-                    (runnable ? "" : " disabled") +
-                    ">Usar</button>" +
-                    "</div></div>"
-                  );
-                })
-                .join("");
-              return (
-                '<details class="sim-strat-group"' +
-                open +
-                ">" +
-                "<summary>" +
-                esc(label) +
-                " <span class=\"muted\">(" +
-                items.length +
-                ")</span></summary>" +
-                '<div class="sim-strat-group-body">' +
-                rows +
-                "</div></details>"
-              );
-            })
-            .join("");
-          root.querySelector("#sim-strat-list").innerHTML =
-            html || "sin estrategias";
-
-          root.querySelectorAll(".sim-use-strat").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              var id = btn.getAttribute("data-id");
-              root.querySelector("#sim-strat-hist").value = id;
-              showTab("comparar");
-            });
-          });
-          root.querySelectorAll(".sim-strat-detail").forEach(function (btn) {
-            btn.addEventListener("click", function () {
-              openStrategyGuide(btn.getAttribute("data-id"));
-            });
-          });
+          renderStratCatalog();
         })
         .catch(function (e) {
           root.querySelector("#sim-strat-list").textContent =
@@ -1435,10 +1543,18 @@
     }
 
     root.querySelectorAll(".sim-tab").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
         showTab(btn.getAttribute("data-tab"));
       });
     });
+    var stratSearch = root.querySelector("#sim-strat-search");
+    if (stratSearch) {
+      stratSearch.addEventListener("input", function () {
+        renderStratCatalog();
+      });
+    }
     root.querySelector("#sim-lev").addEventListener("input", function () {
       syncLeverage("range");
     });

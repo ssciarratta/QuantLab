@@ -30,9 +30,9 @@ def test_handle_get_lab_sim_fees(tmp_path: Path) -> None:
     assert out["research_safe"] is True
     schedules = out["schedules"]
     assert isinstance(schedules, list)
-    assert len(schedules) == 8
+    assert len(schedules) == 9
     venues = {row["venue"] for row in schedules}
-    assert venues == {"binance", "okx", "bybit", "hyperliquid"}
+    assert venues == {"binance", "okx", "bybit", "hyperliquid", "a3"}
     sample = schedules[0]
     assert "maker_bps" in sample
     assert "taker_bps" in sample
