@@ -1159,6 +1159,75 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/venue/scanner — Alpha ranking MD real multi-venue."""
+    venue = body.get("venue", "binance")
+    market_type = body.get("market_type", "spot")
+    top_n = body.get("top_n", 5)
+    symbol_limit = body.get("symbol_limit", 15)
+    interval = body.get("interval", "1h")
+    kline_limit = body.get("kline_limit", 24)
+    profile = body.get("profile", "legacy_v1")
+    underlyings = body.get("underlyings")
+    if not isinstance(venue, str):
+        raise ApiError(400, "venue debe ser string")
+    if not isinstance(market_type, str):
+        raise ApiError(400, "market_type debe ser string")
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    if not isinstance(symbol_limit, int):
+        raise ApiError(400, "symbol_limit debe ser int")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    if not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int")
+    if not isinstance(profile, str):
+        raise ApiError(400, "profile debe ser string")
+    und_list: list[str] | None = None
+    if underlyings is not None:
+        if not isinstance(underlyings, list) or not all(
+            isinstance(x, str) for x in underlyings
+        ):
+            raise ApiError(400, "underlyings debe ser lista de strings")
+        und_list = [x.strip() for x in underlyings if x.strip()]
+    try:
+        if state.session is None:
+            raise ApiError(503, "sesión workbench no inicializada")
+        persist_dir = state.session.experiments_dir / "alpha_scans"
+        result = lab_services.run_venue_lab_scanner(
+            venue=venue.strip(),
+            market_type=market_type.strip(),
+            top_n=top_n,
+            symbol_limit=symbol_limit,
+            interval=interval.strip(),
+            kline_limit=kline_limit,
+            profile=profile.strip(),
+            underlyings=und_list,
+            persist_dir=(
+                persist_dir
+                if profile.strip().lower() not in ("legacy_v1", "legacy", "")
+                else None
+            ),
+        )
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "scanner",
+            ok=True,
+            message="venue alpha scanner",
+            detail={
+                "venue": result.get("venue"),
+                "market_type": result.get("market_type"),
+                "top_n": top_n,
+                "kind": result.get("kind"),
+                "profile": result.get("profile"),
+            },
+        )
+        return out
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
 def handle_get_alpha_profiles(state: WorkbenchState) -> dict[str, Any]:
     """GET /api/lab/alpha/profiles — catálogo perfiles + venue capabilities."""
     del state

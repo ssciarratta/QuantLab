@@ -1573,6 +1573,15 @@ button.btn.danger.engaged {
   border: 1px solid color-mix(in srgb, var(--ok, #3d9a5f) 45%, transparent);
 }
 
+.pane-scanner .sc-row-sel td {
+  background: color-mix(in srgb, var(--accent, #4a7cff) 18%, transparent);
+}
+
+.pane-scanner .sc-chip {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.45rem;
+}
+
 .data-badge-synth {
   background: color-mix(in srgb, var(--warn, #c9a227) 22%, transparent);
   color: var(--warn, #c9a227);

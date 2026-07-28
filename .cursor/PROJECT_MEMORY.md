@@ -2,9 +2,10 @@
 
 **Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Universo multi-producto A3+HL live · margen/vencimiento · TV link  
-**Simulador:** Binance/OKX/Bybit/HL/A3 · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op  
-**Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Backtest=velas sintéticas · MC=estrés  
+**Versión tip:** **1.01.0** · Alpha Scanner MD real multi-venue + recommend→Simulador  
+**Simulador:** Binance/OKX/Bybit/HL/A3 · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op · `applyPrefill` desde Scanner  
+**Alpha Scanner:** `POST /api/lab/venue/scanner` · `research/alpha/recommend.py` (familia+estrategias+TF) · UI chips  
+**Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Alpha Scanner=ranking MD real · Backtest=velas sintéticas · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
@@ -185,9 +186,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
 20. Horizonte MD lab: klines paginadas hasta **525_600** (1y@1m); aviso pesado >40k; UI default 1200
 21. **FASE 0 Alpha Scanner:** auditoría en `docs/scanner/current-alpha-scanner-audit.md` + baseline sintético; sin cambio de scoring aún
+22. **Alpha Scanner MD real:** `run_venue_lab_scanner` + `recommend.py` (score→familia/estrategias/TF); UI chips → `Simulador.applyPrefill`; Binance spot=listado exchange, resto=SIM_COINS vía md_router
 
 ## Próximo
 
+- Probar Alpha Scanner en workbench (Ctrl+F5 + reiniciar) sobre Binance/OKX/HL
 - Monte Carlo corrección: UI workbench actualizada (`montecarlo.js` presets 1e6, jobs async,
   cost estimate, Abrir dataset, `labMontecarloJob`/`Cancel`); backend FASE 1+ en curso
   · status: `docs/progress/montecarlo-correction-status.md`

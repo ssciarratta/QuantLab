@@ -111,15 +111,15 @@ def fetch_bars_for_instrument(
         hl = HyperliquidPublicMdClient()
         bars_map = {sym: hl.klines(sym, interval=interval, limit=kline_limit)}
     elif v == "a3":
-        bars = _fetch_a3_bars(sym, interval=interval, kline_limit=kline_limit)
-        return resolved, bars
+        a3_bars = _fetch_a3_bars(sym, interval=interval, kline_limit=kline_limit)
+        return resolved, a3_bars
     else:
         raise ValidationError(f"fetch no implementado: {v}/{mt}")
 
-    bars = bars_map.get(sym)
-    if not bars:
+    bars_raw = bars_map.get(sym)
+    if not bars_raw:
         raise ValidationError(f"sin klines para {resolved.instrument_id}")
-    return resolved, bars
+    return resolved, list(bars_raw)
 
 
 def fetch_funding_rates(

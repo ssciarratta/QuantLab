@@ -441,6 +441,22 @@
         profile: o.profile || "legacy_v1",
       });
     },
+    venueScanner: function (opts) {
+      const o = opts || {};
+      const body = {
+        venue: o.venue || "binance",
+        market_type: o.market_type || "spot",
+        top_n: o.top_n || 5,
+        symbol_limit: o.symbol_limit || 15,
+        interval: o.interval || "1h",
+        kline_limit: o.kline_limit || 24,
+        profile: o.profile || "legacy_v1",
+      };
+      if (o.underlyings && o.underlyings.length) {
+        body.underlyings = o.underlyings;
+      }
+      return request("POST", "/api/lab/venue/scanner", body);
+    },
     alphaProfiles: function () {
       return request("GET", "/api/lab/alpha/profiles");
     },

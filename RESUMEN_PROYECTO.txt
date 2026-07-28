@@ -1,28 +1,29 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Guías de estrategias + Simulador multi-venue
+Versión: 1.01.0 · Alpha Scanner MD real multi-venue
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Simulador: solapas «1 · Comparar» / «2 · Guías de estrategias» (visibles)
-- Guías: 50 fichas · En simple + Detalle + Cuándo usarla + ejemplo · stubs marcados
-- HL HIP-3 + buscador · capital fijo/sin monto · auto-add ticker
-- Alpha Scanner → recomendaciones: diseño acordado; implementación pendiente
+- Alpha Scanner (menú): MD real Binance/OKX/Bybit/HL + recomendaciones
+  familia + 2–3 estrategias + TF → chips → Simulador (prefill)
+- Demo sintético WB sigue disponible como fuente opcional
+- Simulador: Guías de estrategias + compare multi-venue
+- Guided Lab: sigue con su scanner Binance (ahora también trae recommendation)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Fix UX: solapa Guías ya no queda tapada por controles de Comparar
-Fichas expandibles + búsqueda · when_to_use por familia
-Diseño AS→estrategias: 6A/7A/8C/9B/10C (próxima fase)
+POST /api/lab/venue/scanner · research/alpha/recommend.py
+UI scanner.js: venue/TF/perfil · ranking clickeable · chips
+Simulador.applyPrefill desde Alpha Scanner
 
 PRÓXIMO
 -------
-Ctrl+F5 + reiniciar workbench → solapa «2 · Guías de estrategias»
-Luego: Alpha Scanner sugiere familia + 2–3 estrategias + TF
+Ctrl+F5 + reiniciar workbench → menú Alpha Scanner → MD real → Escanear
+Probar chip → Simulador con moneda/estrategia/TF
 
 INVARIANTES
 -----------
 LIVE_BLOCKED=True · REAL=PAPER
-TradingView ≠ mercado de compare
+Score ≠ rentabilidad garantizada

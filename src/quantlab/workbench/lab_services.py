@@ -667,7 +667,267 @@ def run_binance_lab_scanner(
     }
     if persisted is not None:
         out["persisted"] = persisted
-    return out
+    from quantlab.research.alpha.recommend import attach_recommendations
+
+    # underlying + familia/estrategias/TF para UI (Guided Lab + Alpha Scanner)
+    for row in out["scores"]:
+        if isinstance(row, dict) and "underlying" not in row:
+            iid = str(row.get("instrument_id") or "")
+            sym = symbol_map.get(iid, iid.split(":", 1)[-1] if ":" in iid else iid)
+            row["symbol"] = sym
+            from quantlab.research.alpha.recommend import underlying_from_symbol
+
+            row["underlying"] = underlying_from_symbol(sym)
+    return attach_recommendations(out, profile=profile_key, interval=interval)
+
+
+_VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
+    "binance": {"spot": "BN:", "futures": "BNF:"},
+    "okx": {"spot": "OKX:", "futures": "OKX:"},
+    "bybit": {"spot": "BYB:", "futures": "BYB:"},
+    "hyperliquid": {"spot": "HL:", "futures": "HL:"},
+}
+
+
+def run_venue_lab_scanner(
+    *,
+    venue: str = "binance",
+    market_type: str = "spot",
+    top_n: int = 5,
+    symbol_limit: int = 15,
+    interval: str = "1h",
+    kline_limit: int = 24,
+    profile: str = "legacy_v1",
+    underlyings: Sequence[str] | None = None,
+    persist_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Alpha ranking sobre MD público real (Binance/OKX/Bybit/HL).
+
+    Binance spot sin ``underlyings``: lista USDT del exchange (mismo path F111).
+    Resto: universo curado SIM_COINS (o lista explícita) vía ``md_router``.
+    """
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
+    from quantlab.brokers.md_router import fetch_bars_for_instrument
+    from quantlab.research.alpha.quality import EligibilityConfig
+    from quantlab.research.alpha.recommend import attach_recommendations, underlying_from_symbol
+    from quantlab.research.alpha.universe import (
+        build_universe_from_symbol_bars,
+        exclusion_reason_counts,
+    )
+    from quantlab.research.sim.universe import SIM_COINS
+
+    v = (venue or "binance").strip().lower()
+    mt = (market_type or "spot").strip().lower()
+    if v not in _VENUE_SCAN_PREFIX:
+        raise ValidationError(
+            f"venue no soportado para scanner: {venue!r}; "
+            f"permitidos: {', '.join(sorted(_VENUE_SCAN_PREFIX))}"
+        )
+    if mt not in ("spot", "futures"):
+        raise ValidationError("market_type debe ser spot o futures")
+    if v == "hyperliquid" and mt == "spot":
+        raise ValidationError("hyperliquid en lab: usar market_type=futures (perps)")
+    if top_n < 1 or top_n > 10:
+        raise ValidationError("top_n debe estar entre 1 y 10")
+    if symbol_limit < 5 or symbol_limit > 30:
+        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
+
+    # Path Binance spot listado exchange (volumen real de mercado)
+    if v == "binance" and mt == "spot" and underlyings is None:
+        return run_binance_lab_scanner(
+            top_n=top_n,
+            symbol_limit=symbol_limit,
+            interval=interval,
+            kline_limit=kline_limit,
+            profile=profile,
+            persist_dir=persist_dir,
+        )
+
+    profile_key = (profile or "legacy_v1").strip().lower()
+    if underlyings is not None:
+        coins = [str(u).strip() for u in underlyings if str(u).strip()]
+    else:
+        coins = [str(c["id"]) for c in SIM_COINS[:symbol_limit]]
+    if len(coins) < 3:
+        raise ValidationError("se requieren al menos 3 underlyings para el scan")
+    coins = coins[:symbol_limit]
+
+    bars_by_symbol: dict[str, list[Bar]] = {}
+    symbol_to_underlying: dict[str, str] = {}
+    fetch_failures: dict[str, str] = {}
+    symbols: list[str] = []
+
+    def _one(u: str) -> tuple[str, str, list[Bar] | None, str | None]:
+        try:
+            resolved, bars = fetch_bars_for_instrument(
+                u,
+                venue=v,
+                market_type=mt,
+                interval=interval,
+                kline_limit=kline_limit,
+            )
+            return resolved.symbol, resolved.underlying, list(bars), None
+        except Exception as exc:  # noqa: BLE001 — fail-soft por símbolo
+            return u, u, None, str(exc)
+
+    workers = min(8, max(1, len(coins)))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futs = {pool.submit(_one, u): u for u in coins}
+        for fut in as_completed(futs):
+            sym, und, bars, err = fut.result()
+            if err or not bars:
+                fetch_failures[sym] = err or "sin barras"
+                continue
+            bars_by_symbol[sym] = bars
+            symbol_to_underlying[sym] = und
+            symbols.append(sym)
+
+    if not symbols:
+        raise ValidationError(
+            f"sin klines en {v}/{mt} "
+            f"(fallos={len(fetch_failures)}; ej. {next(iter(fetch_failures.values()), '—')})"
+        )
+
+    prefix = _VENUE_SCAN_PREFIX[v][mt]
+    built = build_universe_from_symbol_bars(
+        venue=v,
+        symbols=symbols,
+        bars_by_symbol=bars_by_symbol,
+        network="mainnet",
+        market_type=mt,
+        instrument_prefix=prefix,
+        eligibility_config=EligibilityConfig(min_bars=3, min_completeness=0.5),
+        fetch_failures=fetch_failures,
+    )
+    universe = built.eligible_bars
+    if not universe:
+        raise ValidationError(
+            "ningún símbolo elegible tras filtros de calidad "
+            f"(fetched={len(bars_by_symbol)}, excluded={len(built.exclusions)})"
+        )
+
+    symbol_map = {
+        inst.normalized_instrument: inst.original_symbol for inst in built.instruments
+    }
+
+    scores_out: list[dict[str, Any]]
+    selected: list[str]
+    gap_events: list[str] = []
+    schema_version = "1.0"
+    persisted: dict[str, Any] | None = None
+
+    if profile_key in ("legacy_v1", "legacy"):
+        result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
+        selected = list(result.selected)
+        scores_out = [dataclass_to_dict(s) for s in result.scores]
+        gap_events = list(result.gap_events)
+        schema_version = result.schema_version
+        profile_key = "legacy_v1"
+    else:
+        from quantlab.research.alpha.profiles import build_profile, score_with_profile
+
+        try:
+            build_profile(profile_key)
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+        rows = score_with_profile(universe, profile_key)
+        ranked = [r for r in rows if not r.excluded]
+        selected = [r.instrument_id for r in ranked[: max(0, top_n)]]
+        scores_out = []
+        for r in ranked:
+            raw_by = {c.name: c.raw for c in r.components}
+            scores_out.append(
+                {
+                    "instrument_id": r.instrument_id,
+                    "volatility": raw_by.get("volatility"),
+                    "volume_score": raw_by.get("volume"),
+                    "liquidity_score": raw_by.get("liquidity"),
+                    "composite": r.composite,
+                    "base_score": r.base_score,
+                    "components": [
+                        {
+                            "name": c.name,
+                            "raw": c.raw,
+                            "normalized": c.normalized,
+                            "weight": c.weight,
+                            "contribution": c.contribution,
+                            "available": c.available,
+                        }
+                        for c in r.components
+                    ],
+                    "penalties": [
+                        {"name": p.name, "value": p.value, "detail": p.detail} for p in r.penalties
+                    ],
+                }
+            )
+        if persist_dir is not None:
+            from quantlab.research.alpha.persist import ScanStore, hash_bars_fingerprint
+
+            meta = ScanStore(persist_dir).save_scored(
+                profile=profile_key,
+                rows=rows,
+                bars_hash=hash_bars_fingerprint(universe),
+                request={
+                    "profile": profile_key,
+                    "top_n": top_n,
+                    "interval": interval,
+                    "kline_limit": kline_limit,
+                    "symbol_limit": symbol_limit,
+                    "venue": v,
+                    "market_type": mt,
+                },
+            )
+            persisted = meta.to_dict()
+
+    selected_symbols = [symbol_map.get(iid, iid) for iid in selected]
+    for row in scores_out:
+        if not isinstance(row, dict):
+            continue
+        iid = str(row.get("instrument_id") or "")
+        sym = symbol_map.get(iid, iid.split(":", 1)[-1] if ":" in iid else iid)
+        row["symbol"] = sym
+        row["underlying"] = symbol_to_underlying.get(sym) or underlying_from_symbol(sym)
+
+    out: dict[str, Any] = {
+        "ok": True,
+        "kind": "venue_scanner",
+        "venue": v,
+        "market_type": mt,
+        "top_n": top_n,
+        "symbol_limit": symbol_limit,
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "n_symbols_fetched": len(bars_by_symbol),
+        "fetched": len(symbols),
+        "eligible": len(universe),
+        "excluded": len(built.exclusions),
+        "exclusion_counts": exclusion_reason_counts(built.exclusions),
+        "exclusions": [e.to_dict() for e in built.exclusions],
+        "selected": selected,
+        "selected_symbols": selected_symbols,
+        "selected_underlyings": [
+            symbol_to_underlying.get(s) or underlying_from_symbol(s) for s in selected_symbols
+        ],
+        "scores": scores_out,
+        "gap_events": gap_events,
+        "schema_version": schema_version,
+        "scanner_version": "alpha-v2-venue-md",
+        "profile": profile_key,
+        "read_only": True,
+        "live_routing": False,
+        "note": (
+            "MD público real (read-only). Un score alto indica adecuación al perfil, "
+            "no rentabilidad garantizada."
+        ),
+    }
+    if persisted is not None:
+        out["persisted"] = persisted
+    return attach_recommendations(out, profile=profile_key, interval=interval)
 
 
 def list_alpha_profiles() -> dict[str, Any]:

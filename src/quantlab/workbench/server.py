@@ -126,6 +126,7 @@ from quantlab.workbench.api import (
     handle_post_sessions_switch,
     handle_post_shutdown,
     handle_post_update_apply,
+    handle_post_venue_scanner,
     handle_post_watchlist_import,
     handle_put_layout,
     handle_put_settings,
@@ -677,6 +678,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/binance/scanner":
                     self._send_json(handle_post_binance_scanner(state, body))
+                    return
+                if path == "/api/lab/venue/scanner":
+                    self._send_json(handle_post_venue_scanner(state, body))
                     return
                 if path == "/api/lab/binance/pipeline":
                     self._send_json(handle_post_binance_pipeline(state, body))

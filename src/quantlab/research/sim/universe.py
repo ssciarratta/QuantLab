@@ -341,7 +341,7 @@ def _hl_live_products() -> tuple[list[dict[str, Any]], str | None]:
     now = time.monotonic()
     if (
         _HL_LIVE_CACHE is not None
-        and now - float(_HL_LIVE_CACHE.get("ts", 0)) < _HL_LIVE_CACHE_TTL_SEC
+        and now - float(str(_HL_LIVE_CACHE.get("ts", 0))) < _HL_LIVE_CACHE_TTL_SEC
     ):
         cached = _HL_LIVE_CACHE.get("products")
         if isinstance(cached, list) and cached:

@@ -385,11 +385,19 @@
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
-  function openSimulator() {
+  function openSimulator(opts) {
+    opts = opts || {};
+    if (opts.prefill && window.QLNav) {
+      window.QLNav.setFocus("simulator", { prefill: opts.prefill });
+    }
     if (wm.windows.has("simulator")) {
       wm.focus("simulator");
       const root = wm.windows.get("simulator").body.firstElementChild;
-      if (root && root.refresh) root.refresh();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
       return;
     }
     const pane = QLPanes.createSimulatorPane();
@@ -400,6 +408,9 @@
       mergeOpts("simulator", { x: 60, y: 30, w: 860, h: 640 })
     );
     if (pane.refresh) pane.refresh();
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    }
   }
 
   function openDiagnostics() {
@@ -433,7 +444,7 @@
       return;
     }
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 560, h: 520 }));
   }
 
   function openMetrics() {

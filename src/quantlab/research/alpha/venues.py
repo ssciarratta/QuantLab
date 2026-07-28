@@ -65,7 +65,7 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         spot=True,
         perpetuals=True,
         fetch_implemented=True,
-        notes="Klines publicas cableadas en lab (spot USDT).",
+        notes="Klines publicas cableadas en lab (spot USDT). Venue scanner + md_router futures.",
     ),
     VENUE_HYPERLIQUID: VenueCapabilities(
         venue=VENUE_HYPERLIQUID,
@@ -77,7 +77,7 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         spot=False,
         perpetuals=True,
         fetch_implemented=True,
-        notes="Klines/funding públicos vía POST info (Hyperliquid).",
+        notes="Klines/funding públicos vía POST info; Alpha Scanner curado SIM_COINS.",
     ),
     VENUE_BYBIT: VenueCapabilities(
         venue=VENUE_BYBIT,
@@ -89,7 +89,7 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         spot=True,
         perpetuals=True,
         fetch_implemented=True,
-        notes="Klines linear + funding públicos (Bybit v5).",
+        notes="Klines linear + funding; Alpha Scanner vía md_router.",
     ),
     VENUE_OKX: VenueCapabilities(
         venue=VENUE_OKX,
@@ -101,7 +101,7 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         spot=True,
         perpetuals=True,
         fetch_implemented=True,
-        notes="Candles + funding públicos (OKX v5).",
+        notes="Candles + funding; Alpha Scanner vía md_router.",
     ),
     VENUE_LAB: VenueCapabilities(
         venue=VENUE_LAB,

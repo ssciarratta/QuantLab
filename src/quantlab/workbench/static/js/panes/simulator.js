@@ -229,6 +229,8 @@
     var venueMeta = [];
     /** @type {Object.<string, string[]>} */
     var selectedByVenue = {};
+    /** Prefill desde Alpha Scanner (venue/underlying/strategy/TF). */
+    var pendingPrefill = null;
     /** @type {Object.<string, boolean>} */
     var venueEnabled = {
       binance: true,
@@ -807,10 +809,65 @@
           }
           renderVenuePicks();
           applyFeePreset();
+          tryApplyPrefill();
         })
         .catch(function (e) {
           box.textContent = e.message || "error cargando productos";
         });
+    }
+
+    function tryApplyPrefill() {
+      if (!pendingPrefill) return;
+      var p = pendingPrefill;
+      if (p.interval) {
+        var iv = root.querySelector("#sim-interval");
+        if (iv) {
+          iv.value = p.interval;
+          refreshNBars();
+        }
+      }
+      if (p.strategy_id) {
+        var sel = root.querySelector("#sim-strat-hist");
+        if (sel) {
+          var has = false;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].value === p.strategy_id) {
+              has = true;
+              break;
+            }
+          }
+          if (has) sel.value = p.strategy_id;
+        }
+      }
+      if (p.venue && p.underlying) {
+        if (!productsByVenue[p.venue] || !productsByVenue[p.venue].length) {
+          return;
+        }
+        var cid =
+          findProductIdByTicker(p.venue, p.underlying) || p.underlying;
+        addProductToVenue(p.venue, cid, true);
+        venueEnabled[p.venue] = true;
+        renderVenuePicks();
+        showTab("comparar");
+        pendingPrefill = null;
+      } else if (p.strategy_id && strategiesCache.length) {
+        pendingPrefill = null;
+      }
+    }
+
+    function applyPrefill(prefill) {
+      if (!prefill || typeof prefill !== "object") return;
+      pendingPrefill = Object.assign({}, pendingPrefill || {}, prefill);
+      if (prefill.market_type) {
+        var msel = root.querySelector("#sim-market");
+        if (msel && msel.value !== prefill.market_type) {
+          msel.value = prefill.market_type;
+          loadUniverse();
+          loadFees();
+          return;
+        }
+      }
+      tryApplyPrefill();
     }
 
     function findStrategy(id) {
@@ -1146,6 +1203,7 @@
             .join("");
           root.querySelector("#sim-strat-hist").innerHTML = opts;
           renderStratCatalog();
+          tryApplyPrefill();
         })
         .catch(function (e) {
           root.querySelector("#sim-strat-list").textContent =
@@ -1633,6 +1691,8 @@
       loadStrategies();
       renderExtraCosts();
     };
+
+    root.applyPrefill = applyPrefill;
 
     return root;
   }
