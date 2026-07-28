@@ -1,26 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-27
-Versión: 1.01.0 · Monte Carlo corrección (1e6 escenarios, batching, trazabilidad)
+Versión: 1.01.0 · Deep-link Scan/BT/MC + corrección Monte Carlo
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
 - Alpha Scanner F0–10 + walk-forward
-- Monte Carlo: límites 2…1e6 · batching · jobs async · DatasetReference · anti-huérfano
-- UI: presets, velas/escenario, Abrir dataset/scan/BT, progreso/cancel
+- Monte Carlo: 2…1e6 · batching · jobs · DatasetReference
+- Navegación: QLNav deep-link Reports↔MC↔Guided Lab · botones → Monte Carlo
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Corrección MC (docs/montecarlo/montecarlo-correction-audit.md):
-- Cap 20 eliminado como tope técnico; 16 = solo trayectorias
-- Stats incrementales + storage_mode summary_and_sample
-- mode technical_lab (contexto completo LAB) vs normal (exige backtest_id)
-- Tests: 45 passed (suite MC)
+Deep-link Workbench (nav.js + shell.open opts):
+- Reports: focus report_id + botón → Monte Carlo (mode normal)
+- Backtest lab: → Monte Carlo con report_id
+- Guided Lab: → Monte Carlo con scan_id / backtest_id
+- MC Abrir backtest/scan: abre panel y enfoca id
 
 PRÓXIMO
 -------
-F5 workbench; validar UI presets/confirm; deep-link Scan/BT por id si se pide
+Validar en UI (F5); opcional GET scan por id + preview JSON
 
 INVARIANTES
 -----------

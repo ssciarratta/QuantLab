@@ -237,9 +237,12 @@
       );
     }
 
-    function openWorkbenchPane(paneId) {
+    function openWorkbenchPane(paneId, opts) {
+      if (global.QLNav && typeof global.QLNav.open === "function") {
+        return !!global.QLNav.open(paneId, opts || {});
+      }
       if (canOpenPane(paneId)) {
-        return !!global.QLShell.open(paneId);
+        return !!global.QLShell.open(paneId, opts || {});
       }
       return false;
     }
@@ -958,7 +961,7 @@
         backtest_id: bt || null,
         store_paths: storePaths,
         confirm_large: !!confirmLarge,
-        mode: "technical_lab",
+        mode: bt ? "normal" : "technical_lab",
         max_persisted_trajectories: MAX_TRAJECTORIES,
       };
       if (asyncFlag) body.async = true;
@@ -1099,19 +1102,17 @@
           lastData.relations && lastData.relations.backtest_id
         );
       if (!id) return;
-      const opened =
-        openWorkbenchPane("reports") || openWorkbenchPane("backtest");
+      const opened = openWorkbenchPane("reports", {
+        focusId: id,
+        message: "Deep-link desde Monte Carlo → report " + id,
+      });
       if (opened) {
-        QLLabUI.setStatus(
-          status,
-          true,
-          "backtest_id=" + id + " · panel abierto (buscá el id en Reports/Backtest)"
-        );
+        QLLabUI.setStatus(status, true, "abriendo report " + id);
       } else {
         QLLabUI.setStatus(
           status,
-          true,
-          "backtest_id=" + id + " — abrí el panel Reports/Backtest manualmente"
+          false,
+          "no se pudo abrir Reports · backtest_id=" + id
         );
       }
     });
@@ -1124,19 +1125,17 @@
           lastData.relations && lastData.relations.scan_id
         );
       if (!id) return;
-      const opened =
-        openWorkbenchPane("scanner") || openWorkbenchPane("guided_lab");
+      const opened = openWorkbenchPane("guided_lab", {
+        focusId: id,
+        message: "Deep-link desde Monte Carlo → scan " + id,
+      });
       if (opened) {
-        QLLabUI.setStatus(
-          status,
-          true,
-          "scan_id=" + id + " · panel abierto (buscá el id en Scanner/Guided Lab)"
-        );
+        QLLabUI.setStatus(status, true, "abriendo Guided Lab · scan " + id);
       } else {
         QLLabUI.setStatus(
           status,
-          true,
-          "scan_id=" + id + " — abrí el panel Scanner/Guided Lab manualmente"
+          false,
+          "no se pudo abrir Guided Lab · scan_id=" + id
         );
       }
     });
@@ -1180,6 +1179,25 @@
     setCancelVisible(false);
 
     root.refresh = refresh;
+    root.applyNavFocus = function () {
+      if (!global.QLNav) return;
+      const focus = global.QLNav.takeFocus("montecarlo");
+      if (!focus) return;
+      if (focus.prefill) {
+        const p = focus.prefill;
+        if (p.n_scenarios != null) setScenarios(p.n_scenarios);
+        if (p.n_bars != null) root.querySelector("#mc-bars").value = p.n_bars;
+        if (p.seed != null) root.querySelector("#mc-seed").value = p.seed;
+        if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
+        if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        updateBarsDurationHint(null);
+      }
+      if (focus.message) {
+        QLLabUI.setStatus(status, true, focus.message);
+        if (warnEl) warnEl.textContent = focus.message;
+      }
+    };
+    root.applyNavFocus();
     return root;
   }
 

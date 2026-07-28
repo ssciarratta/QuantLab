@@ -89,6 +89,7 @@
       '<button type="button" class="btn secondary" id="gl-scan-bn" data-i18n="guided_lab.scan.binance" style="display:none" data-tip="Lista pares USDT — MD HISTÓRICO/público Binance.\nSolo lectura." data-i18n-tip="tip.gl.scan_bn">Scan Binance (histórico)</button>' +
       '<button type="button" class="btn secondary" id="gl-scan-bn-alpha" data-i18n="guided_lab.scan.binance_alpha" style="display:none" data-tip="Ranking alpha sobre klines HISTÓRICAS Binance.\nÚltimas N velas hasta ahora." data-i18n-tip="tip.gl.scan_alpha">Ranking alpha (histórico)</button>' +
       '<button type="button" class="btn" id="gl-pipeline-bn" data-i18n="guided_lab.pipeline.binance" style="display:none" data-tip="Ranking en ~70% inicial + backtest en tramo posterior (walk-forward).\nKlines HISTÓRICAS Binance; paper + fees; sin órdenes live." data-i18n-tip="tip.gl.pipeline">Backtest top 5 (histórico)</button>' +
+      '<button type="button" class="btn secondary" id="gl-to-mc" disabled title="Requiere scan_id o report de pipeline">→ Monte Carlo</button>' +
       '<span class="mono muted" id="gl-scan-status">—</span>' +
       "</div>" +
       '<div id="gl-alpha-opts" style="display:none;margin-top:0.4rem">' +
@@ -199,6 +200,20 @@
     const runStatus = root.querySelector("#gl-run-status");
     const resultEl = root.querySelector("#gl-result");
     const unlockStatus = root.querySelector("#gl-unlock-status");
+    const btnToMc = root.querySelector("#gl-to-mc");
+    let lastScanId = null;
+    let lastBacktestId = null;
+    let lastStrategyId = null;
+
+    function syncMcButton() {
+      if (!btnToMc) return;
+      btnToMc.disabled = !(lastScanId || lastBacktestId);
+      btnToMc.title = lastBacktestId
+        ? "Monte Carlo con backtest_id=" + lastBacktestId
+        : lastScanId
+          ? "Monte Carlo con scan_id=" + lastScanId
+          : "Requiere scan_id o report de pipeline";
+    }
 
     function esc(s) {
       return String(s == null ? "" : s)
@@ -895,6 +910,10 @@
               : "") +
             "<br>" +
             rowsHtml;
+          if (data.persisted && data.persisted.scan_id) {
+            lastScanId = data.persisted.scan_id;
+            syncMcButton();
+          }
         })
         .catch(function (err) {
           statusErr(scanStatus, err);
@@ -964,6 +983,22 @@
               esc(wf.n_backtest) +
               " barras (sin overlap)."
             : "Walk-forward OFF · misma ventana rank+BT (in-sample).";
+          if (scanner.persisted && scanner.persisted.scan_id) {
+            lastScanId = scanner.persisted.scan_id;
+          } else if (data.scan_id) {
+            lastScanId = data.scan_id;
+          }
+          lastStrategyId = data.strategy_id || strategy;
+          const withReport = runs.find(function (r) {
+            return r.ok && (r.report_id || (r.result && r.result.report_id));
+          });
+          if (withReport) {
+            lastBacktestId =
+              withReport.report_id ||
+              (withReport.result && withReport.result.report_id) ||
+              null;
+          }
+          syncMcButton();
           scanOut.innerHTML =
             "<div class=\"bt-summary\">" +
             '<span class="data-badge data-badge-real">HISTÓRICO Binance</span> ' +
@@ -1258,6 +1293,52 @@
       }
     }
 
+    syncMcButton();
+
+    if (btnToMc) {
+      btnToMc.addEventListener("click", function () {
+        if (!lastScanId && !lastBacktestId) return;
+        const prefill = {
+          scan_id: lastScanId,
+          backtest_id: lastBacktestId,
+          strategy_id: lastStrategyId || root.querySelector("#gl-strategy").value,
+          mode: lastBacktestId ? "normal" : "technical_lab",
+        };
+        if (global.QLNav) {
+          global.QLNav.open("montecarlo", {
+            prefill: prefill,
+            message: lastBacktestId
+              ? "Desde Guided Lab pipeline · BT " + lastBacktestId
+              : "Desde Guided Lab scan · " + lastScanId,
+          });
+        } else if (global.QLShell) {
+          global.QLShell.open("montecarlo", { prefill: prefill });
+        }
+      });
+    }
+
+    root.applyNavFocus = function () {
+      if (!global.QLNav) return;
+      const focus = global.QLNav.takeFocus("guided_lab");
+      if (!focus) return;
+      if (focus.focusId) {
+        lastScanId = focus.focusId;
+        syncMcButton();
+        if (scanStatus) {
+          scanStatus.textContent = "scan_id focus: " + focus.focusId;
+          scanStatus.className = "mono status-ok";
+        }
+        if (scanOut) {
+          scanOut.innerHTML =
+            '<p class="status-ok">Deep-link scan_id=<span class="mono">' +
+            esc(focus.focusId) +
+            "</span>. " +
+            esc(focus.message || "Usá → Monte Carlo o Ranking/Backtest.") +
+            "</p>";
+        }
+      }
+    };
+
     root.refresh = function () {
       return QLApi.labStrategies()
         .then(function (res) {
@@ -1281,6 +1362,7 @@
     applyVenueUi();
     loadAlphaProfiles();
     root.refresh();
+    root.applyNavFocus();
     QLi18n.applyDom(root);
     return root;
   }

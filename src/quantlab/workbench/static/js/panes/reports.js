@@ -26,7 +26,9 @@
       '<span class="mono" id="rp-sel">sin selección</span>' +
       '<button type="button" class="btn secondary" id="rp-mode-json" disabled>JSON</button>' +
       '<button type="button" class="btn secondary" id="rp-mode-html" disabled>HTML</button>' +
+      '<button type="button" class="btn" id="rp-to-mc" disabled title="Abrir Monte Carlo con este report como backtest_id">→ Monte Carlo</button>' +
       "</div>" +
+      '<p class="muted mono" id="rp-nav-msg" style="margin:0.3rem 0 0"></p>' +
       '<div id="rp-preview"></div>' +
       "</div>";
 
@@ -36,6 +38,8 @@
     const selEl = root.querySelector("#rp-sel");
     const btnJson = root.querySelector("#rp-mode-json");
     const btnHtml = root.querySelector("#rp-mode-html");
+    const btnMc = root.querySelector("#rp-to-mc");
+    const navMsg = root.querySelector("#rp-nav-msg");
 
     let selectedId = null;
     let selectedPayload = null;
@@ -65,6 +69,7 @@
       selEl.textContent = reportId ? "report " + reportId : "sin selección";
       btnJson.disabled = !reportId;
       btnHtml.disabled = !reportId;
+      btnMc.disabled = !reportId;
     }
 
     async function loadReport(reportId) {
@@ -73,6 +78,9 @@
       setSelection(reportId);
       viewMode = data.has_html ? "html" : "json";
       renderPreview();
+      listEl.querySelectorAll(".report-row").forEach(function (btn) {
+        btn.classList.toggle("active", btn.getAttribute("data-id") === reportId);
+      });
     }
 
     function renderList(reports) {
@@ -121,10 +129,44 @@
       renderList(data.reports || []);
     }
 
+    root.applyNavFocus = function () {
+      if (!global.QLNav) return;
+      const focus = global.QLNav.takeFocus("reports");
+      if (!focus || !focus.focusId) return;
+      navMsg.textContent = focus.message || ("focus → " + focus.focusId);
+      refresh()
+        .then(function () {
+          return loadReport(focus.focusId);
+        })
+        .catch(function (err) {
+          navMsg.textContent = "Report no encontrado: " + (err.message || focus.focusId);
+          navMsg.className = "status-bad mono";
+        });
+    };
+
     root.querySelector("#rp-refresh").addEventListener("click", function () {
       refresh().catch(function (err) {
         listEl.innerHTML = '<p class="status-bad mono">' + err.message + "</p>";
       });
+    });
+
+    btnMc.addEventListener("click", function () {
+      if (!selectedId) return;
+      const report = (selectedPayload && selectedPayload.report) || selectedPayload || {};
+      const prefill = {
+        backtest_id: selectedId,
+        strategy_id: report.strategy_id || null,
+        n_bars: report.n_bars || null,
+        mode: "normal",
+      };
+      if (global.QLNav) {
+        global.QLNav.open("montecarlo", {
+          prefill: prefill,
+          message: "Contexto desde report " + selectedId,
+        });
+      } else if (global.QLShell) {
+        global.QLShell.open("montecarlo", { prefill: prefill });
+      }
     });
 
     btnJson.addEventListener("click", function () {

@@ -18,6 +18,7 @@
       '<div class="pane-row" id="bt-params-row"></div>' +
       '<div class="pane-row">' +
       '<button type="button" class="btn" id="bt-run">Correr</button>' +
+      '<button type="button" class="btn secondary" id="bt-to-mc" disabled title="Requiere un backtest corrido con report_id">→ Monte Carlo</button>' +
       '<span class="mono" id="bt-status">—</span>' +
       "</div>" +
       '<div id="bt-out"></div>' +
@@ -25,7 +26,9 @@
 
     const selectEl = root.querySelector("#bt-strategy");
     const paramsRow = root.querySelector("#bt-params-row");
+    const btnMc = root.querySelector("#bt-to-mc");
     let catalog = [];
+    let lastResult = null;
 
     function currentMeta() {
       const id = selectEl.value;
@@ -108,15 +111,61 @@
 
     selectEl.addEventListener("change", renderParams);
 
-    QLLabUI.bindRun(root, "#bt-run", "#bt-status", "#bt-out", function () {
+    root.querySelector("#bt-run").addEventListener("click", function () {
+      const status = root.querySelector("#bt-status");
+      const out = root.querySelector("#bt-out");
       const strategy = selectEl.value;
       const nBars = parseInt(root.querySelector("#bt-nbars").value, 10) || 24;
-      return QLApi.labBacktest({
+      status.textContent = "ejecutando…";
+      status.className = "mono muted";
+      btnMc.disabled = true;
+      QLApi.labBacktest({
         strategy_id: strategy,
         n_bars: nBars,
         params: collectParams(),
-      });
+      })
+        .then(function (data) {
+          lastResult = data;
+          QLLabUI.setStatus(status, true, "OK");
+          out.innerHTML = QLLabUI.preJson(data);
+          const rid = data.report_id || null;
+          btnMc.disabled = !rid;
+          if (rid) {
+            out.innerHTML +=
+              '<p class="muted">report_id=<span class="mono">' +
+              QLLabUI.escapeHtml(rid) +
+              "</span> — usá → Monte Carlo para robustez.</p>";
+          }
+        })
+        .catch(function (err) {
+          lastResult = null;
+          QLLabUI.setStatus(status, false, err.message || String(err));
+          out.innerHTML = "";
+          btnMc.disabled = true;
+        });
     });
+
+    btnMc.addEventListener("click", function () {
+      if (!lastResult || !lastResult.report_id) return;
+      const prefill = {
+        backtest_id: lastResult.report_id,
+        strategy_id: lastResult.strategy_id || selectEl.value,
+        n_bars: lastResult.n_bars || null,
+        mode: "normal",
+      };
+      if (global.QLNav) {
+        global.QLNav.open("montecarlo", {
+          prefill: prefill,
+          message: "Desde Backtest " + lastResult.report_id,
+        });
+      } else if (global.QLShell) {
+        global.QLShell.open("montecarlo", { prefill: prefill });
+      }
+    });
+
+    root.applyNavFocus = function () {
+      /* reservado: prefill estrategia desde MC */
+    };
 
     root.refresh = async function () {
       try {

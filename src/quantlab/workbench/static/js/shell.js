@@ -258,7 +258,21 @@
     pane.refresh();
   }
 
-  function openGuidedLab() {
+  function openGuidedLab(opts) {
+    opts = opts || {};
+    if ((opts.focusId || opts.prefill) && window.QLNav) {
+      window.QLNav.setFocus("guided_lab", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: opts.message || null,
+      });
+    }
+    if (wm.windows.has("guided_lab")) {
+      wm.focus("guided_lab");
+      const root = wm.windows.get("guided_lab").body.firstElementChild;
+      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      return;
+    }
     const pane = QLPanes.createGuidedLabPane();
     wm.open(
       "guided_lab",
@@ -267,6 +281,7 @@
       mergeOpts("guided_lab", { x: 200, y: 60, w: 520, h: 560 })
     );
     if (pane.refresh) pane.refresh();
+    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
   function openDiagnostics() {
@@ -280,12 +295,25 @@
     pane.refresh();
   }
 
-  function openBacktest() {
+  function openBacktest(opts) {
+    opts = opts || {};
+    if (wm.windows.has("backtest")) {
+      wm.focus("backtest");
+      const root = wm.windows.get("backtest").body.firstElementChild;
+      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      return;
+    }
     const pane = QLPanes.createBacktestPane();
     wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
+    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
-  function openScanner() {
+  function openScanner(opts) {
+    opts = opts || {};
+    if (wm.windows.has("scanner")) {
+      wm.focus("scanner");
+      return;
+    }
     const pane = QLPanes.createScannerPane();
     wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
   }
@@ -296,10 +324,28 @@
     pane.refresh().catch(function () {});
   }
 
-  function openReports() {
+  function openReports(opts) {
+    opts = opts || {};
+    if (opts.focusId && window.QLNav) {
+      window.QLNav.setFocus("reports", { focusId: opts.focusId, message: opts.message });
+    }
+    if (wm.windows.has("reports")) {
+      wm.focus("reports");
+      const root = wm.windows.get("reports").body.firstElementChild;
+      if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      } else if (root && typeof root.refresh === "function") {
+        root.refresh().catch(function () {});
+      }
+      return;
+    }
     const pane = QLPanes.createReportsPane();
     wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
-    pane.refresh().catch(function () {});
+    pane.refresh()
+      .then(function () {
+        if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+      })
+      .catch(function () {});
   }
 
   function openExperiments() {
@@ -318,14 +364,29 @@
     wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
   }
 
-  function openMonteCarlo() {
+  function openMonteCarlo(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("montecarlo", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: opts.message || null,
+      });
+    }
+    if (wm.windows.has("montecarlo")) {
+      wm.focus("montecarlo");
+      const root = wm.windows.get("montecarlo").body.firstElementChild;
+      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      return;
+    }
     const pane = QLPanes.createMonteCarloPane();
     wm.open(
       "montecarlo",
       tr("pane.montecarlo", "Monte Carlo"),
       pane,
-      mergeOpts("montecarlo", { x: 160, y: 100, w: 460, h: 380 })
+      mergeOpts("montecarlo", { x: 160, y: 100, w: 720, h: 560 })
     );
+    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
   function openFeatures() {
@@ -491,10 +552,10 @@
   };
 
   window.QLShell = {
-    open: function (paneId) {
+    open: function (paneId, opts) {
       const fn = openers[paneId];
       if (typeof fn === "function") {
-        fn();
+        fn(opts || {});
         return true;
       }
       return false;
