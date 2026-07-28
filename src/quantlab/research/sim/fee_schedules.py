@@ -10,6 +10,18 @@ from quantlab.core.exceptions import ValidationError
 from quantlab.execution.fees import MakerTakerFeeModel
 from quantlab.research.sim.symbol_map import MARKET_TYPES, VENUES
 
+# Páginas oficiales para que el usuario corrobore a mano (no inventamos fees).
+FEE_SOURCE_URLS: dict[tuple[str, str], str] = {
+    ("binance", "spot"): "https://www.binance.com/en/fee/schedule",
+    ("binance", "futures"): "https://www.binance.com/en/fee/futureFee",
+    ("okx", "spot"): "https://www.okx.com/fees",
+    ("okx", "futures"): "https://www.okx.com/fees",
+    ("bybit", "spot"): "https://www.bybit.com/en/help-center/article/Trading-Fee-Structure",
+    ("bybit", "futures"): "https://www.bybit.com/en/help-center/article/Trading-Fee-Structure",
+    ("hyperliquid", "spot"): "https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees",
+    ("hyperliquid", "futures"): "https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class VenueFeeSchedule:
@@ -18,6 +30,7 @@ class VenueFeeSchedule:
     maker_bps: Decimal
     taker_bps: Decimal
     notes: str
+    source_url: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -28,6 +41,10 @@ class VenueFeeSchedule:
             "maker_pct": str(self.maker_bps / Decimal("100")),
             "taker_pct": str(self.taker_bps / Decimal("100")),
             "notes": self.notes,
+            "source_url": self.source_url
+            or FEE_SOURCE_URLS.get((self.venue, self.market_type), ""),
+            "as_of": "2026-07-28",
+            "tier_note": "VIP0 / tier base publicado (sin descuentos BNB ni VIP altos)",
         }
 
 
@@ -44,6 +61,7 @@ def _sched(
         maker_bps=Decimal(maker),
         taker_bps=Decimal(taker),
         notes=notes,
+        source_url=FEE_SOURCE_URLS.get((venue, market_type), ""),
     )
 
 
@@ -141,8 +159,8 @@ def schedule_to_lab_fee_dict(sched: VenueFeeSchedule) -> dict[str, Any]:
     d = sched.to_dict()
     return {
         "schedule_id": f"{sched.venue}_{sched.market_type}_vip0",
-        "as_of": "2026-07-28",
-        "source_url": "",
+        "as_of": d.get("as_of", "2026-07-28"),
+        "source_url": d.get("source_url") or "",
         "maker_bps": d["maker_bps"],
         "taker_bps": d["taker_bps"],
         "maker_pct": d["maker_pct"],

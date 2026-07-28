@@ -54,8 +54,11 @@
       '<div class="pane-section">' +
       "<h3>Simulador</h3>" +
       '<p class="muted" style="margin-top:0">' +
-      "Compará venues (spot/futuros · leverage · capital · fees). " +
-      "Aprender/paper → <strong>Guided Lab</strong>. Estrés → <strong>Monte Carlo</strong>. LIVE bloqueado." +
+      "<strong>No es lo mismo que Guided Lab ni Backtest.</strong> " +
+      "Guided Lab = aprender/practicar en un flujo (sobre todo Binance). " +
+      "Backtest = motor técnico con velas <em>sintéticas</em> del lab. " +
+      "Simulador = comparar exchanges × monedas × leverage × fees con histórico. " +
+      "Monte Carlo = estrés sobre un resultado ya corrido. LIVE bloqueado." +
       "</p>" +
       '<div class="sim-tabs" role="tablist">' +
       '<button type="button" class="sim-tab active" data-tab="comparar">Comparar</button>' +
@@ -66,8 +69,8 @@
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem">' +
       '<label class="muted">Modo <select id="sim-market">' +
       '<option value="spot">Spot</option><option value="futures" selected>Futuros</option></select></label>' +
-      '<label class="muted">Leverage <input type="range" id="sim-lev" min="1" max="125" value="1"> ' +
-      '<span id="sim-lev-val" class="mono">1x</span></label>' +
+      '<label class="muted">Leverage <input type="range" id="sim-lev" min="1" max="125" value="1" style="vertical-align:middle"> ' +
+      '<input type="number" id="sim-lev-num" min="1" max="125" step="1" value="1" style="width:3.6em" data-tip="Apalancamiento.\nPodés usar el deslizador o escribir el número a mano (1–125).\nEn spot suele ir 1x; en futuros podés subir la x."> <span class="muted">x</span></label>' +
       '<label class="muted"><input type="checkbox" id="sim-multi-x"> multi-x (1,2,5,10)</label>' +
       '<label class="muted">Período <select id="sim-period">' +
       optHtml(PERIODS, "30") +
@@ -86,26 +89,28 @@
       '<label class="muted"><input type="checkbox" id="sim-funding" checked> funding</label>' +
       "</div>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;align-items:center">' +
-      '<span class="muted">Fees venue</span> <span class="mono" id="sim-fee-preset">—</span>' +
+      '<span class="muted">Fees</span> ' +
+      '<span class="mono" id="sim-fee-preset" data-tip="Comisiones VIP0 del schedule del lab (por exchange).\nPor defecto cada mercado usa las suyas.\nAbrí el link oficial para corroborar a mano.">—</span>' +
+      ' <a id="sim-fee-source" class="sim-fee-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver tarifas oficiales</a>' +
       '<label class="muted">maker bps <input id="sim-maker" type="number" step="0.1" style="width:4em"></label>' +
       '<label class="muted">taker bps <input id="sim-taker" type="number" step="0.1" style="width:4em"></label>' +
-      '<button type="button" class="btn secondary" id="sim-add-cost">+ Gasto</button>' +
+      '<button type="button" class="btn secondary" id="sim-fee-reset" data-tip="Vuelve a cargar maker/taker del schedule del mercado seleccionado.\nDesactiva el override manual.">Fees del mercado</button>' +
+      '<span class="mono muted" id="sim-fee-mode" style="font-size:0.75em">modo: por mercado</span>' +
+      '<button type="button" class="btn secondary" id="sim-add-cost">+ Gasto extra</button>' +
       "</div>" +
       '<div id="sim-extra-costs" class="mono muted" style="font-size:0.8em"></div>' +
       "</div>" +
       '<div class="pane-section sim-panel" data-panel="comparar">' +
       "<h4>Comparar mercados (histórico)</h4>" +
-      '<p class="muted" style="font-size:0.8em;margin:0 0 0.4rem">' +
-      "Activá un exchange y elegí monedas del menú (nombre completo + ticker). " +
-      "Cada par exchange×moneda se corre por separado." +
-      "</p>" +
-      '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem;margin-top:0.45rem">' +
+      '<div class="pane-row sim-step-first" style="flex-wrap:wrap;gap:0.45rem;align-items:center">' +
+      "<strong>1.</strong> " +
       '<label class="muted">Estrategia <select id="sim-strat-hist"></select></label>' +
-      '<button type="button" class="btn secondary" id="sim-strat-info" title="Detalle de la estrategia seleccionada">¿Cómo opera?</button>' +
+      '<button type="button" class="btn secondary" id="sim-strat-info" data-tip="Abre una ventana del escritorio (mover, redimensionar, minimizar, cerrar ×) con el detalle de la estrategia.">¿Cómo opera?</button>' +
       '<button type="button" class="btn" id="sim-run-hist">Correr y comparar</button>' +
       "</div>" +
-      '<p class="muted" style="font-size:0.8em;margin:0.35rem 0 0">' +
+      '<p class="muted" style="font-size:0.8em;margin:0.55rem 0 0.35rem"><strong>2.</strong> Mercados y monedas (uno al lado del otro):</p>' +
+      '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
+      '<p class="muted" style="font-size:0.8em;margin:0.45rem 0 0">' +
       'Atajos: <button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button> ' +
       '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button> ' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
@@ -113,31 +118,23 @@
       '<div class="mono" id="sim-out-hist">—</div></div>' +
       '<div class="pane-section sim-panel" data-panel="estrategias" style="display:none">' +
       "<h4>Catálogo por familia</h4>" +
-      '<p class="muted" style="margin-top:0">Desplegá una familia · elegí una estrategia · popup con operación paso a paso.</p>' +
-      '<div id="sim-strat-list">cargando…</div></div>' +
-      '<div id="sim-strat-modal" class="sim-modal" hidden>' +
-      '<div class="sim-modal-backdrop" data-close="1"></div>' +
-      '<div class="sim-modal-card" role="dialog" aria-modal="true">' +
-      '<div class="sim-modal-head">' +
-      '<h3 id="sim-modal-title">Estrategia</h3>' +
-      '<button type="button" class="btn secondary" id="sim-modal-close">Cerrar</button>' +
-      "</div>" +
-      '<div class="sim-modal-body mono" id="sim-modal-body"></div>' +
-      '<div class="sim-modal-foot">' +
-      '<button type="button" class="btn" id="sim-modal-use">Usar en Comparar</button>' +
-      "</div></div></div>";
+      '<p class="muted" style="margin-top:0">Desplegá una familia · «Cómo opera» abre una ventana del escritorio · Usar la pone en Comparar.</p>' +
+      '<div id="sim-strat-list">cargando…</div></div>';
 
     var extraCosts = [];
     var feeSchedules = [];
+    /** Si true, maker/taker editados se envían como override a todos los venues. */
+    var feesManualOverride = false;
     var strategiesCache = [];
     var familyLabels = {};
-    var modalStrategyId = null;
+    var guideStrategyId = null;
     var coinsCache = [];
     var venueMeta = [];
     /** @type {Object.<string, string[]>} */
     var selectedByVenue = {};
     /** @type {Object.<string, boolean>} */
     var venueEnabled = { binance: true, okx: false, bybit: false, hyperliquid: false };
+    var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
     function showTab(name) {
       root.querySelectorAll(".sim-tab").forEach(function (b) {
@@ -340,23 +337,66 @@
       });
     }
 
-    function applyFeePreset() {
-      var venue = "binance";
+    function primaryVenue() {
       var checked = root.querySelector(".sim-venue-on:checked");
-      if (checked) venue = checked.value;
+      return checked ? checked.value : "binance";
+    }
+
+    function updateFeeModeLabel() {
+      var el = root.querySelector("#sim-fee-mode");
+      if (!el) return;
+      el.textContent = feesManualOverride
+        ? "modo: editado a mano (mismo bps en todos)"
+        : "modo: por mercado (schedule VIP0 de cada exchange)";
+      el.style.color = feesManualOverride ? "var(--amber)" : "";
+    }
+
+    function applyFeePreset(force) {
+      var venue = primaryVenue();
       var mt = root.querySelector("#sim-market").value;
       var hit = feeSchedules.find(function (s) {
         return s.venue === venue && s.market_type === mt;
       });
       var presetEl = root.querySelector("#sim-fee-preset");
+      var linkEl = root.querySelector("#sim-fee-source");
       if (hit) {
         presetEl.textContent =
-          venue + "/" + mt + " maker=" + hit.maker_bps + " taker=" + hit.taker_bps;
-        root.querySelector("#sim-maker").value = hit.maker_bps;
-        root.querySelector("#sim-taker").value = hit.taker_bps;
+          venue +
+          "/" +
+          mt +
+          " maker=" +
+          hit.maker_bps +
+          " taker=" +
+          hit.taker_bps +
+          (hit.notes ? " · " + hit.notes : "");
+        if (force || !feesManualOverride) {
+          root.querySelector("#sim-maker").value = hit.maker_bps;
+          root.querySelector("#sim-taker").value = hit.taker_bps;
+        }
+        if (linkEl) {
+          if (hit.source_url) {
+            linkEl.href = hit.source_url;
+            linkEl.hidden = false;
+            linkEl.textContent = "Ver tarifas oficiales (" + venue + ")";
+          } else {
+            linkEl.hidden = true;
+          }
+        }
       } else {
-        presetEl.textContent = "sin preset";
+        presetEl.textContent = "sin schedule para " + venue + "/" + mt;
+        if (linkEl) linkEl.hidden = true;
       }
+      updateFeeModeLabel();
+    }
+
+    function resetFeesFromMarket() {
+      feesManualOverride = false;
+      applyFeePreset(true);
+    }
+
+    function markFeesManual() {
+      feesManualOverride = true;
+      updateFeeModeLabel();
     }
 
     function loadUniverse() {
@@ -410,8 +450,11 @@
         })
         .join("");
       return (
-        '<p><strong>Idea</strong></p><p>' +
-        esc(g.idea || s.description || "—") +
+        '<p class="sim-guide-plain"><strong>En simple</strong><br>' +
+        esc(g.in_plain_words || g.idea || s.description || "—") +
+        "</p>" +
+        '<p class="sim-guide-example"><strong>Ejemplo</strong><br>' +
+        esc(g.example || "—") +
         "</p>" +
         "<p><strong>Runnable:</strong> " +
         (s.runnable === false ? "no (stub research)" : "sí") +
@@ -425,7 +468,7 @@
         "<p><strong>Cuándo compra</strong></p><p>" +
         esc(g.when_buy || "—") +
         "</p>" +
-        "<p><strong>Cuándo vende / flat</strong></p><p>" +
+        "<p><strong>Cuándo vende / queda en efectivo</strong></p><p>" +
         esc(g.when_sell || "—") +
         "</p>" +
         "<p><strong>Paso a paso</strong></p><ol style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
@@ -443,23 +486,73 @@
       );
     }
 
-    function openStrategyModal(id) {
+    function openStrategyGuide(id) {
       var s = findStrategy(id);
-      if (!s) return;
-      modalStrategyId = id;
-      root.querySelector("#sim-modal-title").textContent =
-        (s.name || id) + (s.runnable === false ? " [stub]" : "");
-      root.querySelector("#sim-modal-body").innerHTML = renderGuideHtml(s);
-      var modal = root.querySelector("#sim-strat-modal");
-      modal.hidden = false;
-      modal.classList.add("open");
+      if (!s) {
+        window.alert("Estrategia no cargada todavía. Esperá un segundo y reintentá.");
+        return;
+      }
+      guideStrategyId = id;
+      var title =
+        "Estrategia: " + (s.name || id) + (s.runnable === false ? " [stub]" : "");
+      var pane = document.createElement("div");
+      pane.className = "pane-sim-strat-guide";
+      pane.innerHTML =
+        '<div class="sim-guide-body mono">' +
+        renderGuideHtml(s) +
+        "</div>" +
+        '<div class="pane-row" style="margin-top:0.75rem;gap:0.4rem;flex-wrap:wrap">' +
+        '<button type="button" class="btn" id="sim-guide-use">Usar en Comparar</button>' +
+        '<button type="button" class="btn secondary" id="sim-guide-close">Cerrar</button>' +
+        '<span class="muted" style="font-size:0.75em">Ventana del escritorio: arrastrá el título, redimensioná bordes, × para cerrar.</span>' +
+        "</div>";
+
+      var wm = global.QLShell && global.QLShell.wm;
+      if (wm && typeof wm.open === "function") {
+        if (wm.windows && wm.windows.has(STRAT_GUIDE_WIN)) {
+          wm.close(STRAT_GUIDE_WIN);
+        }
+        wm.open(STRAT_GUIDE_WIN, title, pane, {
+          x: 72,
+          y: 48,
+          w: 540,
+          h: 520,
+        });
+      } else {
+        // Fallback sin shell: panel flotante mínimo (sin overlay a pantalla completa)
+        var old = document.getElementById("sim-strat-fallback");
+        if (old) old.remove();
+        var wrap = document.createElement("div");
+        wrap.id = "sim-strat-fallback";
+        wrap.className = "sim-guide-fallback";
+        wrap.appendChild(pane);
+        document.body.appendChild(wrap);
+      }
+
+      var useBtn = pane.querySelector("#sim-guide-use");
+      var closeBtn = pane.querySelector("#sim-guide-close");
+      if (useBtn) {
+        useBtn.addEventListener("click", function () {
+          if (guideStrategyId) {
+            root.querySelector("#sim-strat-hist").value = guideStrategyId;
+          }
+          closeStrategyGuide();
+          showTab("comparar");
+        });
+      }
+      if (closeBtn) {
+        closeBtn.addEventListener("click", closeStrategyGuide);
+      }
     }
 
-    function closeStrategyModal() {
-      var modal = root.querySelector("#sim-strat-modal");
-      modal.hidden = true;
-      modal.classList.remove("open");
-      modalStrategyId = null;
+    function closeStrategyGuide() {
+      var wm = global.QLShell && global.QLShell.wm;
+      if (wm && wm.windows && wm.windows.has(STRAT_GUIDE_WIN)) {
+        wm.close(STRAT_GUIDE_WIN);
+      }
+      var fb = document.getElementById("sim-strat-fallback");
+      if (fb) fb.remove();
+      guideStrategyId = null;
     }
 
     function loadStrategies() {
@@ -467,33 +560,43 @@
         .then(function (d) {
           strategiesCache = d.strategies || d.items || [];
           familyLabels = d.family_labels_es || {};
-          var opts = strategiesCache
-            .map(function (s) {
-              var id = s.id || s.strategy_id;
-              var lab =
-                (s.name || id) + (s.runnable === false ? " [stub]" : "");
-              return (
-                "<option value=\"" + esc(id) + "\">" + esc(lab) + "</option>"
-              );
-            })
-            .join("");
-          root.querySelector("#sim-strat-hist").innerHTML = opts;
-
-          var byFam = {};
+          var byFamSelect = {};
           strategiesCache.forEach(function (s) {
             var f = s.family || "other";
-            if (!byFam[f]) byFam[f] = [];
-            byFam[f].push(s);
+            if (!byFamSelect[f]) byFamSelect[f] = [];
+            byFamSelect[f].push(s);
           });
-          var famKeys = FAMILY_ORDER.filter(function (f) {
-            return byFam[f];
+          var selFamKeys = FAMILY_ORDER.filter(function (f) {
+            return byFamSelect[f];
           }).concat(
-            Object.keys(byFam)
+            Object.keys(byFamSelect)
               .filter(function (f) {
                 return FAMILY_ORDER.indexOf(f) < 0;
               })
               .sort()
           );
+          var opts = selFamKeys
+            .map(function (fam) {
+              var label = familyLabels[fam] || fam;
+              var inner = (byFamSelect[fam] || [])
+                .map(function (s) {
+                  var id = s.id || s.strategy_id;
+                  var lab =
+                    (s.name || id) + (s.runnable === false ? " [stub]" : "");
+                  return (
+                    "<option value=\"" + esc(id) + "\">" + esc(lab) + "</option>"
+                  );
+                })
+                .join("");
+              return (
+                "<optgroup label=\"" + esc(label) + "\">" + inner + "</optgroup>"
+              );
+            })
+            .join("");
+          root.querySelector("#sim-strat-hist").innerHTML = opts;
+
+          var byFam = byFamSelect;
+          var famKeys = selFamKeys;
 
           var html = famKeys
             .map(function (fam, idx) {
@@ -559,7 +662,7 @@
           });
           root.querySelectorAll(".sim-strat-detail").forEach(function (btn) {
             btn.addEventListener("click", function () {
-              openStrategyModal(btn.getAttribute("data-id"));
+              openStrategyGuide(btn.getAttribute("data-id"));
             });
           });
         })
@@ -610,7 +713,7 @@
 
     function runCompare(strategyId) {
       var pairs = collectPairs();
-      return QLApi.simCompare({
+      var payload = {
         pairs: pairs,
         market_type: root.querySelector("#sim-market").value,
         leverages: leverages(),
@@ -623,38 +726,199 @@
         apply_funding: root.querySelector("#sim-funding").checked,
         annual_bench_rate: Number(root.querySelector("#sim-bench").value || 0) / 100,
         extra_costs: collectExtraCosts(),
-        maker_bps: root.querySelector("#sim-maker").value || undefined,
-        taker_bps: root.querySelector("#sim-taker").value || undefined,
-      });
+      };
+      // Solo override manual: si no, cada venue usa su schedule VIP0 real
+      if (feesManualOverride) {
+        var mk = root.querySelector("#sim-maker").value;
+        var tk = root.querySelector("#sim-taker").value;
+        if (mk !== "") payload.maker_bps = mk;
+        if (tk !== "") payload.taker_bps = tk;
+      }
+      return QLApi.simCompare(payload);
+    }
+
+    var SUMMARY_TIPS = {
+      venue:
+        "Mercado / exchange donde se simula la operación.\n" +
+        "Ejemplos: Binance, OKX, Bybit, Hyperliquid.\n" +
+        "Cada fila es un par exchange × moneda × apalancamiento.\n" +
+        "Usa velas históricas públicas; no manda órdenes reales.\n" +
+        "LIVE sigue bloqueado en QuantLab.",
+      modo:
+        "Tipo de mercado simulado: Spot o Futuros.\n" +
+        "Spot = comprás/vendés el activo al contado.\n" +
+        "Futuros = contrato con apalancamiento y margen.\n" +
+        "Cambia fees, sizing y si hay funding/liquidación.\n" +
+        "Elegilo arriba en «Modo» antes de correr.",
+      sym:
+        "Moneda o activo simulado (ej. BTC, ETH).\n" +
+        "Es el «underlying» del par en ese exchange.\n" +
+        "Lo elegís en el menú Nombre (TICKER) de cada mercado.\n" +
+        "Misma estrategia puede dar distinto resultado por liquidez/fees.\n" +
+        "No implica recomendación de compra.",
+      x:
+        "Apalancamiento (leverage) aplicado al overlay.\n" +
+        "1x = sin apalancar; 10x multiplica la exposición.\n" +
+        "Más x sube ganancia potencial y también el riesgo.\n" +
+        "En futuros altos puede disparar liquidación simulada.\n" +
+        "Usá multi-x para comparar varias x juntas.",
+      inicial:
+        "Capital con el que arranca la simulación.\n" +
+        "Es el efectivo inicial del backtest (caja de partida).\n" +
+        "Lo definís en el control «Capital» del panel.\n" +
+        "Sirve de base para PnL % y para el benchmark.\n" +
+        "No es dinero real depositado en un exchange.",
+      final:
+        "Capital al cerrar el período simulado.\n" +
+        "Incluye resultados de trades, fees y (si aplica) funding.\n" +
+        "Con leverage refleja el overlay de esa x.\n" +
+        "Comparalo con el inicial: subió o bajó la caja.\n" +
+        "Si hubo liquidación, puede quedar muy por debajo.",
+      ops:
+        "Número de operaciones ejecutadas (fills).\n" +
+        "Cada fill es una compra/venta que tocó el precio histórico.\n" +
+        "Cero fills = la estrategia no entró o solo puso límites sin fill.\n" +
+        "Más ops suele implicar más fees acumulados.\n" +
+        "No cuenta órdenes que nunca se llenaron.",
+      fees:
+        "Suma de comisiones cobradas en la simulación.\n" +
+        "Por defecto usa el schedule VIP0 de cada exchange.\n" +
+        "Solo si editás maker/taker a mano se fuerza ese bps en todos.\n" +
+        "«Fees del mercado» vuelve al schedule real.\n" +
+        "Restan del capital final.",
+      "dif-bench":
+        "Diferencia vs el banco (tasa pasiva del período).\n" +
+        "Se calcula: PnL de la estrategia − retorno del bench.\n" +
+        "Positivo = la estrategia rindió más que dejar plata a esa tasa.\n" +
+        "Negativo = el bench hubiera sido mejor en ese tramo.\n" +
+        "El % anual del bench lo seteás arriba (ej. 5%).",
+      liq:
+        "¿Se simuló una liquidación en futuros?\n" +
+        "«sí» = el margen no alcanzó y se cortó la posición.\n" +
+        "Pasa más con leverage alto y movimientos fuertes.\n" +
+        "En spot no aplica liquidación típica de futuros.\n" +
+        "Activá/desactivá «simular liquidación» en controles.",
+    };
+
+    function tipAttr(key) {
+      return ' data-tip="' + esc(SUMMARY_TIPS[key] || "") + '"';
+    }
+
+    function numOrNull(v) {
+      if (v == null || v === "") return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
+
+    function fmtMoney(v) {
+      if (v == null || v === "") return "—";
+      var n = Number(v);
+      if (!isFinite(n)) return esc(v);
+      return esc(n.toLocaleString("es-AR", { maximumFractionDigits: 4 }));
     }
 
     function formatRows(data) {
       var rows = data.rows || [];
       if (!rows.length) return "sin filas";
       return (
-        '<table class="mono" style="width:100%;font-size:0.75em"><thead><tr>' +
-        "<th>venue</th><th>modo</th><th>sym</th><th>x</th><th>final</th><th>pnl</th><th>bench</th><th>liq</th></tr></thead><tbody>" +
+        '<p class="muted" style="font-size:0.75em;margin:0.2rem 0 0.35rem">' +
+        "Resumen — pasá el mouse sobre cada título de columna para ver qué significa." +
+        "</p>" +
+        '<table class="sim-summary-table mono"><thead><tr>' +
+        "<th" +
+        tipAttr("venue") +
+        ">Mercado</th>" +
+        "<th" +
+        tipAttr("modo") +
+        ">Modo</th>" +
+        "<th" +
+        tipAttr("sym") +
+        ">Moneda</th>" +
+        "<th" +
+        tipAttr("x") +
+        ">x</th>" +
+        "<th" +
+        tipAttr("inicial") +
+        ">Capital inicial</th>" +
+        "<th" +
+        tipAttr("final") +
+        ">Capital final</th>" +
+        "<th" +
+        tipAttr("ops") +
+        ">Nº operaciones</th>" +
+        "<th" +
+        tipAttr("fees") +
+        ">Fees gastados</th>" +
+        "<th" +
+        tipAttr("dif-bench") +
+        ">Dif. vs bench</th>" +
+        "<th" +
+        tipAttr("liq") +
+        ">Liq.</th>" +
+        "</tr></thead><tbody>" +
         rows
           .map(function (r) {
             var o = r.overlay || {};
-            var b = (r.backtest && r.backtest.benchmark) || r.benchmark || {};
+            var bt = r.backtest || {};
+            var b = bt.benchmark || r.benchmark || {};
+            var initial = o.initial_equity != null ? o.initial_equity : bt.initial_equity;
+            var finalEq = o.final_equity != null ? o.final_equity : bt.final_equity;
+            var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
+            var fees = bt.total_fees;
+            var pnlN = numOrNull(o.pnl);
+            var benchN = numOrNull(b.period_return);
+            var dif =
+              pnlN != null && benchN != null
+                ? pnlN - benchN
+                : null;
+            var difTxt =
+              dif == null
+                ? r.error
+                  ? esc(r.error)
+                  : "—"
+                : (dif > 0 ? "+" : "") +
+                  dif.toLocaleString("es-AR", { maximumFractionDigits: 4 });
             return (
-              "<tr><td>" +
+              "<tr><td" +
+              tipAttr("venue") +
+              ">" +
               esc(r.venue) +
-              "</td><td>" +
+              "</td><td" +
+              tipAttr("modo") +
+              ">" +
               esc(r.market_type) +
-              "</td><td>" +
+              "</td><td" +
+              tipAttr("sym") +
+              ">" +
               esc(r.underlying || r.instrument_id) +
-              "</td><td>" +
+              "</td><td" +
+              tipAttr("x") +
+              ">" +
               esc(r.leverage) +
-              "</td><td>" +
-              esc(o.final_equity || "—") +
-              "</td><td>" +
-              esc(o.pnl || r.error || "—") +
-              "</td><td>" +
-              esc(b.period_return != null ? b.period_return : "—") +
-              "</td><td>" +
-              (o.liquidated ? "sí" : "no") +
+              "</td><td" +
+              tipAttr("inicial") +
+              ">" +
+              fmtMoney(initial) +
+              "</td><td" +
+              tipAttr("final") +
+              ">" +
+              fmtMoney(finalEq) +
+              "</td><td" +
+              tipAttr("ops") +
+              ">" +
+              esc(nOps != null ? nOps : "—") +
+              "</td><td" +
+              tipAttr("fees") +
+              ">" +
+              fmtMoney(fees) +
+              "</td><td" +
+              tipAttr("dif-bench") +
+              ">" +
+              difTxt +
+              "</td><td" +
+              tipAttr("liq") +
+              ">" +
+              (o.liquidated ? "sí" : r.ok === false ? "—" : "no") +
               "</td></tr>"
             );
           })
@@ -663,15 +927,31 @@
       );
     }
 
+    function syncLeverage(from) {
+      var range = root.querySelector("#sim-lev");
+      var num = root.querySelector("#sim-lev-num");
+      var v = from === "num" ? Number(num.value) : Number(range.value);
+      if (!isFinite(v) || v < 1) v = 1;
+      if (v > 125) v = 125;
+      v = Math.round(v);
+      range.value = String(v);
+      num.value = String(v);
+      refreshSizing();
+    }
+
     root.querySelectorAll(".sim-tab").forEach(function (btn) {
       btn.addEventListener("click", function () {
         showTab(btn.getAttribute("data-tab"));
       });
     });
     root.querySelector("#sim-lev").addEventListener("input", function () {
-      root.querySelector("#sim-lev-val").textContent =
-        root.querySelector("#sim-lev").value + "x";
-      refreshSizing();
+      syncLeverage("range");
+    });
+    root.querySelector("#sim-lev-num").addEventListener("input", function () {
+      syncLeverage("num");
+    });
+    root.querySelector("#sim-lev-num").addEventListener("change", function () {
+      syncLeverage("num");
     });
     ["#sim-period", "#sim-interval"].forEach(function (sel) {
       root.querySelector(sel).addEventListener("change", refreshNBars);
@@ -679,10 +959,13 @@
     ["#sim-capital", "#sim-per-trade", "#sim-market"].forEach(function (sel) {
       root.querySelector(sel).addEventListener("change", function () {
         refreshSizing();
-        applyFeePreset();
+        if (sel === "#sim-market") applyFeePreset(false);
       });
       root.querySelector(sel).addEventListener("input", refreshSizing);
     });
+    root.querySelector("#sim-maker").addEventListener("input", markFeesManual);
+    root.querySelector("#sim-taker").addEventListener("input", markFeesManual);
+    root.querySelector("#sim-fee-reset").addEventListener("click", resetFeesFromMarket);
     root.querySelector("#sim-add-cost").addEventListener("click", function () {
       var name = window.prompt("Nombre del gasto", "retiro");
       if (!name) return;
@@ -712,20 +995,7 @@
         });
     });
     root.querySelector("#sim-strat-info").addEventListener("click", function () {
-      openStrategyModal(root.querySelector("#sim-strat-hist").value);
-    });
-    root.querySelector("#sim-modal-close").addEventListener("click", closeStrategyModal);
-    root.querySelector("#sim-strat-modal").addEventListener("click", function (ev) {
-      if (ev.target && ev.target.getAttribute("data-close") === "1") {
-        closeStrategyModal();
-      }
-    });
-    root.querySelector("#sim-modal-use").addEventListener("click", function () {
-      if (modalStrategyId) {
-        root.querySelector("#sim-strat-hist").value = modalStrategyId;
-      }
-      closeStrategyModal();
-      showTab("comparar");
+      openStrategyGuide(root.querySelector("#sim-strat-hist").value);
     });
     root.querySelector("#sim-open-mc").addEventListener("click", function () {
       if (global.QLShell && QLShell.open) QLShell.open("montecarlo");

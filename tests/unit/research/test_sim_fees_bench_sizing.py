@@ -39,6 +39,8 @@ def test_list_fee_schedules_covers_all_venues() -> None:
     assert len(rows) == 8
     venues = {r["venue"] for r in rows}
     assert venues == {"binance", "okx", "bybit", "hyperliquid"}
+    assert all(r.get("source_url") for r in rows)
+    assert "binance.com" in get_fee_schedule("binance", "spot").source_url
 
 
 def test_unknown_fee_schedule_raises() -> None:

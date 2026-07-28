@@ -80,3 +80,40 @@ def test_build_update_status_local_only(monkeypatch: object) -> None:
     assert payload["update_available"] is True
     assert payload["last_modified_display"]
     assert payload["live_blocked"] is True
+
+
+def test_working_tree_mtime_beats_stale_git(tmp_path: Path, monkeypatch: object) -> None:
+    from quantlab.workbench import git_update as gu
+
+    src = tmp_path / "src" / "quantlab" / "workbench" / "static" / "js"
+    src.mkdir(parents=True)
+    hot = src / "simulator.js"
+    hot.write_text("// fresh", encoding="utf-8")
+
+    monkeypatch.setattr(  # type: ignore[attr-defined]
+        gu,
+        "local_git_head_info",
+        lambda root=None: {
+            "commit": "deadbeef",
+            "committed_at": "2020-01-01T12:00:00+00:00",
+            "subject": "old",
+            "branch": "main",
+        },
+    )
+    monkeypatch.setattr(  # type: ignore[attr-defined]
+        gu,
+        "fetch_github_tip",
+        lambda **_kwargs: {"ok": False, "error": "skip", "version": None, "committed_at": None},
+    )
+    monkeypatch.setattr(  # type: ignore[attr-defined]
+        gu,
+        "local_pyproject_version",
+        lambda root=None: "1.01.0",
+    )
+
+    payload = gu.build_update_status(root=tmp_path, fetch_remote=True)
+    assert payload["last_modified_source"] == "working_tree"
+    assert payload["last_modified_at"]
+    assert payload["last_modified_display"] != "—"
+    # Debe ser ~ahora, no 2020
+    assert "2020" not in payload["last_modified_display"]

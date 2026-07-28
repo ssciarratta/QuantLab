@@ -17,9 +17,10 @@
       '<div class="pane-section">' +
       '<h3 data-i18n="pane.guided_lab">Guided Lab</h3>' +
       '<p class="muted" style="margin-top:0" data-i18n="guided_lab.intro">' +
-      "Flujo guiado: venue → scan → estrategia → simular/paper. " +
-      "Para comparar varios exchanges/leverage usá el panel <strong>Simulador</strong>. " +
-      "LIVE solo tras unlock. Sin unlock = bloqueado.</p>" +
+      "Flujo guiado paso a paso (sobre todo Binance): venue → scan → estrategia → simular/paper. " +
+      "<strong>No reemplaza</strong> el <em>Simulador</em> (comparar varios exchanges) ni el " +
+      "<em>Backtest</em> (motor con velas sintéticas del lab). " +
+      "LIVE solo tras unlock.</p>" +
       '<div class="data-legend" role="note">' +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
@@ -1396,6 +1397,12 @@
       const list = (strategies || []).filter(function (s) {
         return s && s.runnable !== false;
       });
+      const labels = {};
+      (strategies || []).forEach(function (s) {
+        if (s && s.family) {
+          labels[s.family] = s.family_label_es || s.family;
+        }
+      });
       const byFamily = {};
       list.forEach(function (s) {
         const fam = s.family || "other";
@@ -1403,14 +1410,16 @@
         byFamily[fam].push(s);
       });
       Object.keys(byFamily)
-        .sort()
+        .sort(function (a, b) {
+          return String(labels[a] || a).localeCompare(String(labels[b] || b), "es");
+        })
         .forEach(function (fam) {
           const group = document.createElement("optgroup");
-          group.label = fam;
+          group.label = labels[fam] || fam;
           byFamily[fam].forEach(function (s) {
             const opt = document.createElement("option");
             opt.value = s.id;
-            opt.textContent = (s.name || s.id) + " · binance-ready";
+            opt.textContent = s.name || s.id;
             if (s.description) opt.title = s.description;
             group.appendChild(opt);
           });
@@ -1425,7 +1434,7 @@
       if (hint) {
         hint.textContent =
           list.length +
-          " runnable (backtest/paper/Binance demo). Stubs ocultos aquí.";
+          " runnable agrupadas por familia. Stubs ocultos aquí.";
       }
     }
 

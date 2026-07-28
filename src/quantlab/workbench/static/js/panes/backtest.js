@@ -10,7 +10,10 @@
       "<h3>Backtest 5A</h3>" +
       '<p class="muted" style="margin-top:0">' +
       '<span class="data-badge data-badge-synth">SINTÉTICO lab</span> ' +
-      "Barras inventadas del laboratorio — no son klines de Binance. Research-safe, sin LIVE.</p>" +
+      "Motor técnico con <strong>velas inventadas</strong> del laboratorio (no klines reales). " +
+      "Sirve para debug de estrategia. " +
+      "Histórico de mercado → <strong>Guided Lab</strong> o <strong>Simulador</strong>. " +
+      "Research-safe, sin LIVE.</p>" +
       '<div class="pane-row">' +
       '<label class="field">Estrategia<select id="bt-strategy"></select></label>' +
       '<label class="field">n_bars<input id="bt-nbars" type="number" value="120" min="4" max="2000" /></label>' +
@@ -89,16 +92,20 @@
         byFamily[fam].push(s);
       });
       Object.keys(byFamily)
-        .sort()
+        .sort(function (a, b) {
+          const la = (byFamily[a][0] && byFamily[a][0].family_label_es) || a;
+          const lb = (byFamily[b][0] && byFamily[b][0].family_label_es) || b;
+          return String(la).localeCompare(String(lb), "es");
+        })
         .forEach(function (fam) {
           const group = document.createElement("optgroup");
-          group.label = fam;
+          const sample = byFamily[fam][0];
+          group.label = (sample && sample.family_label_es) || fam;
           byFamily[fam].forEach(function (s) {
             const opt = document.createElement("option");
             opt.value = s.id;
             const stub = s.runnable === false ? " [stub]" : "";
-            const bn = s.runnable !== false ? " · binance-ready" : "";
-            opt.textContent = (s.name || s.id) + stub + bn;
+            opt.textContent = (s.name || s.id) + stub;
             opt.disabled = s.runnable === false;
             if (s.description) opt.title = s.description;
             group.appendChild(opt);

@@ -73,6 +73,32 @@ def test_simulator_js_has_per_venue_coin_menu() -> None:
     assert "loadUniverse" in js
     assert "pairs:" in js or "pairs =" in js
     assert "sim-symbols" not in js
+    # UX: estrategia primero, resumen con tooltips, guía en ventana WM
+    assert js.index("sim-strat-hist") < js.index("sim-venue-picks")
+    assert "sim-step-first" in js
+    assert "Capital inicial" in js
+    assert "Fees gastados" in js
+    assert "Dif. vs bench" in js
+    assert "SUMMARY_TIPS" in js
+    assert "openStrategyGuide" in js
+    assert "sim_strategy_guide" in js
+    assert "sim-lev-num" in js
+    assert "feesManualOverride" in js
+    assert "Fees del mercado" in js
+    assert "sim-strat-modal" not in js
+
+
+def test_simulator_css_venues_side_by_side() -> None:
+    from pathlib import Path
+
+    css = (
+        Path(__file__).resolve().parents[3]
+        / "src/quantlab/workbench/static/css/workbench.css"
+    ).read_text(encoding="utf-8")
+    assert "flex-direction: row" in css
+    assert ".sim-venue-picks" in css
+    assert "pane-sim-strat-guide" in css
+    assert "sim-modal-float" not in css
 
 
 def test_guided_lab_js_has_tabs() -> None:

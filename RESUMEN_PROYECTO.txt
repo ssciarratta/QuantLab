@@ -1,22 +1,23 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Guided Lab solapas + Simulador monedas por venue
+Versión: 1.01.0 · Menú agrupado · guías con ejemplos · fees con link oficial
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Guided Lab: 5 solapas (Empezar/Inventado/Histórico/Practicar/Unlock)
-- Simulador: menú moneda por exchange — Nombre (TICKER) + chips
-- compare API: pairs[{venue,underlying}] · universe GET
+- Menú QL: grupos desplegables (Espacios / Empezar aquí / Sesión / Lab / Ventanas / Sistema)
+- Estrategias: optgroup por familia (Simulador, Guided, Backtest)
+- Guías: «En simple» + ejemplo numérico
+- Fees: schedule VIP0 + link «Ver tarifas oficiales»
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-UX Guided tabs + sim universe/coins UI
+UX menú accordion + guías legibles + source_url fees + roles GL/Sim/BT
 
 PRÓXIMO
 -------
-F5 workbench → probar ambos paneles
+F5 workbench → probar menú QL y «Cómo opera»
 Commit/push si el usuario lo pide
 
 INVARIANTES

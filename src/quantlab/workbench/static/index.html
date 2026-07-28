@@ -20,7 +20,7 @@
       <button type="button" id="banner-update-btn" class="banner-update-btn"
         title="Descargar última versión desde GitHub (git pull) y reiniciar QuantLab">Sincronizar</button>
       <span class="banner-sep">·</span>
-      <span id="banner-updated" class="mono muted banner-updated" title="Última modificación (git / GitHub)">mod —</span>
+      <span id="banner-updated" class="mono muted banner-updated" title="Última modificación de archivos locales (o commit git / GitHub)">mod —</span>
       <span class="banner-sep">·</span>
       <span id="banner-session" class="mono muted">session —</span>
       <span class="banner-sep">·</span>
@@ -66,82 +66,112 @@
   <div id="onboarding-wizard" class="onboarding-wizard hidden" hidden role="dialog" aria-modal="true" aria-label="Onboarding QuantLab" data-i18n-aria="aria.onboarding"></div>
 
   <div id="start-menu" class="start-menu hidden" hidden>
-    <div class="start-group" data-i18n="menu.workspaces">Espacios de trabajo</div>
-    <button type="button" data-preset="research" data-i18n="preset.research" data-tip="Layout research: Salud, Backtest, Reports y Chat.\nIdeal para explorar estrategias." data-i18n-tip="tip.preset.research">
-      Research
-    </button>
-    <button type="button" data-preset="trading_paper" data-i18n="preset.trading_paper" data-tip="Layout trading paper: Market, Blotter, Posiciones, Sesión y Riesgo.\nSimulación sin órdenes reales." data-i18n-tip="tip.preset.trading_paper">
-      Trading Paper
-    </button>
-    <button type="button" data-preset="ops" data-i18n="preset.ops" data-tip="Layout ops: Salud, Settings, Docs y Catálogo.\nChequeo operativo del laboratorio." data-i18n-tip="tip.preset.ops">
-      Ops
-    </button>
-    <div id="custom-presets" class="custom-presets" aria-label="Custom presets"></div>
-    <button type="button" id="btn-preset-save" data-i18n="preset.save" data-tip="Guardar el layout actual como preset personalizado.\nPodés reabrirlo luego desde este menú." data-i18n-tip="tip.preset.save">
-      Guardar espacio actual…
-    </button>
-    <div class="start-group" data-i18n="menu.session">Sesión</div>
-    <button type="button" data-open="health" data-i18n="pane.health" data-tip="Estado del sistema, modo PAPER y LIVE_BLOCKED.\nPunto de partida para ver si el lab está sano." data-i18n-tip="tip.pane.health">Salud / Modo</button>
-    <button type="button" data-open="market" data-i18n="pane.market" data-tip="Market data read-only (ticks / snapshots).\nNo envía órdenes." data-i18n-tip="tip.pane.market">Market Data</button>
-    <button type="button" data-open="universe" data-i18n="pane.universe" data-tip="Universo de símbolos y watchlist.\nImportá/exportá listas para lab." data-i18n-tip="tip.pane.universe">Universe</button>
-    <button type="button" data-open="catalog" data-i18n="pane.catalog" data-tip="Catálogo de datasets y artefactos disponibles.\nExploración read-only." data-i18n-tip="tip.pane.catalog">Data Catalog</button>
-    <button type="button" data-open="blotter" data-i18n="pane.blotter" data-tip="Blotter de órdenes paper.\nHistorial simulado de la sesión." data-i18n-tip="tip.pane.blotter">Paper Blotter</button>
-    <button type="button" data-open="journal" data-i18n="pane.journal" data-tip="Journal paper autoritativo.\nFuente de verdad de fills simulados." data-i18n-tip="tip.pane.journal">Journal</button>
-    <button type="button" data-open="paper_session" data-i18n="pane.paper_session" data-tip="Sesión paper: capital, PnL y estado.\nRehydrate tras rebuild." data-i18n-tip="tip.pane.paper_session">Sesión Paper</button>
-    <button type="button" data-open="positions" data-i18n="pane.positions" data-tip="Posiciones abiertas en paper.\nDerivadas del journal." data-i18n-tip="tip.pane.positions">Posiciones</button>
-    <button type="button" data-open="risk" data-i18n="pane.risk" data-tip="Límites de riesgo y kill switches paper.\nNo habilita LIVE." data-i18n-tip="tip.pane.risk">Riesgo</button>
-    <button type="button" data-open="reconciliation" data-i18n="pane.reconciliation" data-tip="Reconciliación paper vs estado esperado.\nDetecta desvíos de sesión." data-i18n-tip="tip.pane.reconciliation">Reconciliación</button>
-    <button type="button" data-open="venues" data-i18n="pane.venues" data-tip="Registro de venues/brokers disponibles.\nSolo lectura." data-i18n-tip="tip.pane.venues">Venues</button>
-    <button type="button" data-open="api_explorer" data-i18n="pane.api_explorer" data-tip="Explorá endpoints del Workbench.\nÚtil para debug y docs internas." data-i18n-tip="tip.pane.api_explorer">API Explorer</button>
-    <button type="button" data-open="diagnostics" data-i18n="pane.diagnostics" data-tip="Snapshot de diagnóstico y soporte.\nDescargá bundle para auditoría." data-i18n-tip="tip.pane.diagnostics">Diagnostics</button>
-    <button type="button" data-open="guided_lab" data-i18n="pane.guided_lab" data-tip="Wizard: venue → scan → estrategia → simular.\nIncluye alpha Binance y pipeline top-5." data-i18n-tip="tip.pane.guided_lab">Guided Lab</button>
-    <button type="button" data-open="simulator" data-tip="Simulador multi-venue: Aprender / Histórico / Estrés / Practicar / Estrategias.\nCapital, fees, leverage y benchmark.">Simulador</button>
-    <button type="button" data-open="chat" data-i18n="pane.chat" data-tip="Asistente IA con memoria local.\nPuede abrir paneles y correr alpha/pipeline (sin órdenes)." data-i18n-tip="tip.pane.chat">Chat IA</button>
-    <div class="start-group" data-i18n="menu.lab">Laboratorio</div>
-    <button type="button" data-open="backtest" data-i18n="pane.backtest" data-tip="Correr backtests sobre series locales o lab.\nResultados van a Metrics/Reports." data-i18n-tip="tip.pane.backtest">Backtest</button>
-    <button type="button" data-open="scanner" data-i18n="pane.scanner" data-tip="Alpha Scanner sobre universo configurado.\nRanking de señales research." data-i18n-tip="tip.pane.scanner">Alpha Scanner</button>
-    <button type="button" data-open="metrics" data-i18n="pane.metrics" data-tip="Métricas del último run (Sharpe, DD, etc.).\nVista rápida post-backtest." data-i18n-tip="tip.pane.metrics">Metrics / Último</button>
-    <button type="button" data-open="reports" data-i18n="pane.reports" data-tip="Reportes e informes de experimentos.\nExportá resultados del lab." data-i18n-tip="tip.pane.reports">Reports</button>
-    <button type="button" data-open="experiments" data-i18n="pane.experiments" data-tip="Registro de experimentos y variantes.\nSeguimiento de hipótesis." data-i18n-tip="tip.pane.experiments">Experiments</button>
-    <button type="button" data-open="optimize" data-i18n="pane.optimize" data-tip="Optimizer de parámetros de estrategia.\nExploración controlada (paper)." data-i18n-tip="tip.pane.optimize">Optimizer</button>
-    <button type="button" data-open="montecarlo" data-i18n="pane.montecarlo" data-tip="Simulación Monte Carlo de paths.\nEstrés de equity y draws." data-i18n-tip="tip.pane.montecarlo">Monte Carlo</button>
-    <button type="button" data-open="features" data-i18n="pane.features" data-tip="Ingeniería / inspección de features.\nInputs para alphas." data-i18n-tip="tip.pane.features">Features</button>
-    <button type="button" data-open="export_hb" data-i18n="pane.export_hb" data-tip="Exportar configs hacia Hummingbot.\nPuente research → bot (fuera de LIVE)." data-i18n-tip="tip.pane.export_hb">Hummingbot Export</button>
-    <button type="button" data-open="validation" data-i18n="pane.validation" data-tip="Splits de validación train/test.\nEvita overfit en el lab." data-i18n-tip="tip.pane.validation">Validation Splits</button>
-    <div class="start-group" data-i18n="menu.windows">Ventanas</div>
-    <button type="button" data-wm-action="minimize_all" data-i18n="action.minimize_all" data-tip="Minimiza todas las ventanas abiertas.\nQuedan en la barra de tareas." data-i18n-tip="tip.action.minimize_all">
-      Minimize all
-    </button>
-    <button type="button" data-wm-action="restore_all" data-i18n="action.restore_all" data-tip="Restaura todas las ventanas minimizadas.\nVuelve al layout previo." data-i18n-tip="tip.action.restore_all">
-      Restore all windows
-    </button>
-    <button type="button" data-wm-action="cascade_windows" data-i18n="action.cascade_windows" data-tip="Apila las ventanas en cascada.\nÚtil para ver títulos de todas." data-i18n-tip="tip.action.cascade_windows">
-      Cascade windows
-    </button>
-    <button type="button" data-wm-action="tile_windows" data-i18n="action.tile_windows" data-tip="Organiza ventanas en mosaico.\nDivide el escritorio en grilla." data-i18n-tip="tip.action.tile_windows">
-      Tile windows
-    </button>
-    <button type="button" data-wm-action="bring_to_front" data-i18n="action.bring_to_front" data-tip="Trae al frente la ventana enfocada.\nTambién: menú contextual del título." data-i18n-tip="tip.action.bring_to_front">
-      Bring to Front
-    </button>
-    <button type="button" data-wm-action="send_to_back" data-i18n="action.send_to_back" data-tip="Envía atrás la ventana enfocada.\nTambién: menú contextual del título." data-i18n-tip="tip.action.send_to_back">
-      Send to Back
-    </button>
-    <button type="button" data-wm-action="maximize_window" data-i18n="action.maximize_window" data-tip="Maximiza la ventana enfocada.\nOculta los handles de resize." data-i18n-tip="tip.action.maximize_window">
-      Maximize window
-    </button>
-    <button type="button" data-wm-action="restore_from_maximize" data-i18n="action.restore_from_maximize" data-tip="Restaura desde maximizado.\nVuelve al tamaño anterior." data-i18n-tip="tip.action.restore_from_maximize">
-      Restore from Maximize
-    </button>
-    <div class="start-group" data-i18n="menu.system">Sistema</div>
-    <button type="button" data-open="sessions" data-i18n="pane.sessions" data-tip="Gestión de sesiones del Workbench.\nListá y revisá sesiones locales." data-i18n-tip="tip.pane.sessions">Sessions</button>
-    <button type="button" data-open="activity" data-i18n="pane.activity" data-tip="Log de actividad de la sesión.\nAuditoría operativa ligera." data-i18n-tip="tip.pane.activity">Activity</button>
-    <button type="button" data-open="access_log" data-i18n="pane.access_log" data-tip="Access log de la API del Workbench.\nQuién/qué tocó endpoints." data-i18n-tip="tip.pane.access_log">Access Log</button>
-    <button type="button" data-open="backups" data-i18n="pane.backups" data-tip="Backups y restauración de sesión.\nExportá estado local." data-i18n-tip="tip.pane.backups">Backups</button>
-    <button type="button" data-open="ops_metrics" data-i18n="pane.ops_metrics" data-tip="Métricas operativas del servidor.\nSalud y throughput internos." data-i18n-tip="tip.pane.ops_metrics">Ops Metrics</button>
-    <button type="button" data-open="settings" data-i18n="pane.settings" data-tip="Preferencias UI, locale y sesión.\nIncluye escala de fuente." data-i18n-tip="tip.pane.settings">Settings</button>
-    <button type="button" data-open="docs" data-i18n="pane.docs" data-tip="Ayuda y documentación embebida.\nGuías del laboratorio." data-i18n-tip="tip.pane.docs">Help / Docs</button>
-    <button type="button" data-open="about" data-i18n="pane.about" data-tip="Acerca de QuantLab: versión y fases.\nIdentidad del build actual." data-i18n-tip="tip.pane.about">Acerca de</button>
+    <details class="start-acc" open>
+      <summary class="start-acc-sum" data-i18n="menu.workspaces">Espacios de trabajo</summary>
+      <div class="start-acc-body">
+        <button type="button" data-preset="research" data-i18n="preset.research" data-tip="Layout research: Salud, Backtest, Reports y Chat.\nIdeal para explorar estrategias." data-i18n-tip="tip.preset.research">
+          Research
+        </button>
+        <button type="button" data-preset="trading_paper" data-i18n="preset.trading_paper" data-tip="Layout trading paper: Market, Blotter, Posiciones, Sesión y Riesgo.\nSimulación sin órdenes reales." data-i18n-tip="tip.preset.trading_paper">
+          Trading Paper
+        </button>
+        <button type="button" data-preset="ops" data-i18n="preset.ops" data-tip="Layout ops: Salud, Settings, Docs y Catálogo.\nChequeo operativo del laboratorio." data-i18n-tip="tip.preset.ops">
+          Ops
+        </button>
+        <div id="custom-presets" class="custom-presets" aria-label="Custom presets"></div>
+        <button type="button" id="btn-preset-save" data-i18n="preset.save" data-tip="Guardar el layout actual como preset personalizado.\nPodés reabrirlo luego desde este menú." data-i18n-tip="tip.preset.save">
+          Guardar espacio actual…
+        </button>
+      </div>
+    </details>
+
+    <details class="start-acc" open>
+      <summary class="start-acc-sum">Empezar aquí (lab)</summary>
+      <div class="start-acc-body">
+        <button type="button" data-open="guided_lab" data-i18n="pane.guided_lab" data-tip="Wizard paso a paso en UN venue (Binance).\nDescubrí, backtesteá y practicá paper/demo.\nNo compara varios exchanges a la vez." data-i18n-tip="tip.pane.guided_lab">Guided Lab</button>
+        <button type="button" data-open="simulator" data-tip="Compará varios exchanges × monedas × leverage × fees.\nMisma estrategia en paralelo.\nNo es el wizard de aprendizaje.">Simulador</button>
+        <button type="button" data-open="backtest" data-i18n="pane.backtest" data-tip="Backtest técnico 5A sobre barras SINTÉTICAS del lab.\nPara debug de estrategia, no para ‘cómo operó el mercado real’." data-i18n-tip="tip.pane.backtest">Backtest</button>
+        <button type="button" data-open="montecarlo" data-i18n="pane.montecarlo" data-tip="Estrés estadístico sobre un resultado ya corrido.\nNo reemplaza Guided ni Simulador." data-i18n-tip="tip.pane.montecarlo">Monte Carlo</button>
+        <button type="button" data-open="chat" data-i18n="pane.chat" data-tip="Asistente IA con memoria local.\nPuede abrir paneles (sin órdenes)." data-i18n-tip="tip.pane.chat">Chat IA</button>
+      </div>
+    </details>
+
+    <details class="start-acc">
+      <summary class="start-acc-sum" data-i18n="menu.session">Sesión / paper</summary>
+      <div class="start-acc-body">
+        <button type="button" data-open="health" data-i18n="pane.health" data-tip="Estado del sistema, modo PAPER y LIVE_BLOCKED.\nPunto de partida para ver si el lab está sano." data-i18n-tip="tip.pane.health">Salud / Modo</button>
+        <button type="button" data-open="market" data-i18n="pane.market" data-tip="Market data read-only (ticks / snapshots).\nNo envía órdenes." data-i18n-tip="tip.pane.market">Market Data</button>
+        <button type="button" data-open="universe" data-i18n="pane.universe" data-tip="Universo de símbolos y watchlist.\nImportá/exportá listas para lab." data-i18n-tip="tip.pane.universe">Universe</button>
+        <button type="button" data-open="catalog" data-i18n="pane.catalog" data-tip="Catálogo de datasets y artefactos disponibles.\nExploración read-only." data-i18n-tip="tip.pane.catalog">Data Catalog</button>
+        <button type="button" data-open="blotter" data-i18n="pane.blotter" data-tip="Blotter de órdenes paper.\nHistorial simulado de la sesión." data-i18n-tip="tip.pane.blotter">Paper Blotter</button>
+        <button type="button" data-open="journal" data-i18n="pane.journal" data-tip="Journal paper autoritativo.\nFuente de verdad de fills simulados." data-i18n-tip="tip.pane.journal">Journal</button>
+        <button type="button" data-open="paper_session" data-i18n="pane.paper_session" data-tip="Sesión paper: capital, PnL y estado.\nRehydrate tras rebuild." data-i18n-tip="tip.pane.paper_session">Sesión Paper</button>
+        <button type="button" data-open="positions" data-i18n="pane.positions" data-tip="Posiciones abiertas en paper.\nDerivadas del journal." data-i18n-tip="tip.pane.positions">Posiciones</button>
+        <button type="button" data-open="risk" data-i18n="pane.risk" data-tip="Límites de riesgo y kill switches paper.\nNo habilita LIVE." data-i18n-tip="tip.pane.risk">Riesgo</button>
+        <button type="button" data-open="reconciliation" data-i18n="pane.reconciliation" data-tip="Reconciliación paper vs estado esperado.\nDetecta desvíos de sesión." data-i18n-tip="tip.pane.reconciliation">Reconciliación</button>
+      </div>
+    </details>
+
+    <details class="start-acc">
+      <summary class="start-acc-sum" data-i18n="menu.lab">Laboratorio avanzado</summary>
+      <div class="start-acc-body">
+        <button type="button" data-open="scanner" data-i18n="pane.scanner" data-tip="Alpha Scanner sobre universo configurado.\nRanking de señales research." data-i18n-tip="tip.pane.scanner">Alpha Scanner</button>
+        <button type="button" data-open="metrics" data-i18n="pane.metrics" data-tip="Métricas del último run (Sharpe, DD, etc.).\nVista rápida post-backtest." data-i18n-tip="tip.pane.metrics">Metrics / Último</button>
+        <button type="button" data-open="reports" data-i18n="pane.reports" data-tip="Reportes e informes de experimentos.\nExportá resultados del lab." data-i18n-tip="tip.pane.reports">Reports</button>
+        <button type="button" data-open="experiments" data-i18n="pane.experiments" data-tip="Registro de experimentos y variantes.\nSeguimiento de hipótesis." data-i18n-tip="tip.pane.experiments">Experiments</button>
+        <button type="button" data-open="optimize" data-i18n="pane.optimize" data-tip="Optimizer de parámetros de estrategia.\nExploración controlada (paper)." data-i18n-tip="tip.pane.optimize">Optimizer</button>
+        <button type="button" data-open="features" data-i18n="pane.features" data-tip="Ingeniería / inspección de features.\nInputs para alphas." data-i18n-tip="tip.pane.features">Features</button>
+        <button type="button" data-open="export_hb" data-i18n="pane.export_hb" data-tip="Exportar configs hacia Hummingbot.\nPuente research → bot (fuera de LIVE)." data-i18n-tip="tip.pane.export_hb">Hummingbot Export</button>
+        <button type="button" data-open="validation" data-i18n="pane.validation" data-tip="Splits de validación train/test.\nEvita overfit en el lab." data-i18n-tip="tip.pane.validation">Validation Splits</button>
+        <button type="button" data-open="venues" data-i18n="pane.venues" data-tip="Registro de venues/brokers disponibles.\nSolo lectura." data-i18n-tip="tip.pane.venues">Venues</button>
+        <button type="button" data-open="api_explorer" data-i18n="pane.api_explorer" data-tip="Explorá endpoints del Workbench.\nÚtil para debug y docs internas." data-i18n-tip="tip.pane.api_explorer">API Explorer</button>
+        <button type="button" data-open="diagnostics" data-i18n="pane.diagnostics" data-tip="Snapshot de diagnóstico y soporte.\nDescargá bundle para auditoría." data-i18n-tip="tip.pane.diagnostics">Diagnostics</button>
+      </div>
+    </details>
+
+    <details class="start-acc">
+      <summary class="start-acc-sum" data-i18n="menu.windows">Ventanas</summary>
+      <div class="start-acc-body">
+        <button type="button" data-wm-action="minimize_all" data-i18n="action.minimize_all" data-tip="Minimiza todas las ventanas abiertas.\nQuedan en la barra de tareas." data-i18n-tip="tip.action.minimize_all">
+          Minimize all
+        </button>
+        <button type="button" data-wm-action="restore_all" data-i18n="action.restore_all" data-tip="Restaura todas las ventanas minimizadas.\nVuelve al layout previo." data-i18n-tip="tip.action.restore_all">
+          Restore all windows
+        </button>
+        <button type="button" data-wm-action="cascade_windows" data-i18n="action.cascade_windows" data-tip="Apila las ventanas en cascada.\nÚtil para ver títulos de todas." data-i18n-tip="tip.action.cascade_windows">
+          Cascade windows
+        </button>
+        <button type="button" data-wm-action="tile_windows" data-i18n="action.tile_windows" data-tip="Organiza ventanas en mosaico.\nDivide el escritorio en grilla." data-i18n-tip="tip.action.tile_windows">
+          Tile windows
+        </button>
+        <button type="button" data-wm-action="bring_to_front" data-i18n="action.bring_to_front" data-tip="Trae al frente la ventana enfocada.\nTambién: menú contextual del título." data-i18n-tip="tip.action.bring_to_front">
+          Bring to Front
+        </button>
+        <button type="button" data-wm-action="send_to_back" data-i18n="action.send_to_back" data-tip="Envía atrás la ventana enfocada.\nTambién: menú contextual del título." data-i18n-tip="tip.action.send_to_back">
+          Send to Back
+        </button>
+        <button type="button" data-wm-action="maximize_window" data-i18n="action.maximize_window" data-tip="Maximiza la ventana enfocada.\nOculta los handles de resize." data-i18n-tip="tip.action.maximize_window">
+          Maximize window
+        </button>
+        <button type="button" data-wm-action="restore_from_maximize" data-i18n="action.restore_from_maximize" data-tip="Restaura desde maximizado.\nVuelve al tamaño anterior." data-i18n-tip="tip.action.restore_from_maximize">
+          Restore from Maximize
+        </button>
+      </div>
+    </details>
+
+    <details class="start-acc">
+      <summary class="start-acc-sum" data-i18n="menu.system">Sistema</summary>
+      <div class="start-acc-body">
+        <button type="button" data-open="sessions" data-i18n="pane.sessions" data-tip="Gestión de sesiones del Workbench.\nListá y revisá sesiones locales." data-i18n-tip="tip.pane.sessions">Sessions</button>
+        <button type="button" data-open="activity" data-i18n="pane.activity" data-tip="Log de actividad de la sesión.\nAuditoría operativa ligera." data-i18n-tip="tip.pane.activity">Activity</button>
+        <button type="button" data-open="access_log" data-i18n="pane.access_log" data-tip="Access log de la API del Workbench.\nQuién/qué tocó endpoints." data-i18n-tip="tip.pane.access_log">Access Log</button>
+        <button type="button" data-open="backups" data-i18n="pane.backups" data-tip="Backups y restauración de sesión.\nExportá estado local." data-i18n-tip="tip.pane.backups">Backups</button>
+        <button type="button" data-open="ops_metrics" data-i18n="pane.ops_metrics" data-tip="Métricas operativas del servidor.\nSalud y throughput internos." data-i18n-tip="tip.pane.ops_metrics">Ops Metrics</button>
+        <button type="button" data-open="settings" data-i18n="pane.settings" data-tip="Preferencias UI, locale y sesión.\nIncluye escala de fuente." data-i18n-tip="tip.pane.settings">Settings</button>
+        <button type="button" data-open="docs" data-i18n="pane.docs" data-tip="Ayuda y documentación embebida.\nGuías del laboratorio." data-i18n-tip="tip.pane.docs">Help / Docs</button>
+        <button type="button" data-open="about" data-i18n="pane.about" data-tip="Acerca de QuantLab: versión y fases.\nIdentidad del build actual." data-i18n-tip="tip.pane.about">Acerca de</button>
+      </div>
+    </details>
   </div>
 
   <script src="/static/js/i18n.js"></script>

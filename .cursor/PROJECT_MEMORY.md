@@ -2,15 +2,14 @@
 
 **Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Guided Lab solapas + Simulador monedas por venue (Nombre + TICKER)  
-**Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
-**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado; **sim compare** inyecta `MakerTakerFeeModel` por venue (5A cobra taker_bps)  
-**Simulador panel:** Comparar | Estrategias (accordion + modal how_it_works) · `docs/manuales/35-simulador.md` · tope klines 8760  
+**Versión tip:** **1.01.0** · Menú QL accordion · guías estrategia plain+ejemplo · fees con source_url oficial  
+**Simulador panel:** Comparar | Estrategias · venues horizontales · guía ventana WM · lev numérico · fees VIP0 + link oficial · optgroup familias · `docs/manuales/35-simulador.md`  
+**Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Backtest=velas sintéticas · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
 **Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); tabs propias opcionales  
-**Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner muestra v local + GH tip + botón sync + hora última mod · `/api/update/*`  
+**Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner v local + GH tip + sync · «mod» = max(commit, GH, mtime working tree `src/quantlab`) · `/api/update/*`  
 **Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)  
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  

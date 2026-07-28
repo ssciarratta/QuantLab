@@ -175,8 +175,14 @@
           bannerUpdated.textContent =
             "mod " + (data.last_modified_display || "—");
           if (data.last_modified_at) {
+            var src = data.last_modified_source
+              ? " [" + data.last_modified_source + "]"
+              : "";
             bannerUpdated.title =
-              "Última modificación: " + data.last_modified_at;
+              "Última modificación: " +
+              data.last_modified_at +
+              src +
+              " (archivos locales / git)";
           }
         }
         document.title = "QuantLab Workbench v" + localV;

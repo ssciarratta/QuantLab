@@ -262,6 +262,7 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                 if taker_bps_override is not None
                 else fee_sched.taker_bps,
                 notes=fee_sched.notes + " (override UI)",
+                source_url=fee_sched.source_url,
             )
 
         fee_model = fee_model_from_schedule(fee_sched)
