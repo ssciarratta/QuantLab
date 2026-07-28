@@ -4,7 +4,9 @@
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot; UI resize bordes + tooltips)  
 **Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
-**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`
+**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
+**Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
+**Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
@@ -182,8 +184,9 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 
 ## Próximo
 
-- Monte Carlo F0–12 **DONE** (probs + historial CRUD UI + nav Scan/BT + DELETE API)
-  · status: `docs/progress/montecarlo-improvement-status.md`
+- Monte Carlo corrección: UI workbench actualizada (`montecarlo.js` presets 1e6, jobs async,
+  cost estimate, Abrir dataset, `labMontecarloJob`/`Cancel`); backend FASE 1+ en curso
+  · status: `docs/progress/montecarlo-correction-status.md`
 - Deep-link por id dentro de paneles Scan/BT (si aparece API de foco)
 - Selector fecha start/end opcional (hoy: últimas N hasta ahora)
 - Certificados externos F19+ (Meta-Auditor)
