@@ -2904,12 +2904,18 @@ def handle_get_lab_sim_fees(_state: WorkbenchState) -> dict[str, Any]:
     }
 
 
-def handle_get_lab_sim_universe(_state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/lab/sim/universe — monedas (nombre + ticker) por venue."""
+def handle_get_lab_sim_universe(_state: WorkbenchState, query: str = "") -> dict[str, Any]:
+    """GET /api/lab/sim/universe — productos por venue (crypto + A3 + HL live)."""
+    from urllib.parse import parse_qs
+
     from quantlab.research.sim.universe import list_sim_universe
 
     _ = _state
-    payload = list_sim_universe()
+    qs = parse_qs(query or "", keep_blank_values=False)
+    mt = (qs.get("market_type") or ["futures"])[0]
+    hl_live_raw = (qs.get("hl_live") or ["1"])[0].strip().lower()
+    hl_live = hl_live_raw not in ("0", "false", "no")
+    payload = list_sim_universe(market_type=mt, hl_live=hl_live)
     payload["live_blocked"] = LIVE_BLOCKED is True
     payload["live_routing"] = False
     return payload

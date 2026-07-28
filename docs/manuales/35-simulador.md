@@ -14,6 +14,17 @@ Panel para **comparar** markets (no reemplaza Guided Lab ni Monte Carlo).
 | **Comparar** | Multi-venue + monedas por exchange + leverage/fees |
 | **Estrategias** | Familias desplegables + popup “cómo opera” |
 
+## Mercados / productos
+
+| Venue | Productos |
+|-------|-----------|
+| Binance / OKX / Bybit | Crypto curados (spot o perpetuos) |
+| Hyperliquid | **Todos** los perps vía `metaAndAssetCtxs` (fallback curado si falla red) |
+| A3 / Matba | Soja, maíz, trigo, DLR (curado lab; con MD real Guided lista vigentes) |
+
+Al **Agregar** un futuro A3 aparece alerta de **margen + diferencias diarias**.  
+Al lado del chip: `perpetuo` o `vence MAYxx`. Link **TV** = TradingView (solo gráfico).
+
 ## Roles (no son lo mismo)
 
 | Panel | Para qué |

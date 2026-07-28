@@ -1,25 +1,27 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Menú agrupado · guías con ejemplos · fees con link oficial
+Versión: 1.01.0 · Universo multi-producto: A3 granos + HL live + margen/vencimiento
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Menú QL: grupos desplegables (Espacios / Empezar aquí / Sesión / Lab / Ventanas / Sistema)
-- Estrategias: optgroup por familia (Simulador, Guided, Backtest)
-- Guías: «En simple» + ejemplo numérico
-- Fees: schedule VIP0 + link «Ver tarifas oficiales»
+- Simulador venues: Binance, OKX, Bybit, Hyperliquid, A3/Matba
+- HL: catálogo live metaAndAssetCtxs (~todos los perps)
+- A3: soja/maíz/trigo/DLR curados + fake MD; alerta margen + dif. diarias
+- Chip: perpetuo / vence · link TradingView (solo gráfico, no es exchange)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-UX menú accordion + guías legibles + source_url fees + roles GL/Sim/BT
+Tope klines lab: 525.600 (1 año @ 1m) — 1 mes×1m ya entra
+Fix 5A: velas 1m exchange (close−1ms)
 
 PRÓXIMO
 -------
-F5 workbench → probar menú QL y «Cómo opera»
-Commit/push si el usuario lo pide
+Reiniciar workbench → re-correr Simulador 1m×1mes
+Continuar: capital unconstrained + auto-add monedas + sort rentabilidad
 
 INVARIANTES
 -----------
 LIVE_BLOCKED=True · REAL=PAPER
+TradingView ≠ mercado de compare

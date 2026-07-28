@@ -73,6 +73,8 @@ def test_simulator_js_has_per_venue_coin_menu() -> None:
     assert "loadUniverse" in js
     assert "pairs:" in js or "pairs =" in js
     assert "sim-symbols" not in js
+    assert "a3" in js
+    assert "maybeWarnMargin" in js
     # UX: estrategia primero, resumen con tooltips, guía en ventana WM
     assert js.index("sim-strat-hist") < js.index("sim-venue-picks")
     assert "sim-step-first" in js

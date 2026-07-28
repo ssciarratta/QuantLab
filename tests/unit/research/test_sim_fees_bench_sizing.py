@@ -36,9 +36,9 @@ def test_get_fee_schedule_hyperliquid_spot() -> None:
 
 def test_list_fee_schedules_covers_all_venues() -> None:
     rows = list_fee_schedules()
-    assert len(rows) == 8
+    assert len(rows) == 9
     venues = {r["venue"] for r in rows}
-    assert venues == {"binance", "okx", "bybit", "hyperliquid"}
+    assert venues == {"binance", "okx", "bybit", "hyperliquid", "a3"}
     assert all(r.get("source_url") for r in rows)
     assert "binance.com" in get_fee_schedule("binance", "spot").source_url
 

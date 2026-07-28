@@ -20,6 +20,7 @@ FEE_SOURCE_URLS: dict[tuple[str, str], str] = {
     ("bybit", "futures"): "https://www.bybit.com/en/help-center/article/Trading-Fee-Structure",
     ("hyperliquid", "spot"): "https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees",
     ("hyperliquid", "futures"): "https://hyperliquid.gitbook.io/hyperliquid-docs/trading/fees",
+    ("a3", "futures"): "https://www.matbarofex.com.ar/",
 }
 
 
@@ -121,6 +122,14 @@ PRESETS: dict[tuple[str, str], VenueFeeSchedule] = {
         "1.5",
         "4.5",
         "Hyperliquid perp VIP0: maker 0.015% / taker 0.045%",
+    ),
+    ("a3", "futures"): _sched(
+        "a3",
+        "futures",
+        "0",
+        "0",
+        "A3/Matba: fees de cámara/broker no modelados aquí (0 bps lab). "
+        "El costo principal es margen + diferencias diarias.",
     ),
 }
 

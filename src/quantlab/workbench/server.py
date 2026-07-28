@@ -545,7 +545,7 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     self._send_json(handle_get_lab_sim_fees(state))
                     return
                 if path == "/api/lab/sim/universe":
-                    self._send_json(handle_get_lab_sim_universe(state))
+                    self._send_json(handle_get_lab_sim_universe(state, parsed.query))
                     return
                 if path == "/api/lab/sim/period":
                     self._send_json(handle_get_lab_sim_period(state, parsed.query))

@@ -468,8 +468,17 @@
     simFees: function () {
       return request("GET", "/api/lab/sim/fees");
     },
-    simUniverse: function () {
-      return request("GET", "/api/lab/sim/universe");
+    simUniverse: function (opts) {
+      opts = opts || {};
+      var q = [];
+      if (opts.market_type) {
+        q.push("market_type=" + encodeURIComponent(opts.market_type));
+      }
+      if (opts.hl_live != null) {
+        q.push("hl_live=" + (opts.hl_live ? "1" : "0"));
+      }
+      var qs = q.length ? "?" + q.join("&") : "";
+      return request("GET", "/api/lab/sim/universe" + qs);
     },
     simPeriod: function (periodDays, interval) {
       var q =

@@ -217,3 +217,46 @@ class HyperliquidPublicMdClient:
         if len(out) > lim:
             out = out[-lim:]
         return out
+
+    def list_perp_universe(self) -> list[dict[str, Any]]:
+        """Todos los perps vigentes vía ``metaAndAssetCtxs`` (read-only)."""
+        payload = self._post_json({"type": "metaAndAssetCtxs"})
+        if not isinstance(payload, list) or not payload:
+            raise ValidationError("hyperliquid metaAndAssetCtxs inválido")
+        meta = payload[0]
+        if not isinstance(meta, dict):
+            raise ValidationError("hyperliquid meta sin dict")
+        universe = meta.get("universe")
+        if not isinstance(universe, list):
+            raise ValidationError("hyperliquid universe inválido")
+        out: list[dict[str, Any]] = []
+        for row in universe:
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get("name") or "").strip()
+            if not name:
+                continue
+            # Filtrar delisted si el campo existe
+            if row.get("isDelisted") is True:
+                continue
+            max_lev = row.get("maxLeverage")
+            try:
+                max_lev_i = int(max_lev) if max_lev is not None else None
+            except (TypeError, ValueError):
+                max_lev_i = None
+            sz = row.get("szDecimals")
+            try:
+                sz_i = int(sz) if sz is not None else None
+            except (TypeError, ValueError):
+                sz_i = None
+            out.append(
+                {
+                    "name": name,
+                    "max_leverage": max_lev_i,
+                    "sz_decimals": sz_i,
+                    "only_isolated": bool(row.get("onlyIsolated")),
+                }
+            )
+        if not out:
+            raise ValidationError("hyperliquid universe vacío")
+        return out

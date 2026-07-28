@@ -138,9 +138,9 @@
       '<option value="4h">4h</option>' +
       '<option value="1d">1d</option>' +
       "</select></label>" +
-      '<label class="muted" title="Cantidad de velas Binance (8–8760). Pagina API. Default 1200.">' +
+      '<label class="muted" title="Cantidad de velas Binance (8–525600). Pagina API. Default 1200.">' +
       "n_bars/klines " +
-      '<input type="number" id="gl-bars" value="1200" min="8" max="8760" style="width:4.5em">' +
+      '<input type="number" id="gl-bars" value="1200" min="8" max="525600" style="width:5.5em">' +
       "</label>" +
       "</div>" +
       '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
@@ -426,7 +426,7 @@
       let interval = (intervalEl && intervalEl.value) || "5m";
       let klineLimit = Number(barsEl && barsEl.value) || 1200;
       if (klineLimit < 8) klineLimit = 8;
-      if (klineLimit > 8760) klineLimit = 8760;
+      if (klineLimit > 525600) klineLimit = 525600;
       return { interval: interval, kline_limit: klineLimit };
     }
 
@@ -830,11 +830,32 @@
             root.querySelector("#gl-a3-sym").value = items[0].symbol || "";
           }
           a3Out.innerHTML = items
-            .slice(0, 12)
+            .slice(0, 40)
             .map(function (it) {
-              return esc(it.symbol || it.instrument_id || JSON.stringify(it));
+              var sym = it.symbol || it.instrument_id || "";
+              var mat =
+                it.maturity ||
+                (it.meta && it.meta.maturity) ||
+                (it.raw && it.raw.maturity) ||
+                "";
+              var desc = it.description || it.name || "";
+              var tag = mat
+                ? " · vence " + mat + " · margen + diferencias diarias"
+                : "";
+              return (
+                esc(sym) +
+                (desc ? " — " + esc(desc) : "") +
+                esc(tag)
+              );
             })
             .join("<br>") || "—";
+          if (items.length) {
+            window.alert(
+              "Instrumentos A3/Matba: los futuros (soja, maíz, trigo, DLR, etc.) " +
+                "exigen margen de cámara y están sujetos a diferencias diarias " +
+                "(mark-to-market). Al lado de cada contrato verás el vencimiento si el MD lo informa."
+            );
+          }
         })
         .catch(function (err) {
           statusErr(a3Status, err);

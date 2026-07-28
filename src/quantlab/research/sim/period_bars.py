@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX
+from quantlab.brokers.md_limits import LAB_KLINE_HEAVY_WARN, LAB_KLINE_LIMIT_MAX
 from quantlab.core.exceptions import ValidationError
 
 # Temporalidades estilo Binance Spot/Futures USDT (lab)
@@ -82,6 +82,19 @@ def estimate_n_bars(
     n = int(total_mins // mins)
     if n < 1:
         n = 1
+    heavy = n > LAB_KLINE_HEAVY_WARN
+    exceeds = n > LAB_KLINE_LIMIT_MAX
+    note: str | None = None
+    if exceeds:
+        note = (
+            f"Excede tope lab ({LAB_KLINE_LIMIT_MAX:,} velas). "
+            "Acortá el período o usá un intervalo más grueso."
+        ).replace(",", ".")
+    elif heavy:
+        note = (
+            f"Run pesado (>{LAB_KLINE_HEAVY_WARN:,} velas): puede tardar y usar mucha RAM "
+            "si comparás varios venues×monedas."
+        ).replace(",", ".")
     return {
         "ok": True,
         "period_days": str(days),
@@ -89,14 +102,12 @@ def estimate_n_bars(
         "interval_minutes": str(mins),
         "n_bars": n,
         "n_bars_display": f"≈ {n:,} velas".replace(",", "."),
-        "exceeds_lab_cap": n > LAB_KLINE_LIMIT_MAX,
-        "exceeds_lab_cap_3000": n > LAB_KLINE_LIMIT_MAX,  # alias legacy UI
+        "exceeds_lab_cap": exceeds,
+        "exceeds_lab_cap_3000": exceeds,  # alias legacy UI
+        "heavy_run": heavy,
         "lab_kline_limit_max": LAB_KLINE_LIMIT_MAX,
-        "note": (
-            f"Si n_bars > {LAB_KLINE_LIMIT_MAX} el lab trunca o pide intervalo más grueso."
-            if n > LAB_KLINE_LIMIT_MAX
-            else None
-        ),
+        "lab_kline_heavy_warn": LAB_KLINE_HEAVY_WARN,
+        "note": note,
         "binance_intervals": list(BINANCE_INTERVALS),
         "period_presets_days": {k: str(v) for k, v in PERIOD_PRESETS_DAYS.items()},
     }

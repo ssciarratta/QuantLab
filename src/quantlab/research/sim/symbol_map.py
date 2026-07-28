@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from quantlab.core.exceptions import ValidationError
 
-VENUES = frozenset({"binance", "okx", "bybit", "hyperliquid"})
+VENUES = frozenset({"binance", "okx", "bybit", "hyperliquid", "a3"})
 MARKET_TYPES = frozenset({"spot", "futures"})
 
 
@@ -19,10 +19,12 @@ class ResolvedInstrument:
     instrument_id: str
 
 
-def _normalize_underlying(raw: str) -> str:
+def _normalize_crypto_underlying(raw: str) -> str:
     text = raw.strip().upper().replace("/", "").replace("-", "")
     if text.endswith("USDT"):
         text = text[: -len("USDT")]
+    if text.endswith("SWAP"):
+        text = text[: -len("SWAP")]
     if not text or not text.isalnum():
         raise ValidationError(f"underlying inválido: {raw!r}")
     return text
@@ -34,8 +36,7 @@ def resolve_instrument(
     venue: str,
     market_type: str = "futures",
 ) -> ResolvedInstrument:
-    """Resuelve BTC + okx + futures → BTC-USDT-SWAP / OKX:BTC-USDT-SWAP."""
-    base = _normalize_underlying(underlying)
+    """Resuelve BTC+okx+futures → BTC-USDT-SWAP; A3 → ticker con vencimiento."""
     v = venue.strip().lower()
     mt = market_type.strip().lower()
     if v not in VENUES:
@@ -43,6 +44,21 @@ def resolve_instrument(
     if mt not in MARKET_TYPES:
         raise ValidationError(f"market_type inválido: {market_type!r}")
 
+    if v == "a3":
+        if mt != "futures":
+            raise ValidationError("a3 solo soporta futures (contratos con vencimiento)")
+        sym = underlying.strip().upper()
+        if not sym or len(sym) < 3:
+            raise ValidationError(f"símbolo A3 inválido: {underlying!r}")
+        return ResolvedInstrument(
+            venue="a3",
+            market_type="futures",
+            underlying=sym,
+            symbol=sym,
+            instrument_id=f"A3:{sym}",
+        )
+
+    base = _normalize_crypto_underlying(underlying)
     if v == "binance":
         sym = f"{base}USDT"
         prefix = "BNF" if mt == "futures" else "BN"

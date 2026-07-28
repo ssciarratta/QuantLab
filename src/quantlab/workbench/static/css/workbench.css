@@ -327,12 +327,17 @@ html {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.sim-coin-rm {
-  border: none;
-  background: transparent;
+.sim-tv-link {
+  color: var(--amber);
+  font-size: 0.65rem;
+  text-decoration: underline;
+  margin-left: 0.15rem;
+}
+
+.sim-expiry-tag {
+  font-size: 0.62rem;
   color: var(--text-muted);
-  cursor: pointer;
-  padding: 0 0.15rem;
+  margin-left: 0.15rem;
 }
 
 .sim-step-first {

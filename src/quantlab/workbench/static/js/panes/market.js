@@ -135,9 +135,31 @@
         }
         instList.innerHTML = items
           .map(function (i) {
-            return i.symbol + " · " + (i.description || "") + " [" + (i.currency || "") + "]";
+            var mat = i.maturity || (i.meta && i.meta.maturity) || "";
+            var tag = mat ? " · vence " + mat : "";
+            var varn =
+              (venueSel.value || "") === "a3"
+                ? " · [margen + dif. diarias]"
+                : "";
+            return (
+              (i.symbol || "") +
+              " · " +
+              (i.description || "") +
+              tag +
+              varn +
+              " [" +
+              (i.currency || "") +
+              "]"
+            );
           })
           .join("<br>");
+        if ((venueSel.value || "") === "a3" && items.length) {
+          window.alert(
+            "A3/Matba: para operar estos futuros el margen lo fija la cámara y " +
+              "el contrato está sujeto a diferencias diarias hasta el vencimiento. " +
+              "No son perpetuos crypto."
+          );
+        }
         if (items[0] && !root.querySelector("#md-symbol").value) {
           root.querySelector("#md-symbol").value = items[0].symbol;
         }

@@ -1,8 +1,8 @@
-"""Fake A3 backend para tests offline."""
+"""Fake A3 backend para tests offline (DLR + granos demo)."""
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -17,58 +17,160 @@ from quantlab.data.exchanges.a3.models import (
 )
 
 
+def _inst(
+    symbol: str,
+    description: str,
+    *,
+    segment: str,
+    underlying: str,
+    maturity: str,
+    multiplier: str = "1",
+) -> A3InstrumentDTO:
+    return A3InstrumentDTO(
+        symbol=symbol,
+        description=description,
+        market="ROFX",
+        segment=segment,
+        currency="USD",
+        cfi_code="FXXXXX",
+        tick_size=Decimal("0.01"),
+        contract_multiplier=Decimal(multiplier),
+        lot_size=Decimal("1"),
+        maturity=maturity,
+        underlying=underlying,
+        status="ACTIVE",
+        raw={"symbol": symbol, "maturityDate": maturity},
+    )
+
+
+def _synth_trades(
+    symbol: str,
+    *,
+    start: datetime,
+    n: int,
+    px0: Decimal,
+    step_hours: int = 1,
+) -> list[A3TradeDTO]:
+    out: list[A3TradeDTO] = []
+    px = px0
+    for i in range(n):
+        ts = start + timedelta(hours=i * step_hours)
+        # camino suave + ruido mínimo determinista
+        px = px + Decimal("0.05") * Decimal(str((i % 7) - 3))
+        if px <= 0:
+            px = px0
+        out.append(
+            A3TradeDTO(
+                symbol=symbol,
+                price=px,
+                size=Decimal("1"),
+                timestamp=ts,
+                trade_id=f"{symbol}-{i}",
+                aggressor="buy" if i % 2 == 0 else "sell",
+                raw={"price": str(px), "size": "1", "datetime": ts.isoformat()},
+            )
+        )
+    return out
+
+
 class FakeA3Backend:
     def __init__(self) -> None:
         self.connected = False
         self.orders: dict[str, A3OrderAckDTO] = {}
         self.placed: list[A3OrderAckDTO] = []
-        now = datetime(2024, 6, 3, 15, 0, tzinfo=UTC)
+        now = datetime.now(tz=UTC)
         self._instruments = [
-            A3InstrumentDTO(
-                symbol="DLR/DIC24",
-                description="Dolar Futuro DIC24",
-                market="ROFX",
+            _inst(
+                "DLR/DIC24",
+                "Dolar Futuro DIC24",
                 segment="DDF",
-                currency="USD",
-                cfi_code="FXXXXX",
-                tick_size=Decimal("0.001"),
-                contract_multiplier=Decimal("1000"),
-                lot_size=Decimal("1"),
-                maturity="2024-12-01",
                 underlying="USD",
-                status="ACTIVE",
-                raw={"symbol": "DLR/DIC24", "tickIncrement": "0.001", "minLotSize": "1"},
-            )
+                maturity="2024-12-01",
+                multiplier="1000",
+            ),
+            _inst(
+                "DLR/DIC25",
+                "Dolar Futuro DIC25",
+                segment="DDF",
+                underlying="USD",
+                maturity="2025-12-01",
+                multiplier="1000",
+            ),
+            _inst(
+                "SOJ/MAY26",
+                "Soja Rosario MAY26",
+                segment="DDA",
+                underlying="SOY",
+                maturity="2026-05-01",
+            ),
+            _inst(
+                "SOJ/JUL26",
+                "Soja Rosario JUL26",
+                segment="DDA",
+                underlying="SOY",
+                maturity="2026-07-01",
+            ),
+            _inst(
+                "MAI/JUL26",
+                "Maíz Rosario JUL26",
+                segment="DDA",
+                underlying="CORN",
+                maturity="2026-07-01",
+            ),
+            _inst(
+                "MAI/DIC25",
+                "Maíz Rosario DIC25",
+                segment="DDA",
+                underlying="CORN",
+                maturity="2025-12-01",
+            ),
+            _inst(
+                "TRI/DIC25",
+                "Trigo Rosario DIC25",
+                segment="DDA",
+                underlying="WHEAT",
+                maturity="2025-12-01",
+            ),
+            _inst(
+                "TRI/MAR26",
+                "Trigo Rosario MAR26",
+                segment="DDA",
+                underlying="WHEAT",
+                maturity="2026-03-01",
+            ),
         ]
-        self._trades = [
-            A3TradeDTO(
-                symbol="DLR/DIC24",
-                price=Decimal("1000.5"),
-                size=Decimal("1"),
-                timestamp=now,
-                trade_id="t1",
-                aggressor="buy",
-                raw={"price": "1000.5", "size": "1", "datetime": now.isoformat()},
-            ),
-            A3TradeDTO(
-                symbol="DLR/DIC24",
-                price=Decimal("1001.0"),
-                size=Decimal("2"),
-                timestamp=now.replace(minute=0, second=30),
-                trade_id="t2",
-                aggressor="sell",
-                raw={"price": "1001.0", "size": "2"},
-            ),
-            A3TradeDTO(
-                symbol="DLR/DIC24",
-                price=Decimal("1002.0"),
-                size=Decimal("1"),
-                timestamp=now.replace(minute=1, second=5),
-                trade_id="t3",
-                aggressor="buy",
-                raw={"price": "1002.0", "size": "1"},
-            ),
-        ]
+        # Series demo densas (para armar velas 1h en sim compare = ancla «ahora»)
+        # + bloque fijo 2024-06-03 para tests offline de DLR/DIC24
+        start = now - timedelta(hours=120)
+        self._trades: list[A3TradeDTO] = []
+        fixed_start = datetime(2024, 6, 3, 14, 0, tzinfo=UTC)
+        self._trades.extend(
+            _synth_trades("DLR/DIC24", start=fixed_start, n=30, px0=Decimal("1000.5"))
+        )
+        self._trades.extend(
+            _synth_trades("DLR/DIC24", start=start, n=120, px0=Decimal("1000.5"))
+        )
+        self._trades.extend(
+            _synth_trades("DLR/DIC25", start=start, n=120, px0=Decimal("1050"))
+        )
+        self._trades.extend(
+            _synth_trades("SOJ/MAY26", start=start, n=120, px0=Decimal("280"))
+        )
+        self._trades.extend(
+            _synth_trades("SOJ/JUL26", start=start, n=120, px0=Decimal("275"))
+        )
+        self._trades.extend(
+            _synth_trades("MAI/JUL26", start=start, n=120, px0=Decimal("160"))
+        )
+        self._trades.extend(
+            _synth_trades("MAI/DIC25", start=start, n=120, px0=Decimal("155"))
+        )
+        self._trades.extend(
+            _synth_trades("TRI/DIC25", start=start, n=120, px0=Decimal("210"))
+        )
+        self._trades.extend(
+            _synth_trades("TRI/MAR26", start=start, n=120, px0=Decimal("215"))
+        )
 
     def connect(self) -> None:
         self.connected = True
@@ -89,12 +191,14 @@ class FakeA3Backend:
         raise KeyError(symbol)
 
     def get_market_snapshot(self, symbol: str, depth: int = 5) -> A3MarketSnapshotDTO:
+        last = next((t for t in reversed(self._trades) if t.symbol == symbol), None)
+        px = last.price if last else Decimal("1000")
         return A3MarketSnapshotDTO(
             symbol=symbol,
             timestamp=datetime.now(tz=UTC),
-            bids=(A3BookLevelDTO(price=Decimal("1000"), size=Decimal("5")),),
-            offers=(A3BookLevelDTO(price=Decimal("1001"), size=Decimal("3")),),
-            last_price=Decimal("1000.5"),
+            bids=(A3BookLevelDTO(price=px - Decimal("1"), size=Decimal("5")),),
+            offers=(A3BookLevelDTO(price=px + Decimal("1"), size=Decimal("3")),),
+            last_price=px,
             last_size=Decimal("1"),
             open_interest=Decimal("100"),
             raw={"symbol": symbol, "depth": depth},

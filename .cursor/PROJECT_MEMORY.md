@@ -2,8 +2,8 @@
 
 **Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Menú QL accordion · guías estrategia plain+ejemplo · fees con source_url oficial  
-**Simulador panel:** Comparar | Estrategias · venues horizontales · guía ventana WM · lev numérico · fees VIP0 + link oficial · optgroup familias · `docs/manuales/35-simulador.md`  
+**Versión tip:** **1.01.0** · Universo multi-producto A3+HL live · margen/vencimiento · TV link  
+**Simulador:** venues Binance/OKX/Bybit/HL/A3 · HL metaAndAssetCtxs · A3 soja/maíz/trigo/DLR · alert margen+dif.diarias · chip perp/vence · TradingView solo gráfico  
 **Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Backtest=velas sintéticas · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
@@ -183,7 +183,7 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 17. Estrategias F115: `strategy_catalog` por familia · `runnable`/`binance_ready` · stubs fail-closed · skill `strategy-expander`
 18. Backtest UX: `verdict_es` + Guided Lab explica fills/equity; MM half_spread escala al mid en alts
 19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
-20. Horizonte Binance: klines paginadas hasta 3000; UI default 1200; summary con fills/orders/bar_range
+20. Horizonte MD lab: klines paginadas hasta **525_600** (1y@1m); aviso pesado >40k; UI default 1200
 21. **FASE 0 Alpha Scanner:** auditoría en `docs/scanner/current-alpha-scanner-audit.md` + baseline sintético; sin cambio de scoring aún
 
 ## Próximo

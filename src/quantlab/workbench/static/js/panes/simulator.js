@@ -13,7 +13,7 @@
     { id: "180", label: "6 meses", days: 180 },
     { id: "365", label: "1 año", days: 365 },
   ];
-  var VENUES = ["binance", "okx", "bybit", "hyperliquid"];
+  var VENUES = ["binance", "okx", "bybit", "hyperliquid", "a3"];
   var FAMILY_ORDER = [
     "demo",
     "trend",
@@ -55,10 +55,11 @@
       "<h3>Simulador</h3>" +
       '<p class="muted" style="margin-top:0">' +
       "<strong>No es lo mismo que Guided Lab ni Backtest.</strong> " +
-      "Guided Lab = aprender/practicar en un flujo (sobre todo Binance). " +
-      "Backtest = motor técnico con velas <em>sintéticas</em> del lab. " +
-      "Simulador = comparar exchanges × monedas × leverage × fees con histórico. " +
-      "Monte Carlo = estrés sobre un resultado ya corrido. LIVE bloqueado." +
+      "Guided Lab = aprender/practicar (Binance/A3). " +
+      "Backtest = velas sintéticas. " +
+      "Simulador = comparar Binance/OKX/Bybit/HL/<strong>A3</strong> × productos × leverage. " +
+      "TradingView = solo gráfico (link TV en cada chip). " +
+      "Futuros A3: margen + diferencias diarias (alerta al agregar). LIVE bloqueado." +
       "</p>" +
       '<div class="sim-tabs" role="tablist">' +
       '<button type="button" class="sim-tab active" data-tab="comparar">Comparar</button>' +
@@ -129,11 +130,19 @@
     var familyLabels = {};
     var guideStrategyId = null;
     var coinsCache = [];
+    /** @type {Object.<string, Array>} */
+    var productsByVenue = {};
     var venueMeta = [];
     /** @type {Object.<string, string[]>} */
     var selectedByVenue = {};
     /** @type {Object.<string, boolean>} */
-    var venueEnabled = { binance: true, okx: false, bybit: false, hyperliquid: false };
+    var venueEnabled = {
+      binance: true,
+      okx: false,
+      bybit: false,
+      hyperliquid: false,
+      a3: false,
+    };
     var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
     function showTab(name) {
@@ -145,11 +154,38 @@
       });
     }
 
-    function coinLabel(id) {
-      var c = coinsCache.find(function (x) {
-        return x.id === id;
-      });
-      return c ? c.label || c.name + " (" + c.id + ")" : id;
+    function productFor(venue, id) {
+      var list = productsByVenue[venue] || coinsCache || [];
+      return (
+        list.find(function (x) {
+          return x.id === id;
+        }) || null
+      );
+    }
+
+    function coinLabel(venue, id) {
+      var c = productFor(venue, id);
+      if (!c) return id;
+      var base = c.label || c.name + " (" + c.id + ")";
+      var kind = c.expiry_label || "";
+      if (kind && base.indexOf(kind) < 0) {
+        return base + " · " + kind;
+      }
+      return base;
+    }
+
+    function maybeWarnMargin(venue, id) {
+      var p = productFor(venue, id);
+      if (!p) return;
+      if (!p.has_daily_variation && p.contract_kind !== "dated") return;
+      var msg =
+        (p.margin_note ||
+          "Este contrato puede requerir margen y diferencias diarias.") +
+        "\n\nProducto: " +
+        (p.label || id) +
+        "\nTipo: " +
+        (p.expiry_label || p.contract_kind || "—");
+      window.alert(msg);
     }
 
     function renderVenuePicks() {
@@ -159,15 +195,20 @@
           return { id: v, name: v, label: v };
         });
       }
-      if (!coinsCache.length) {
-        box.textContent = "sin catálogo de monedas";
+      var anyProducts = Object.keys(productsByVenue).some(function (k) {
+        return (productsByVenue[k] || []).length > 0;
+      });
+      if (!anyProducts && !coinsCache.length) {
+        box.textContent = "sin catálogo de productos";
         return;
       }
       box.innerHTML = venueMeta
         .map(function (vm) {
           var vid = vm.id;
+          var plist = productsByVenue[vid] || coinsCache || [];
           if (!selectedByVenue[vid]) {
-            selectedByVenue[vid] = vid === "binance" ? ["BTC", "ETH"] : [];
+            selectedByVenue[vid] =
+              vid === "binance" ? ["BTC", "ETH"] : [];
           }
           if (venueEnabled[vid] == null) {
             venueEnabled[vid] = selectedByVenue[vid].length > 0;
@@ -175,9 +216,24 @@
           var checked = !!venueEnabled[vid];
           var chips = (selectedByVenue[vid] || [])
             .map(function (cid) {
+              var p = productFor(vid, cid);
+              var tv =
+                p && p.tradingview_url
+                  ? ' <a class="sim-tv-link" href="' +
+                    esc(p.tradingview_url) +
+                    '" target="_blank" rel="noopener noreferrer" title="Abrir en TradingView (solo gráfico)">TV</a>'
+                  : "";
+              var tag =
+                p && p.expiry_label
+                  ? ' <span class="sim-expiry-tag">' +
+                    esc(p.expiry_label) +
+                    "</span>"
+                  : "";
               return (
                 '<span class="sim-coin-chip">' +
-                esc(coinLabel(cid)) +
+                esc(coinLabel(vid, cid)) +
+                tag +
+                tv +
                 ' <button type="button" class="sim-coin-rm" data-venue="' +
                 esc(vid) +
                 '" data-coin="' +
@@ -186,7 +242,7 @@
               );
             })
             .join(" ");
-          var opts = coinsCache
+          var opts = plist
             .map(function (c) {
               return (
                 "<option value=\"" +
@@ -197,6 +253,10 @@
               );
             })
             .join("");
+          var pickHint =
+            vid === "a3"
+              ? "— futuro A3 (soja/maíz/trigo/DLR) —"
+              : "— elegir producto —";
           return (
             '<div class="sim-venue-row" data-venue="' +
             esc(vid) +
@@ -214,7 +274,9 @@
             '"' +
             (checked ? "" : " disabled") +
             ">" +
-            '<option value="">— elegir moneda —</option>' +
+            '<option value="">' +
+            esc(pickHint) +
+            "</option>" +
             opts +
             "</select>" +
             '<button type="button" class="btn secondary sim-coin-add" data-venue="' +
@@ -226,7 +288,7 @@
             '<div class="sim-coin-chips" data-venue="' +
             esc(vid) +
             '">' +
-            (chips || '<span class="muted">ninguna moneda</span>') +
+            (chips || '<span class="muted">ningún producto</span>') +
             "</div></div>"
           );
         })
@@ -241,6 +303,7 @@
           if (!selectedByVenue[vid]) selectedByVenue[vid] = [];
           if (selectedByVenue[vid].indexOf(cid) < 0) {
             selectedByVenue[vid].push(cid);
+            maybeWarnMargin(vid, cid);
           }
           venueEnabled[vid] = true;
           renderVenuePicks();
@@ -260,7 +323,7 @@
       });
       box.querySelectorAll(".sim-venue-on").forEach(function (c) {
         c.addEventListener("change", function () {
-          venueEnabled[c.value] = c.checked;
+          venueEnabled[c.value] = !!c.checked;
           renderVenuePicks();
           applyFeePreset();
         });
@@ -294,11 +357,16 @@
         .then(function (d) {
           el.textContent = d.n_bars_display || "≈ " + d.n_bars + " velas";
           el.title =
-            d.exceeds_lab_cap || d.exceeds_lab_cap_3000
-              ? d.note || "excede tope lab " + (d.lab_kline_limit_max || 8760)
+            d.exceeds_lab_cap || d.heavy_run
+              ? d.note ||
+                "tope lab " + (d.lab_kline_limit_max || 525600)
               : "";
           el.style.color =
-            d.exceeds_lab_cap || d.exceeds_lab_cap_3000 ? "#d4544a" : "";
+            d.exceeds_lab_cap
+              ? "#d4544a"
+              : d.heavy_run
+                ? "#d48c32"
+                : "";
         })
         .catch(function () {
           el.textContent = "≈ —";
@@ -401,23 +469,46 @@
 
     function loadUniverse() {
       var box = root.querySelector("#sim-venue-picks");
+      var mt = root.querySelector("#sim-market").value || "futures";
       if (!QLApi.simUniverse) {
         coinsCache = [
           { id: "BTC", name: "Bitcoin", label: "Bitcoin (BTC)" },
           { id: "ETH", name: "Ethereum", label: "Ethereum (ETH)" },
         ];
+        productsByVenue = { binance: coinsCache };
         renderVenuePicks();
         return;
       }
-      QLApi.simUniverse()
+      box.textContent = "cargando productos…";
+      QLApi.simUniverse({ market_type: mt, hl_live: true })
         .then(function (d) {
           coinsCache = d.coins || [];
           venueMeta = d.venues || [];
+          productsByVenue = d.products_by_venue || {};
+          // Si HL live trajo muchos, ok; si no hay products, fallback coins
+          VENUES.forEach(function (vid) {
+            if (!productsByVenue[vid] || !productsByVenue[vid].length) {
+              if (vid === "a3" && mt === "spot") {
+                productsByVenue[vid] = [];
+              } else if (vid !== "a3") {
+                productsByVenue[vid] = (coinsCache || []).map(function (c) {
+                  return {
+                    id: c.id,
+                    name: c.name,
+                    label: c.label,
+                    expiry_label: mt === "spot" ? "spot" : "perpetuo",
+                    contract_kind: mt === "spot" ? "spot" : "perpetual",
+                    has_daily_variation: false,
+                  };
+                });
+              }
+            }
+          });
           renderVenuePicks();
           applyFeePreset();
         })
         .catch(function (e) {
-          box.textContent = e.message || "error cargando monedas";
+          box.textContent = e.message || "error cargando productos";
         });
     }
 
@@ -959,7 +1050,10 @@
     ["#sim-capital", "#sim-per-trade", "#sim-market"].forEach(function (sel) {
       root.querySelector(sel).addEventListener("change", function () {
         refreshSizing();
-        if (sel === "#sim-market") applyFeePreset(false);
+        if (sel === "#sim-market") {
+          applyFeePreset(false);
+          loadUniverse();
+        }
       });
       root.querySelector(sel).addEventListener("input", refreshSizing);
     });
