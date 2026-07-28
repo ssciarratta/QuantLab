@@ -23,12 +23,20 @@ from quantlab.research.sim.fee_schedules import (
 )
 from quantlab.research.sim.leverage_overlay import LeverageOverlayConfig, apply_leverage_overlay
 from quantlab.research.sim.models import SimCompareRow, SimOverlayResult
-from quantlab.research.sim.sizing import validate_trade_size
+from quantlab.research.sim.sizing import (
+    CAPITAL_MODES,
+    build_margin_report,
+    validate_trade_size,
+)
 from quantlab.research.sim.symbol_map import MARKET_TYPES, VENUES
 from quantlab.workbench import lab_services
 
 _MAX_UNDERLYINGS = 5
 _INTERVAL_RE = re.compile(r"^(\d+)([mhd])$", re.IGNORECASE)
+# Caja de trabajo en modo sin monto: suficiente para que la estrategia opere;
+# el capital “real” de producto es el margen pico reportado.
+_UNCONSTRAINED_CASH_FLOOR = Decimal("10000")
+_UNCONSTRAINED_CASH_MULT = Decimal("50")
 
 
 def _dec(raw: Any, *, field: str) -> Decimal:
@@ -176,8 +184,22 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
     interval = str(request.get("interval", "1h"))
     period_days = request.get("period_days")
     kline_limit = request.get("kline_limit")
-    initial_capital = _dec(request.get("initial_capital", "100000"), field="initial_capital")
+    capital_mode = str(request.get("capital_mode", "fixed")).strip().lower()
+    if capital_mode not in CAPITAL_MODES:
+        raise ValidationError(
+            f"capital_mode inválido: {capital_mode!r}; "
+            f"permitidos: {', '.join(CAPITAL_MODES)}"
+        )
     per_trade_usd = _dec(request.get("per_trade_usd", "1000"), field="per_trade_usd")
+    if capital_mode == "fixed":
+        initial_capital = _dec(
+            request.get("initial_capital", "100000"), field="initial_capital"
+        )
+        run_cash = initial_capital
+    else:
+        # Sin monto: sin tope; el margen pico reportado es el capital mínimo.
+        initial_capital = None
+        run_cash = max(per_trade_usd * _UNCONSTRAINED_CASH_MULT, _UNCONSTRAINED_CASH_FLOOR)
     simulate_liquidation = bool(request.get("simulate_liquidation", True))
     apply_funding = bool(request.get("apply_funding", True))
     annual_bench_rate = _dec(request.get("annual_bench_rate", "0.05"), field="annual_bench_rate")
@@ -247,7 +269,10 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
             continue
 
         duration = _bar_duration(bars)
-        bench = compute_benchmark(initial_capital, annual_bench_rate, duration)
+        bench_capital = (
+            initial_capital if initial_capital is not None else per_trade_usd
+        )
+        bench = compute_benchmark(bench_capital, annual_bench_rate, duration)
         bench_by_key[f"{v}:{resolved.underlying}"] = bench.to_dict()
 
         fee_sched = get_fee_schedule(v, market_type)
@@ -270,10 +295,11 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
 
         for lev in leverages:
                 sizing = validate_trade_size(
-                    initial_capital,
+                    initial_capital if initial_capital is not None else run_cash,
                     per_trade_usd,
                     lev,
                     market_type=market_type,
+                    capital_mode=capital_mode,
                 )
                 if not sizing["ok"]:
                     rows.append(
@@ -297,7 +323,7 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                         bars=bars,
                         instrument_id=resolved.instrument_id,
                         data_source=f"{v}_{market_type}",
-                        initial_cash=initial_capital,
+                        initial_cash=run_cash,
                         experiment_id=f"sim-compare-{v}-{resolved.underlying}-{lev}",
                         fee_model=fee_model,
                         fee_schedule_meta=fee_meta,
@@ -316,6 +342,15 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                         )
                     )
                     continue
+
+                margin_report = build_margin_report(
+                    capital_mode=capital_mode,
+                    initial_capital=initial_capital,
+                    per_trade=per_trade_usd,
+                    leverage=lev,
+                    market_type=market_type,
+                    fills=bt.get("fills") if isinstance(bt.get("fills"), list) else [],
+                )
 
                 funding_rates: list[Decimal] | None = None
                 if apply_funding and market_type == "futures":
@@ -353,6 +388,13 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                             "fee_schedule_venue": fee_sched.to_dict(),
                             "benchmark": bench.to_dict(),
                             "sizing": sizing,
+                            "margin_report": margin_report,
+                            "capital_mode": capital_mode,
+                            "display_initial_capital": (
+                                str(initial_capital)
+                                if initial_capital is not None
+                                else None
+                            ),
                         },
                     )
                 )
@@ -365,7 +407,9 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
             "market_type": market_type,
             "interval": interval,
             "kline_limit": resolved_limit,
-            "initial_capital": str(initial_capital),
+            "capital_mode": capital_mode,
+            "initial_capital": str(initial_capital) if initial_capital is not None else None,
+            "run_cash": str(run_cash),
             "per_trade_usd": str(per_trade_usd),
             "annual_bench_rate": str(annual_bench_rate),
             "simulate_liquidation": simulate_liquidation,
@@ -381,6 +425,11 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
             "fee_fills_note": (
                 "fills usan MakerTakerFeeModel del schedule venue "
                 "(bar-based 5A cobra siempre taker_bps)"
+            ),
+            "margin_note": (
+                "Siempre se reporta margen/trade + margen pico (fills). "
+                "En capital fijo: capital_shortfall si el pico supera el capital. "
+                "En sin monto: capital_required = margen mínimo sugerido."
             ),
         },
         "live_blocked": LIVE_BLOCKED is True,

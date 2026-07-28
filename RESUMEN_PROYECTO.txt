@@ -13,13 +13,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Tope klines lab: 525.600 (1 año @ 1m) — 1 mes×1m ya entra
-Fix 5A: velas 1m exchange (close−1ms)
+Simulador: buscador de productos (petróleo→OIL/CL…) + lista visible
+Orden alfabético en desplegables · HL HIP-3 cache+paralelo
 
 PRÓXIMO
 -------
-Reiniciar workbench → re-correr Simulador 1m×1mes
-Continuar: capital unconstrained + auto-add monedas + sort rentabilidad
+Reiniciar workbench + F5 duro (Ctrl+F5)
+HL Futuros: buscar «petróleo» / «oro» / «trigo»
 
 INVARIANTES
 -----------

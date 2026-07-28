@@ -27,6 +27,28 @@
     "arbitrage",
     "options",
   ];
+  // Sinónimos ES → tokens de búsqueda (petróleo → oil/cl/brent…)
+  var SEARCH_ALIASES = {
+    petroleo: ["oil", "cl", "brent", "wti", "usoil", "brentoil"],
+    petroleum: ["oil", "cl", "brent", "wti", "usoil"],
+    crudo: ["oil", "cl", "wti", "brent", "usoil"],
+    oro: ["gold", "gldmine", "goldjm"],
+    plata: ["silver", "silverjm"],
+    cobre: ["copper"],
+    trigo: ["wheat"],
+    maiz: ["corn"],
+    soja: ["soy"],
+    gas: ["natgas", "gas", "ttf"],
+    aluminio: ["aluminium", "aluminum"],
+    platino: ["platinum"],
+    paladio: ["palladium"],
+    uranio: ["uranium"],
+    euro: ["eur"],
+    libra: ["gbp"],
+    yen: ["jpy"],
+    nasdaq: ["usa100", "ustech"],
+    sp500: ["sp500", "usa500", "us500"],
+  };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -34,6 +56,53 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function foldText(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function alphaKey(s) {
+    return foldText(s);
+  }
+
+  function sortByLabel(list) {
+    return (list || []).slice().sort(function (a, b) {
+      var ka = alphaKey(a.label || a.name || a.id || "");
+      var kb = alphaKey(b.label || b.name || b.id || "");
+      if (ka < kb) return -1;
+      if (ka > kb) return 1;
+      return 0;
+    });
+  }
+
+  function expandSearchQuery(q) {
+    var raw = foldText(q).trim();
+    if (!raw) return [];
+    var tokens = [raw];
+    Object.keys(SEARCH_ALIASES).forEach(function (k) {
+      if (raw === k || raw.indexOf(k) >= 0 || k.indexOf(raw) >= 0) {
+        SEARCH_ALIASES[k].forEach(function (t) {
+          if (tokens.indexOf(t) < 0) tokens.push(t);
+        });
+      }
+    });
+    return tokens;
+  }
+
+  function productMatchesSearch(p, tokens) {
+    if (!tokens.length) return true;
+    var hay = foldText(
+      [p.id, p.name, p.label, p.symbol, p.asset_kind, p.dex, p.dex_full_name, p.expiry_label]
+        .filter(Boolean)
+        .join(" ")
+    );
+    return tokens.some(function (t) {
+      return hay.indexOf(t) >= 0;
+    });
   }
 
   function optHtml(list, selected) {
@@ -82,9 +151,19 @@
       '<span class="mono" id="sim-nbars">≈ — velas</span>' +
       "</div>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem;margin-top:0.4rem">' +
-      '<label class="muted">Capital USDT <input type="number" id="sim-capital" value="10000" min="1" style="width:6em"></label>' +
-      '<label class="muted">Por trade USDT <input type="number" id="sim-per-trade" value="500" min="1" style="width:5em"></label>' +
+      '<fieldset class="sim-capital-mode" style="border:1px solid var(--border,#333);border-radius:6px;padding:0.35rem 0.55rem;margin:0">' +
+      '<legend class="muted" style="padding:0 0.25rem">Capital</legend>' +
+      '<label class="muted"><input type="radio" name="sim-cap-mode" id="sim-cap-fixed" value="fixed" checked> Monto fijo</label> ' +
+      '<label class="muted"><input type="radio" name="sim-cap-mode" id="sim-cap-free" value="unconstrained"> Sin monto</label>' +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem;align-items:center;margin-top:0.25rem">' +
+      '<label class="muted" id="sim-capital-wrap">Capital USDT <input type="number" id="sim-capital" value="10000" min="1" style="width:6em"></label>' +
+      '<label class="muted">Por trade (margen) USDT <input type="number" id="sim-per-trade" value="500" min="1" style="width:5em"></label>' +
       '<span class="mono muted" id="sim-size-hint">—</span>' +
+      "</div>" +
+      '<p class="muted" id="sim-cap-help" style="font-size:0.72em;margin:0.2rem 0 0;max-width:42rem">' +
+      "Siempre se calcula el margen pico aparte del capital. En fijo: ves si te faltó plata. En sin monto: el pico es el capital mínimo sugerido." +
+      "</p>" +
+      "</fieldset>" +
       '<label class="muted">Bench anual % <input type="number" id="sim-bench" value="5" min="0" step="0.1" style="width:4em"></label>' +
       '<label class="muted"><input type="checkbox" id="sim-liq" checked> liquidación</label>' +
       '<label class="muted"><input type="checkbox" id="sim-funding" checked> funding</label>' +
@@ -143,6 +222,8 @@
       hyperliquid: false,
       a3: false,
     };
+    /** Texto de búsqueda por venue (se conserva al re-render). */
+    var searchByVenue = {};
     var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
     function showTab(name) {
@@ -177,6 +258,15 @@
     function maybeWarnMargin(venue, id) {
       var p = productFor(venue, id);
       if (!p) return;
+      if (p.is_delisted || p.tradable === false) {
+        window.alert(
+          "Este mercado está marcado delisted en Hyperliquid ahora.\n" +
+            "Podés verlo en el catálogo, pero las velas/simulación pueden fallar.\n\n" +
+            "Producto: " +
+            (p.label || id)
+        );
+        return;
+      }
       if (!p.has_daily_variation && p.contract_kind !== "dated") return;
       var msg =
         (p.margin_note ||
@@ -186,6 +276,29 @@
         "\nTipo: " +
         (p.expiry_label || p.contract_kind || "—");
       window.alert(msg);
+    }
+
+    function filteredProducts(vid) {
+      var plist = sortByLabel(productsByVenue[vid] || coinsCache || []);
+      var tokens = expandSearchQuery(searchByVenue[vid] || "");
+      if (!tokens.length) return plist;
+      return plist.filter(function (p) {
+        return productMatchesSearch(p, tokens);
+      });
+    }
+
+    function optionsHtmlForVenue(vid, plist) {
+      return plist
+        .map(function (c) {
+          return (
+            '<option value="' +
+            esc(c.id) +
+            '">' +
+            esc(c.label || c.name + " (" + c.id + ")") +
+            "</option>"
+          );
+        })
+        .join("");
     }
 
     function renderVenuePicks() {
@@ -205,7 +318,9 @@
       box.innerHTML = venueMeta
         .map(function (vm) {
           var vid = vm.id;
-          var plist = productsByVenue[vid] || coinsCache || [];
+          var allList = sortByLabel(productsByVenue[vid] || coinsCache || []);
+          var q = searchByVenue[vid] || "";
+          var plist = filteredProducts(vid);
           if (!selectedByVenue[vid]) {
             selectedByVenue[vid] =
               vid === "binance" ? ["BTC", "ETH"] : [];
@@ -242,23 +357,38 @@
               );
             })
             .join(" ");
-          var opts = plist
-            .map(function (c) {
-              return (
-                "<option value=\"" +
-                esc(c.id) +
-                "\">" +
-                esc(c.label || c.name + " (" + c.id + ")") +
-                "</option>"
-              );
-            })
-            .join("");
-          var pickHint =
-            vid === "a3"
-              ? "— futuro A3 (soja/maíz/trigo/DLR) —"
-              : "— elegir producto —";
+          var searchPh =
+            vid === "hyperliquid"
+              ? "Buscar: petróleo, oro, GOLD, trigo…"
+              : vid === "a3"
+                ? "Buscar: soja, maíz, trigo…"
+                : "Buscar moneda / ticker…";
+          var countTxt =
+            (q
+              ? plist.length + " / " + allList.length
+              : String(allList.length)) + " productos";
+          var kindHint = "";
+          if (vid === "hyperliquid" && allList.length) {
+            var kinds = {};
+            allList.forEach(function (p) {
+              var k = p.asset_kind || "otro";
+              kinds[k] = (kinds[k] || 0) + 1;
+            });
+            kindHint =
+              " · " +
+              ["commodity", "equity", "fx", "index", "crypto"]
+                .filter(function (k) {
+                  return kinds[k];
+                })
+                .map(function (k) {
+                  return k + " " + kinds[k];
+                })
+                .join(" · ");
+          }
           return (
-            '<div class="sim-venue-row" data-venue="' +
+            '<div class="sim-venue-row' +
+            (vid === "hyperliquid" ? " sim-venue-row-wide" : "") +
+            '" data-venue="' +
             esc(vid) +
             '">' +
             '<label class="muted"><input type="checkbox" class="sim-venue-on" value="' +
@@ -269,16 +399,27 @@
             esc(vm.label || vm.name || vid) +
             "</strong></label>" +
             '<div class="sim-venue-pick-row">' +
-            '<select class="sim-coin-select" data-venue="' +
+            '<input type="search" class="sim-coin-search" data-venue="' +
             esc(vid) +
+            '" placeholder="' +
+            esc(searchPh) +
+            '" value="' +
+            esc(q) +
             '"' +
             (checked ? "" : " disabled") +
             ">" +
-            '<option value="">' +
-            esc(pickHint) +
-            "</option>" +
-            opts +
+            '<select class="sim-coin-select" data-venue="' +
+            esc(vid) +
+            '" size="7"' +
+            (checked ? "" : " disabled") +
+            ">" +
+            (plist.length
+              ? optionsHtmlForVenue(vid, plist)
+              : '<option value="">(sin coincidencias)</option>') +
             "</select>" +
+            '<div class="sim-coin-meta muted">' +
+            esc(countTxt + kindHint) +
+            "</div>" +
             '<button type="button" class="btn secondary sim-coin-add" data-venue="' +
             esc(vid) +
             '"' +
@@ -293,6 +434,46 @@
           );
         })
         .join("");
+
+      box.querySelectorAll(".sim-coin-search").forEach(function (inp) {
+        inp.addEventListener("input", function () {
+          var vid = inp.getAttribute("data-venue");
+          searchByVenue[vid] = inp.value || "";
+          var sel = box.querySelector('.sim-coin-select[data-venue="' + vid + '"]');
+          var meta = box.querySelector(
+            '.sim-venue-row[data-venue="' + vid + '"] .sim-coin-meta'
+          );
+          var allList = sortByLabel(productsByVenue[vid] || coinsCache || []);
+          var plist = filteredProducts(vid);
+          if (sel) {
+            sel.innerHTML = plist.length
+              ? optionsHtmlForVenue(vid, plist)
+              : '<option value="">(sin coincidencias)</option>';
+          }
+          if (meta) {
+            meta.textContent =
+              (searchByVenue[vid]
+                ? plist.length + " / " + allList.length
+                : String(allList.length)) + " productos";
+          }
+        });
+        inp.addEventListener("keydown", function (ev) {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            var vid = inp.getAttribute("data-venue");
+            var add = box.querySelector('.sim-coin-add[data-venue="' + vid + '"]');
+            if (add) add.click();
+          }
+        });
+      });
+
+      box.querySelectorAll(".sim-coin-select").forEach(function (sel) {
+        sel.addEventListener("dblclick", function () {
+          var vid = sel.getAttribute("data-venue");
+          var add = box.querySelector('.sim-coin-add[data-venue="' + vid + '"]');
+          if (add) add.click();
+        });
+      });
 
       box.querySelectorAll(".sim-coin-add").forEach(function (btn) {
         btn.addEventListener("click", function () {
@@ -373,10 +554,34 @@
         });
     }
 
+    function capitalMode() {
+      var free = root.querySelector("#sim-cap-free");
+      return free && free.checked ? "unconstrained" : "fixed";
+    }
+
+    function syncCapitalModeUI() {
+      var mode = capitalMode();
+      var wrap = root.querySelector("#sim-capital-wrap");
+      var help = root.querySelector("#sim-cap-help");
+      var cap = root.querySelector("#sim-capital");
+      if (wrap) wrap.style.opacity = mode === "fixed" ? "1" : "0.45";
+      if (cap) {
+        cap.disabled = mode !== "fixed";
+      }
+      if (help) {
+        help.textContent =
+          mode === "fixed"
+            ? "Capital fijo + margen por trade. El resumen muestra margen pico y si te faltó plata (shortfall)."
+            : "Sin monto: no hay tope de caja. El resumen marca margen/trade y margen pico = capital mínimo sugerido.";
+      }
+      refreshSizing();
+    }
+
     function refreshSizing() {
       var hint = root.querySelector("#sim-size-hint");
       if (!QLApi.simSizing) return;
       QLApi.simSizing({
+        capital_mode: capitalMode(),
         initial_capital: root.querySelector("#sim-capital").value,
         per_trade_usd: root.querySelector("#sim-per-trade").value,
         leverage: root.querySelector("#sim-lev").value,
@@ -385,7 +590,7 @@
         .then(function (d) {
           if (d.ok) {
             hint.textContent =
-              "margen " + d.margin + " · notional " + d.notional + " ✓";
+              "margen/trade " + d.margin + " · notional " + d.notional + " ✓";
             hint.style.color = "";
           } else {
             hint.textContent = (d.errors || []).join("; ") || "inválido";
@@ -482,10 +687,9 @@
       box.textContent = "cargando productos…";
       QLApi.simUniverse({ market_type: mt, hl_live: true })
         .then(function (d) {
-          coinsCache = d.coins || [];
+          coinsCache = sortByLabel(d.coins || []);
           venueMeta = d.venues || [];
           productsByVenue = d.products_by_venue || {};
-          // Si HL live trajo muchos, ok; si no hay products, fallback coins
           VENUES.forEach(function (vid) {
             if (!productsByVenue[vid] || !productsByVenue[vid].length) {
               if (vid === "a3" && mt === "spot") {
@@ -503,7 +707,19 @@
                 });
               }
             }
+            productsByVenue[vid] = sortByLabel(productsByVenue[vid] || []);
           });
+          var hlN = (productsByVenue.hyperliquid || []).length;
+          var notes = (d.notes || []).join(" · ");
+          if (hlN > 30) {
+            box.title = notes || "HL live OK";
+          } else if (mt === "futures") {
+            box.title =
+              "HL trajo pocos productos (" +
+              hlN +
+              "). ¿Modo Futuros + workbench reiniciado? " +
+              notes;
+          }
           renderVenuePicks();
           applyFeePreset();
         })
@@ -670,6 +886,14 @@
             .map(function (fam) {
               var label = familyLabels[fam] || fam;
               var inner = (byFamSelect[fam] || [])
+                .slice()
+                .sort(function (a, b) {
+                  var ka = alphaKey(a.name || a.id || a.strategy_id || "");
+                  var kb = alphaKey(b.name || b.id || b.strategy_id || "");
+                  if (ka < kb) return -1;
+                  if (ka > kb) return 1;
+                  return 0;
+                })
                 .map(function (s) {
                   var id = s.id || s.strategy_id;
                   var lab =
@@ -692,7 +916,13 @@
           var html = famKeys
             .map(function (fam, idx) {
               var label = familyLabels[fam] || fam;
-              var items = byFam[fam] || [];
+              var items = (byFam[fam] || []).slice().sort(function (a, b) {
+                var ka = alphaKey(a.name || a.id || a.strategy_id || "");
+                var kb = alphaKey(b.name || b.id || b.strategy_id || "");
+                if (ka < kb) return -1;
+                if (ka > kb) return 1;
+                return 0;
+              });
               var open = idx === 0 ? " open" : "";
               var rows = items
                 .map(function (s) {
@@ -804,6 +1034,7 @@
 
     function runCompare(strategyId) {
       var pairs = collectPairs();
+      var mode = capitalMode();
       var payload = {
         pairs: pairs,
         market_type: root.querySelector("#sim-market").value,
@@ -811,13 +1042,16 @@
         strategy_id: strategyId,
         interval: root.querySelector("#sim-interval").value,
         period_days: periodDays(),
-        initial_capital: root.querySelector("#sim-capital").value,
+        capital_mode: mode,
         per_trade_usd: root.querySelector("#sim-per-trade").value,
         simulate_liquidation: root.querySelector("#sim-liq").checked,
         apply_funding: root.querySelector("#sim-funding").checked,
         annual_bench_rate: Number(root.querySelector("#sim-bench").value || 0) / 100,
         extra_costs: collectExtraCosts(),
       };
+      if (mode === "fixed") {
+        payload.initial_capital = root.querySelector("#sim-capital").value;
+      }
       // Solo override manual: si no, cada venue usa su schedule VIP0 real
       if (feesManualOverride) {
         var mk = root.querySelector("#sim-maker").value;
@@ -854,11 +1088,29 @@
         "En futuros altos puede disparar liquidación simulada.\n" +
         "Usá multi-x para comparar varias x juntas.",
       inicial:
-        "Capital con el que arranca la simulación.\n" +
-        "Es el efectivo inicial del backtest (caja de partida).\n" +
-        "Lo definís en el control «Capital» del panel.\n" +
-        "Sirve de base para PnL % y para el benchmark.\n" +
+        "Capital con el que arranca (solo modo Monto fijo).\n" +
+        "En Sin monto aparece «sin tope».\n" +
+        "Es la caja de partida del backtest / base del PnL %.\n" +
+        "No confundir con el margen pico (columna aparte).\n" +
         "No es dinero real depositado en un exchange.",
+      "margen-trade":
+        "Margen configurado por operación (campo «Por trade»).\n" +
+        "En futuros: notional = margen × leverage.\n" +
+        "Es el tamaño de riesgo que elegiste, no el pico real.\n" +
+        "Siempre se muestra aparte del capital inicial.\n" +
+        "Si el pico supera este valor, hubo más de un lote abierto.",
+      "margen-pico":
+        "Máximo margen estimado durante la corrida (fills).\n" +
+        "Se calcula con la posición neta × precio / leverage.\n" +
+        "En Sin monto = capital mínimo sugerido para esa estrategia.\n" +
+        "Comparalo con tu capital fijo para ver si alcanzaba.\n" +
+        "Aprox. de research; no es el motor de margen del exchange.",
+      faltante:
+        "¿Te faltó plata?\n" +
+        "En Monto fijo: shortfall = margen pico − capital (si pico > capital).\n" +
+        "«sí» en rojo = necesitabas más capital del que pusiste.\n" +
+        "En Sin monto: muestra el capital requerido (= margen pico).\n" +
+        "Sirve para dimensionar la cuenta antes de arriesgar de verdad.",
       final:
         "Capital al cerrar el período simulado.\n" +
         "Incluye resultados de trades, fees y (si aplica) funding.\n" +
@@ -932,6 +1184,15 @@
         tipAttr("inicial") +
         ">Capital inicial</th>" +
         "<th" +
+        tipAttr("margen-trade") +
+        ">Margen/trade</th>" +
+        "<th" +
+        tipAttr("margen-pico") +
+        ">Margen pico</th>" +
+        "<th" +
+        tipAttr("faltante") +
+        ">¿Faltó?</th>" +
+        "<th" +
         tipAttr("final") +
         ">Capital final</th>" +
         "<th" +
@@ -951,8 +1212,20 @@
           .map(function (r) {
             var o = r.overlay || {};
             var bt = r.backtest || {};
+            var mr = bt.margin_report || {};
             var b = bt.benchmark || r.benchmark || {};
-            var initial = o.initial_equity != null ? o.initial_equity : bt.initial_equity;
+            var mode =
+              bt.capital_mode ||
+              (data.common && data.common.capital_mode) ||
+              "fixed";
+            var initialDisp =
+              mode === "unconstrained"
+                ? "sin tope"
+                : bt.display_initial_capital != null
+                  ? bt.display_initial_capital
+                  : o.initial_equity != null
+                    ? o.initial_equity
+                    : bt.initial_equity;
             var finalEq = o.final_equity != null ? o.final_equity : bt.final_equity;
             var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
             var fees = bt.total_fees;
@@ -969,6 +1242,21 @@
                   : "—"
                 : (dif > 0 ? "+" : "") +
                   dif.toLocaleString("es-AR", { maximumFractionDigits: 4 });
+            var shortN = numOrNull(mr.capital_shortfall);
+            var needMore = mr.needed_more_money === true;
+            var faltTxt;
+            if (!r.ok && r.error) {
+              faltTxt = "—";
+            } else if (mode === "unconstrained") {
+              faltTxt = "req " + fmtMoney(mr.capital_required || mr.peak_margin);
+            } else if (needMore) {
+              faltTxt =
+                '<span style="color:#d4544a">sí +' +
+                fmtMoney(shortN) +
+                "</span>";
+            } else {
+              faltTxt = '<span style="color:#3d9a6a">no</span>';
+            }
             return (
               "<tr><td" +
               tipAttr("venue") +
@@ -989,7 +1277,21 @@
               "</td><td" +
               tipAttr("inicial") +
               ">" +
-              fmtMoney(initial) +
+              (mode === "unconstrained"
+                ? esc(initialDisp)
+                : fmtMoney(initialDisp)) +
+              "</td><td" +
+              tipAttr("margen-trade") +
+              ">" +
+              fmtMoney(mr.margin_per_trade) +
+              "</td><td" +
+              tipAttr("margen-pico") +
+              ">" +
+              fmtMoney(mr.peak_margin) +
+              "</td><td" +
+              tipAttr("faltante") +
+              ">" +
+              faltTxt +
               "</td><td" +
               tipAttr("final") +
               ">" +
@@ -1047,6 +1349,10 @@
     ["#sim-period", "#sim-interval"].forEach(function (sel) {
       root.querySelector(sel).addEventListener("change", refreshNBars);
     });
+    ["#sim-cap-fixed", "#sim-cap-free"].forEach(function (sel) {
+      var el = root.querySelector(sel);
+      if (el) el.addEventListener("change", syncCapitalModeUI);
+    });
     ["#sim-capital", "#sim-per-trade", "#sim-market"].forEach(function (sel) {
       root.querySelector(sel).addEventListener("change", function () {
         refreshSizing();
@@ -1103,7 +1409,7 @@
 
     root.refresh = function () {
       refreshNBars();
-      refreshSizing();
+      syncCapitalModeUI();
       loadFees();
       loadUniverse();
       loadStrategies();

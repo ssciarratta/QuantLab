@@ -212,6 +212,48 @@ def test_hyperliquid_funding_rates() -> None:
     assert body["coin"] == "BTC"
 
 
+def test_hyperliquid_klines_preserves_hip3_case() -> None:
+    client = HyperliquidPublicMdClient()
+    client._post_json = MagicMock(  # type: ignore[method-assign]
+        return_value=[_hl_candle(i) for i in range(3)]
+    )
+    client.klines("xyz:GOLD", interval="1h", limit=3)
+    body = client._post_json.call_args[0][0]  # type: ignore[attr-defined]
+    assert body["req"]["coin"] == "xyz:GOLD"
+
+
+def test_hyperliquid_list_all_includes_builder_dex() -> None:
+    client = HyperliquidPublicMdClient()
+
+    def fake_post(body: dict) -> object:
+        t = body.get("type")
+        if t == "perpDexs":
+            return [None, {"name": "xyz", "fullName": "XYZ"}]
+        if t == "metaAndAssetCtxs":
+            dex = body.get("dex", "")
+            if dex == "":
+                return [{"universe": [{"name": "BTC", "maxLeverage": 50, "szDecimals": 5}]}]
+            if dex == "xyz":
+                return [
+                    {
+                        "universe": [
+                            {"name": "xyz:GOLD", "maxLeverage": 20, "szDecimals": 3},
+                            {"name": "xyz:TSLA", "maxLeverage": 10, "szDecimals": 2},
+                        ]
+                    }
+                ]
+        raise AssertionError(body)
+
+    client._post_json = MagicMock(side_effect=fake_post)  # type: ignore[method-assign]
+    rows = client.list_all_perp_universes(include_delisted=False)
+    names = {r["name"] for r in rows}
+    assert "BTC" in names
+    assert "xyz:GOLD" in names
+    gold = next(r for r in rows if r["name"] == "xyz:GOLD")
+    assert gold["dex"] == "xyz"
+    assert gold["dex_full_name"] == "XYZ"
+
+
 def test_okx_rejects_over_max_total() -> None:
     client = OkxPublicMdClient()
     with pytest.raises(ValidationError, match=str(MAX_KLINES_TOTAL)):

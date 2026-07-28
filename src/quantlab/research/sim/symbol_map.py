@@ -30,6 +30,17 @@ def _normalize_crypto_underlying(raw: str) -> str:
     return text
 
 
+def _normalize_hl_underlying(raw: str) -> str:
+    """HL core = BTC; HIP-3 = ``xyz:GOLD`` (case-sensitive)."""
+    text = raw.strip()
+    if not text:
+        raise ValidationError(f"underlying inválido: {raw!r}")
+    if ":" in text:
+        # No upper: candleSnapshot exige el case exacto del meta.
+        return text
+    return _normalize_crypto_underlying(text)
+
+
 def resolve_instrument(
     underlying: str,
     *,
@@ -58,6 +69,16 @@ def resolve_instrument(
             instrument_id=f"A3:{sym}",
         )
 
+    if v == "hyperliquid":
+        base = _normalize_hl_underlying(underlying)
+        return ResolvedInstrument(
+            venue="hyperliquid",
+            market_type=mt,
+            underlying=base,
+            symbol=base,
+            instrument_id=f"HL:{base}",
+        )
+
     base = _normalize_crypto_underlying(underlying)
     if v == "binance":
         sym = f"{base}USDT"
@@ -68,9 +89,6 @@ def resolve_instrument(
     elif v == "bybit":
         sym = f"{base}USDT"
         prefix = "BYB"
-    elif v == "hyperliquid":
-        sym = base
-        prefix = "HL"
     else:
         raise ValidationError(f"venue no soportado: {venue!r}")
 

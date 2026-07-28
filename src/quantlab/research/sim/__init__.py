@@ -25,11 +25,17 @@ from quantlab.research.sim.period_bars import (
     estimate_n_bars,
     interval_minutes,
 )
-from quantlab.research.sim.sizing import validate_trade_size
+from quantlab.research.sim.sizing import (
+    CAPITAL_MODES,
+    build_margin_report,
+    estimate_peak_margin_from_fills,
+    validate_trade_size,
+)
 from quantlab.research.sim.symbol_map import resolve_instrument
 
 __all__ = [
     "BINANCE_INTERVALS",
+    "CAPITAL_MODES",
     "BenchmarkPeriod",
     "ExtraCost",
     "LeverageOverlayConfig",
@@ -40,8 +46,10 @@ __all__ = [
     "annual_rate_to_period_return",
     "apply_extra_costs",
     "apply_leverage_overlay",
+    "build_margin_report",
     "compute_benchmark",
     "estimate_n_bars",
+    "estimate_peak_margin_from_fills",
     "fee_model_from_schedule",
     "get_fee_schedule",
     "interval_minutes",

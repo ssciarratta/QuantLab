@@ -33,6 +33,34 @@ def test_tradingview_url_binance_and_a3() -> None:
     assert "tradingview.com" in (tradingview_url(venue="a3", symbol="SOJ/MAY26", market_type="futures") or "")
 
 
+def test_resolve_hl_hip3_preserves_case() -> None:
+    r = resolve_instrument("xyz:GOLD", venue="hyperliquid", market_type="futures")
+    assert r.symbol == "xyz:GOLD"
+    assert r.instrument_id == "HL:xyz:GOLD"
+
+
+def test_hl_asset_kind_commodity() -> None:
+    from quantlab.research.sim.universe import _hl_asset_kind
+
+    assert _hl_asset_kind("xyz:GOLD", is_core=False) == "commodity"
+    assert _hl_asset_kind("xyz:TSLA", is_core=False) == "equity"
+    assert _hl_asset_kind("BTC", is_core=True) == "crypto"
+
+
+def test_simulator_js_has_product_search() -> None:
+    from pathlib import Path
+
+    js = (
+        Path(__file__).resolve().parents[3]
+        / "src/quantlab/workbench/static/js/panes/simulator.js"
+    ).read_text(encoding="utf-8")
+    assert "sim-coin-search" in js
+    assert "SEARCH_ALIASES" in js
+    assert "petroleo" in js
+    assert "sortByLabel" in js
+    assert "expandSearchQuery" in js
+
+
 def test_simulator_js_has_a3_and_margin_warn() -> None:
     from pathlib import Path
 

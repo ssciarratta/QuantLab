@@ -64,6 +64,17 @@ def validate_kline_interval(interval: str) -> str:
     return iv
 
 
+def normalize_hl_coin(coin: str) -> str:
+    """Normaliza coin HL preservando case de HIP-3 (``xyz:GOLD`` ≠ ``XYZ:GOLD``)."""
+    raw = coin.strip()
+    if not raw:
+        raise ValidationError("coin vacío")
+    if ":" in raw:
+        # Builder markets: case-sensitive; no upper().
+        return raw
+    return raw.upper()
+
+
 class HyperliquidPublicMdClient:
     """Cliente HTTP mínimo para MD público Hyperliquid (stdlib only)."""
 
@@ -154,9 +165,7 @@ class HyperliquidPublicMdClient:
         limit: int = 24,
     ) -> list[Bar]:
         """OHLCV vía ``candleSnapshot`` → ``Bar`` (read-only)."""
-        c = coin.strip().upper()
-        if not c:
-            raise ValidationError("coin vacío")
+        c = normalize_hl_coin(coin)
         if limit < MIN_KLINES or limit > MAX_KLINES_TOTAL:
             raise ValidationError(
                 f"klines limit debe estar entre {MIN_KLINES} y {MAX_KLINES_TOTAL}"
@@ -190,9 +199,7 @@ class HyperliquidPublicMdClient:
         limit: int = 100,
     ) -> list[Decimal]:
         """Historial funding vía ``fundingHistory`` → lista de rates (Decimal)."""
-        c = coin.strip().upper()
-        if not c:
-            raise ValidationError("coin vacío")
+        c = normalize_hl_coin(coin)
         lim = max(1, min(int(limit), 500))
         # funding cada ~1h; ventana generosa hacia atrás
         end_ms = int(time.time() * 1000)
@@ -218,9 +225,39 @@ class HyperliquidPublicMdClient:
             out = out[-lim:]
         return out
 
-    def list_perp_universe(self) -> list[dict[str, Any]]:
-        """Todos los perps vigentes vía ``metaAndAssetCtxs`` (read-only)."""
-        payload = self._post_json({"type": "metaAndAssetCtxs"})
+    def list_perp_dexes(self) -> list[dict[str, Any]]:
+        """DEX core + builders HIP-3 vía ``perpDexs``."""
+        payload = self._post_json({"type": "perpDexs"})
+        if not isinstance(payload, list):
+            raise ValidationError("hyperliquid perpDexs inválido")
+        out: list[dict[str, Any]] = [
+            {"name": "", "full_name": "Hyperliquid", "is_core": True}
+        ]
+        for row in payload:
+            if not isinstance(row, dict):
+                continue
+            name = str(row.get("name") or "").strip()
+            if not name:
+                continue
+            out.append(
+                {
+                    "name": name,
+                    "full_name": str(row.get("fullName") or name),
+                    "is_core": False,
+                    "deployer": row.get("deployer"),
+                }
+            )
+        return out
+
+    def list_perp_universe(
+        self, *, dex: str = "", include_delisted: bool = False
+    ) -> list[dict[str, Any]]:
+        """Perps de un dex vía ``metaAndAssetCtxs`` (``dex=\"\"`` = core crypto)."""
+        body: dict[str, Any] = {"type": "metaAndAssetCtxs"}
+        dex_key = dex.strip()
+        if dex_key:
+            body["dex"] = dex_key
+        payload = self._post_json(body)
         if not isinstance(payload, list) or not payload:
             raise ValidationError("hyperliquid metaAndAssetCtxs inválido")
         meta = payload[0]
@@ -236,8 +273,8 @@ class HyperliquidPublicMdClient:
             name = str(row.get("name") or "").strip()
             if not name:
                 continue
-            # Filtrar delisted si el campo existe
-            if row.get("isDelisted") is True:
+            delisted = row.get("isDelisted") is True
+            if delisted and not include_delisted:
                 continue
             max_lev = row.get("maxLeverage")
             try:
@@ -255,8 +292,60 @@ class HyperliquidPublicMdClient:
                     "max_leverage": max_lev_i,
                     "sz_decimals": sz_i,
                     "only_isolated": bool(row.get("onlyIsolated")),
+                    "dex": dex_key,
+                    "is_delisted": delisted,
                 }
             )
-        if not out:
-            raise ValidationError("hyperliquid universe vacío")
         return out
+
+    def list_all_perp_universes(
+        self, *, include_delisted: bool = True
+    ) -> list[dict[str, Any]]:
+        """Core crypto + todos los builder DEXes HIP-3 (commodities, equities, FX…).
+
+        ``include_delisted=True`` (default en catálogo): se listan con flag
+        ``is_delisted`` para que el UI muestre CORN/WHEAT/etc. aunque HL los
+        haya pausado.
+        """
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        dexes = self.list_perp_dexes()
+        merged: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        errors: list[str] = []
+
+        def _fetch(dex_info: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]] | None, str | None]:
+            dex_name = str(dex_info.get("name") or "")
+            full = str(dex_info.get("full_name") or dex_name or "Hyperliquid")
+            try:
+                rows = self.list_perp_universe(
+                    dex=dex_name, include_delisted=include_delisted
+                )
+                return dex_info, rows, None
+            except ValidationError as exc:
+                return dex_info, None, f"{full}: {exc}"
+
+        with ThreadPoolExecutor(max_workers=min(8, max(1, len(dexes)))) as pool:
+            futs = [pool.submit(_fetch, d) for d in dexes]
+            for fut in as_completed(futs):
+                dex_info, rows, err = fut.result()
+                if err or rows is None:
+                    if err:
+                        errors.append(err)
+                    continue
+                dex_name = str(dex_info.get("name") or "")
+                full = str(dex_info.get("full_name") or dex_name or "Hyperliquid")
+                for row in rows:
+                    name = str(row["name"])
+                    if name in seen:
+                        continue
+                    seen.add(name)
+                    item = dict(row)
+                    item["dex"] = dex_name
+                    item["dex_full_name"] = full
+                    item["is_core"] = bool(dex_info.get("is_core"))
+                    merged.append(item)
+        if not merged:
+            detail = "; ".join(errors) if errors else "sin filas"
+            raise ValidationError(f"hyperliquid universe vacío ({detail})")
+        return merged

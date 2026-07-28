@@ -2970,6 +2970,7 @@ def handle_post_lab_sim_sizing(state: WorkbenchState, body: dict[str, Any]) -> d
         per_trade = Decimal(str(body.get("per_trade_usd", "0")))
         leverage = Decimal(str(body.get("leverage", "1")))
         market_type = str(body.get("market_type", "spot"))
+        capital_mode = str(body.get("capital_mode", "fixed"))
         min_notional = body.get("min_notional")
         mn = Decimal(str(min_notional)) if min_notional is not None else None
         out = validate_trade_size(
@@ -2978,6 +2979,7 @@ def handle_post_lab_sim_sizing(state: WorkbenchState, body: dict[str, Any]) -> d
             leverage,
             market_type=market_type,
             min_notional=mn,
+            capital_mode=capital_mode,
         )
     except (ValidationError, Exception) as exc:
         if isinstance(exc, ValidationError):

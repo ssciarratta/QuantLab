@@ -172,13 +172,90 @@ _CRYPTO_SPOT_MARGIN = (
     "No hay margen de futuro (salvo margen de compra con crédito del venue)."
 )
 
+# Heurística de etiqueta HIP-3 (commodities / FX / índices vs equity)
+_HL_COMMODITY = frozenset(
+    {
+        "GOLD",
+        "SILVER",
+        "OIL",
+        "WTI",
+        "BRENTOIL",
+        "CL",
+        "COPPER",
+        "ALUMINIUM",
+        "CORN",
+        "WHEAT",
+        "SOY",
+        "NATGAS",
+        "GAS",
+        "PALLADIUM",
+        "PLATINUM",
+        "URANIUM",
+        "TTF",
+        "USOIL",
+        "GOLDJM",
+        "SILVERJM",
+        "GLDMINE",
+    }
+)
+_HL_FX = frozenset({"EUR", "GBP", "JPY", "KRW", "DXY", "USDE"})
+_HL_INDEX = frozenset(
+    {
+        "SP500",
+        "USA500",
+        "USA100",
+        "US500",
+        "USTECH",
+        "NIFTY",
+        "JP225",
+        "KR200",
+        "IBOV",
+        "VIX",
+        "VOL",
+        "XYZ100",
+        "SMALL2000",
+        "USBOND",
+        "USENERGY",
+        "EWJ",
+        "EWY",
+        "EWZ",
+        "EWT",
+        "XLE",
+        "SMH",
+        "KWEB",
+    }
+)
+
+# Cache corto del catálogo HL (evita 8–10s cada F5 del Simulador)
+_HL_LIVE_CACHE: dict[str, object] | None = None
+_HL_LIVE_CACHE_TTL_SEC = 120.0
+
+
+def _hl_asset_kind(name: str, *, is_core: bool) -> str:
+    if is_core or ":" not in name:
+        return "crypto"
+    ticker = name.split(":", 1)[-1].upper()
+    if ticker in _HL_COMMODITY:
+        return "commodity"
+    if ticker in _HL_FX:
+        return "fx"
+    if ticker in _HL_INDEX:
+        return "index"
+    return "equity"
+
 
 def tradingview_url(*, venue: str, symbol: str, market_type: str) -> str | None:
     """URL de gráfico TradingView (TV no es un mercado: solo visualización)."""
     v = venue.lower()
-    sym = symbol.strip().upper()
-    if not sym:
+    if not symbol.strip():
         return None
+    # HL HIP-3 es case-sensitive; no upper global.
+    if v == "hyperliquid":
+        sym = symbol.strip()
+        # TV a veces indexa solo el ticker corto
+        short = sym.split(":", 1)[-1]
+        return f"https://www.tradingview.com/chart/?symbol=HYPERLIQUID:{short}USD"
+    sym = symbol.strip().upper()
     if v == "binance":
         tv = f"BINANCE:{sym}" if sym.endswith("USDT") else f"BINANCE:{sym}USDT"
         if market_type == "futures" and not sym.endswith(".P"):
@@ -193,8 +270,6 @@ def tradingview_url(*, venue: str, symbol: str, market_type: str) -> str | None:
     if v == "bybit":
         base = sym if sym.endswith("USDT") else f"{sym}USDT"
         return f"https://www.tradingview.com/chart/?symbol=BYBIT:{base}.P"
-    if v == "hyperliquid":
-        return f"https://www.tradingview.com/chart/?symbol=HYPERLIQUID:{sym}USD"
     if v == "a3":
         # Muchos ROFX no están en TV; link de búsqueda genérico
         q = sym.replace("/", "%20")
@@ -259,12 +334,24 @@ def _a3_products() -> list[dict[str, Any]]:
 
 
 def _hl_live_products() -> tuple[list[dict[str, Any]], str | None]:
-    """Lista todos los perps HL vía metaAndAssetCtxs. (products, error)."""
+    """Core crypto + HIP-3 (commodities, equities, FX, índices). (products, error)."""
+    import time
+
+    global _HL_LIVE_CACHE
+    now = time.monotonic()
+    if (
+        _HL_LIVE_CACHE is not None
+        and now - float(_HL_LIVE_CACHE.get("ts", 0)) < _HL_LIVE_CACHE_TTL_SEC
+    ):
+        cached = _HL_LIVE_CACHE.get("products")
+        if isinstance(cached, list) and cached:
+            return list(cached), None
+
     try:
         from quantlab.brokers.hyperliquid.public_md import HyperliquidPublicMdClient
 
-        client = HyperliquidPublicMdClient()
-        meta = client.list_perp_universe()
+        client = HyperliquidPublicMdClient(timeout_seconds=25.0)
+        meta = client.list_all_perp_universes()
     except Exception as exc:  # noqa: BLE001 — frontera red
         return [], str(exc)
 
@@ -273,28 +360,44 @@ def _hl_live_products() -> tuple[list[dict[str, Any]], str | None]:
         name = str(item.get("name") or "").strip()
         if not name:
             continue
+        is_core = bool(item.get("is_core"))
+        dex = str(item.get("dex") or "")
+        dex_full = str(item.get("dex_full_name") or ("Hyperliquid" if is_core else dex))
+        kind = _hl_asset_kind(name, is_core=is_core)
         max_lev = item.get("max_leverage")
         lev_txt = f" Máx. leverage publicado ≈ {max_lev}x." if max_lev else ""
+        short = name.split(":", 1)[-1] if ":" in name else name
+        delisted = bool(item.get("is_delisted"))
+        label = f"{short} · {kind} · {dex_full}"
+        if delisted:
+            label += " · delisted"
         products.append(
             {
                 "id": name,
-                "name": name,
-                "label": f"{name} · perpetuo",
+                "name": short,
+                "label": label,
                 "symbol": name,
                 "contract_kind": "perpetual",
                 "expiry": None,
-                "expiry_label": "perpetuo",
+                "expiry_label": "perpetuo" + (" (delisted)" if delisted else ""),
                 "has_daily_variation": False,
                 "margin_note": _CRYPTO_PERP_MARGIN + lev_txt,
                 "max_leverage": max_lev,
                 "sz_decimals": item.get("sz_decimals"),
+                "dex": dex,
+                "dex_full_name": dex_full,
+                "asset_kind": kind,
+                "is_delisted": delisted,
+                "tradable": not delisted,
                 "tradingview_url": tradingview_url(
                     venue="hyperliquid", symbol=name, market_type="futures"
                 ),
                 "source": "hl_live",
             }
         )
-    products.sort(key=lambda r: str(r["id"]))
+    # Alfabético por ticker corto (GOLD antes que cientos de cryptos)
+    products.sort(key=lambda r: str(r.get("name") or r.get("id") or "").lower())
+    _HL_LIVE_CACHE = {"ts": now, "products": products}
     return products, None
 
 
@@ -316,23 +419,31 @@ def list_sim_universe(
             live, err = _hl_live_products()
             if live:
                 products_by_venue[vid] = live
-                notes.append(f"hyperliquid: {len(live)} perps vía metaAndAssetCtxs")
+                notes.append(
+                    f"hyperliquid: {len(live)} perps "
+                    "(core crypto + HIP-3 commodities/equities/FX/índices)"
+                )
             else:
-                products_by_venue[vid] = [
-                    _crypto_product(c, venue=vid, market_type=mt) for c in SIM_COINS
-                ]
+                products_by_venue[vid] = sorted(
+                    [_crypto_product(c, venue=vid, market_type=mt) for c in SIM_COINS],
+                    key=lambda r: str(r.get("name") or r.get("id") or "").lower(),
+                )
                 notes.append(
                     "hyperliquid: fallback curado "
                     + (f"(live falló: {err})" if err else "(live vacío)")
                 )
         else:
-            products_by_venue[vid] = [
-                _crypto_product(c, venue=vid, market_type=mt) for c in SIM_COINS
-            ]
+            products_by_venue[vid] = sorted(
+                [_crypto_product(c, venue=vid, market_type=mt) for c in SIM_COINS],
+                key=lambda r: str(r.get("name") or r.get("id") or "").lower(),
+            )
 
     # A3 solo tiene sentido como futuros con vencimiento
     if mt == "futures":
-        products_by_venue["a3"] = _a3_products()
+        products_by_venue["a3"] = sorted(
+            _a3_products(),
+            key=lambda r: str(r.get("name") or r.get("id") or "").lower(),
+        )
         notes.append(
             "a3: catálogo curado soja/maíz/trigo/DLR (lab). "
             "Con MD A3 real (QUANTLAB_A3_MD_READONLY) Guided Lab lista todos los "
