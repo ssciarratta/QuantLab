@@ -1,25 +1,26 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-28
-Versión: 1.01.0 · Universo multi-producto: A3 granos + HL live + margen/vencimiento
+Versión: 1.01.0 · Simulador multi-venue + HL HIP-3 + capital/margen
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Simulador venues: Binance, OKX, Bybit, Hyperliquid, A3/Matba
-- HL: catálogo live metaAndAssetCtxs (~todos los perps)
-- A3: soja/maíz/trigo/DLR curados + fake MD; alerta margen + dif. diarias
-- Chip: perpetuo / vence · link TradingView (solo gráfico, no es exchange)
+- Simulador: Binance/OKX/Bybit/HL/A3 · Futuros/Spot
+- HL: core crypto + HIP-3 (commodities/equities/FX) ~470 · buscador
+- Capital: monto fijo | sin monto · margen/trade + pico + ¿faltó?
+- Auto-add ticker entre venues tildados · resumen por moneda + rentab% + fee/op
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Simulador: buscador de productos (petróleo→OIL/CL…) + lista visible
-Orden alfabético en desplegables · HL HIP-3 cache+paralelo
+Auto-add moneda a venues tildados (mismo ticker corto)
+Resumen ordenado moneda→rentabilidad% · columna Fee/op
+Buscador productos + orden A→Z · HL HIP-3
 
 PRÓXIMO
 -------
-Reiniciar workbench + F5 duro (Ctrl+F5)
-HL Futuros: buscar «petróleo» / «oro» / «trigo»
+F5 / reiniciar workbench si el panel quedó viejo
+Pulir mapeo A3↔crypto si hace falta (hoy no auto-copia A3)
 
 INVARIANTES
 -----------

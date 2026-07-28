@@ -481,12 +481,8 @@
           var sel = box.querySelector('.sim-coin-select[data-venue="' + vid + '"]');
           var cid = sel && sel.value;
           if (!cid) return;
-          if (!selectedByVenue[vid]) selectedByVenue[vid] = [];
-          if (selectedByVenue[vid].indexOf(cid) < 0) {
-            selectedByVenue[vid].push(cid);
-            maybeWarnMargin(vid, cid);
-          }
-          venueEnabled[vid] = true;
+          addProductToVenue(vid, cid, true);
+          autoAddSameTickerToChecked(vid, cid);
           renderVenuePicks();
           applyFeePreset();
         });
@@ -508,6 +504,62 @@
           renderVenuePicks();
           applyFeePreset();
         });
+      });
+    }
+
+    function canonicalTicker(venue, id) {
+      var p = productFor(venue, id);
+      var raw = (p && (p.name || p.id)) || id || "";
+      if (String(raw).indexOf(":") >= 0) {
+        raw = String(raw).split(":").pop();
+      }
+      // A3 SOJ/MAY26 → SOJ
+      if (String(raw).indexOf("/") >= 0) {
+        raw = String(raw).split("/")[0];
+      }
+      return foldText(raw);
+    }
+
+    function findProductIdByTicker(venue, ticker) {
+      var t = foldText(ticker);
+      if (!t) return null;
+      var list = productsByVenue[venue] || coinsCache || [];
+      var i;
+      for (i = 0; i < list.length; i++) {
+        var p = list[i];
+        var id = String(p.id || "");
+        var name = String(p.name || "");
+        var short = id.indexOf(":") >= 0 ? id.split(":").pop() : id;
+        if (foldText(id) === t || foldText(name) === t || foldText(short) === t) {
+          return id;
+        }
+      }
+      return null;
+    }
+
+    function addProductToVenue(vid, cid, warn) {
+      if (!cid) return false;
+      if (!selectedByVenue[vid]) selectedByVenue[vid] = [];
+      if (selectedByVenue[vid].indexOf(cid) >= 0) {
+        venueEnabled[vid] = true;
+        return false;
+      }
+      selectedByVenue[vid].push(cid);
+      venueEnabled[vid] = true;
+      if (warn) maybeWarnMargin(vid, cid);
+      return true;
+    }
+
+    function autoAddSameTickerToChecked(sourceVenue, cid) {
+      var ticker = canonicalTicker(sourceVenue, cid);
+      if (!ticker) return;
+      Object.keys(venueEnabled).forEach(function (vid) {
+        if (vid === sourceVenue) return;
+        if (!venueEnabled[vid]) return;
+        // A3 no comparte tickers crypto; HL HIP-3 ↔ crypto sí por nombre corto
+        if (vid === "a3" || sourceVenue === "a3") return;
+        var match = findProductIdByTicker(vid, ticker);
+        if (match) addProductToVenue(vid, match, false);
       });
     }
 
@@ -1129,8 +1181,19 @@
         "Solo si editás maker/taker a mano se fuerza ese bps en todos.\n" +
         "«Fees del mercado» vuelve al schedule real.\n" +
         "Restan del capital final.",
-      "dif-bench":
-        "Diferencia vs el banco (tasa pasiva del período).\n" +
+      "fee-op":
+        "Fee promedio por operación (fill).\n" +
+        "Se calcula: fees totales ÷ nº de fills.\n" +
+        "Útil para comparar venues con distinta actividad.\n" +
+        "Si no hubo fills, muestra —.\n" +
+        "No incluye gastos extra fijos del panel.",
+      rentab:
+        "Rentabilidad del overlay (PnL %).\n" +
+        "Las filas se ordenan por moneda y luego por esta % (mayor primero).\n" +
+        "Así comparás el mismo activo entre exchanges.\n" +
+        "En modo sin monto el % usa la equity de corrida del lab.\n" +
+        "Miralo junto a fee/op y dif. vs bench.",
+      "dif-bench":        "Diferencia vs el banco (tasa pasiva del período).\n" +
         "Se calcula: PnL de la estrategia − retorno del bench.\n" +
         "Positivo = la estrategia rindió más que dejar plata a esa tasa.\n" +
         "Negativo = el bench hubiera sido mejor en ese tramo.\n" +
@@ -1161,11 +1224,23 @@
     }
 
     function formatRows(data) {
-      var rows = data.rows || [];
+      var rows = (data.rows || []).slice().sort(function (a, b) {
+        var ua = foldText(a.underlying || a.instrument_id || "");
+        var ub = foldText(b.underlying || b.instrument_id || "");
+        if (ua < ub) return -1;
+        if (ua > ub) return 1;
+        var pa = numOrNull((a.overlay || {}).pnl_pct);
+        var pb = numOrNull((b.overlay || {}).pnl_pct);
+        if (pa == null && pb == null) return 0;
+        if (pa == null) return 1;
+        if (pb == null) return -1;
+        return pb - pa;
+      });
       if (!rows.length) return "sin filas";
       return (
         '<p class="muted" style="font-size:0.75em;margin:0.2rem 0 0.35rem">' +
-        "Resumen — pasá el mouse sobre cada título de columna para ver qué significa." +
+        "Resumen — orden: moneda A→Z, luego rentabilidad % ↓. " +
+        "Al agregar una moneda en un venue tildado se intenta copiar a los otros tildados." +
         "</p>" +
         '<table class="sim-summary-table mono"><thead><tr>' +
         "<th" +
@@ -1196,11 +1271,17 @@
         tipAttr("final") +
         ">Capital final</th>" +
         "<th" +
+        tipAttr("rentab") +
+        ">Rentab. %</th>" +
+        "<th" +
         tipAttr("ops") +
         ">Nº operaciones</th>" +
         "<th" +
         tipAttr("fees") +
         ">Fees gastados</th>" +
+        "<th" +
+        tipAttr("fee-op") +
+        ">Fee/op</th>" +
         "<th" +
         tipAttr("dif-bench") +
         ">Dif. vs bench</th>" +
@@ -1229,6 +1310,15 @@
             var finalEq = o.final_equity != null ? o.final_equity : bt.final_equity;
             var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
             var fees = bt.total_fees;
+            var feeOp =
+              bt.avg_fee_per_fill != null
+                ? bt.avg_fee_per_fill
+                : (function () {
+                    var f = numOrNull(fees);
+                    var n = numOrNull(nOps);
+                    return f != null && n != null && n > 0 ? f / n : null;
+                  })();
+            var pnlPct = o.pnl_pct;
             var pnlN = numOrNull(o.pnl);
             var benchN = numOrNull(b.period_return);
             var dif =
@@ -1257,6 +1347,10 @@
             } else {
               faltTxt = '<span style="color:#3d9a6a">no</span>';
             }
+            var rentTxt =
+              pnlPct == null || pnlPct === ""
+                ? "—"
+                : fmtMoney(pnlPct) + "%";
             return (
               "<tr><td" +
               tipAttr("venue") +
@@ -1297,6 +1391,10 @@
               ">" +
               fmtMoney(finalEq) +
               "</td><td" +
+              tipAttr("rentab") +
+              ">" +
+              rentTxt +
+              "</td><td" +
               tipAttr("ops") +
               ">" +
               esc(nOps != null ? nOps : "—") +
@@ -1304,6 +1402,10 @@
               tipAttr("fees") +
               ">" +
               fmtMoney(fees) +
+              "</td><td" +
+              tipAttr("fee-op") +
+              ">" +
+              fmtMoney(feeOp) +
               "</td><td" +
               tipAttr("dif-bench") +
               ">" +

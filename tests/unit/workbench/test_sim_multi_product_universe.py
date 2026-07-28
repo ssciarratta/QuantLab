@@ -47,6 +47,20 @@ def test_hl_asset_kind_commodity() -> None:
     assert _hl_asset_kind("BTC", is_core=True) == "crypto"
 
 
+def test_simulator_js_auto_add_and_sort_rentab() -> None:
+    from pathlib import Path
+
+    js = (
+        Path(__file__).resolve().parents[3]
+        / "src/quantlab/workbench/static/js/panes/simulator.js"
+    ).read_text(encoding="utf-8")
+    assert "autoAddSameTickerToChecked" in js
+    assert "findProductIdByTicker" in js
+    assert "fee-op" in js
+    assert "pnl_pct" in js
+    assert "sort(function (a, b)" in js
+
+
 def test_simulator_js_has_product_search() -> None:
     from pathlib import Path
 
