@@ -34,7 +34,6 @@ from quantlab.infra.health import run_health_checks
 from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.about import build_about_payload
-from quantlab.workbench.git_update import apply_git_update, build_update_status
 from quantlab.workbench.access_log import AccessLog, list_access_log
 from quantlab.workbench.access_log import clamp_limit as clamp_access_limit
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
@@ -61,6 +60,7 @@ from quantlab.workbench.equity_curve import (
     list_equity,
 )
 from quantlab.workbench.feature_store_browser import list_feature_store
+from quantlab.workbench.git_update import apply_git_update, build_update_status
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.i18n import build_i18n_payload
 from quantlab.workbench.layout import load_layout, save_layout
@@ -806,20 +806,22 @@ def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
 
 def handle_get_update_status(state: WorkbenchState) -> dict[str, Any]:
     """GET /api/update/status — versión local vs GitHub + última modificación."""
-    state.ensure_session()
+    session = state.ensure_session()
     payload = build_update_status(fetch_remote=True)
-    payload["session_id"] = state.session.session_id
+    payload["session_id"] = session.session_id
     return payload
 
 
-def handle_post_update_apply(state: WorkbenchState, body: dict[str, Any] | None = None) -> dict[str, Any]:
+def handle_post_update_apply(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """POST /api/update/apply — git pull --ff-only desde origin/main (+ uv sync)."""
     _ = body
-    state.ensure_session()
+    session = state.ensure_session()
     if not LIVE_BLOCKED:
         raise ApiError(403, "update bloqueado si LIVE_BLOCKED=False")
     result = apply_git_update()
-    result["session_id"] = state.session.session_id
+    result["session_id"] = session.session_id
     if not result.get("ok"):
         raise ApiError(400, str(result.get("error") or "update falló"))
     return result
@@ -2887,6 +2889,92 @@ def handle_get_lab_strategies(_state: WorkbenchState) -> dict[str, Any]:
     return lab_services.lab_strategies()
 
 
+def handle_get_lab_sim_fees(_state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/sim/fees — presets VIP0 por venue × spot/futures."""
+    from quantlab.research.sim.fee_schedules import list_fee_schedules
+
+    _ = _state
+    return {
+        "ok": True,
+        "kind": "sim_fees",
+        "schedules": list_fee_schedules(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+
+
+def handle_get_lab_sim_period(state: WorkbenchState, query: str) -> dict[str, Any]:
+    """GET /api/lab/sim/period?period_days=&interval= — estima N velas."""
+    from urllib.parse import parse_qs
+
+    from quantlab.research.sim.period_bars import estimate_n_bars
+
+    _ = state
+    qs = parse_qs(query or "", keep_blank_values=False)
+    period_raw = (qs.get("period_days") or ["30"])[0]
+    interval = (qs.get("interval") or ["1h"])[0]
+    try:
+        payload = estimate_n_bars(period_days=period_raw, interval=interval)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload["live_blocked"] = LIVE_BLOCKED is True
+    payload["live_routing"] = False
+    return payload
+
+
+def handle_post_lab_sim_compare(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/sim/compare — multi-venue spot/futuros + leverage + bench."""
+    from quantlab.research.sim.compare import run_sim_compare
+
+    session = state.ensure_session()
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        result = run_sim_compare(body)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    state.last_lab_result = result
+    return result
+
+
+def handle_post_lab_sim_sizing(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/sim/sizing — valida capital / por trade / leverage."""
+    from decimal import Decimal
+
+    from quantlab.research.sim.sizing import validate_trade_size
+
+    _ = state
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        capital = Decimal(str(body.get("initial_capital", "0")))
+        per_trade = Decimal(str(body.get("per_trade_usd", "0")))
+        leverage = Decimal(str(body.get("leverage", "1")))
+        market_type = str(body.get("market_type", "spot"))
+        min_notional = body.get("min_notional")
+        mn = Decimal(str(min_notional)) if min_notional is not None else None
+        out = validate_trade_size(
+            capital,
+            per_trade,
+            leverage,
+            market_type=market_type,
+            min_notional=mn,
+        )
+    except (ValidationError, Exception) as exc:
+        if isinstance(exc, ValidationError):
+            raise ApiError(400, str(exc)) from exc
+        raise ApiError(400, f"sizing inválido: {exc}") from exc
+    return {
+        "ok": bool(out.get("ok")),
+        "kind": "sim_sizing",
+        **out,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+    }
+
+
 def handle_get_lab_metrics(state: WorkbenchState) -> dict[str, Any]:
     if state.last_lab_result is None:
         return {
@@ -3039,6 +3127,14 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
         experiment_id = body.get("experiment_id", "wb-lab-backtest")
         if not isinstance(experiment_id, str) or not experiment_id.strip():
             raise ApiError(400, "experiment_id inválido")
+        initial_cash_arg = None
+        if "initial_cash" in body and body.get("initial_cash") is not None:
+            from decimal import Decimal, InvalidOperation
+
+            try:
+                initial_cash_arg = Decimal(str(body.get("initial_cash")))
+            except (InvalidOperation, ValueError) as exc:
+                raise ApiError(400, "initial_cash inválido") from exc
         try:
             experiment_id = lab_services.validate_experiment_id(experiment_id)
             result = lab_services.run_lab_backtest(
@@ -3047,6 +3143,7 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
                 n_bars=n_bars,
                 experiment_id=experiment_id,
                 reports_dir=state.ensure_lab_reports_dir(),
+                initial_cash=initial_cash_arg,
             )
         except ValidationError as exc:
             raise _lab_validation_error(exc) from exc

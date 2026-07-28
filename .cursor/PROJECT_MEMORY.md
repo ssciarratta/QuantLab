@@ -1,13 +1,14 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-27  
+**Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot; UI resize bordes + tooltips)  
+**Versión tip:** **1.01.0** · **Simulador multi-venue** (solapas + `/api/lab/sim/*` + MD OKX/Bybit/HL/Binance fut)  
 **Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
 **Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
+**Simulador panel:** Aprender/Histórico/Estrés/Practicar/Estrategias · controls comunes (spot/fut, lev, período, capital, fees metadata, gastos, bench) · manual `docs/manuales/35-simulador.md` · fills aún Binance Spot VIP0  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
-**Manuales:** `docs/manuales/` (índice + 34 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
+**Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
 **Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner muestra v local + GH tip + botón sync + hora última mod · `/api/update/*`  
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  

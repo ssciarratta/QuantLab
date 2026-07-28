@@ -465,6 +465,23 @@
     about: function () {
       return request("GET", "/api/about");
     },
+    simFees: function () {
+      return request("GET", "/api/lab/sim/fees");
+    },
+    simPeriod: function (periodDays, interval) {
+      var q =
+        "period_days=" +
+        encodeURIComponent(periodDays) +
+        "&interval=" +
+        encodeURIComponent(interval || "1h");
+      return request("GET", "/api/lab/sim/period?" + q);
+    },
+    simCompare: function (body) {
+      return request("POST", "/api/lab/sim/compare", body || {});
+    },
+    simSizing: function (body) {
+      return request("POST", "/api/lab/sim/sizing", body || {});
+    },
     updateStatus: function () {
       return request("GET", "/api/update/status");
     },

@@ -48,6 +48,8 @@ from quantlab.workbench.api import (
     handle_get_lab_optimize_run,
     handle_get_lab_report,
     handle_get_lab_reports,
+    handle_get_lab_sim_fees,
+    handle_get_lab_sim_period,
     handle_get_lab_strategies,
     handle_get_lab_validation,
     handle_get_lab_validation_run,
@@ -101,6 +103,8 @@ from quantlab.workbench.api import (
     handle_post_lab_montecarlo_job_cancel,
     handle_post_lab_optimize,
     handle_post_lab_scanner,
+    handle_post_lab_sim_compare,
+    handle_post_lab_sim_sizing,
     handle_post_lab_validation_run,
     handle_post_live_demo_cancel,
     handle_post_live_demo_submit,
@@ -536,6 +540,12 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/strategies":
                     self._send_json(handle_get_lab_strategies(state))
                     return
+                if path == "/api/lab/sim/fees":
+                    self._send_json(handle_get_lab_sim_fees(state))
+                    return
+                if path == "/api/lab/sim/period":
+                    self._send_json(handle_get_lab_sim_period(state, parsed.query))
+                    return
                 if path == "/api/lab/metrics":
                     self._send_json(handle_get_lab_metrics(state))
                     return
@@ -699,6 +709,12 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/scanner":
                     self._send_json(handle_post_lab_scanner(state, body))
+                    return
+                if path == "/api/lab/sim/compare":
+                    self._send_json(handle_post_lab_sim_compare(state, body))
+                    return
+                if path == "/api/lab/sim/sizing":
+                    self._send_json(handle_post_lab_sim_sizing(state, body))
                     return
                 if path == "/api/lab/optimize":
                     self._send_json(handle_post_lab_optimize(state, body))

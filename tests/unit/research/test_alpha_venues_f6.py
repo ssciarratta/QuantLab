@@ -46,13 +46,12 @@ def test_capability_catalog_includes_four_venues() -> None:
     assert VENUE_BINANCE in caps
     assert VENUE_HYPERLIQUID in caps
     assert caps[VENUE_BINANCE].fetch_implemented is True
-    assert caps[VENUE_HYPERLIQUID].fetch_implemented is False
+    assert caps[VENUE_HYPERLIQUID].fetch_implemented is True
 
 
-def test_assert_venue_fetchable_blocks_unimplemented() -> None:
+def test_assert_venue_fetchable_allows_implemented() -> None:
     assert_venue_fetchable(VENUE_BINANCE)
-    with pytest.raises(NotImplementedError, match="fetch"):
-        assert_venue_fetchable(VENUE_HYPERLIQUID)
+    assert_venue_fetchable(VENUE_HYPERLIQUID)
 
 
 def test_combined_ranking_two_venues() -> None:
@@ -75,22 +74,34 @@ def test_combined_ranking_two_venues() -> None:
 
 
 def test_unimplemented_venue_omitted_with_warning() -> None:
+    from quantlab.research.alpha.venues import VenueCapabilities, VenueUniverseSlice
+
     bn = build_venue_slice(
         venue=VENUE_BINANCE,
         symbols=["AAA"],
         bars_by_symbol={"AAA": _bars("BN:", "AAA")},
         instrument_prefix="BN:",
     )
-    hl = build_venue_slice(
-        venue=VENUE_HYPERLIQUID,
-        symbols=["ETH"],
-        bars_by_symbol={"ETH": _bars("HL:", "ETH")},
-        instrument_prefix="HL:",
+    # Slice artificial: venue con fetch pendiente (omitido + warning)
+    pending_caps = VenueCapabilities(
+        venue="pending_venue",
+        public_klines=True,
+        public_ticker=True,
+        order_book=False,
+        funding=False,
+        open_interest=False,
+        spot=True,
+        perpetuals=False,
+        fetch_implemented=False,
+        notes="solo para test de omisión",
     )
-    # Marcar slice con caps reales (fetch false)
-    assert hl.capabilities.fetch_implemented is False
-    result = scan_multi_venue([bn, hl], profile="momentum")
-    assert any("hyperliquid" in w for w in result.warnings)
+    pending = VenueUniverseSlice(
+        venue="pending_venue",
+        universe=bn.universe,
+        capabilities=pending_caps,
+    )
+    result = scan_multi_venue([bn, pending], profile="momentum")
+    assert any("pending_venue" in w for w in result.warnings)
     ids = {r.instrument_id for r in result.rows if not r.excluded}
     assert ids == {"BN:AAA"}
 

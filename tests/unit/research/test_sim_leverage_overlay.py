@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 
 from quantlab.core.exceptions import ValidationError
+from quantlab.research.sim.benchmark import compute_benchmark
 from quantlab.research.sim.leverage_overlay import (
     LeverageOverlayConfig,
     apply_leverage_overlay,
@@ -98,3 +100,13 @@ def test_invalid_leverage() -> None:
             {"initial_equity": "1000", "final_equity": "1100"},
             config=LeverageOverlayConfig(leverage=Decimal("200")),
         )
+
+
+def test_benchmark_zero_duration() -> None:
+    bench = compute_benchmark(
+        Decimal("1000"),
+        Decimal("0.10"),
+        timedelta(0),
+    )
+    assert bench.period_return == Decimal("0")
+    assert bench.to_dict()["period_return"] == "0"

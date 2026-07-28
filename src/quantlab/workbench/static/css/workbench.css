@@ -254,6 +254,30 @@ html {
   cursor: wait;
 }
 
+.sim-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
+
+.sim-tab {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.sim-tab.active {
+  border-color: var(--amber-dim);
+  color: var(--amber);
+  background: rgba(212, 140, 50, 0.12);
+}
+
 .live-badge {
   font-family: var(--mono);
   font-size: 0.68rem;

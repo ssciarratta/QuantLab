@@ -76,8 +76,8 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=False,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Klines/funding públicos vía POST info (Hyperliquid).",
     ),
     VENUE_BYBIT: VenueCapabilities(
         venue=VENUE_BYBIT,
@@ -88,8 +88,8 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=True,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Klines linear + funding públicos (Bybit v5).",
     ),
     VENUE_OKX: VenueCapabilities(
         venue=VENUE_OKX,
@@ -100,8 +100,8 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=True,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Candles + funding públicos (OKX v5).",
     ),
     VENUE_LAB: VenueCapabilities(
         venue=VENUE_LAB,

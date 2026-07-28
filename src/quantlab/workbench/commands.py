@@ -252,6 +252,23 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         ),
     },
     {
+        "id": "open.simulator",
+        "kind": "pane",
+        "label": "Abrir Simulador",
+        "pane_id": "simulator",
+        "keywords": (
+            "simulador",
+            "multi",
+            "venue",
+            "leverage",
+            "futuros",
+            "benchmark",
+            "comparar",
+            "okx",
+            "bybit",
+        ),
+    },
+    {
         "id": "open.backups",
         "kind": "pane",
         "label": "Abrir Backups",

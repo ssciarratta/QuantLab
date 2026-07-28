@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import Any
 
 from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
-from quantlab.brokers.binance.public_md import BinancePublicMdClient, fetch_universe_bars
+from quantlab.brokers.binance.public_md import fetch_universe_bars
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 from quantlab.research.sim.symbol_map import ResolvedInstrument, resolve_instrument
@@ -32,23 +31,23 @@ def fetch_bars_for_instrument(
     if v == "binance" and mt == "spot":
         bars_map = fetch_universe_bars([sym], interval=interval, kline_limit=kline_limit)
     elif v == "binance" and mt == "futures":
-        client = BinanceFuturesPublicMdClient()
-        bars_map = {sym: client.klines(sym, interval=interval, limit=kline_limit)}
+        bn_fut = BinanceFuturesPublicMdClient()
+        bars_map = {sym: bn_fut.klines(sym, interval=interval, limit=kline_limit)}
     elif v == "okx":
         from quantlab.brokers.okx.public_md import OkxPublicMdClient
 
-        client = OkxPublicMdClient()
-        bars_map = {sym: client.klines(sym, interval=interval, limit=kline_limit)}
+        okx = OkxPublicMdClient()
+        bars_map = {sym: okx.klines(sym, interval=interval, limit=kline_limit)}
     elif v == "bybit":
         from quantlab.brokers.bybit.public_md import BybitPublicMdClient
 
-        client = BybitPublicMdClient()
-        bars_map = {sym: client.klines(sym, interval=interval, limit=kline_limit)}
+        bybit = BybitPublicMdClient()
+        bars_map = {sym: bybit.klines(sym, interval=interval, limit=kline_limit)}
     elif v == "hyperliquid":
         from quantlab.brokers.hyperliquid.public_md import HyperliquidPublicMdClient
 
-        client = HyperliquidPublicMdClient()
-        bars_map = {sym: client.klines(sym, interval=interval, limit=kline_limit)}
+        hl = HyperliquidPublicMdClient()
+        bars_map = {sym: hl.klines(sym, interval=interval, limit=kline_limit)}
     else:
         raise ValidationError(f"fetch no implementado: {v}/{mt}")
 

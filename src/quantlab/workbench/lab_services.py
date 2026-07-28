@@ -324,6 +324,7 @@ def run_lab_backtest(
     data_source: str = "synthetic",
     experiment_id: str = "wb-lab-backtest",
     reports_dir: Path | None = None,
+    initial_cash: Decimal | None = None,
 ) -> dict[str, Any]:
     """Corre BarBacktester 5A sobre barras sintéticas o ``bars`` provistas.
 
@@ -356,7 +357,10 @@ def run_lab_backtest(
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
     fee_schedule = resolve_binance_spot_fee_schedule()
     fee_model = binance_spot_fee_model()
-    initial_cash = Decimal("100000")
+    if initial_cash is None:
+        initial_cash = Decimal("100000")
+    elif initial_cash <= Decimal("0"):
+        raise ValidationError("initial_cash debe ser > 0")
     bt = BarBacktester(
         BarBacktestConfig(experiment_id=experiment_id, initial_cash=initial_cash),
         fee_model=fee_model,

@@ -379,6 +379,21 @@
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
+  function openSimulator() {
+    if (wm.windows.has("simulator")) {
+      wm.focus("simulator");
+      return;
+    }
+    const pane = QLPanes.createSimulatorPane();
+    wm.open(
+      "simulator",
+      tr("pane.simulator", "Simulador"),
+      pane,
+      mergeOpts("simulator", { x: 80, y: 40, w: 720, h: 580 })
+    );
+    if (pane.refresh) pane.refresh();
+  }
+
   function openDiagnostics() {
     const pane = QLPanes.createDiagnosticsPane();
     wm.open(
@@ -625,6 +640,7 @@
     api_explorer: openApiExplorer,
     diagnostics: openDiagnostics,
     guided_lab: openGuidedLab,
+    simulator: openSimulator,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,

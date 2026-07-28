@@ -81,6 +81,7 @@ uv run quantlab-workbench
 |--------|------|
 | [33-shell-navegacion.md](33-shell-navegacion.md) | Menú QL, presets, ventanas, deep-links |
 | [34-about.md](34-about.md) | About / versión |
+| [35-simulador.md](35-simulador.md) | Simulador multi-venue (solapas) |
 
 ## Guías técnicas (subdirs Help)
 
