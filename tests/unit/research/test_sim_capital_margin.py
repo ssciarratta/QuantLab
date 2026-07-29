@@ -98,3 +98,17 @@ def test_margin_report_unconstrained_required() -> None:
     assert Decimal(rep["capital_required"]) == Decimal("50")
     assert rep["needed_more_money"] is False
     assert rep["initial_capital"] is None
+
+
+def test_peak_margin_without_side_uses_fill_notional() -> None:
+    """Si el fill no trae side, igual estimamos exposición puntual."""
+    fills = [{"quantity": "2", "price": "100"}]  # sin side
+    out = estimate_peak_margin_from_fills(
+        fills,
+        leverage=Decimal("10"),
+        market_type="futures",
+        margin_per_trade=Decimal("20"),
+    )
+    # notional 200 / lev 10 = 20
+    assert out["peak_margin"] == "20"
+    assert out["n_fills_used"] == 1

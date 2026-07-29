@@ -48,7 +48,8 @@
       y: g.y != null ? g.y : defaults.y,
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
-      minimized: !!g.minimized,
+      // Nunca reabrir minimizado desde el menú (parecía que «se cerraba»).
+      minimized: false,
       maximized: !!g.maximized,
     };
     if (g.z != null) out.z = g.z;
@@ -405,7 +406,7 @@
       "simulator",
       tr("pane.simulator", "Simulador"),
       pane,
-      mergeOpts("simulator", { x: 60, y: 30, w: 860, h: 640 })
+      mergeOpts("simulator", { x: 60, y: 30, w: 900, h: 680 })
     );
     if (pane.refresh) pane.refresh();
     if (opts.prefill && typeof pane.applyPrefill === "function") {
@@ -444,7 +445,7 @@
       return;
     }
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 560, h: 520 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 50, w: 640, h: 580 }));
   }
 
   function openMetrics() {
@@ -766,6 +767,11 @@
         QLAbout.close();
         return;
       }
+      if (startMenu && !startMenu.hasAttribute("hidden")) {
+        ev.preventDefault();
+        closeStartMenu();
+        return;
+      }
     }
 
     if (ctrl && (key === "k" || key === "K")) {
@@ -781,12 +787,7 @@
 
     if (palette.isOpen()) return;
 
-    if (ctrl && (key === "w" || key === "W")) {
-      if (isTypingTarget(ev.target) && !ev.target.closest(".win")) return;
-      ev.preventDefault();
-      wm.closeFocused();
-      return;
-    }
+    // Ctrl+W ya no cierra paneles (solo el botón ×). Evita cierres accidentales.
 
     if (ctrl && !ev.altKey && !ev.shiftKey && key >= "1" && key <= "9") {
       if (isTypingTarget(ev.target) && !ev.target.closest(".command-palette")) return;
@@ -816,18 +817,29 @@
     }
   });
 
+  // Clicks dentro del menú no deben cerrarlo (seguir abriendo paneles).
+  startMenu.addEventListener("click", function (ev) {
+    ev.stopPropagation();
+  });
+
   startMenu.querySelectorAll("[data-open]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const key = btn.getAttribute("data-open");
+      if (key === "about") {
+        openAbout();
+        return;
+      }
       if (openers[key]) openers[key]();
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+      // Menú QL permanece abierto para seguir navegando.
     });
   });
 
   startMenu.querySelectorAll("[data-wm-action]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const action = btn.getAttribute("data-wm-action");
       if (action === "minimize_all" && wm.minimizeAll) {
         wm.minimizeAll();
@@ -846,9 +858,7 @@
       } else if (action === "restore_from_maximize" && wm.restoreFromMaximize) {
         wm.restoreFromMaximize();
       }
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+      // Acciones de ventanas: menú sigue abierto.
     });
   });
 
@@ -871,10 +881,10 @@
       .then(function (payload) {
         if (!payload || !payload.ok || !payload.layout) return;
         const windows = payload.layout.windows || {};
-        savedGeom = windows;
-        if (wm.closeAll) {
-          wm.closeAll({ silent: true });
-        }
+        // Merge geom del preset sin borrar ventanas ya abiertas.
+        Object.keys(windows).forEach(function (id) {
+          savedGeom[id] = windows[id];
+        });
         const ids =
           (payload.preset && payload.preset.window_ids) || Object.keys(windows);
         ids.forEach(function (id) {
@@ -979,9 +989,11 @@
   }
 
   startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
+      // No cerrar menú: el preset ahora suma ventanas, no reemplaza.
       applyWorkspacePreset(name);
     });
   });
@@ -993,9 +1005,9 @@
           ? ev.target.closest("[data-preset-delete]")
           : null;
       if (delBtn && customPresetsHost.contains(delBtn)) {
+        ev.preventDefault();
         ev.stopPropagation();
         const delName = delBtn.getAttribute("data-preset-delete");
-        closeStartMenu();
         deleteCustomPreset(delName);
         return;
       }
@@ -1003,8 +1015,9 @@
         ? ev.target.closest("[data-preset]")
         : null;
       if (!btn || !customPresetsHost.contains(btn)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
       applyWorkspacePreset(name);
     });
   }
@@ -1012,16 +1025,15 @@
   if (btnPresetSave) {
     btnPresetSave.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      closeStartMenu();
       saveCurrentAsPreset();
     });
   }
 
-  refreshPresetsMenu();
-
   document.addEventListener("click", function () {
     closeStartMenu();
   });
+
+  refreshPresetsMenu();
 
   function setClockTimezone(tz) {
     /* F74: status bar clock · UTC (default) | local */

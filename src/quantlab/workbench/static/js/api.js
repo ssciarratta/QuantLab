@@ -449,9 +449,14 @@
         top_n: o.top_n || 5,
         symbol_limit: o.symbol_limit || 15,
         interval: o.interval || "1h",
-        kline_limit: o.kline_limit || 24,
         profile: o.profile || "legacy_v1",
       };
+      if (o.kline_limit != null && o.kline_limit !== "") {
+        body.kline_limit = o.kline_limit;
+      }
+      if (o.period_days != null && o.period_days !== "") {
+        body.period_days = o.period_days;
+      }
       if (o.underlyings && o.underlyings.length) {
         body.underlyings = o.underlyings;
       }

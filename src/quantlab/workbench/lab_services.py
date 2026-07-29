@@ -277,7 +277,11 @@ def _serialize_trade_detail(
                 "fill_id": f.fill_id,
                 "order_id": f.order_id,
                 "instrument_id": f.instrument_id,
-                "side": ord_.side.value if ord_ is not None else None,
+                "side": (
+                    ord_.side.value
+                    if ord_ is not None
+                    else getattr(getattr(f, "side", None), "value", None)
+                ),
                 "price": str(f.price),
                 "quantity": str(f.quantity),
                 "fee": str(f.fee.amount),
@@ -696,7 +700,8 @@ def run_venue_lab_scanner(
     top_n: int = 5,
     symbol_limit: int = 15,
     interval: str = "1h",
-    kline_limit: int = 24,
+    kline_limit: int | None = 24,
+    period_days: int | float | str | None = None,
     profile: str = "legacy_v1",
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
@@ -705,6 +710,9 @@ def run_venue_lab_scanner(
 
     Binance spot sin ``underlyings``: lista USDT del exchange (mismo path F111).
     Resto: universo curado SIM_COINS (o lista explícita) vía ``md_router``.
+
+    Si viene ``period_days``, se convierte a N velas (prioridad sobre kline_limit
+    solo cuando kline_limit es None). Si ambos vienen, gana ``kline_limit``.
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -715,6 +723,7 @@ def run_venue_lab_scanner(
         build_universe_from_symbol_bars,
         exclusion_reason_counts,
     )
+    from quantlab.research.sim.period_bars import estimate_n_bars
     from quantlab.research.sim.universe import SIM_COINS
 
     v = (venue or "binance").strip().lower()
@@ -732,14 +741,28 @@ def run_venue_lab_scanner(
         raise ValidationError("top_n debe estar entre 1 y 10")
     if symbol_limit < 5 or symbol_limit > 30:
         raise ValidationError("symbol_limit debe estar entre 5 y 30")
-    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+
+    resolved_limit: int
+    period_meta: dict[str, Any] | None = None
+    if kline_limit is not None:
+        resolved_limit = int(kline_limit)
+    elif period_days is not None:
+        period_meta = estimate_n_bars(period_days=period_days, interval=interval)
+        resolved_limit = min(int(period_meta["n_bars"]), LAB_KLINE_LIMIT_MAX)
+        resolved_limit = max(resolved_limit, LAB_KLINE_LIMIT_MIN)
+    else:
+        resolved_limit = 24
+
+    if resolved_limit < LAB_KLINE_LIMIT_MIN or resolved_limit > LAB_KLINE_LIMIT_MAX:
         raise ValidationError(
-            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX} "
+            f"(recibido {resolved_limit})"
         )
+    kline_limit = resolved_limit
 
     # Path Binance spot listado exchange (volumen real de mercado)
     if v == "binance" and mt == "spot" and underlyings is None:
-        return run_binance_lab_scanner(
+        out_bn = run_binance_lab_scanner(
             top_n=top_n,
             symbol_limit=symbol_limit,
             interval=interval,
@@ -747,6 +770,11 @@ def run_venue_lab_scanner(
             profile=profile,
             persist_dir=persist_dir,
         )
+        out_bn["market_type"] = "spot"
+        if period_meta is not None:
+            out_bn["period_days"] = period_meta.get("period_days")
+            out_bn["n_bars_estimate"] = period_meta.get("n_bars")
+        return out_bn
 
     profile_key = (profile or "legacy_v1").strip().lower()
     if underlyings is not None:
@@ -880,6 +908,7 @@ def run_venue_lab_scanner(
                     "symbol_limit": symbol_limit,
                     "venue": v,
                     "market_type": mt,
+                    "period_days": period_days,
                 },
             )
             persisted = meta.to_dict()
@@ -925,6 +954,9 @@ def run_venue_lab_scanner(
             "no rentabilidad garantizada."
         ),
     }
+    if period_meta is not None:
+        out["period_days"] = period_meta.get("period_days")
+        out["n_bars_estimate"] = period_meta.get("n_bars")
     if persisted is not None:
         out["persisted"] = persisted
     return attach_recommendations(out, profile=profile_key, interval=interval)

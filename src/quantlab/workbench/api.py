@@ -1166,7 +1166,8 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
     top_n = body.get("top_n", 5)
     symbol_limit = body.get("symbol_limit", 15)
     interval = body.get("interval", "1h")
-    kline_limit = body.get("kline_limit", 24)
+    kline_limit = body.get("kline_limit")
+    period_days = body.get("period_days")
     profile = body.get("profile", "legacy_v1")
     underlyings = body.get("underlyings")
     if not isinstance(venue, str):
@@ -1179,8 +1180,10 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
         raise ApiError(400, "symbol_limit debe ser int")
     if not isinstance(interval, str):
         raise ApiError(400, "interval debe ser string")
-    if not isinstance(kline_limit, int):
-        raise ApiError(400, "kline_limit debe ser int")
+    if kline_limit is not None and not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int o null")
+    if period_days is not None and not isinstance(period_days, (int, float, str)):
+        raise ApiError(400, "period_days debe ser número o string")
     if not isinstance(profile, str):
         raise ApiError(400, "profile debe ser string")
     und_list: list[str] | None = None
@@ -1201,6 +1204,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
             symbol_limit=symbol_limit,
             interval=interval.strip(),
             kline_limit=kline_limit,
+            period_days=period_days,
             profile=profile.strip(),
             underlyings=und_list,
             persist_dir=(

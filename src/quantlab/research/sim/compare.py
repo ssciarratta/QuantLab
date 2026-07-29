@@ -395,6 +395,9 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
                                 if initial_capital is not None
                                 else None
                             ),
+                            # Alias top-level dentro de backtest (UI / debug)
+                            "margin_per_trade": margin_report["margin_per_trade"],
+                            "peak_margin": margin_report["peak_margin"],
                         },
                     )
                 )

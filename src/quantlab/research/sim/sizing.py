@@ -105,10 +105,13 @@ def estimate_peak_margin_from_fills(
     for raw in fills or ():
         if not isinstance(raw, Mapping):
             continue
-        side = str(raw.get("side") or "").strip().lower()
+        side = str(raw.get("side") or raw.get("order_side") or "").strip().lower()
         try:
-            qty = _dec(raw.get("quantity", "0"), field="quantity")
-            px = _dec(raw.get("price", "0"), field="price")
+            qty = _dec(
+                raw.get("quantity", raw.get("qty", raw.get("filled_quantity", "0"))),
+                field="quantity",
+            )
+            px = _dec(raw.get("price", raw.get("fill_price", "0")), field="price")
         except ValidationError:
             continue
         if qty <= _ZERO or px <= _ZERO:
@@ -119,6 +122,17 @@ def estimate_peak_margin_from_fills(
         elif side in ("sell", "short", "s"):
             net_qty -= qty
         else:
+            # Sin side no podemos armar posición neta; igual cuenta el fill
+            # como exposición puntual (peor caso = notional de ese fill).
+            notional = qty * px
+            if mt == "futures":
+                margin = notional / lev
+            else:
+                margin = notional
+            if notional > peak_notional:
+                peak_notional = notional
+            if margin > peak_margin:
+                peak_margin = margin
             continue
         notional = abs(net_qty) * px
         if mt == "futures":

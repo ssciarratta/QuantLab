@@ -1,6 +1,28 @@
-/** Panel Alpha Scanner — MD real multi-venue + recomendaciones → Simulador. */
+/** Panel Alpha Scanner — MD real multi-venue + período/TF/velas → Simulador. */
 (function (global) {
   "use strict";
+
+  var INTERVALS = [
+    "1m",
+    "5m",
+    "15m",
+    "30m",
+    "1h",
+    "2h",
+    "4h",
+    "6h",
+    "12h",
+    "1d",
+    "1w",
+  ];
+  var PERIODS = [
+    { id: "1", label: "1 día", days: 1 },
+    { id: "7", label: "1 semana", days: 7 },
+    { id: "30", label: "1 mes", days: 30 },
+    { id: "90", label: "3 meses", days: 90 },
+    { id: "180", label: "6 meses", days: 180 },
+    { id: "365", label: "1 año", days: 365 },
+  ];
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -10,6 +32,24 @@
       .replace(/"/g, "&quot;");
   }
 
+  function optHtml(list, selected) {
+    return list
+      .map(function (x) {
+        var id = typeof x === "string" ? x : x.id;
+        var label = typeof x === "string" ? x : x.label;
+        return (
+          '<option value="' +
+          esc(id) +
+          '"' +
+          (String(id) === String(selected) ? " selected" : "") +
+          ">" +
+          esc(label) +
+          "</option>"
+        );
+      })
+      .join("");
+  }
+
   function createScannerPane() {
     const root = document.createElement("div");
     root.className = "pane-lab pane-scanner";
@@ -17,9 +57,9 @@
       '<div class="pane-section">' +
       "<h3>Alpha Scanner</h3>" +
       '<p class="muted" style="margin-top:0">' +
-      "Ranking sobre <strong>mercados reales</strong> (klines públicas). " +
-      "Score = adecuación al perfil, <em>no</em> rentabilidad garantizada. " +
-      "Elegí moneda → chips de estrategias/TF → abrir Simulador." +
+      "Ranking sobre <strong>mercados reales</strong> (klines públicas hacia atrás). " +
+      "Elegí <strong>período</strong> (días) o N velas + temporalidad. " +
+      "Score ≠ rentabilidad garantizada." +
       "</p>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;align-items:center">' +
       '<label class="muted">Fuente <select id="sc-source">' +
@@ -36,12 +76,21 @@
       '<option value="spot" selected>Spot</option>' +
       '<option value="futures">Futuros</option>' +
       "</select></label>" +
-      '<label class="muted">TF <select id="sc-interval">' +
-      '<option value="15m">15m</option>' +
-      '<option value="1h" selected>1h</option>' +
-      '<option value="4h">4h</option>' +
-      '<option value="1d">1d</option>' +
+      "</div>" +
+      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;align-items:center">' +
+      '<label class="muted">Modo ventana <select id="sc-window-mode">' +
+      '<option value="period" selected>Por período (días atrás)</option>' +
+      '<option value="klines">Por N velas</option>' +
       "</select></label>" +
+      '<label class="muted" id="sc-period-wrap">Período <select id="sc-period">' +
+      optHtml(PERIODS, "30") +
+      "</select></label>" +
+      '<label class="muted">TF / temporalidad <select id="sc-interval">' +
+      optHtml(INTERVALS, "1h") +
+      "</select></label>" +
+      '<label class="field" id="sc-klines-wrap" hidden>velas' +
+      '<input id="sc-klines" type="number" value="720" min="10" max="525600" /></label>' +
+      '<span class="mono muted" id="sc-nbars">≈ — velas</span>' +
       "</div>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem">' +
       '<label class="muted">Perfil <select id="sc-profile">' +
@@ -53,12 +102,12 @@
       "</select></label>" +
       '<label class="field">top_n<input id="sc-top" type="number" value="5" min="1" max="10" /></label>' +
       '<label class="field">símbolos<input id="sc-limit" type="number" value="15" min="5" max="30" /></label>' +
-      '<label class="field">velas<input id="sc-klines" type="number" value="24" min="10" max="500" /></label>' +
       '<button type="button" class="btn" id="sc-run">Escanear</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
       '<p class="muted" id="sc-hint" style="font-size:0.72em;margin:0.35rem 0 0">' +
-      "Binance spot: top USDT del exchange. OKX/Bybit/HL (y Binance futures): universo curado lab." +
+      "Por período: toma las últimas N velas hasta ahora (ej. 30 días @ 1h ≈ 720). " +
+      "Binance spot = top USDT; otros venues = universo curado lab." +
       "</p>" +
       '<div id="sc-out"></div>' +
       '<div id="sc-detail" class="sc-detail" style="margin-top:0.6rem"></div>' +
@@ -70,20 +119,62 @@
     function setStatus(ok, msg) {
       var el = root.querySelector("#sc-status");
       el.textContent = msg;
-      el.className = "mono " + (ok ? "status-ok" : ok === false ? "status-bad" : "muted");
+      el.className =
+        "mono " + (ok ? "status-ok" : ok === false ? "status-bad" : "muted");
+    }
+
+    function windowMode() {
+      return root.querySelector("#sc-window-mode").value;
+    }
+
+    function syncWindowModeUI() {
+      var byPeriod = windowMode() === "period";
+      root.querySelector("#sc-period-wrap").hidden = !byPeriod;
+      root.querySelector("#sc-klines-wrap").hidden = byPeriod;
+      refreshNBars();
     }
 
     function syncSourceUI() {
       var synth = root.querySelector("#sc-source").value === "synthetic";
-      root.querySelector("#sc-venue").disabled = synth;
-      root.querySelector("#sc-market").disabled = synth;
-      root.querySelector("#sc-interval").disabled = synth;
-      root.querySelector("#sc-profile").disabled = synth;
-      root.querySelector("#sc-limit").disabled = synth;
-      root.querySelector("#sc-klines").disabled = synth;
+      [
+        "#sc-venue",
+        "#sc-market",
+        "#sc-interval",
+        "#sc-profile",
+        "#sc-limit",
+        "#sc-klines",
+        "#sc-period",
+        "#sc-window-mode",
+      ].forEach(function (sel) {
+        var el = root.querySelector(sel);
+        if (el) el.disabled = synth;
+      });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Binance spot: top USDT del exchange. OKX/Bybit/HL (y Binance futures): universo curado lab.";
+        : "Por período: últimas N velas hasta ahora. Binance spot = top USDT; otros = curado lab.";
+    }
+
+    function refreshNBars() {
+      var el = root.querySelector("#sc-nbars");
+      if (windowMode() === "klines") {
+        var n = parseInt(root.querySelector("#sc-klines").value, 10) || 0;
+        el.textContent = "≈ " + n.toLocaleString("es-AR") + " velas";
+        return;
+      }
+      if (!QLApi.simPeriod) {
+        el.textContent = "≈ —";
+        return;
+      }
+      var days = root.querySelector("#sc-period").value;
+      var iv = root.querySelector("#sc-interval").value;
+      QLApi.simPeriod(days, iv)
+        .then(function (d) {
+          el.textContent = d.n_bars_display || "≈ " + d.n_bars + " velas";
+          el.title = d.note || "";
+        })
+        .catch(function () {
+          el.textContent = "≈ —";
+        });
     }
 
     function openSim(prefill) {
@@ -103,7 +194,10 @@
       var rec = row.recommendation || lastScan.recommendations || {};
       var venue = lastScan.venue || "binance";
       var mt = lastScan.market_type || "spot";
-      var und = row.underlying || (lastScan.selected_underlyings || [])[selectedIdx] || "";
+      var und =
+        row.underlying ||
+        (lastScan.selected_underlyings || [])[selectedIdx] ||
+        "";
       var iv = lastScan.interval || "1h";
 
       var stratChips = (rec.strategies || [])
@@ -244,6 +338,9 @@
         esc(data.eligible) +
         " · TF=" +
         esc(data.interval) +
+        " · velas=" +
+        esc(data.kline_limit) +
+        (data.period_days != null ? " · período=" + esc(data.period_days) + "d" : "") +
         "</p>" +
         '<table class="mono" style="width:100%;font-size:0.8em;border-collapse:collapse">' +
         "<thead><tr><th>#</th><th>Moneda</th><th>Score</th><th>Familia</th></tr></thead>" +
@@ -263,12 +360,17 @@
     }
 
     root.querySelector("#sc-source").addEventListener("change", syncSourceUI);
+    root.querySelector("#sc-window-mode").addEventListener("change", syncWindowModeUI);
+    root.querySelector("#sc-period").addEventListener("change", refreshNBars);
+    root.querySelector("#sc-interval").addEventListener("change", refreshNBars);
+    root.querySelector("#sc-klines").addEventListener("input", refreshNBars);
     root.querySelector("#sc-venue").addEventListener("change", function () {
       if (root.querySelector("#sc-venue").value === "hyperliquid") {
         root.querySelector("#sc-market").value = "futures";
       }
     });
     syncSourceUI();
+    syncWindowModeUI();
 
     if (QLApi.alphaProfiles) {
       QLApi.alphaProfiles()
@@ -318,15 +420,21 @@
           return d;
         });
       } else {
-        promise = QLApi.venueScanner({
+        var opts = {
           venue: root.querySelector("#sc-venue").value,
           market_type: root.querySelector("#sc-market").value,
           top_n: topN,
           symbol_limit: parseInt(root.querySelector("#sc-limit").value, 10) || 15,
           interval: root.querySelector("#sc-interval").value,
-          kline_limit: parseInt(root.querySelector("#sc-klines").value, 10) || 24,
           profile: root.querySelector("#sc-profile").value,
-        }).then(function (d) {
+        };
+        if (windowMode() === "period") {
+          opts.period_days = parseInt(root.querySelector("#sc-period").value, 10) || 30;
+        } else {
+          opts.kline_limit =
+            parseInt(root.querySelector("#sc-klines").value, 10) || 720;
+        }
+        promise = QLApi.venueScanner(opts).then(function (d) {
           renderScores(d);
           return d;
         });
@@ -340,7 +448,9 @@
         });
     });
 
-    root.refresh = async function () {};
+    root.refresh = async function () {
+      refreshNBars();
+    };
     return root;
   }
 

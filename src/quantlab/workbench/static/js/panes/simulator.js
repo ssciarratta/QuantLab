@@ -131,13 +131,13 @@
       "Futuros A3: margen + diferencias diarias (alerta al agregar). LIVE bloqueado." +
       "</p>" +
       '<div class="sim-tabs sticky-tabs" role="tablist" aria-label="Secciones del Simulador">' +
-      '<button type="button" class="sim-tab active" data-tab="comparar">' +
+      '<button type="button" class="sim-tab active" data-tab="comparar" id="sim-tab-comparar">' +
       "1 · Comparar mercados</button>" +
-      '<button type="button" class="sim-tab" data-tab="estrategias">' +
+      '<button type="button" class="sim-tab" data-tab="estrategias" id="sim-tab-estrategias">' +
       "2 · Guías de estrategias</button>" +
       "</div>" +
       '<p class="muted sim-tab-hint" style="font-size:0.75em;margin:0.25rem 0 0">' +
-      "Tip: la solapa <strong>Guías de estrategias</strong> lista las 50 fichas por tipo. " +
+      "Solapas arriba: <strong>1 Comparar</strong> · <strong>2 Guías</strong> (50 fichas). " +
       "Los controles de capital/fees solo se ven en Comparar." +
       "</p></div>" +
       '<div class="pane-section sim-common">' +
@@ -246,7 +246,9 @@
     function showTab(name) {
       var tab = name || "comparar";
       root.querySelectorAll(".sim-tab").forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-tab") === tab);
+        var on = b.getAttribute("data-tab") === tab;
+        b.classList.toggle("active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
       });
       root.querySelectorAll(".sim-panel").forEach(function (p) {
         p.style.display = p.getAttribute("data-panel") === tab ? "" : "none";
@@ -261,12 +263,21 @@
         hint.style.display = tab === "comparar" ? "" : "none";
       }
       if (tab === "estrategias") {
-        // Evitar que el scroll quede abajo de Comparar
         try {
           root.scrollTop = 0;
           var win = root.closest && root.closest(".win-body");
           if (win) win.scrollTop = 0;
         } catch (_e) {}
+        // Si el catálogo no cargó, reintentar
+        var listEl = root.querySelector("#sim-strat-list");
+        if (
+          listEl &&
+          (!strategiesCache.length ||
+            listEl.textContent.indexOf("cargando") >= 0 ||
+            listEl.textContent.indexOf("error") >= 0)
+        ) {
+          loadStrategies();
+        }
       }
     }
 
@@ -1330,11 +1341,11 @@
         "En Sin monto: muestra el capital requerido (= margen pico).\n" +
         "Sirve para dimensionar la cuenta antes de arriesgar de verdad.",
       final:
-        "Capital al cerrar el período simulado.\n" +
-        "Incluye resultados de trades, fees y (si aplica) funding.\n" +
+        "Capital al cerrar el período (neto de fees y gastos extra).\n" +
+        "Ya restó comisiones VIP0/override y los «gastos extra» del panel.\n" +
+        "Incluye resultados de trades y (si aplica) funding.\n" +
         "Con leverage refleja el overlay de esa x.\n" +
-        "Comparalo con el inicial: subió o bajó la caja.\n" +
-        "Si hubo liquidación, puede quedar muy por debajo.",
+        "Comparalo con el inicial: subió o bajó la caja.",
       ops:
         "Número de operaciones ejecutadas (fills).\n" +
         "Cada fill es una compra/venta que tocó el precio histórico.\n" +
@@ -1346,7 +1357,7 @@
         "Por defecto usa el schedule VIP0 de cada exchange.\n" +
         "Solo si editás maker/taker a mano se fuerza ese bps en todos.\n" +
         "«Fees del mercado» vuelve al schedule real.\n" +
-        "Restan del capital final.",
+        "Ya están descontados en «Capital final (neto)».",
       "fee-op":
         "Fee promedio por operación (fill).\n" +
         "Se calcula: fees totales ÷ nº de fills.\n" +
@@ -1373,7 +1384,13 @@
     };
 
     function tipAttr(key) {
-      return ' data-tip="' + esc(SUMMARY_TIPS[key] || "") + '"';
+      // &#10; evita que saltos de línea rompan el atributo HTML en innerHTML
+      var raw = SUMMARY_TIPS[key] || "";
+      return (
+        ' data-tip="' +
+        esc(raw).replace(/\r?\n/g, "&#10;") +
+        '"'
+      );
     }
 
     function numOrNull(v) {
@@ -1387,6 +1404,27 @@
       var n = Number(v);
       if (!isFinite(n)) return esc(v);
       return esc(n.toLocaleString("es-AR", { maximumFractionDigits: 4 }));
+    }
+
+    /** Margen/trade y pico: margin_report, o fallback sizing / aliases. */
+    function resolveMarginFields(bt, row) {
+      var mr = (bt && bt.margin_report) || (row && row.margin_report) || {};
+      var sizing = (bt && bt.sizing) || {};
+      var marginTrade =
+        mr.margin_per_trade != null && mr.margin_per_trade !== ""
+          ? mr.margin_per_trade
+          : bt && bt.margin_per_trade != null
+            ? bt.margin_per_trade
+            : sizing.margin != null
+              ? sizing.margin
+              : null;
+      var peak =
+        mr.peak_margin != null && mr.peak_margin !== ""
+          ? mr.peak_margin
+          : bt && bt.peak_margin != null
+            ? bt.peak_margin
+            : null;
+      return { mr: mr, marginTrade: marginTrade, peak: peak };
     }
 
     function formatRows(data) {
@@ -1435,7 +1473,7 @@
         ">¿Faltó?</th>" +
         "<th" +
         tipAttr("final") +
-        ">Capital final</th>" +
+        ">Capital final (neto)</th>" +
         "<th" +
         tipAttr("rentab") +
         ">Rentab. %</th>" +
@@ -1459,7 +1497,8 @@
           .map(function (r) {
             var o = r.overlay || {};
             var bt = r.backtest || {};
-            var mr = bt.margin_report || {};
+            var marginFields = resolveMarginFields(bt, r);
+            var mr = marginFields.mr;
             var b = bt.benchmark || r.benchmark || {};
             var mode =
               bt.capital_mode ||
@@ -1500,11 +1539,18 @@
                   dif.toLocaleString("es-AR", { maximumFractionDigits: 4 });
             var shortN = numOrNull(mr.capital_shortfall);
             var needMore = mr.needed_more_money === true;
+            var hasMarginReport =
+              marginFields.marginTrade != null || marginFields.peak != null;
             var faltTxt;
             if (!r.ok && r.error) {
               faltTxt = "—";
+            } else if (!hasMarginReport) {
+              faltTxt =
+                '<span class="muted" title="Reiniciá el workbench para cargar margen">¿?</span>';
             } else if (mode === "unconstrained") {
-              faltTxt = "req " + fmtMoney(mr.capital_required || mr.peak_margin);
+              faltTxt =
+                "req " +
+                fmtMoney(mr.capital_required || marginFields.peak);
             } else if (needMore) {
               faltTxt =
                 '<span style="color:#d4544a">sí +' +
@@ -1543,11 +1589,11 @@
               "</td><td" +
               tipAttr("margen-trade") +
               ">" +
-              fmtMoney(mr.margin_per_trade) +
+              fmtMoney(marginFields.marginTrade) +
               "</td><td" +
               tipAttr("margen-pico") +
               ">" +
-              fmtMoney(mr.peak_margin) +
+              fmtMoney(marginFields.peak) +
               "</td><td" +
               tipAttr("faltante") +
               ">" +

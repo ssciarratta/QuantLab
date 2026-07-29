@@ -14,14 +14,13 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-POST /api/lab/venue/scanner · research/alpha/recommend.py
-UI scanner.js: venue/TF/perfil · ranking clickeable · chips
-Simulador.applyPrefill desde Alpha Scanner
+Menú QL permanece abierto al elegir paneles (seguir navegando)
+Presets ya no hacen closeAll · Ctrl+W no cierra ventanas · no reabre minimizado
 
 PRÓXIMO
 -------
-Ctrl+F5 + reiniciar workbench → menú Alpha Scanner → MD real → Escanear
-Probar chip → Simulador con moneda/estrategia/TF
+Ctrl+F5 (o reiniciar workbench) → probar menú QL: abrir varios paneles seguidos
+Cerrar menú: Escape / clic afuera / otra vez en QL
 
 INVARIANTES
 -----------
