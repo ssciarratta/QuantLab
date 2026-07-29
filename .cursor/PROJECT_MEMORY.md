@@ -4,7 +4,7 @@
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · UX compacta workbench (todas las ventanas) + Alpha Auto + Scanner/Sim densos  
 **Simulador:** Binance/OKX/Bybit/HL/A3 · **UI toolbar compacta** (ayuda/fees en `<details>`) · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op · `applyPrefill` desde Scanner · Guías abajo + pasos/ejemplos  
-**Alpha Scanner:** `POST /api/lab/venue/scanner` · **venues[]** multi · tandas **20/30/40/50/Todas** · **perfil Auto** · propuesta global/por venue · **UI toolbar compacta** · **warnings/score_status** · **Exportar JSON audit v1** · score_explained · chips → Simulador  
+**Alpha Scanner:** `POST /api/lab/venue/scanner` · **venues[]** multi · tandas **20/30/40/50/Todas/Moneda puntual** · **perfil Auto** · propuesta global/por venue · **vista Comparar** (agrupado/plano) · **warnings/score_status** · **Exportar JSON audit v1** · score_explained · chips → Simulador  
 **UX ventanas:** `win-body` wrap/pre-wrap · paneles densos (`pane-head`/`pane-toolbar`/`pane-more`) · defaults w/h ↑ Guided/Sim/Scanner/MC/Reports  
 **Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Alpha Scanner=ranking MD real · Backtest=velas sintéticas · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  

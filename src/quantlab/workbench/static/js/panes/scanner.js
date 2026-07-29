@@ -100,7 +100,11 @@
       '<option value="40">40</option>' +
       '<option value="50">50</option>' +
       '<option value="0">Todas</option>' +
+      '<option value="custom">Moneda puntual…</option>' +
       "</select></label>" +
+      '<label id="sc-coin-wrap" hidden>Moneda' +
+      '<input id="sc-coin" type="text" placeholder="ej. BTC o NEAR,SOL" ' +
+      'autocomplete="off" spellcheck="false" /></label>' +
       "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
       "<span class=\"muted\">Venues</span>" +
@@ -118,7 +122,7 @@
       "</div>" +
       '<details class="sc-more muted"><summary>Ayuda · tandas y multi-venue</summary>' +
       '<p id="sc-hint" style="margin:0.35rem 0 0">' +
-      "Tanda = monedas scoreadas. Multi-venue = ranking por mercado + comparación. " +
+      "Tanda = monedas scoreadas. Multi-venue = pestaña Comparar (misma moneda, scores por venue) + ranking por mercado. " +
       "A3/HL = futuros. Exportá el JSON para auditoría de terceros." +
       "</p></details>" +
       '<div id="sc-warn"></div>' +
@@ -131,6 +135,12 @@
     var selectedIdx = 0;
     /** Índice del bloque by_venue activo (multi). */
     var activeVenueIdx = 0;
+    /** Vista multi: "compare" | "venue". */
+    var multiView = "compare";
+    /** Layout comparar: "grouped" | "flat". */
+    var compareLayout = "grouped";
+    /** Underlyings expandidos en vista agrupada. */
+    var compareExpanded = {};
 
     function setStatus(ok, msg) {
       var el = root.querySelector("#sc-status");
@@ -158,6 +168,32 @@
       refreshNBars();
     }
 
+    function syncUniverseUI() {
+      var custom = root.querySelector("#sc-limit").value === "custom";
+      var wrap = root.querySelector("#sc-coin-wrap");
+      if (wrap) wrap.hidden = !custom;
+      if (custom) {
+        var inp = root.querySelector("#sc-coin");
+        if (inp && !inp.value) inp.focus();
+      }
+    }
+
+    function parseCustomCoins() {
+      var raw = (root.querySelector("#sc-coin").value || "").trim();
+      if (!raw) return [];
+      return raw
+        .split(/[,;\s]+/)
+        .map(function (x) {
+          return x.trim().toUpperCase().replace(/^\$/, "");
+        })
+        .filter(function (x) {
+          return x.length > 0;
+        })
+        .filter(function (x, i, arr) {
+          return arr.indexOf(x) === i;
+        });
+    }
+
     function syncSourceUI() {
       var synth = root.querySelector("#sc-source").value === "synthetic";
       [
@@ -168,6 +204,7 @@
         "#sc-klines",
         "#sc-period",
         "#sc-window-mode",
+        "#sc-coin",
       ].forEach(function (sel) {
         var el = root.querySelector(sel);
         if (el) el.disabled = synth;
@@ -177,7 +214,8 @@
       });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Tanda = monedas que se scorean de verdad. Multi-venue = un ranking por mercado + comparación en pts.";
+        : "Tanda = monedas scoreadas. Universo «Moneda puntual» = escribí el ticker (BTC, NEAR…). Multi-venue = Comparar + ranking por mercado.";
+      syncUniverseUI();
     }
 
     function refreshNBars() {
@@ -219,6 +257,86 @@
         return lastScan.by_venue[activeVenueIdx];
       }
       return lastScan;
+    }
+
+    function normalizeUnd(s) {
+      return String(s == null ? "" : s)
+        .trim()
+        .toUpperCase();
+    }
+
+    function scoreComposite(s) {
+      if (!s) return null;
+      if (s.composite != null) return Number(s.composite);
+      if (s.base_score != null) return Number(s.base_score);
+      return null;
+    }
+
+    function scoreFamily(s) {
+      if (!s || !s.recommendation) return "—";
+      return (
+        s.recommendation.family_label_es ||
+        s.recommendation.family ||
+        "—"
+      );
+    }
+
+    /** Agrupa scores multi-venue por underlying; orden = ranking del venue principal. */
+    function buildCompareGroups(data) {
+      var venues = (data && data.by_venue) || [];
+      var byUnd = {};
+      venues.forEach(function (block, vIdx) {
+        (block.scores || []).forEach(function (s, sIdx) {
+          var und = normalizeUnd(
+            s.underlying || s.symbol || s.instrument_id
+          );
+          if (!und) return;
+          if (!byUnd[und]) byUnd[und] = [];
+          byUnd[und].push({
+            venue: block.venue || "?",
+            market_type: block.market_type || "",
+            row: s,
+            rank: sIdx + 1,
+            venueIdx: vIdx,
+            scoreIdx: sIdx,
+            composite: scoreComposite(s),
+          });
+        });
+      });
+      var ordered = [];
+      var seen = {};
+      var primary = venues[0];
+      if (primary && primary.scores) {
+        primary.scores.forEach(function (s) {
+          var und = normalizeUnd(
+            s.underlying || s.symbol || s.instrument_id
+          );
+          if (!und || seen[und]) return;
+          seen[und] = true;
+          ordered.push({ underlying: und, entries: byUnd[und] });
+        });
+      }
+      Object.keys(byUnd)
+        .sort()
+        .forEach(function (und) {
+          if (seen[und]) return;
+          ordered.push({ underlying: und, entries: byUnd[und] });
+        });
+      return ordered;
+    }
+
+    function primaryEntry(group) {
+      if (!group || !group.entries || !group.entries.length) return null;
+      for (var i = 0; i < group.entries.length; i++) {
+        if (group.entries[i].venueIdx === 0) return group.entries[i];
+      }
+      return group.entries[0];
+    }
+
+    function selectCompareEntry(entry) {
+      if (!entry) return;
+      activeVenueIdx = entry.venueIdx;
+      renderDetail(entry.scoreIdx);
     }
 
     function renderDetail(idx) {
@@ -703,10 +821,269 @@
       );
     }
 
+    function formatScoreCell(compN, tied) {
+      var comp = compN != null ? compN.toFixed(3) : "—";
+      var pts = compN != null ? (compN * 100).toFixed(1) : "—";
+      return (
+        '<td class="mono sc-score-cell' +
+        (tied ? " sc-score-tied" : "") +
+        '" style="text-decoration:underline;text-underline-offset:2px;' +
+        (tied ? "" : "color:var(--amber,#d48c32)") +
+        '">' +
+        esc(comp) +
+        ' <span class="muted">(' +
+        esc(pts) +
+        " pts)</span></td>"
+      );
+    }
+
+    function renderCompareTable(data, outEl, opts) {
+      var groups = buildCompareGroups(data);
+      var primaryVenue =
+        (data.by_venue && data.by_venue[0] && data.by_venue[0].venue) || "?";
+      var tools =
+        '<div class="sc-compare-tools">' +
+        '<span class="muted">Orden = ranking de ' +
+        esc(primaryVenue) +
+        "</span>" +
+        '<span class="sc-layout-toggle">' +
+        '<button type="button" class="btn secondary sc-layout-btn' +
+        (compareLayout === "grouped" ? " active" : "") +
+        '" data-layout="grouped">Agrupado</button>' +
+        '<button type="button" class="btn secondary sc-layout-btn' +
+        (compareLayout === "flat" ? " active" : "") +
+        '" data-layout="flat">Plano</button>' +
+        "</span></div>";
+
+      if (!groups.length) {
+        outEl.innerHTML =
+          tools + '<p class="muted">Sin scores para comparar.</p>';
+        return;
+      }
+
+      var bodyHtml = "";
+      if (compareLayout === "flat") {
+        var flatIdx = 0;
+        groups.forEach(function (g) {
+          (g.entries || []).forEach(function (e) {
+            var compN = e.composite;
+            var tied =
+              e.row &&
+              (e.row.score_status === "tied_zero" ||
+                (compN === 0 && data.score_status === "degraded"));
+            flatIdx += 1;
+            bodyHtml +=
+              '<tr class="sc-row sc-cmp-flat' +
+              (flatIdx === 1 ? " sc-row-sel" : "") +
+              '" data-vidx="' +
+              e.venueIdx +
+              '" data-sidx="' +
+              e.scoreIdx +
+              '" style="cursor:pointer">' +
+              "<td>" +
+              flatIdx +
+              "</td>" +
+              '<td class="mono">' +
+              esc(g.underlying) +
+              "</td>" +
+              '<td class="mono">' +
+              esc(e.venue + "/" + (e.market_type || "")) +
+              "</td>" +
+              formatScoreCell(compN, tied) +
+              "<td>" +
+              esc(scoreFamily(e.row)) +
+              "</td></tr>";
+          });
+        });
+        outEl.innerHTML =
+          tools +
+          '<p class="muted sc-meta">Vista plana · moneda + venue · familia por venue</p>' +
+          '<table class="mono sc-cmp-table" style="width:100%;border-collapse:collapse">' +
+          "<thead><tr><th>#</th><th>Moneda</th><th>Venue</th><th>Score (pts)</th><th>Familia</th></tr></thead>" +
+          "<tbody>" +
+          bodyHtml +
+          "</tbody></table>";
+      } else {
+        groups.forEach(function (g, gi) {
+          var pe = primaryEntry(g);
+          var best = null;
+          (g.entries || []).forEach(function (e) {
+            if (e.composite == null) return;
+            if (!best || e.composite > best.composite) best = e;
+          });
+          var showComp = pe && pe.composite != null ? pe.composite : best && best.composite;
+          var nVen = (g.entries || []).length;
+          var open = !!compareExpanded[g.underlying];
+          var parentSel =
+            pe &&
+            pe.venueIdx === activeVenueIdx &&
+            pe.scoreIdx === selectedIdx &&
+            !open;
+          bodyHtml +=
+            '<tr class="sc-row sc-cmp-parent' +
+            (parentSel || (gi === 0 && !(opts && opts.keepDetail) && !open)
+              ? " sc-row-sel"
+              : "") +
+            (open ? " sc-cmp-open" : "") +
+            '" data-und="' +
+            esc(g.underlying) +
+            '" data-vidx="' +
+            (pe ? pe.venueIdx : 0) +
+            '" data-sidx="' +
+            (pe ? pe.scoreIdx : 0) +
+            '" style="cursor:pointer">' +
+            "<td>" +
+            (gi + 1) +
+            "</td>" +
+            '<td class="mono">' +
+            '<span class="sc-cmp-chevron" aria-hidden="true">' +
+            (open ? "▼" : "▶") +
+            "</span> " +
+            esc(g.underlying) +
+            "</td>" +
+            formatScoreCell(showComp, false) +
+            '<td class="muted">' +
+            esc(String(nVen)) +
+            " venue" +
+            (nVen === 1 ? "" : "s") +
+            (best
+              ? " · mejor " + esc(best.venue)
+              : "") +
+            "</td></tr>";
+          if (open) {
+            (g.entries || []).forEach(function (e) {
+              var tied =
+                e.row &&
+                (e.row.score_status === "tied_zero" || e.composite === 0);
+              var childSel =
+                e.venueIdx === activeVenueIdx && e.scoreIdx === selectedIdx;
+              bodyHtml +=
+                '<tr class="sc-cmp-child' +
+                (childSel ? " sc-row-sel" : "") +
+                '" data-vidx="' +
+                e.venueIdx +
+                '" data-sidx="' +
+                e.scoreIdx +
+                '" style="cursor:pointer">' +
+                "<td></td>" +
+                '<td class="mono muted" style="padding-left:1.35rem">' +
+                esc(e.venue + "/" + (e.market_type || "")) +
+                ' <span class="muted">#' +
+                esc(String(e.rank)) +
+                "</span></td>" +
+                formatScoreCell(e.composite, tied) +
+                "<td>" +
+                esc(scoreFamily(e.row)) +
+                "</td></tr>";
+            });
+          }
+        });
+        outEl.innerHTML =
+          tools +
+          '<p class="muted sc-meta">Click moneda = expandir venues debajo · subfila = detalle de ese venue</p>' +
+          '<table class="mono sc-cmp-table" style="width:100%;border-collapse:collapse">' +
+          "<thead><tr><th>#</th><th>Moneda / Venue</th><th>Score (pts)</th><th>Familia / venues</th></tr></thead>" +
+          "<tbody>" +
+          bodyHtml +
+          "</tbody></table>";
+      }
+
+      outEl.querySelectorAll(".sc-layout-btn").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          compareLayout = btn.getAttribute("data-layout") || "grouped";
+          outEl.innerHTML = "";
+          renderCompareTable(data, outEl, { keepDetail: true });
+        });
+      });
+
+      outEl.querySelectorAll(".sc-cmp-flat").forEach(function (tr) {
+        tr.addEventListener("click", function () {
+          outEl.querySelectorAll(".sc-row").forEach(function (r) {
+            r.classList.remove("sc-row-sel");
+          });
+          tr.classList.add("sc-row-sel");
+          selectCompareEntry({
+            venueIdx: parseInt(tr.getAttribute("data-vidx"), 10) || 0,
+            scoreIdx: parseInt(tr.getAttribute("data-sidx"), 10) || 0,
+          });
+        });
+      });
+
+      outEl.querySelectorAll(".sc-cmp-parent").forEach(function (tr) {
+        tr.addEventListener("click", function () {
+          var und = tr.getAttribute("data-und") || "";
+          compareExpanded[und] = !compareExpanded[und];
+          selectCompareEntry({
+            venueIdx: parseInt(tr.getAttribute("data-vidx"), 10) || 0,
+            scoreIdx: parseInt(tr.getAttribute("data-sidx"), 10) || 0,
+          });
+          outEl.innerHTML = "";
+          renderCompareTable(data, outEl, { keepDetail: true });
+        });
+      });
+
+      outEl.querySelectorAll(".sc-cmp-child").forEach(function (tr) {
+        tr.addEventListener("click", function () {
+          outEl.querySelectorAll(".sc-row, .sc-cmp-child").forEach(function (r) {
+            r.classList.remove("sc-row-sel");
+          });
+          tr.classList.add("sc-row-sel");
+          selectCompareEntry({
+            venueIdx: parseInt(tr.getAttribute("data-vidx"), 10) || 0,
+            scoreIdx: parseInt(tr.getAttribute("data-sidx"), 10) || 0,
+          });
+        });
+      });
+
+      if (!(opts && opts.keepDetail)) {
+        var first =
+          groups[0] &&
+          (compareLayout === "flat"
+            ? groups[0].entries && groups[0].entries[0]
+            : primaryEntry(groups[0]));
+        if (first) selectCompareEntry(first);
+      }
+    }
+
+    function showMultiTable(data, tableHost, out) {
+      if (multiView === "compare" && data.by_venue && data.by_venue.length > 1) {
+        tableHost.innerHTML = "";
+        renderCompareTable(data, tableHost);
+        return;
+      }
+      var vIdx = activeVenueIdx;
+      if (vIdx < 0 || vIdx >= data.by_venue.length) vIdx = 0;
+      activeVenueIdx = vIdx;
+      tableHost.innerHTML = "";
+      renderScoresTable(data.by_venue[vIdx], tableHost);
+      renderDetail(0);
+      out.querySelectorAll(".sc-venue-tab").forEach(function (b) {
+        b.classList.toggle(
+          "active",
+          b.getAttribute("data-vidx") === String(vIdx)
+        );
+      });
+      var cmpTab = out.querySelector('.sc-view-tab[data-view="compare"]');
+      if (cmpTab) cmpTab.classList.remove("active");
+    }
+
     function renderScores(data) {
       var out = root.querySelector("#sc-out");
       lastScan = data;
       activeVenueIdx = 0;
+      compareExpanded = {};
+      /* Agrupado: expandir todas las monedas al escanear (ver venues apilados). */
+      if (
+        data &&
+        data.kind === "multi_venue_scanner" &&
+        data.by_venue &&
+        data.by_venue.length > 1
+      ) {
+        buildCompareGroups(data).forEach(function (g) {
+          compareExpanded[g.underlying] = true;
+        });
+      }
       root.querySelector("#sc-detail").innerHTML = "";
       renderWarnings(data);
       if (!data) {
@@ -715,6 +1092,8 @@
       }
       var html = "";
       if (data.kind === "multi_venue_scanner" && data.by_venue && data.by_venue.length) {
+        multiView =
+          data.by_venue.length > 1 ? "compare" : "venue";
         html += renderComparison(data.comparison);
         if (data.auto_mode && data.proposal) {
           html += renderProposalBlock(data.proposal, "Propuesta Auto (global)");
@@ -741,42 +1120,57 @@
             ) +
             "</p>";
         }
-        html +=
-          '<div class="sim-tabs" style="margin:0.35rem 0">' +
-          data.by_venue
-            .map(function (b, i) {
-              return (
-                '<button type="button" class="sim-tab sc-venue-tab' +
-                (i === 0 ? " active" : "") +
-                '" data-vidx="' +
-                i +
-                '">' +
-                esc((b.venue || "?") + "/" + (b.market_type || "")) +
-                "</button>"
-              );
-            })
-            .join("") +
-          "</div>" +
-          '<div id="sc-venue-table"></div>';
+        html += '<div class="sim-tabs sc-multi-tabs" style="margin:0.35rem 0">';
+        if (data.by_venue.length > 1) {
+          html +=
+            '<button type="button" class="sim-tab sc-view-tab' +
+            (multiView === "compare" ? " active" : "") +
+            '" data-view="compare">Comparar</button>';
+        }
+        html += data.by_venue
+          .map(function (b, i) {
+            return (
+              '<button type="button" class="sim-tab sc-venue-tab' +
+              (multiView === "venue" && i === 0 ? " active" : "") +
+              '" data-vidx="' +
+              i +
+              '">' +
+              esc((b.venue || "?") + "/" + (b.market_type || "")) +
+              "</button>"
+            );
+          })
+          .join("");
+        html += '</div><div id="sc-venue-table"></div>';
         out.innerHTML = html;
         wireProposalChips(out);
         var tableHost = out.querySelector("#sc-venue-table");
-        renderScoresTable(data.by_venue[0], tableHost);
+        showMultiTable(data, tableHost, out);
+        var cmpBtn = out.querySelector('.sc-view-tab[data-view="compare"]');
+        if (cmpBtn) {
+          cmpBtn.addEventListener("click", function () {
+            multiView = "compare";
+            out.querySelectorAll(".sc-venue-tab, .sc-view-tab").forEach(
+              function (b) {
+                b.classList.remove("active");
+              }
+            );
+            cmpBtn.classList.add("active");
+            showMultiTable(data, tableHost, out);
+          });
+        }
         out.querySelectorAll(".sc-venue-tab").forEach(function (btn) {
           btn.addEventListener("click", function () {
+            multiView = "venue";
             activeVenueIdx = parseInt(btn.getAttribute("data-vidx"), 10) || 0;
-            out.querySelectorAll(".sc-venue-tab").forEach(function (b) {
-              b.classList.toggle(
-                "active",
-                b.getAttribute("data-vidx") === String(activeVenueIdx)
-              );
-            });
-            tableHost.innerHTML = "";
-            renderScoresTable(data.by_venue[activeVenueIdx], tableHost);
-            renderDetail(0);
+            out.querySelectorAll(".sc-venue-tab, .sc-view-tab").forEach(
+              function (b) {
+                b.classList.remove("active");
+              }
+            );
+            btn.classList.add("active");
+            showMultiTable(data, tableHost, out);
           });
         });
-        renderDetail(0);
         return;
       }
       if (!data.scores || !data.scores.length) {
@@ -793,6 +1187,13 @@
 
     root.querySelector("#sc-source").addEventListener("change", syncSourceUI);
     root.querySelector("#sc-window-mode").addEventListener("change", syncWindowModeUI);
+    root.querySelector("#sc-limit").addEventListener("change", syncUniverseUI);
+    root.querySelector("#sc-coin").addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        root.querySelector("#sc-run").click();
+      }
+    });
     root.querySelector("#sc-period").addEventListener("change", refreshNBars);
     root.querySelector("#sc-interval").addEventListener("change", refreshNBars);
     root.querySelector("#sc-klines").addEventListener("input", refreshNBars);
@@ -851,13 +1252,20 @@
               .join("");
             optsHtml +=
               '<option value="0">Todas (universo disponible)</option>';
+            optsHtml +=
+              '<option value="custom">Moneda puntual…</option>';
             lim.innerHTML = optsHtml;
-            lim.value = String(
-              cur === "0" ? 0 : d.default_symbol_limit || cur || 30
-            );
-            if (!lim.value && lim.value !== "0") {
-              lim.value = String(d.symbol_batches[1] || d.symbol_batches[0]);
+            if (cur === "custom") {
+              lim.value = "custom";
+            } else {
+              lim.value = String(
+                cur === "0" ? 0 : d.default_symbol_limit || cur || 30
+              );
+              if (!lim.value && lim.value !== "0") {
+                lim.value = String(d.symbol_batches[1] || d.symbol_batches[0]);
+              }
             }
+            syncUniverseUI();
           }
         })
         .catch(function () {});
@@ -900,18 +1308,31 @@
           setStatus(false, "marcá al menos un venue");
           return;
         }
+        var limitRaw = root.querySelector("#sc-limit").value;
+        var customCoins = null;
+        if (limitRaw === "custom") {
+          customCoins = parseCustomCoins();
+          if (!customCoins.length) {
+            setStatus(false, "escribí al menos una moneda (ej. BTC)");
+            syncUniverseUI();
+            return;
+          }
+        }
         var opts = {
           venues: venues,
           market_type: root.querySelector("#sc-market").value,
           top_n: topN,
-          symbol_limit: (function () {
-            var raw = root.querySelector("#sc-limit").value;
-            if (raw === "0") return 0;
-            return parseInt(raw, 10) || 30;
-          })(),
+          symbol_limit: customCoins
+            ? 0
+            : limitRaw === "0"
+              ? 0
+              : parseInt(limitRaw, 10) || 30,
           interval: root.querySelector("#sc-interval").value,
           profile: root.querySelector("#sc-profile").value,
         };
+        if (customCoins) {
+          opts.underlyings = customCoins;
+        }
         if (windowMode() === "period") {
           opts.period_days = parseInt(root.querySelector("#sc-period").value, 10) || 30;
         } else {

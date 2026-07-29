@@ -1,24 +1,22 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-29
-Versión: 1.01.0 · UX compacta todas las ventanas
+Versión: 1.01.0 · Scanner: Comparar + moneda puntual
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Workbench: paneles densos · texto no se corta (wrap en win-body)
-- Ventanas research más grandes por default (Scanner/Sim/MC/GL…)
-- Ayuda larga en <details> en paneles principales
+- Alpha Scanner: vista Comparar multi-venue + Universo «Moneda puntual…»
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-UX global: CSS anti-corte + compact Guided/Backtest/MC/Optimize/
-Reports/Docs/Blotter/Market/Features/Validation/Journal/Health/HB
+Universo: opción «Moneda puntual…» con input (BTC, NEAR o NEAR,SOL).
+Backend acepta 1+ underlyings explícitos (antes mínimo 3).
+Vista Comparar (agrupado/plano) sigue vigente.
 
 PRÓXIMO
 -------
-Ctrl+F5 (hard refresh) · reabrir paneles para ver layout nuevo
-· Si una ventana quedó chica: maximizar o redimensionar
+Ctrl+F5 · Universo → Moneda puntual → escribir ticker → Escanear
 
 INVARIANTES
 -----------

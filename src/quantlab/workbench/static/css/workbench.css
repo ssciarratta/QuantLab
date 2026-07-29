@@ -1950,10 +1950,17 @@ button.btn.danger.engaged {
 }
 
 .pane-scanner .sc-toolbar select,
-.pane-scanner .sc-toolbar input[type="number"] {
+.pane-scanner .sc-toolbar input[type="number"],
+.pane-scanner .sc-toolbar input[type="text"] {
   font-size: 0.8rem;
   padding: 0.22rem 0.35rem;
   min-height: 1.7rem;
+}
+
+.pane-scanner #sc-coin {
+  min-width: 7.5rem;
+  text-transform: uppercase;
+  font-family: var(--mono, ui-monospace, monospace);
 }
 
 .pane-scanner .sc-venues {
@@ -2017,6 +2024,46 @@ button.btn.danger.engaged {
 .pane-scanner .sc-meta {
   font-size: 0.72em;
   margin: 0 0 0.3rem;
+}
+
+.pane-scanner .sc-compare-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.72em;
+}
+
+.pane-scanner .sc-layout-toggle {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.pane-scanner .sc-layout-btn.active {
+  border-color: var(--amber, #d48c32);
+  color: var(--amber, #d48c32);
+}
+
+.pane-scanner .sc-cmp-chevron {
+  display: inline-block;
+  width: 0.9em;
+  color: var(--muted, #9a9a9a);
+  font-size: 0.85em;
+}
+
+.pane-scanner .sc-cmp-child td {
+  background: color-mix(in srgb, var(--bg-elevated, #1a1a1a) 55%, transparent);
+  font-size: 0.96em;
+}
+
+.pane-scanner .sc-cmp-child.sc-row-sel td {
+  background: color-mix(in srgb, var(--accent, #4a7cff) 18%, transparent);
+}
+
+.pane-scanner .sc-cmp-open td:first-child {
+  color: var(--amber, #d48c32);
 }
 
 .pane-scanner #sc-out table {

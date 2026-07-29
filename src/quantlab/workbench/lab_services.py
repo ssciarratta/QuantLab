@@ -829,14 +829,18 @@ def run_venue_lab_scanner(
 
     if underlyings is not None:
         coins = [str(u).strip() for u in underlyings if str(u).strip()]
+        if not coins:
+            raise ValidationError("underlyings vacío: escribí al menos una moneda")
     elif v == "a3":
         from quantlab.research.sim.universe import A3_CURATED_PRODUCTS
 
         coins = [str(c["id"]) for c in A3_CURATED_PRODUCTS]
+        if len(coins) < 3:
+            raise ValidationError("se requieren al menos 3 underlyings para el scan")
     else:
         coins = [str(c["id"]) for c in SIM_COINS]
-    if len(coins) < 3:
-        raise ValidationError("se requieren al menos 3 underlyings para el scan")
+        if len(coins) < 3:
+            raise ValidationError("se requieren al menos 3 underlyings para el scan")
     if symbol_limit != SYMBOL_LIMIT_ALL:
         coins = coins[:symbol_limit]
 

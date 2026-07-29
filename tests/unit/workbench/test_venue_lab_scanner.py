@@ -251,3 +251,54 @@ def test_multi_venue_scanner_comparison_mock() -> None:
     assert "comparison" in out
     assert out["comparison"]["venue_summary"]
     assert out["scores"]  # compat primer venue
+
+
+def test_venue_scanner_accepts_single_underlying() -> None:
+    def fake_fetch(
+        underlying: str,
+        *,
+        venue: str,
+        market_type: str,
+        interval: str = "1h",
+        kline_limit: int = 24,
+    ) -> tuple[ResolvedInstrument, list[Bar]]:
+        del interval, kline_limit
+        assert venue == "binance"
+        assert market_type == "futures"
+        assert underlying == "NEAR"
+        sym = "NEARUSDT"
+        resolved = ResolvedInstrument(
+            venue=venue,
+            market_type=market_type,
+            underlying="NEAR",
+            symbol=sym,
+            instrument_id=f"BNF:{sym}",
+        )
+        return resolved, _bars(sym)
+
+    with patch(
+        "quantlab.brokers.md_router.fetch_bars_for_instrument",
+        side_effect=fake_fetch,
+    ):
+        out = lab_services.run_venue_lab_scanner(
+            venue="binance",
+            market_type="futures",
+            top_n=1,
+            symbol_limit=0,
+            underlyings=["NEAR"],
+            kline_limit=12,
+            profile="trend",
+        )
+    assert out["ok"] is True
+    assert len(out["scores"]) >= 1
+    assert out["scores"][0].get("underlying") == "NEAR"
+
+
+def test_venue_scanner_rejects_empty_underlyings() -> None:
+    with pytest.raises(ValidationError, match="underlyings vacío"):
+        lab_services.run_venue_lab_scanner(
+            venue="binance",
+            market_type="futures",
+            underlyings=[],
+            kline_limit=12,
+        )
