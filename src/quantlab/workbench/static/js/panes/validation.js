@@ -7,14 +7,14 @@
     root.className = "pane-lab pane-validation";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Validation / Walk-Forward</h3>" +
-      '<p class="muted" style="margin-top:0">Splits temporales sobre barras sintéticas · anti-leakage · persiste en <span class="mono">session/validation</span>.</p>' +
-      '<div class="pane-row">' +
-      '<label class="muted">n_bars <input type="number" id="vl-bars" class="mono" min="20" max="200" value="40" style="width:4.5rem"></label>' +
-      '<label class="muted">train <input type="number" id="vl-train" class="mono" min="2" max="100" value="10" style="width:3.5rem"></label>' +
-      '<label class="muted">test <input type="number" id="vl-test" class="mono" min="1" max="50" value="5" style="width:3.5rem"></label>' +
+      '<div class="pane-head"><h3>Validation</h3>' +
+      '<p class="muted pane-sub">Walk-forward · anti-leakage</p></div>' +
+      '<div class="pane-toolbar">' +
+      '<label>n_bars <input type="number" id="vl-bars" class="mono" min="20" max="200" value="40"></label>' +
+      '<label>train <input type="number" id="vl-train" class="mono" min="2" max="100" value="10"></label>' +
+      '<label>test <input type="number" id="vl-test" class="mono" min="1" max="50" value="5"></label>' +
       "</div>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="vl-run">Correr splits</button>' +
       '<button type="button" class="btn secondary" id="vl-refresh">Actualizar</button>' +
       '<span class="mono" id="vl-status">—</span>' +

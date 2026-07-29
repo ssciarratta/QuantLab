@@ -7,14 +7,16 @@
     root.className = "pane-lab pane-optimize";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Optimizer grid + Pareto</h3>" +
-      '<p class="muted" style="margin-top:0">Grid lookback×quantity → sharpe · Pareto sharpe↑ / MDD↓ · persiste en <span class="mono">session/optimizer</span>.</p>' +
-      '<div class="pane-row">' +
-      '<label class="muted">lookbacks <input type="text" id="op-lb" class="mono" value="2,3" style="width:5rem"></label>' +
-      '<label class="muted">qty <input type="text" id="op-qty" class="mono" value="1" style="width:4rem"></label>' +
-      '<label class="muted">n_bars <input type="number" id="op-bars" class="mono" min="8" max="60" value="20" style="width:4rem"></label>' +
+      '<div class="pane-head">' +
+      "<h3>Optimizer</h3>" +
+      '<p class="muted pane-sub">Grid + Pareto · session/optimizer</p>' +
       "</div>" +
-      '<div class="pane-row">' +
+      '<div class="pane-toolbar">' +
+      '<label>lookbacks <input type="text" id="op-lb" class="mono" value="2,3"></label>' +
+      '<label>qty <input type="text" id="op-qty" class="mono" value="1"></label>' +
+      '<label>n_bars <input type="number" id="op-bars" class="mono" min="8" max="60" value="20"></label>' +
+      "</div>" +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="op-run">Optimizar</button>' +
       '<button type="button" class="btn secondary" id="op-refresh">Actualizar</button>' +
       '<span class="mono" id="op-status">—</span>' +

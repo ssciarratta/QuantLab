@@ -7,14 +7,14 @@
     root.className = "pane-lab pane-export-hb";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Hummingbot export wizard</h3>" +
-      '<p class="banner-warn mono" id="hb-banner" style="margin-top:0;padding:0.4rem 0.55rem;border:1px solid rgba(180,120,40,0.45);background:rgba(180,120,40,0.12)">live_routing:false — export research-safe; sin order routing LIVE</p>' +
-      '<p class="muted" style="margin-top:0.5rem">validate → build → export path-safe a <span class="mono">session/exports</span>.</p>' +
-      '<div class="pane-row">' +
-      '<label class="muted">experiment <select id="hb-exp" class="mono" style="min-width:10rem"></select></label>' +
-      '<label class="muted">strategy_ver <input type="text" id="hb-ver" class="mono" value="demo-1" style="width:6rem"></label>' +
+      '<div class="pane-head"><h3>Hummingbot export</h3>' +
+      '<p class="muted pane-sub">validate → build → export</p></div>' +
+      '<p class="banner-warn mono" id="hb-banner" style="margin:0.2rem 0;padding:0.3rem 0.45rem;border:1px solid rgba(180,120,40,0.45);background:rgba(180,120,40,0.12);white-space:pre-wrap">live_routing:false — research-safe</p>' +
+      '<div class="pane-toolbar">' +
+      '<label>experiment <select id="hb-exp" class="mono"></select></label>' +
+      '<label>strategy_ver <input type="text" id="hb-ver" class="mono" value="demo-1"></label>' +
       "</div>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="hb-run">Validate · Build · Export</button>' +
       '<button type="button" class="btn secondary" id="hb-refresh">Actualizar</button>' +
       '<span class="mono" id="hb-status">—</span>' +
@@ -23,7 +23,7 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Pasos</h3>" +
-      '<pre class="mono" id="hb-steps" style="white-space:pre-wrap;font-size:0.8rem;margin:0">—</pre>' +
+      '<pre class="mono" id="hb-steps" style="white-space:pre-wrap;font-size:0.78rem;margin:0">—</pre>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Exports previos</h3>" +

@@ -1160,16 +1160,25 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
 
 
 def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
-    """POST /api/lab/venue/scanner — Alpha ranking MD real multi-venue."""
+    """POST /api/lab/venue/scanner — Alpha ranking MD real (1 o N venues)."""
     venue = body.get("venue", "binance")
+    venues_raw = body.get("venues")
     market_type = body.get("market_type", "spot")
     top_n = body.get("top_n", 5)
-    symbol_limit = body.get("symbol_limit", 15)
+    symbol_limit = body.get("symbol_limit", 30)
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit")
     period_days = body.get("period_days")
-    profile = body.get("profile", "legacy_v1")
+    profile = body.get("profile", "trend")
     underlyings = body.get("underlyings")
+    if venues_raw is not None:
+        if not isinstance(venues_raw, list) or not all(
+            isinstance(x, str) for x in venues_raw
+        ):
+            raise ApiError(400, "venues debe ser lista de strings")
+        venues_list = [x.strip() for x in venues_raw if x.strip()]
+    else:
+        venues_list = []
     if not isinstance(venue, str):
         raise ApiError(400, "venue debe ser string")
     if not isinstance(market_type, str):
@@ -1197,22 +1206,50 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
         if state.session is None:
             raise ApiError(503, "sesión workbench no inicializada")
         persist_dir = state.session.experiments_dir / "alpha_scans"
-        result = lab_services.run_venue_lab_scanner(
-            venue=venue.strip(),
-            market_type=market_type.strip(),
-            top_n=top_n,
-            symbol_limit=symbol_limit,
-            interval=interval.strip(),
-            kline_limit=kline_limit,
-            period_days=period_days,
-            profile=profile.strip(),
-            underlyings=und_list,
-            persist_dir=(
-                persist_dir
-                if profile.strip().lower() not in ("legacy_v1", "legacy", "")
-                else None
-            ),
+        persist_arg = (
+            persist_dir
+            if profile.strip().lower() not in ("legacy_v1", "legacy", "")
+            else None
         )
+        if len(venues_list) >= 2 or (len(venues_list) == 1 and not venue.strip()):
+            result = lab_services.run_multi_venue_lab_scanner(
+                venues=venues_list or [venue.strip()],
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+            )
+        elif len(venues_list) == 1:
+            result = lab_services.run_venue_lab_scanner(
+                venue=venues_list[0],
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+            )
+        else:
+            result = lab_services.run_venue_lab_scanner(
+                venue=venue.strip(),
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+            )
         out = state.store_lab_result(result)
         _record_activity(
             state,
@@ -1221,10 +1258,12 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
             message="venue alpha scanner",
             detail={
                 "venue": result.get("venue"),
+                "venues": result.get("venues"),
                 "market_type": result.get("market_type"),
                 "top_n": top_n,
                 "kind": result.get("kind"),
                 "profile": result.get("profile"),
+                "symbol_limit": symbol_limit,
             },
         )
         return out

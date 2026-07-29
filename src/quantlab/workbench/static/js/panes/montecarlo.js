@@ -21,55 +21,52 @@
     root.className = "pane-lab pane-montecarlo";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>MONTE CARLO — ROBUSTEZ DE ESTRATEGIA</h3>" +
-      '<p class="muted" style="margin-top:0">' +
-      "Mide sensibilidad bajo supuestos elegidos. <strong>No predice precios futuros.</strong>" +
-      "</p>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;align-items:flex-end">' +
-      '<label class="field" title="Cantidad de escenarios independientes">Escenarios' +
+      '<div class="pane-head">' +
+      "<h3>Monte Carlo</h3>" +
+      '<p class="muted pane-sub">Robustez bajo supuestos · no predice precios</p>' +
+      "</div>" +
+      '<div class="pane-toolbar">' +
+      '<label title="Cantidad de escenarios independientes">Escenarios' +
       '<input id="mc-n" type="number" value="1000" min="2" max="1000000" step="1" /></label>' +
-      '<div class="pane-row" id="mc-presets" style="gap:0.25rem;flex-wrap:wrap"></div>' +
-      "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;margin-top:0.4rem;align-items:flex-end">' +
-      '<label class="field" title="Cada escenario vuelve a ejecutar la estrategia sobre estas N velas perturbadas.">' +
-      "Velas utilizadas por escenario" +
+      '<label title="Velas perturbadas por escenario">Velas/esc.' +
       '<input id="mc-bars" type="number" value="60" min="8" max="500" /></label>' +
-      '<span class="muted mono" id="mc-bars-duration" style="align-self:center"></span>' +
-      '<label class="field" title="10 bps = 0,10 %">Ruido (bps)' +
+      '<label title="10 bps = 0,10 %">Ruido bps' +
       '<input id="mc-noise" type="number" value="10" min="0" max="500" step="1" /></label>' +
-      '<label class="field" title="Misma seed + mismos datos = mismo resultado">Seed' +
+      '<label title="Misma seed = mismo resultado">Seed' +
       '<input id="mc-seed" type="number" value="42" /></label>' +
-      '<label class="field" title="Opcional — vincula Scan">scan_id' +
-      '<input id="mc-scan" type="text" placeholder="opcional" style="width:8em" /></label>' +
-      '<label class="field" title="Opcional — vincula Backtest">backtest_id' +
-      '<input id="mc-bt" type="text" placeholder="opcional" style="width:8em" /></label>' +
+      '<label title="Opcional — vincula Scan">scan_id' +
+      '<input id="mc-scan" type="text" placeholder="opcional" /></label>' +
+      '<label title="Opcional — vincula Backtest">backtest_id' +
+      '<input id="mc-bt" type="text" placeholder="opcional" /></label>' +
       "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;margin-top:0.4rem;align-items:center">' +
-      '<label class="muted" title="Guarda hasta 16 curvas completas para visualización. No limita la cantidad total de escenarios simulados.">' +
-      '<input type="checkbox" id="mc-paths" /> Guardar muestra de trayectorias</label>' +
+      '<div class="pane-row" id="mc-presets" style="gap:0.25rem;flex-wrap:wrap;margin:0.15rem 0"></div>' +
+      '<div class="pane-actions">' +
+      '<label class="muted" title="Guarda hasta 16 curvas. No limita escenarios.">' +
+      '<input type="checkbox" id="mc-paths" /> trayectorias</label>' +
       '<button type="button" class="btn" id="mc-run">Simular</button>' +
       '<button type="button" class="btn secondary" id="mc-refresh">Actualizar</button>' +
-      '<button type="button" class="btn secondary" id="mc-copy-id">Copiar run ID</button>' +
+      '<button type="button" class="btn secondary" id="mc-copy-id">Copiar ID</button>' +
       '<button type="button" class="btn secondary" id="mc-cancel" disabled hidden>Cancelar</button>' +
+      '<span class="mono muted" id="mc-bars-duration"></span>' +
       '<span class="mono" id="mc-status">—</span>' +
       "</div>" +
-      '<p class="muted" id="mc-warn" style="margin:0.4rem 0 0"></p>' +
-      '<div id="mc-cost" class="mono muted" style="margin-top:0.35rem"></div>' +
-      '<div id="mc-progress" style="margin-top:0.35rem"></div>' +
+      '<p class="muted" id="mc-warn" style="margin:0.25rem 0 0"></p>' +
+      '<div id="mc-cost" class="mono muted"></div>' +
+      '<div id="mc-progress"></div>' +
       "</div>" +
       '<div class="pane-section" id="mc-ctx-section">' +
-      "<h3>Contexto del experimento</h3>" +
+      "<h3>Contexto</h3>" +
       '<div class="mono" id="mc-context">—</div>' +
-      '<div class="pane-row" style="margin-top:0.4rem;gap:0.4rem;flex-wrap:wrap">' +
-      '<button type="button" class="btn secondary" id="mc-open-bt" disabled title="Sin backtest_id">Abrir backtest</button>' +
-      '<button type="button" class="btn secondary" id="mc-open-scan" disabled title="Sin scan_id">Abrir scan</button>' +
-      '<button type="button" class="btn secondary" id="mc-open-ds" disabled title="Sin dataset">Abrir dataset</button>' +
-      '<span class="muted mono" id="mc-nav-hint" style="align-self:center"></span>' +
+      '<div class="pane-actions">' +
+      '<button type="button" class="btn secondary" id="mc-open-bt" disabled title="Sin backtest_id">Backtest</button>' +
+      '<button type="button" class="btn secondary" id="mc-open-scan" disabled title="Sin scan_id">Scan</button>' +
+      '<button type="button" class="btn secondary" id="mc-open-ds" disabled title="Sin dataset">Dataset</button>' +
+      '<span class="muted mono" id="mc-nav-hint"></span>' +
       "</div>" +
-      '<div id="mc-dataset-detail" style="margin-top:0.5rem;display:none"></div>' +
+      '<div id="mc-dataset-detail" style="margin-top:0.35rem;display:none"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>¿Qué estamos simulando?</h3>" +
+      "<h3>¿Qué simulamos?</h3>" +
       '<div id="mc-explain">—</div>' +
       "</div>" +
       '<div class="pane-section">' +

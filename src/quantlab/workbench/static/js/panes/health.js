@@ -8,8 +8,9 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Modo de sesión</h3>" +
-      '<div class="pane-row">' +
+      '<div class="pane-head"><h3>Salud</h3>' +
+      '<p class="muted pane-sub">Modo · checks · broker</p></div>' +
+      '<div class="pane-actions">' +
       '<label class="field">Modo<select id="hp-mode">' +
       '<option value="tester">TESTER</option>' +
       '<option value="paper">PAPER</option>' +
@@ -21,18 +22,18 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Health checks</h3>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn secondary" id="hp-refresh">Actualizar</button>' +
       '<span class="mono" id="hp-status">—</span>' +
       "</div>" +
       '<div id="hp-checks"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>Broker reconnect / disconnect</h3>" +
-      '<div class="pane-row">' +
+      "<h3>Broker</h3>" +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="hp-reconnect">Reconectar</button>' +
       '<button type="button" class="btn secondary" id="hp-disconnect">Desconectar</button>' +
-      '<span class="mono muted" id="hp-reconnect-info">last connect de sesión</span>' +
+      '<span class="mono muted" id="hp-reconnect-info">last connect</span>' +
       "</div>" +
       '<p class="muted mono" id="hp-reconnect-status">—</p>' +
       "</div>";

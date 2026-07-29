@@ -1,28 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-28
-Versión: 1.01.0 · Alpha Scanner MD real multi-venue
+Actualizado: 2026-07-29
+Versión: 1.01.0 · UX compacta todas las ventanas
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha Scanner (menú): MD real Binance/OKX/Bybit/HL + recomendaciones
-  familia + 2–3 estrategias + TF → chips → Simulador (prefill)
-- Demo sintético WB sigue disponible como fuente opcional
-- Simulador: Comparar arriba · Guías de estrategias siempre abajo
-  (solapa 2 = scroll) · pasos + ejemplos + example_steps en cada ficha
-- Guided Lab: sigue con su scanner Binance (ahora también trae recommendation)
+- Workbench: paneles densos · texto no se corta (wrap en win-body)
+- Ventanas research más grandes por default (Scanner/Sim/MC/GL…)
+- Ayuda larga en <details> en paneles principales
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Simulador: guías fijas debajo de Comparar (no se ocultan)
-Guías: paso a paso visible + ejemplo + example_steps (todas las 50)
-Botón «↓ Ir a guías» · solapa 2 hace scroll · 1ª ficha abierta
+UX global: CSS anti-corte + compact Guided/Backtest/MC/Optimize/
+Reports/Docs/Blotter/Market/Features/Validation/Journal/Health/HB
 
 PRÓXIMO
 -------
-Ctrl+F5 → Simulador: scrollear debajo de Comparar / solapa «2 · Guías»
-Abrir fichas: En simple, Pasos, Ejemplo, Ejemplo paso a paso
+Ctrl+F5 (hard refresh) · reabrir paneles para ver layout nuevo
+· Si una ventana quedó chica: maximizar o redimensionar
 
 INVARIANTES
 -----------

@@ -130,8 +130,8 @@ class BinancePublicMdClient:
         return isinstance(payload, dict) and len(payload) == 0
 
     def list_spot_symbols(self, *, quote: str = "USDT", limit: int = 50) -> list[str]:
-        if limit < 1 or limit > 500:
-            raise ValidationError("limit debe estar entre 1 y 500")
+        if limit < 1 or limit > 5000:
+            raise ValidationError("limit debe estar entre 1 y 5000")
         info = self._get_json("/api/v3/exchangeInfo")
         symbols = info.get("symbols")
         if not isinstance(symbols, list):

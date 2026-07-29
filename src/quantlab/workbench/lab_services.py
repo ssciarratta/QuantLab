@@ -521,18 +521,20 @@ def run_binance_lab_scanner(
 
     if top_n < 1 or top_n > 10:
         raise ValidationError("top_n debe estar entre 1 y 10")
-    if symbol_limit < 5 or symbol_limit > 30:
-        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    _validate_symbol_limit(symbol_limit)
     if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
         raise ValidationError(
             f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
         )
     interval = validate_kline_interval(interval)
-    profile_key = (profile or "legacy_v1").strip().lower()
+    from quantlab.research.alpha.recommend import resolve_scoring_profile
+
+    requested_profile, profile_key, _auto = resolve_scoring_profile(profile)
 
     url = base_url or DEFAULT_BASE_URL
     client = BinancePublicMdClient(base_url=url)
-    symbols = client.list_spot_symbols(quote="USDT", limit=symbol_limit)
+    fetch_cap = _fetch_cap_for_limit(symbol_limit, venue="binance", market_type="spot")
+    symbols = client.list_spot_symbols(quote="USDT", limit=fetch_cap)
     if not symbols:
         raise ValidationError("sin símbolos USDT de Binance")
 
@@ -645,8 +647,11 @@ def run_binance_lab_scanner(
         "ok": True,
         "kind": "binance_scanner",
         "venue": "binance",
+        "market_type": "spot",
         "top_n": top_n,
         "symbol_limit": symbol_limit,
+        "universe_mode": "all" if symbol_limit == SYMBOL_LIMIT_ALL else "batch",
+        "n_universe": len(symbols),
         "interval": interval,
         "kline_limit": kline_limit,
         "n_symbols_fetched": len(bars_by_symbol),
@@ -667,11 +672,17 @@ def run_binance_lab_scanner(
         "note": (
             "Un score alto indica adecuación al perfil seleccionado, "
             "no rentabilidad garantizada."
+            + (
+                f" Universo completo pedido: {len(symbols)} USDT TRADING."
+                if symbol_limit == SYMBOL_LIMIT_ALL
+                else ""
+            )
         ),
     }
     if persisted is not None:
         out["persisted"] = persisted
     from quantlab.research.alpha.recommend import attach_recommendations
+    from quantlab.research.alpha.scan_quality import attach_scan_quality
 
     # underlying + familia/estrategias/TF para UI (Guided Lab + Alpha Scanner)
     for row in out["scores"]:
@@ -682,7 +693,9 @@ def run_binance_lab_scanner(
             from quantlab.research.alpha.recommend import underlying_from_symbol
 
             row["underlying"] = underlying_from_symbol(sym)
-    return attach_recommendations(out, profile=profile_key, interval=interval)
+    out["profile"] = requested_profile
+    attach_scan_quality(out, fetch_failures=fetch_failures)
+    return attach_recommendations(out, profile=requested_profile, interval=interval)
 
 
 _VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
@@ -690,15 +703,46 @@ _VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
     "okx": {"spot": "OKX:", "futures": "OKX:"},
     "bybit": {"spot": "BYB:", "futures": "BYB:"},
     "hyperliquid": {"spot": "HL:", "futures": "HL:"},
+    "a3": {"spot": "A3:", "futures": "A3:"},
 }
 
+# Tandas de universo (UI). 0 = todas las disponibles del venue.
+SCANNER_SYMBOL_BATCHES: tuple[int, ...] = (20, 30, 40, 50)
+SYMBOL_LIMIT_ALL = 0
+SYMBOL_LIMIT_MIN = 5
+SYMBOL_LIMIT_MAX = 50
+# Tope práctico al pedir «todas» en Binance spot (USDT TRADING).
+SYMBOL_LIMIT_ALL_BINANCE_SPOT = 2000
+
+
+def _validate_symbol_limit(symbol_limit: int) -> None:
+    if symbol_limit == SYMBOL_LIMIT_ALL:
+        return
+    if symbol_limit < SYMBOL_LIMIT_MIN or symbol_limit > SYMBOL_LIMIT_MAX:
+        raise ValidationError(
+            f"symbol_limit debe ser {SYMBOL_LIMIT_ALL} (todas) o entre "
+            f"{SYMBOL_LIMIT_MIN} y {SYMBOL_LIMIT_MAX} "
+            f"(tandas: {', '.join(str(x) for x in SCANNER_SYMBOL_BATCHES)})"
+        )
+
+
+def _fetch_cap_for_limit(symbol_limit: int, *, venue: str, market_type: str) -> int:
+    """Convierte tanda/«todas» al tope de fetch (no es el tamaño real del mercado)."""
+    if symbol_limit != SYMBOL_LIMIT_ALL:
+        return symbol_limit
+    v = venue.strip().lower()
+    mt = market_type.strip().lower()
+    if v == "binance" and mt == "spot":
+        return SYMBOL_LIMIT_ALL_BINANCE_SPOT
+    # Curados (SIM_COINS / A3): pedir de más; el slice usa len(lista).
+    return 10_000
 
 def run_venue_lab_scanner(
     *,
     venue: str = "binance",
     market_type: str = "spot",
     top_n: int = 5,
-    symbol_limit: int = 15,
+    symbol_limit: int = 20,
     interval: str = "1h",
     kline_limit: int | None = 24,
     period_days: int | float | str | None = None,
@@ -718,7 +762,11 @@ def run_venue_lab_scanner(
 
     from quantlab.brokers.md_router import fetch_bars_for_instrument
     from quantlab.research.alpha.quality import EligibilityConfig
-    from quantlab.research.alpha.recommend import attach_recommendations, underlying_from_symbol
+    from quantlab.research.alpha.recommend import (
+        attach_recommendations,
+        resolve_scoring_profile,
+        underlying_from_symbol,
+    )
     from quantlab.research.alpha.universe import (
         build_universe_from_symbol_bars,
         exclusion_reason_counts,
@@ -737,10 +785,13 @@ def run_venue_lab_scanner(
         raise ValidationError("market_type debe ser spot o futures")
     if v == "hyperliquid" and mt == "spot":
         raise ValidationError("hyperliquid en lab: usar market_type=futures (perps)")
+    if v == "a3" and mt == "spot":
+        raise ValidationError("a3 en lab: usar market_type=futures (contratos con vencimiento)")
     if top_n < 1 or top_n > 10:
         raise ValidationError("top_n debe estar entre 1 y 10")
-    if symbol_limit < 5 or symbol_limit > 30:
-        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    _validate_symbol_limit(symbol_limit)
+
+    requested_profile, profile_key, _auto = resolve_scoring_profile(profile)
 
     resolved_limit: int
     period_meta: dict[str, Any] | None = None
@@ -776,14 +827,18 @@ def run_venue_lab_scanner(
             out_bn["n_bars_estimate"] = period_meta.get("n_bars")
         return out_bn
 
-    profile_key = (profile or "legacy_v1").strip().lower()
     if underlyings is not None:
         coins = [str(u).strip() for u in underlyings if str(u).strip()]
+    elif v == "a3":
+        from quantlab.research.sim.universe import A3_CURATED_PRODUCTS
+
+        coins = [str(c["id"]) for c in A3_CURATED_PRODUCTS]
     else:
-        coins = [str(c["id"]) for c in SIM_COINS[:symbol_limit]]
+        coins = [str(c["id"]) for c in SIM_COINS]
     if len(coins) < 3:
         raise ValidationError("se requieren al menos 3 underlyings para el scan")
-    coins = coins[:symbol_limit]
+    if symbol_limit != SYMBOL_LIMIT_ALL:
+        coins = coins[:symbol_limit]
 
     bars_by_symbol: dict[str, list[Bar]] = {}
     symbol_to_underlying: dict[str, str] = {}
@@ -929,6 +984,8 @@ def run_venue_lab_scanner(
         "market_type": mt,
         "top_n": top_n,
         "symbol_limit": symbol_limit,
+        "universe_mode": "all" if symbol_limit == SYMBOL_LIMIT_ALL else "batch",
+        "n_universe": len(coins),
         "interval": interval,
         "kline_limit": kline_limit,
         "n_symbols_fetched": len(bars_by_symbol),
@@ -952,6 +1009,11 @@ def run_venue_lab_scanner(
         "note": (
             "MD público real (read-only). Un score alto indica adecuación al perfil, "
             "no rentabilidad garantizada."
+            + (
+                f" Universo completo del venue: {len(coins)} activos pedidos."
+                if symbol_limit == SYMBOL_LIMIT_ALL
+                else ""
+            )
         ),
     }
     if period_meta is not None:
@@ -959,22 +1021,362 @@ def run_venue_lab_scanner(
         out["n_bars_estimate"] = period_meta.get("n_bars")
     if persisted is not None:
         out["persisted"] = persisted
-    return attach_recommendations(out, profile=profile_key, interval=interval)
+    if fetch_failures:
+        out["fetch_failures"] = dict(fetch_failures)
+    out["profile"] = requested_profile
+    md_meta: dict[str, Any] | None = None
+    if v == "a3":
+        from quantlab.brokers.a3.md_backend import try_build_env_md_backend
+
+        env_b, md_reason = try_build_env_md_backend()
+        md_meta = (
+            {"provider": "a3-env", "source": "pyrofex"}
+            if env_b is not None
+            else {
+                "provider": "a3-fake",
+                "source": "fake",
+                "fallback_reason": md_reason,
+            }
+        )
+        out["md_meta"] = md_meta
+    from quantlab.research.alpha.scan_quality import attach_scan_quality
+
+    attach_scan_quality(out, fetch_failures=fetch_failures, md_meta=md_meta)
+    return attach_recommendations(out, profile=requested_profile, interval=interval)
+
+
+def _composite_of_score_row(row: Mapping[str, Any]) -> float:
+    try:
+        if row.get("composite") is not None:
+            return float(row["composite"])
+        if row.get("base_score") is not None:
+            return float(row["base_score"])
+    except (TypeError, ValueError):
+        return 0.0
+    return 0.0
+
+
+def build_cross_venue_comparison(
+    by_venue: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Compara scores de la misma moneda entre venues (pts = composite×100)."""
+    # underlying -> list of {venue, market_type, composite, rank}
+    by_und: dict[str, list[dict[str, Any]]] = {}
+    venue_summary: list[dict[str, Any]] = []
+
+    for block in by_venue:
+        venue = str(block.get("venue") or "")
+        mt = str(block.get("market_type") or "")
+        scores = block.get("scores")
+        if not isinstance(scores, list) or not scores:
+            venue_summary.append(
+                {
+                    "venue": venue,
+                    "market_type": mt,
+                    "top_composite": None,
+                    "top_underlying": None,
+                    "n_scores": 0,
+                    "mean_top": None,
+                }
+            )
+            continue
+        comps: list[float] = []
+        for i, row in enumerate(scores):
+            if not isinstance(row, Mapping):
+                continue
+            und = str(row.get("underlying") or row.get("symbol") or "").strip().upper()
+            if not und:
+                continue
+            c = _composite_of_score_row(row)
+            comps.append(c)
+            by_und.setdefault(und, []).append(
+                {
+                    "venue": venue,
+                    "market_type": mt,
+                    "composite": round(c, 6),
+                    "pts": round(c * 100.0, 2),
+                    "rank": i + 1,
+                }
+            )
+        top_row = scores[0] if isinstance(scores[0], Mapping) else {}
+        top_c = _composite_of_score_row(top_row) if top_row else None
+        mean_top = (sum(comps[:5]) / len(comps[:5])) if comps else None
+        venue_summary.append(
+            {
+                "venue": venue,
+                "market_type": mt,
+                "top_composite": round(top_c, 6) if top_c is not None else None,
+                "top_pts": round(top_c * 100.0, 2) if top_c is not None else None,
+                "top_underlying": str(
+                    top_row.get("underlying") or top_row.get("symbol") or ""
+                ),
+                "n_scores": len(comps),
+                "mean_top": round(mean_top, 6) if mean_top is not None else None,
+                "mean_top_pts": round(mean_top * 100.0, 2) if mean_top is not None else None,
+            }
+        )
+
+    comparisons: list[dict[str, Any]] = []
+    for und, rows in sorted(by_und.items()):
+        if len(rows) < 2:
+            continue
+        ordered = sorted(rows, key=lambda r: (-float(r["composite"]), r["venue"]))
+        best = ordered[0]
+        second = ordered[1]
+        delta_pts = round(float(best["pts"]) - float(second["pts"]), 2)
+        comparisons.append(
+            {
+                "underlying": und,
+                "rows": ordered,
+                "best_venue": best["venue"],
+                "best_composite": best["composite"],
+                "best_pts": best["pts"],
+                "delta_pts": delta_pts,
+                "text": (
+                    f"{und}: mejor en {best['venue']} "
+                    f"({best['pts']:.1f} pts) · "
+                    f"+{delta_pts:.1f} pts vs {second['venue']}"
+                    if delta_pts > 0
+                    else f"{und}: empate / casi igual entre {best['venue']} y {second['venue']}"
+                ),
+            }
+        )
+    comparisons.sort(key=lambda x: (-float(x["delta_pts"]), x["underlying"]))
+
+    # Mejor venue por media del top
+    best_venue_block = None
+    for vs in venue_summary:
+        if vs.get("mean_top") is None:
+            continue
+        if best_venue_block is None or float(vs["mean_top"]) > float(
+            best_venue_block["mean_top"]
+        ):
+            best_venue_block = vs
+
+    headline = ""
+    if best_venue_block and len([v for v in venue_summary if v.get("mean_top") is not None]) >= 2:
+        others = [
+            v
+            for v in venue_summary
+            if v.get("venue") != best_venue_block["venue"] and v.get("mean_top") is not None
+        ]
+        if others:
+            other = max(others, key=lambda v: float(v["mean_top"]))
+            d = round(
+                float(best_venue_block["mean_top_pts"]) - float(other["mean_top_pts"]),
+                2,
+            )
+            headline = (
+                f"Hoy, con esta rama, el top promedio rinde mejor en "
+                f"{best_venue_block['venue']} "
+                f"({best_venue_block['mean_top_pts']:.1f} pts) · "
+                f"+{d:.1f} pts vs {other['venue']}."
+            )
+
+    return {
+        "headline": headline,
+        "venue_summary": venue_summary,
+        "by_underlying": comparisons[:40],
+        "note": (
+            "pts = score×100 (0–100). Delta = ventaja del mejor venue vs el segundo "
+            "para la misma moneda. No es rentabilidad garantizada."
+        ),
+    }
+
+
+def run_multi_venue_lab_scanner(
+    *,
+    venues: Sequence[str],
+    market_type: str = "spot",
+    top_n: int = 5,
+    symbol_limit: int = 20,
+    interval: str = "1h",
+    kline_limit: int | None = 24,
+    period_days: int | float | str | None = None,
+    profile: str = "trend",
+    underlyings: Sequence[str] | None = None,
+    persist_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Corre el scanner en cada venue y devuelve resultados separados + comparación."""
+    raw = [(v or "").strip().lower() for v in venues]
+    ordered: list[str] = []
+    for v in raw:
+        if v and v not in ordered:
+            ordered.append(v)
+    if not ordered:
+        raise ValidationError("venues vacío: marcá al menos un mercado")
+    for v in ordered:
+        if v not in _VENUE_SCAN_PREFIX:
+            raise ValidationError(
+                f"venue no soportado: {v!r}; "
+                f"permitidos: {', '.join(sorted(_VENUE_SCAN_PREFIX))}"
+            )
+
+    mt_req = (market_type or "spot").strip().lower()
+    by_venue: list[dict[str, Any]] = []
+    venue_errors: list[dict[str, str]] = []
+
+    for v in ordered:
+        mt = mt_req
+        note_extra = ""
+        if v == "hyperliquid" and mt == "spot":
+            mt = "futures"
+            note_extra = "HL forzado a futures (perps)"
+        if v == "a3" and mt == "spot":
+            mt = "futures"
+            note_extra = "A3 forzado a futures (vencimiento / granos)"
+        try:
+            block = run_venue_lab_scanner(
+                venue=v,
+                market_type=mt,
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval,
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile,
+                underlyings=underlyings,
+                persist_dir=persist_dir,
+            )
+            if note_extra:
+                block = dict(block)
+                block["note"] = (str(block.get("note") or "") + " · " + note_extra).strip(
+                    " ·"
+                )
+            by_venue.append(block)
+        except ValidationError as exc:
+            venue_errors.append({"venue": v, "market_type": mt, "error": str(exc)})
+
+    if not by_venue:
+        raise ValidationError(
+            "ningún venue devolvió scan: "
+            + "; ".join(f"{e['venue']}={e['error']}" for e in venue_errors)
+        )
+
+    comparison = build_cross_venue_comparison(by_venue)
+    primary = by_venue[0]
+    from quantlab.research.alpha.recommend import (
+        PROFILE_AUTO,
+        SCORING_PROFILE_AUTO,
+        build_auto_proposal,
+        is_auto_profile,
+    )
+
+    out: dict[str, Any] = {
+        "ok": True,
+        "kind": "multi_venue_scanner",
+        "venues": [b.get("venue") for b in by_venue],
+        "venues_requested": ordered,
+        "market_type": mt_req,
+        "top_n": top_n,
+        "symbol_limit": symbol_limit,
+        "interval": interval,
+        "kline_limit": primary.get("kline_limit"),
+        "period_days": primary.get("period_days"),
+        "profile": primary.get("profile") or profile,
+        "by_venue": by_venue,
+        "venue_errors": venue_errors,
+        "comparison": comparison,
+        "venue": primary.get("venue"),
+        "scores": primary.get("scores"),
+        "selected": primary.get("selected"),
+        "selected_symbols": primary.get("selected_symbols"),
+        "selected_underlyings": primary.get("selected_underlyings"),
+        "recommendations": primary.get("recommendations"),
+        "read_only": True,
+        "live_routing": False,
+        "note": (
+            "Scan separado por mercado. Usá la comparación (pts) para ver dónde "
+            "la misma moneda / rama rinde mejor hoy. Score ≠ rentabilidad."
+        ),
+    }
+    # Avisos agregados de cada venue (p.ej. A3 fake / scores empatados en 0)
+    agg_warn: list[str] = []
+    worst = "ok"
+    for block in by_venue:
+        for w in block.get("warnings") or []:
+            if isinstance(w, str) and w not in agg_warn:
+                agg_warn.append(w)
+        st = str(block.get("score_status") or "ok")
+        if st == "degraded":
+            worst = "degraded"
+        elif st == "partial" and worst == "ok":
+            worst = "partial"
+    if agg_warn:
+        out["warnings"] = agg_warn
+        out["score_status"] = worst
+        out["score_reason"] = str(primary.get("score_reason") or worst)
+    if is_auto_profile(profile) or is_auto_profile(str(primary.get("profile") or "")):
+        merged_scores: list[Any] = []
+        proposal_by_venue: list[dict[str, Any]] = []
+        for block in by_venue:
+            prop = block.get("proposal")
+            if not isinstance(prop, dict):
+                prop = build_auto_proposal(
+                    block.get("scores") or [],
+                    interval=str(block.get("interval") or interval or "1h"),
+                    venue=str(block.get("venue") or ""),
+                    top_n=top_n,
+                )
+            proposal_by_venue.append(
+                {
+                    "venue": block.get("venue"),
+                    "market_type": block.get("market_type"),
+                    "proposal": prop,
+                }
+            )
+            scores = block.get("scores") or []
+            if isinstance(scores, list):
+                merged_scores.extend(scores[:top_n])
+        out["auto_mode"] = True
+        out["profile"] = PROFILE_AUTO
+        out["scoring_profile"] = SCORING_PROFILE_AUTO
+        out["proposal_by_venue"] = proposal_by_venue
+        out["proposal"] = build_auto_proposal(
+            merged_scores,
+            interval=str(interval or primary.get("interval") or "1h"),
+            venue=None,
+            top_n=max(top_n, len(merged_scores) or top_n),
+        )
+        out["note"] = (
+            "Modo Auto multi-venue: ranking equilibrado + propuesta global y por mercado. "
+            "Score ≠ rentabilidad."
+        )
+    return out
 
 
 def list_alpha_profiles() -> dict[str, Any]:
-    """Catálogo de perfiles Alpha Scanner (FASE 5/8)."""
-    from quantlab.research.alpha.profiles import profile_catalog
+    """Catálogo Alpha Scanner = Auto + familias del Simulador (sin Demo)."""
+    from quantlab.research.alpha.profiles import scanner_family_catalog
     from quantlab.research.alpha.venues import list_venue_capabilities
 
+    families = scanner_family_catalog()
+    auto_row = {
+        "name": "auto",
+        "family": "auto",
+        "version": "profiles-v1",
+        "label_es": "Auto — que recomiende",
+        "description": (
+            "Sin dirigir familia: scorea con perfil equilibrado e infiere "
+            "familia + estrategias + TF para el conjunto."
+        ),
+        "scoring_profile": "balanced",
+        "factors": [],
+        "auto_mode": True,
+    }
     return {
         "ok": True,
-        "profiles": profile_catalog(),
+        "profiles": [auto_row, *families],
         "venues": [c.to_dict() for c in list_venue_capabilities()],
-        "default_profile": "legacy_v1",
+        "symbol_batches": list(SCANNER_SYMBOL_BATCHES),
+        "symbol_limit_all": SYMBOL_LIMIT_ALL,
+        "default_profile": "auto",
+        "default_symbol_limit": 30,
         "note": (
-            "Un score alto indica adecuación al perfil seleccionado, "
-            "no rentabilidad garantizada."
+            "Elegí Auto para que el scanner proponga familia/estrategias/TF, "
+            "o una rama fija del Simulador. "
+            f"Tandas: {', '.join(str(x) for x in SCANNER_SYMBOL_BATCHES)} "
+            f"o {SYMBOL_LIMIT_ALL}=todas. Score ≠ rentabilidad."
         ),
     }
 
@@ -1091,8 +1493,7 @@ def run_binance_lab_pipeline(
 
     if top_n < 1 or top_n > 10:
         raise ValidationError("top_n debe estar entre 1 y 10")
-    if symbol_limit < 5 or symbol_limit > 30:
-        raise ValidationError("symbol_limit debe estar entre 5 y 30")
+    _validate_symbol_limit(symbol_limit)
     if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
         raise ValidationError(
             f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
@@ -1107,7 +1508,8 @@ def run_binance_lab_pipeline(
 
     url = base_url or DEFAULT_BASE_URL
     client = BinancePublicMdClient(base_url=url)
-    symbols = client.list_spot_symbols(quote="USDT", limit=symbol_limit)
+    fetch_cap = _fetch_cap_for_limit(symbol_limit, venue="binance", market_type="spot")
+    symbols = client.list_spot_symbols(quote="USDT", limit=fetch_cap)
     if not symbols:
         raise ValidationError("sin símbolos USDT de Binance")
 

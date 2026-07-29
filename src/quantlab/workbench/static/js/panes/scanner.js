@@ -54,73 +54,97 @@
     const root = document.createElement("div");
     root.className = "pane-lab pane-scanner";
     root.innerHTML =
-      '<div class="pane-section">' +
+      '<div class="pane-section sc-pane">' +
+      '<div class="sc-head">' +
       "<h3>Alpha Scanner</h3>" +
-      '<p class="muted" style="margin-top:0">' +
-      "Ranking sobre <strong>mercados reales</strong> (klines públicas hacia atrás). " +
-      "Elegí <strong>período</strong> (días) o N velas + temporalidad. " +
-      "Score ≠ rentabilidad garantizada." +
-      "</p>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;align-items:center">' +
-      '<label class="muted">Fuente <select id="sc-source">' +
+      '<p class="muted sc-sub">MD real · ranking por rama · score ≠ rentabilidad</p>' +
+      "</div>" +
+      '<div class="sc-toolbar">' +
+      '<label>Fuente<select id="sc-source">' +
       '<option value="real" selected>MD real</option>' +
-      '<option value="synthetic">Demo sintético WB</option>' +
+      '<option value="synthetic">Demo WB</option>' +
       "</select></label>" +
-      '<label class="muted">Venue <select id="sc-venue">' +
-      '<option value="binance" selected>Binance</option>' +
-      '<option value="okx">OKX</option>' +
-      '<option value="bybit">Bybit</option>' +
-      '<option value="hyperliquid">Hyperliquid</option>' +
-      "</select></label>" +
-      '<label class="muted">Mercado <select id="sc-market">' +
+      '<label>Mercado<select id="sc-market">' +
       '<option value="spot" selected>Spot</option>' +
       '<option value="futures">Futuros</option>' +
       "</select></label>" +
-      "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.4rem;align-items:center">' +
-      '<label class="muted">Modo ventana <select id="sc-window-mode">' +
-      '<option value="period" selected>Por período (días atrás)</option>' +
-      '<option value="klines">Por N velas</option>' +
+      '<label>Ventana<select id="sc-window-mode">' +
+      '<option value="period" selected>Período</option>' +
+      '<option value="klines">N velas</option>' +
       "</select></label>" +
-      '<label class="muted" id="sc-period-wrap">Período <select id="sc-period">' +
+      '<label id="sc-period-wrap">Período<select id="sc-period">' +
       optHtml(PERIODS, "30") +
       "</select></label>" +
-      '<label class="muted">TF / temporalidad <select id="sc-interval">' +
+      '<label>TF<select id="sc-interval">' +
       optHtml(INTERVALS, "1h") +
       "</select></label>" +
-      '<label class="field" id="sc-klines-wrap" hidden>velas' +
+      '<label id="sc-klines-wrap" hidden>Velas' +
       '<input id="sc-klines" type="number" value="720" min="10" max="525600" /></label>' +
-      '<span class="mono muted" id="sc-nbars">≈ — velas</span>' +
-      "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem">' +
-      '<label class="muted">Perfil <select id="sc-profile">' +
-      '<option value="legacy_v1" selected>legacy_v1</option>' +
-      '<option value="momentum">momentum</option>' +
-      '<option value="mean_reversion">mean_reversion</option>' +
-      '<option value="market_making">market_making</option>' +
-      '<option value="balanced">balanced</option>' +
+      '<label>Rama<select id="sc-profile">' +
+      '<option value="auto" selected>Auto</option>' +
+      '<option value="trend">Tendenciales</option>' +
+      '<option value="momentum">Momentum</option>' +
+      '<option value="mean_reversion">Reversión</option>' +
+      '<option value="market_making">Market making</option>' +
+      '<option value="stats">Estadísticas</option>' +
+      '<option value="ml">ML (stubs)</option>' +
+      '<option value="multi_asset">Multi-activo</option>' +
+      '<option value="microstructure">Microestructura</option>' +
+      '<option value="arbitrage">Arbitraje</option>' +
+      '<option value="options">Opciones</option>' +
       "</select></label>" +
-      '<label class="field">top_n<input id="sc-top" type="number" value="5" min="1" max="10" /></label>' +
-      '<label class="field">símbolos<input id="sc-limit" type="number" value="15" min="5" max="30" /></label>' +
+      '<label>Top<input id="sc-top" type="number" value="5" min="1" max="10" /></label>' +
+      '<label>Universo<select id="sc-limit">' +
+      '<option value="20">20</option>' +
+      '<option value="30" selected>30</option>' +
+      '<option value="40">40</option>' +
+      '<option value="50">50</option>' +
+      '<option value="0">Todas</option>' +
+      "</select></label>" +
+      "</div>" +
+      '<div class="sc-venues" id="sc-venues-row">' +
+      "<span class=\"muted\">Venues</span>" +
+      '<label><input type="checkbox" class="sc-venue-cb" value="binance" checked> Binance</label>' +
+      '<label><input type="checkbox" class="sc-venue-cb" value="okx"> OKX</label>' +
+      '<label><input type="checkbox" class="sc-venue-cb" value="bybit"> Bybit</label>' +
+      '<label><input type="checkbox" class="sc-venue-cb" value="hyperliquid"> HL</label>' +
+      '<label><input type="checkbox" class="sc-venue-cb" value="a3"> A3</label>' +
+      '<span class="mono muted" id="sc-nbars" style="margin-left:auto">≈ —</span>' +
+      "</div>" +
+      '<div class="sc-actions">' +
       '<button type="button" class="btn" id="sc-run">Escanear</button>' +
+      '<button type="button" class="btn secondary" id="sc-export" title="Descarga JSON auditable de la última consulta">Exportar JSON</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
-      '<p class="muted" id="sc-hint" style="font-size:0.72em;margin:0.35rem 0 0">' +
-      "Por período: toma las últimas N velas hasta ahora (ej. 30 días @ 1h ≈ 720). " +
-      "Binance spot = top USDT; otros venues = universo curado lab." +
-      "</p>" +
+      '<details class="sc-more muted"><summary>Ayuda · tandas y multi-venue</summary>' +
+      '<p id="sc-hint" style="margin:0.35rem 0 0">' +
+      "Tanda = monedas scoreadas. Multi-venue = ranking por mercado + comparación. " +
+      "A3/HL = futuros. Exportá el JSON para auditoría de terceros." +
+      "</p></details>" +
+      '<div id="sc-warn"></div>' +
       '<div id="sc-out"></div>' +
-      '<div id="sc-detail" class="sc-detail" style="margin-top:0.6rem"></div>' +
+      '<div id="sc-detail" class="sc-detail" style="margin-top:0.45rem"></div>' +
       "</div>";
 
     var lastScan = null;
+    var lastRequest = null;
     var selectedIdx = 0;
+    /** Índice del bloque by_venue activo (multi). */
+    var activeVenueIdx = 0;
 
     function setStatus(ok, msg) {
       var el = root.querySelector("#sc-status");
       el.textContent = msg;
       el.className =
         "mono " + (ok ? "status-ok" : ok === false ? "status-bad" : "muted");
+    }
+
+    function selectedVenues() {
+      return Array.prototype.slice
+        .call(root.querySelectorAll(".sc-venue-cb:checked"))
+        .map(function (cb) {
+          return cb.value;
+        });
     }
 
     function windowMode() {
@@ -137,7 +161,6 @@
     function syncSourceUI() {
       var synth = root.querySelector("#sc-source").value === "synthetic";
       [
-        "#sc-venue",
         "#sc-market",
         "#sc-interval",
         "#sc-profile",
@@ -149,9 +172,12 @@
         var el = root.querySelector(sel);
         if (el) el.disabled = synth;
       });
+      root.querySelectorAll(".sc-venue-cb").forEach(function (cb) {
+        cb.disabled = synth;
+      });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Por período: últimas N velas hasta ahora. Binance spot = top USDT; otros = curado lab.";
+        : "Tanda = monedas que se scorean de verdad. Multi-venue = un ranking por mercado + comparación en pts.";
     }
 
     function refreshNBars() {
@@ -183,22 +209,42 @@
       }
     }
 
+    function activeScanBlock() {
+      if (
+        lastScan &&
+        lastScan.by_venue &&
+        lastScan.by_venue.length &&
+        lastScan.by_venue[activeVenueIdx]
+      ) {
+        return lastScan.by_venue[activeVenueIdx];
+      }
+      return lastScan;
+    }
+
     function renderDetail(idx) {
       var box = root.querySelector("#sc-detail");
-      if (!lastScan || !lastScan.scores || !lastScan.scores.length) {
+      var block = activeScanBlock();
+      if (!block || !block.scores || !block.scores.length) {
         box.innerHTML = "";
         return;
       }
-      selectedIdx = Math.max(0, Math.min(idx, lastScan.scores.length - 1));
-      var row = lastScan.scores[selectedIdx];
-      var rec = row.recommendation || lastScan.recommendations || {};
-      var venue = lastScan.venue || "binance";
-      var mt = lastScan.market_type || "spot";
+      selectedIdx = Math.max(0, Math.min(idx, block.scores.length - 1));
+      var row = block.scores[selectedIdx];
+      var rec = row.recommendation || block.recommendations || {};
+      var explained = rec.score_explained || row.score_explained || null;
+      var venue = block.venue || (lastScan && lastScan.venue) || "binance";
+      var mt = block.market_type || (lastScan && lastScan.market_type) || "spot";
       var und =
         row.underlying ||
-        (lastScan.selected_underlyings || [])[selectedIdx] ||
+        (block.selected_underlyings || [])[selectedIdx] ||
         "";
-      var iv = lastScan.interval || "1h";
+      var iv = block.interval || (lastScan && lastScan.interval) || "1h";
+      var comp =
+        row.composite != null
+          ? Number(row.composite)
+          : row.base_score != null
+            ? Number(row.base_score)
+            : null;
 
       var stratChips = (rec.strategies || [])
         .map(function (s) {
@@ -228,16 +274,76 @@
         })
         .join(" ");
 
+      var factorLis = ((explained && explained.factors) || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      var nextLis = ((explained && explained.next_steps) || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
+      var band = (explained && explained.band) || {};
+      var scoreBlock =
+        '<div class="sc-score-explain" style="margin:0 0 0.65rem;padding:0.55rem 0.65rem;' +
+        "border-left:3px solid var(--amber-dim,#a67c3a);" +
+        'background:rgba(212,140,50,0.07);border-radius:0 6px 6px 0">' +
+        '<p style="margin:0 0 0.35rem"><strong>Score ' +
+        esc(comp != null ? comp.toFixed(3) : "—") +
+        "</strong>" +
+        (comp != null ? " (" + esc((comp * 100).toFixed(1)) + " pts)" : "") +
+        (band.title ? " · " + esc(band.title) : "") +
+        " · " +
+        esc(venue) +
+        "/" +
+        esc(mt) +
+        "</p>" +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.8em">' +
+        esc((explained && explained.headline) || rec.text || "") +
+        "</p>" +
+        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>¿Qué es este número?</strong><br>' +
+        esc(
+          (explained && explained.what_is) ||
+            "Va de 0 a 1: compara esta moneda con las otras del scan para la rama elegida. No es rentabilidad."
+        ) +
+        "</p>" +
+        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>¿Por qué en esta rama?</strong><br>' +
+        esc((explained && explained.family_why) || "") +
+        "</p>" +
+        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>Esta banda</strong><br>' +
+        esc(band.why || "") +
+        "</p>" +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.75em">' +
+        esc(
+          (explained && explained.ranges_help) ||
+            "0.50–0.99 ≈ rangos útiles para probar; ≥0.75 mejor ajuste."
+        ) +
+        "</p>" +
+        (factorLis
+          ? "<p style=\"margin:0 0 0.2rem;font-size:0.8em\"><strong>Factores que arman el score</strong></p>" +
+            '<ul style="margin:0 0 0.45rem 1.1rem;padding:0;font-size:0.78em">' +
+            factorLis +
+            "</ul>"
+          : "") +
+        (nextLis
+          ? "<p style=\"margin:0 0 0.2rem;font-size:0.8em\"><strong>Qué hacer ahora</strong></p>" +
+            '<ol style="margin:0 0 0.25rem 1.1rem;padding:0;font-size:0.78em">' +
+            nextLis +
+            "</ol>"
+          : "") +
+        '<p class="muted" style="margin:0;font-size:0.72em">' +
+        esc((explained && explained.note) || "Score ≠ rentabilidad. LIVE bloqueado.") +
+        "</p></div>";
+
       box.innerHTML =
         '<div class="pane-section" style="border:1px solid var(--border,#333);border-radius:8px;padding:0.55rem 0.7rem">' +
-        "<h4 style=\"margin:0 0 0.35rem\">Sugerencias · " +
+        "<h4 style=\"margin:0 0 0.35rem\">Detalle del score · " +
         esc(und || row.instrument_id) +
         " · " +
         esc(rec.family_label_es || rec.family || "—") +
         "</h4>" +
-        '<p class="muted" style="margin:0 0 0.45rem;font-size:0.8em">' +
-        esc(rec.text || "") +
-        "</p>" +
+        scoreBlock +
         '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem;margin-bottom:0.35rem">' +
         "<span class=\"muted\">Estrategias</span> " +
         (stratChips || "—") +
@@ -284,27 +390,87 @@
       }
     }
 
-    function renderScores(data) {
-      var out = root.querySelector("#sc-out");
-      lastScan = data;
-      if (!data || !data.scores || !data.scores.length) {
-        out.innerHTML = '<p class="muted">Sin scores.</p>';
-        root.querySelector("#sc-detail").innerHTML = "";
+    function renderWarnings(data) {
+      var box = root.querySelector("#sc-warn");
+      if (!box) return;
+      var warns = (data && data.warnings) || [];
+      var status = (data && data.score_status) || "ok";
+      if (!warns.length && status === "ok") {
+        box.innerHTML = "";
         return;
       }
-      var rowsHtml = data.scores
+      var lis = warns
+        .map(function (w) {
+          return "<li>" + esc(w) + "</li>";
+        })
+        .join("");
+      box.innerHTML =
+        '<div class="sc-warn"><strong>Aviso ranking</strong>' +
+        (status && status !== "ok"
+          ? ' · <span class="mono">' + esc(status) + "</span>"
+          : "") +
+        (lis ? "<ul>" + lis + "</ul>" : "") +
+        "</div>";
+    }
+
+    function exportScanAudit() {
+      if (!lastScan) {
+        setStatus(false, "nada que exportar — escaneá primero");
+        return;
+      }
+      var payload = {
+        schema: "quantlab.alpha_scanner.audit.v1",
+        exported_at: new Date().toISOString(),
+        request: lastRequest,
+        result: lastScan,
+        note:
+          "Paquete auditable de la última consulta Alpha Scanner. " +
+          "Score ≠ rentabilidad. LIVE bloqueado.",
+      };
+      var text = JSON.stringify(payload, null, 2);
+      var blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      var stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      a.href = url;
+      a.download = "quantlab-scanner-audit-" + stamp + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatus(true, "exportado");
+    }
+
+    function renderScoresTable(block, outEl) {
+      if (!block || !block.scores || !block.scores.length) {
+        outEl.innerHTML += '<p class="muted">Sin scores en este venue.</p>';
+        return;
+      }
+      var degraded =
+        block.score_status === "degraded" ||
+        (block.warnings && block.warnings.length) ||
+        (lastScan && lastScan.score_status === "degraded");
+      var rowsHtml = block.scores
         .map(function (s, i) {
           var und = s.underlying || s.symbol || s.instrument_id;
-          var comp =
+          var compN =
             s.composite != null
-              ? Number(s.composite).toFixed(3)
+              ? Number(s.composite)
               : s.base_score != null
-                ? Number(s.base_score).toFixed(3)
-                : "—";
+                ? Number(s.base_score)
+                : null;
+          var comp = compN != null ? compN.toFixed(3) : "—";
+          var pts = compN != null ? (compN * 100).toFixed(1) : "—";
           var fam =
             (s.recommendation && s.recommendation.family_label_es) ||
             (s.recommendation && s.recommendation.family) ||
             "—";
+          var tied = s.score_status === "tied_zero" || (degraded && compN === 0);
+          var aviso = tied
+            ? "empatado / sin discriminación"
+            : s.score_reason
+              ? String(s.score_reason)
+              : "—";
           return (
             '<tr class="sc-row' +
             (i === 0 ? " sc-row-sel" : "") +
@@ -317,45 +483,311 @@
             '<td class="mono">' +
             esc(und) +
             "</td>" +
-            '<td class="mono">' +
+            '<td class="mono sc-score-cell' +
+            (tied ? " sc-score-tied" : "") +
+            '" title="' +
+            esc(
+              tied
+                ? "Score empatado en 0 — ver avisos arriba"
+                : "Click para ver qué significa este score"
+            ) +
+            '" style="text-decoration:underline;text-underline-offset:2px;' +
+            (tied
+              ? ""
+              : "color:var(--amber,#d48c32)") +
+            '">' +
             esc(comp) +
-            "</td>" +
+            " <span class=\"muted\">(" +
+            esc(pts) +
+            " pts)</span></td>" +
             "<td>" +
             esc(fam) +
+            "</td>" +
+            '<td class="muted" style="font-size:0.92em">' +
+            esc(aviso) +
             "</td>" +
             "</tr>"
           );
         })
         .join("");
-      out.innerHTML =
-        '<p class="muted" style="font-size:0.75em">' +
+      outEl.innerHTML +=
+        '<p class="muted sc-meta">' +
         '<span class="data-badge data-badge-real">' +
-        esc((data.venue || "lab") + "/" + (data.market_type || "—")) +
+        esc((block.venue || "lab") + "/" + (block.market_type || "—")) +
         "</span> " +
-        "perfil=" +
-        esc(data.profile || "") +
+        "rama=" +
+        esc(block.profile || "") +
         " · elegibles=" +
-        esc(data.eligible) +
+        esc(block.eligible) +
         " · TF=" +
-        esc(data.interval) +
-        " · velas=" +
-        esc(data.kline_limit) +
-        (data.period_days != null ? " · período=" + esc(data.period_days) + "d" : "") +
+        esc(block.interval || (lastScan && lastScan.interval) || "") +
+        " · tanda=" +
+        esc(
+          block.universe_mode === "all"
+            ? "todas"
+            : block.symbol_limit != null
+              ? block.symbol_limit
+              : ""
+        ) +
+        (block.n_universe != null ? " (" + esc(block.n_universe) + ")" : "") +
+        " · fetched=" +
+        esc(block.n_symbols_fetched != null ? block.n_symbols_fetched : block.fetched) +
+        (block.md_meta && block.md_meta.provider
+          ? " · md=" + esc(block.md_meta.provider)
+          : "") +
+        (block.score_status && block.score_status !== "ok"
+          ? " · <span class=\"sc-score-tied\">" +
+            esc(block.score_status) +
+            "</span>"
+          : "") +
         "</p>" +
-        '<table class="mono" style="width:100%;font-size:0.8em;border-collapse:collapse">' +
-        "<thead><tr><th>#</th><th>Moneda</th><th>Score</th><th>Familia</th></tr></thead>" +
+        '<table class="mono" style="width:100%;border-collapse:collapse">' +
+        "<thead><tr><th>#</th><th>Moneda</th><th>Score (pts)</th><th>Familia</th><th>Aviso</th></tr></thead>" +
         "<tbody>" +
         rowsHtml +
         "</tbody></table>";
-      out.querySelectorAll(".sc-row").forEach(function (tr) {
+      outEl.querySelectorAll(".sc-row").forEach(function (tr) {
         tr.addEventListener("click", function () {
-          out.querySelectorAll(".sc-row").forEach(function (r) {
+          outEl.querySelectorAll(".sc-row").forEach(function (r) {
             r.classList.remove("sc-row-sel");
           });
           tr.classList.add("sc-row-sel");
           renderDetail(parseInt(tr.getAttribute("data-idx"), 10) || 0);
         });
       });
+    }
+
+    function renderProposalBlock(prop, title) {
+      if (!prop || !prop.auto_mode) return "";
+      var stratChips = (prop.strategies || [])
+        .map(function (s) {
+          return (
+            '<button type="button" class="btn secondary sc-chip sc-proposal-chip" data-kind="strategy" data-id="' +
+            esc(s.id) +
+            '">' +
+            esc(s.name || s.id) +
+            (s.runnable ? "" : " · stub") +
+            "</button>"
+          );
+        })
+        .join(" ");
+      var tfChips = (prop.timeframes || [])
+        .map(function (t) {
+          return (
+            '<button type="button" class="btn secondary sc-chip sc-proposal-chip" data-kind="tf" data-id="' +
+            esc(t.interval) +
+            '">' +
+            esc(t.interval) +
+            (t.primary ? " ★" : "") +
+            "</button>"
+          );
+        })
+        .join(" ");
+      var votes = prop.votes || {};
+      var voteTxt = Object.keys(votes)
+        .map(function (k) {
+          return k + "×" + votes[k];
+        })
+        .join(" · ");
+      return (
+        '<div class="pane-section" style="border:1px solid var(--ok-dim,#3a7a4a);border-radius:8px;padding:0.55rem 0.7rem;margin-bottom:0.55rem;background:rgba(58,122,74,0.06)">' +
+        "<h4 style=\"margin:0 0 0.35rem\">" +
+        esc(title || "Propuesta Auto") +
+        " · " +
+        esc(prop.family_label_es || prop.family || "—") +
+        "</h4>" +
+        '<p style="margin:0 0 0.4rem;font-size:0.85em">' +
+        esc(prop.text || "") +
+        "</p>" +
+        (voteTxt
+          ? '<p class="muted" style="margin:0 0 0.35rem;font-size:0.72em">Votos top: ' +
+            esc(voteTxt) +
+            "</p>"
+          : "") +
+        '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem;margin-bottom:0.25rem">' +
+        stratChips +
+        "</div>" +
+        '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem">' +
+        tfChips +
+        "</div>" +
+        '<p class="muted" style="margin:0.35rem 0 0;font-size:0.72em">' +
+        esc(prop.note || "Score ≠ rentabilidad.") +
+        "</p></div>"
+      );
+    }
+
+    function wireProposalChips(host) {
+      if (!host) return;
+      host.querySelectorAll(".sc-proposal-chip").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          var kind = btn.getAttribute("data-kind");
+          var id = btn.getAttribute("data-id");
+          if (!id || !lastScan) return;
+          var prop = lastScan.proposal || {};
+          if (kind === "strategy" && global.QLShell && QLShell.open) {
+            QLShell.open("simulator", {
+              prefill: {
+                family: prop.family,
+                strategy_id: id,
+                interval:
+                  (prop.timeframes &&
+                    prop.timeframes[0] &&
+                    prop.timeframes[0].interval) ||
+                  lastScan.interval ||
+                  "1h",
+                underlying: prop.top_underlying,
+                venue: lastScan.venue,
+                market_type: lastScan.market_type,
+              },
+            });
+          }
+          if (kind === "tf") {
+            var sel = root.querySelector("#sc-interval");
+            if (sel) {
+              sel.value = id;
+              refreshNBars();
+            }
+          }
+        });
+      });
+    }
+
+    function renderComparison(cmp) {
+      if (!cmp) return "";
+      var summaryRows = (cmp.venue_summary || [])
+        .map(function (v) {
+          return (
+            "<tr><td class=\"mono\">" +
+            esc(v.venue) +
+            "</td><td>" +
+            esc(v.top_underlying || "—") +
+            "</td><td class=\"mono\">" +
+            esc(v.top_pts != null ? v.top_pts.toFixed(1) : "—") +
+            "</td><td class=\"mono\">" +
+            esc(v.mean_top_pts != null ? v.mean_top_pts.toFixed(1) : "—") +
+            "</td></tr>"
+          );
+        })
+        .join("");
+      var cross = (cmp.by_underlying || [])
+        .slice(0, 12)
+        .map(function (u) {
+          return (
+            '<li style="margin:0.2rem 0">' +
+            esc(u.text || u.underlying) +
+            "</li>"
+          );
+        })
+        .join("");
+      return (
+        '<div class="pane-section" style="border:1px solid var(--amber-dim,#a67c3a);border-radius:8px;padding:0.55rem 0.7rem;margin-bottom:0.55rem">' +
+        "<h4 style=\"margin:0 0 0.35rem\">Comparación entre mercados</h4>" +
+        (cmp.headline
+          ? '<p style="margin:0 0 0.45rem;font-size:0.85em"><strong>' +
+            esc(cmp.headline) +
+            "</strong></p>"
+          : "") +
+        '<table class="mono" style="width:100%;font-size:0.78em;border-collapse:collapse;margin-bottom:0.45rem">' +
+        "<thead><tr><th>Venue</th><th>Top moneda</th><th>Top pts</th><th>Media top pts</th></tr></thead>" +
+        "<tbody>" +
+        summaryRows +
+        "</tbody></table>" +
+        (cross
+          ? '<p class="muted" style="margin:0 0 0.2rem;font-size:0.75em">Misma moneda · ventaja del mejor venue</p><ul style="margin:0 0 0.35rem 1.1rem;padding:0;font-size:0.78em">' +
+            cross +
+            "</ul>"
+          : '<p class="muted" style="font-size:0.75em">Pocas monedas en común entre venues para cruzar.</p>') +
+        '<p class="muted" style="margin:0;font-size:0.72em">' +
+        esc(cmp.note || "") +
+        "</p></div>"
+      );
+    }
+
+    function renderScores(data) {
+      var out = root.querySelector("#sc-out");
+      lastScan = data;
+      activeVenueIdx = 0;
+      root.querySelector("#sc-detail").innerHTML = "";
+      renderWarnings(data);
+      if (!data) {
+        out.innerHTML = '<p class="muted">Sin scores.</p>';
+        return;
+      }
+      var html = "";
+      if (data.kind === "multi_venue_scanner" && data.by_venue && data.by_venue.length) {
+        html += renderComparison(data.comparison);
+        if (data.auto_mode && data.proposal) {
+          html += renderProposalBlock(data.proposal, "Propuesta Auto (global)");
+        }
+        if (data.auto_mode && data.proposal_by_venue && data.proposal_by_venue.length) {
+          html += data.proposal_by_venue
+            .map(function (pv) {
+              return renderProposalBlock(
+                pv.proposal,
+                "Propuesta · " + (pv.venue || "?")
+              );
+            })
+            .join("");
+        }
+        if (data.venue_errors && data.venue_errors.length) {
+          html +=
+            '<p class="muted" style="font-size:0.75em;color:var(--bad,#c66)">Errores: ' +
+            esc(
+              data.venue_errors
+                .map(function (e) {
+                  return e.venue + "=" + e.error;
+                })
+                .join(" · ")
+            ) +
+            "</p>";
+        }
+        html +=
+          '<div class="sim-tabs" style="margin:0.35rem 0">' +
+          data.by_venue
+            .map(function (b, i) {
+              return (
+                '<button type="button" class="sim-tab sc-venue-tab' +
+                (i === 0 ? " active" : "") +
+                '" data-vidx="' +
+                i +
+                '">' +
+                esc((b.venue || "?") + "/" + (b.market_type || "")) +
+                "</button>"
+              );
+            })
+            .join("") +
+          "</div>" +
+          '<div id="sc-venue-table"></div>';
+        out.innerHTML = html;
+        wireProposalChips(out);
+        var tableHost = out.querySelector("#sc-venue-table");
+        renderScoresTable(data.by_venue[0], tableHost);
+        out.querySelectorAll(".sc-venue-tab").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            activeVenueIdx = parseInt(btn.getAttribute("data-vidx"), 10) || 0;
+            out.querySelectorAll(".sc-venue-tab").forEach(function (b) {
+              b.classList.toggle(
+                "active",
+                b.getAttribute("data-vidx") === String(activeVenueIdx)
+              );
+            });
+            tableHost.innerHTML = "";
+            renderScoresTable(data.by_venue[activeVenueIdx], tableHost);
+            renderDetail(0);
+          });
+        });
+        renderDetail(0);
+        return;
+      }
+      if (!data.scores || !data.scores.length) {
+        out.innerHTML = '<p class="muted">Sin scores.</p>';
+        return;
+      }
+      out.innerHTML = data.auto_mode
+        ? renderProposalBlock(data.proposal, "Propuesta Auto")
+        : "";
+      renderScoresTable(data, out);
+      wireProposalChips(out);
       renderDetail(0);
     }
 
@@ -364,10 +796,24 @@
     root.querySelector("#sc-period").addEventListener("change", refreshNBars);
     root.querySelector("#sc-interval").addEventListener("change", refreshNBars);
     root.querySelector("#sc-klines").addEventListener("input", refreshNBars);
-    root.querySelector("#sc-venue").addEventListener("change", function () {
-      if (root.querySelector("#sc-venue").value === "hyperliquid") {
-        root.querySelector("#sc-market").value = "futures";
+    root.querySelector("#sc-market").addEventListener("change", function () {
+      if (root.querySelector("#sc-market").value === "spot") {
+        var hl = root.querySelector('.sc-venue-cb[value="hyperliquid"]');
+        if (hl && hl.checked) {
+          /* HL solo futures: al elegir spot no desmarcamos; el backend fuerza futures */
+        }
       }
+    });
+    root.querySelectorAll(".sc-venue-cb").forEach(function (cb) {
+      cb.addEventListener("change", function () {
+        if (
+          (cb.value === "a3" || cb.value === "hyperliquid") &&
+          cb.checked &&
+          root.querySelector("#sc-market").value === "spot"
+        ) {
+          root.querySelector("#sc-market").value = "futures";
+        }
+      });
     });
     syncSourceUI();
     syncWindowModeUI();
@@ -387,18 +833,47 @@
               );
             })
             .join("");
-          sel.value = d.default_profile || "legacy_v1";
+          sel.value = d.default_profile || "auto";
+          if (!sel.value) sel.value = "auto";
+          if (d.symbol_batches && d.symbol_batches.length) {
+            var lim = root.querySelector("#sc-limit");
+            var cur = lim.value;
+            var optsHtml = d.symbol_batches
+              .map(function (n) {
+                return (
+                  '<option value="' +
+                  esc(n) +
+                  '">' +
+                  esc(n) +
+                  " monedas</option>"
+                );
+              })
+              .join("");
+            optsHtml +=
+              '<option value="0">Todas (universo disponible)</option>';
+            lim.innerHTML = optsHtml;
+            lim.value = String(
+              cur === "0" ? 0 : d.default_symbol_limit || cur || 30
+            );
+            if (!lim.value && lim.value !== "0") {
+              lim.value = String(d.symbol_batches[1] || d.symbol_batches[0]);
+            }
+          }
         })
         .catch(function () {});
     }
+
+    root.querySelector("#sc-export").addEventListener("click", exportScanAudit);
 
     root.querySelector("#sc-run").addEventListener("click", function () {
       var topN = parseInt(root.querySelector("#sc-top").value, 10) || 5;
       setStatus(null, "ejecutando…");
       root.querySelector("#sc-out").textContent = "";
       root.querySelector("#sc-detail").innerHTML = "";
+      root.querySelector("#sc-warn").innerHTML = "";
       var promise;
       if (root.querySelector("#sc-source").value === "synthetic") {
+        lastRequest = { source: "synthetic", top_n: topN };
         promise = QLApi.labScanner({ top_n: topN }).then(function (d) {
           renderScores(
             Object.assign({}, d, {
@@ -420,11 +895,20 @@
           return d;
         });
       } else {
+        var venues = selectedVenues();
+        if (!venues.length) {
+          setStatus(false, "marcá al menos un venue");
+          return;
+        }
         var opts = {
-          venue: root.querySelector("#sc-venue").value,
+          venues: venues,
           market_type: root.querySelector("#sc-market").value,
           top_n: topN,
-          symbol_limit: parseInt(root.querySelector("#sc-limit").value, 10) || 15,
+          symbol_limit: (function () {
+            var raw = root.querySelector("#sc-limit").value;
+            if (raw === "0") return 0;
+            return parseInt(raw, 10) || 30;
+          })(),
           interval: root.querySelector("#sc-interval").value,
           profile: root.querySelector("#sc-profile").value,
         };
@@ -434,6 +918,7 @@
           opts.kline_limit =
             parseInt(root.querySelector("#sc-klines").value, 10) || 720;
         }
+        lastRequest = Object.assign({ source: "real" }, opts);
         promise = QLApi.venueScanner(opts).then(function (d) {
           renderScores(d);
           return d;

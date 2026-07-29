@@ -7,23 +7,21 @@
     root.className = "pane-lab";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Backtest 5A</h3>" +
-      '<p class="muted" style="margin-top:0">' +
-      '<span class="data-badge data-badge-synth">SINTÉTICO lab</span> ' +
-      "Motor técnico con <strong>velas inventadas</strong> del laboratorio (no klines reales). " +
-      "Sirve para debug de estrategia. " +
-      "Histórico de mercado → <strong>Guided Lab</strong> o <strong>Simulador</strong>. " +
-      "Research-safe, sin LIVE.</p>" +
-      '<div class="pane-row">' +
+      '<div class="pane-head">' +
+      "<h3>Backtest</h3>" +
+      '<p class="muted pane-sub"><span class="data-badge data-badge-synth">SINTÉTICO</span> velas inventadas · debug estrategia</p>' +
+      "</div>" +
+      '<details class="pane-more muted"><summary>Ayuda · no es mercado real</summary>' +
+      '<p style="margin:0.35rem 0">Motor técnico con velas inventadas del lab. ' +
+      "Histórico real → Guided Lab o Simulador. Research-safe, sin LIVE.</p></details>" +
+      '<div class="pane-row pane-actions">' +
       '<label class="field">Estrategia<select id="bt-strategy"></select></label>' +
       '<label class="field">n_bars<input id="bt-nbars" type="number" value="120" min="4" max="2000" /></label>' +
-      "</div>" +
-      '<div class="pane-row" id="bt-params-row"></div>' +
-      '<div class="pane-row">' +
       '<button type="button" class="btn" id="bt-run">Correr</button>' +
       '<button type="button" class="btn secondary" id="bt-to-mc" disabled title="Requiere un backtest corrido con report_id">→ Monte Carlo</button>' +
       '<span class="mono" id="bt-status">—</span>' +
       "</div>" +
+      '<div class="pane-row" id="bt-params-row"></div>' +
       '<div id="bt-out"></div>' +
       "</div>";
 

@@ -380,7 +380,7 @@
       "guided_lab",
       tr("pane.guided_lab", "Guided Lab"),
       pane,
-      mergeOpts("guided_lab", { x: 200, y: 60, w: 520, h: 560 })
+      mergeOpts("guided_lab", { x: 160, y: 40, w: 680, h: 640 })
     );
     if (pane.refresh) pane.refresh();
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
@@ -406,7 +406,7 @@
       "simulator",
       tr("pane.simulator", "Simulador"),
       pane,
-      mergeOpts("simulator", { x: 60, y: 30, w: 900, h: 680 })
+      mergeOpts("simulator", { x: 40, y: 20, w: 980, h: 720 })
     );
     if (pane.refresh) pane.refresh();
     if (opts.prefill && typeof pane.applyPrefill === "function") {
@@ -434,7 +434,7 @@
       return;
     }
     const pane = QLPanes.createBacktestPane();
-    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
+    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 560, h: 480 }));
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }
 
@@ -445,7 +445,7 @@
       return;
     }
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 50, w: 640, h: 580 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 }));
   }
 
   function openMetrics() {
@@ -470,7 +470,7 @@
       return;
     }
     const pane = QLPanes.createReportsPane();
-    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
+    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 620, h: 520 }));
     pane.refresh()
       .then(function () {
         if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
@@ -491,7 +491,7 @@
 
   function openOptimize() {
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
+    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 620, h: 560 }));
   }
 
   function openMonteCarlo(opts) {
@@ -514,7 +514,7 @@
       "montecarlo",
       tr("pane.montecarlo", "Monte Carlo"),
       pane,
-      mergeOpts("montecarlo", { x: 160, y: 100, w: 720, h: 560 })
+      mergeOpts("montecarlo", { x: 140, y: 60, w: 800, h: 640 })
     );
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
   }

@@ -15,39 +15,41 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
+      '<div class="pane-head">' +
       '<h3 data-i18n="pane.guided_lab">Guided Lab</h3>' +
-      '<p class="muted" style="margin-top:0" data-i18n="guided_lab.intro">' +
-      "Flujo guiado paso a paso (sobre todo Binance): venue → scan → estrategia → simular/paper. " +
-      "<strong>No reemplaza</strong> el <em>Simulador</em> (comparar varios exchanges) ni el " +
-      "<em>Backtest</em> (motor con velas sintéticas del lab). " +
+      '<p class="muted pane-sub">Paso a paso · Binance/A3 · LIVE solo tras unlock</p>' +
+      "</div>" +
+      '<details class="pane-more muted">' +
+      '<summary>Ayuda · vs Simulador / Backtest · leyenda datos</summary>' +
+      '<p style="margin:0.35rem 0" data-i18n="guided_lab.intro">' +
+      "Flujo guiado (sobre todo Binance): venue → scan → estrategia → simular/paper. " +
+      "<strong>No reemplaza</strong> el <em>Simulador</em> ni el <em>Backtest</em> (sintético). " +
       "LIVE solo tras unlock.</p>" +
       '<div class="data-legend" role="note">' +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
-      "<span>Klines / ticks públicos reales del mercado. " +
-      "Ranking y <em>Backtest top 5</em> miran las últimas N velas hasta ahora " +
-      "(ej. de las 14:00 a las 15:01 según tamaño de vela).</span>" +
+      "<span>Klines / ticks públicos reales. Ranking y Backtest top 5 = últimas N velas.</span>" +
       "</div>" +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-synth">SINTÉTICO lab</span>' +
-      "<span>Barras inventadas del laboratorio. " +
-      "<em>Scan lab</em> y <em>Simular backtest</em> — no son precios de Binance.</span>" +
+      "<span>Barras inventadas. Scan lab / Simular backtest — no son precios de Binance.</span>" +
       "</div>" +
-      "</div>" +
+      "</div></details>" +
       '<div class="mono" id="gl-live">LIVE_BLOCKED = True</div>' +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.unlock.title">0. Unlock LIVE (opcional)</h3>' +
-      '<p class="muted" style="margin-top:0" data-i18n="guided_lab.unlock.hint">' +
+      '<details class="pane-more muted"><summary>Credenciales LIVE</summary>' +
+      '<p style="margin:0.3rem 0" data-i18n="guided_lab.unlock.hint">' +
       "Definí QUANTLAB_LIVE_USER / QUANTLAB_LIVE_PASSWORD en tu PC. " +
-      "Nunca se guardan en git ni en disco de sesión.</p>" +
-      '<div class="pane-row">' +
+      "Nunca se guardan en git ni en disco de sesión.</p></details>" +
+      '<div class="pane-row pane-actions">' +
       '<input type="text" id="gl-user" placeholder="usuario" autocomplete="username">' +
       '<input type="password" id="gl-pass" placeholder="contraseña" autocomplete="current-password">' +
       '<button type="button" class="btn secondary" id="gl-unlock" data-i18n="guided_lab.unlock.btn" data-tip="Valida usuario/contraseña LIVE locales.\nSin unlock el demo sigue bloqueado." data-i18n-tip="tip.gl.unlock">Unlock</button>' +
       '<button type="button" class="btn secondary" id="gl-lock" data-i18n="guided_lab.lock.btn" data-tip="Vuelve a LIVE_BLOCKED.\nCorta el camino demo hasta nuevo unlock." data-i18n-tip="tip.gl.lock">Lock</button>' +
-      "</div>" +
       '<span class="mono muted" id="gl-unlock-status">—</span>' +
+      "</div>" +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.venue">1. Venue</h3>' +

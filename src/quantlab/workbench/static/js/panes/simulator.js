@@ -120,107 +120,102 @@
     var root = document.createElement("div");
     root.className = "pane-simulator";
     root.innerHTML =
-      '<div class="pane-section">' +
+      '<div class="pane-section sim-pane">' +
+      '<div class="sim-head">' +
       "<h3>Simulador</h3>" +
-      '<p class="muted" style="margin-top:0">' +
-      "<strong>No es lo mismo que Guided Lab ni Backtest.</strong> " +
-      "Guided Lab = aprender/practicar (Binance/A3). " +
-      "Backtest = velas sintéticas. " +
-      "Simulador = comparar Binance/OKX/Bybit/HL/<strong>A3</strong> × productos × leverage. " +
-      "TradingView = solo gráfico (link TV en cada chip). " +
-      "Futuros A3: margen + diferencias diarias (alerta al agregar). LIVE bloqueado." +
-      "</p>" +
+      '<p class="muted sim-sub">Comparar venues × productos × leverage · LIVE bloqueado</p>' +
+      "</div>" +
       '<div class="sim-tabs sticky-tabs" role="tablist" aria-label="Secciones del Simulador">' +
       '<button type="button" class="sim-tab active" data-tab="comparar" id="sim-tab-comparar">' +
-      "1 · Comparar mercados</button>" +
+      "1 · Comparar</button>" +
       '<button type="button" class="sim-tab" data-tab="estrategias" id="sim-tab-estrategias">' +
-      "2 · Guías de estrategias ↓</button>" +
+      "2 · Guías ↓</button>" +
       "</div>" +
-      '<p class="muted sim-tab-hint" style="font-size:0.75em;margin:0.25rem 0 0">' +
-      "Solapas = atajo de scroll: <strong>1 Comparar</strong> (arriba) · " +
-      "<strong>2 Guías</strong> (abajo, siempre visibles). " +
-      "Cada ficha trae explicación + pasos + ejemplo numérico." +
-      "</p></div>" +
-      '<div class="pane-section sim-common">' +
-      "<h4>Controles de comparación</h4>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem">' +
-      '<label class="muted">Modo <select id="sim-market">' +
+      '<details class="sim-more muted">' +
+      "<summary>Ayuda · qué es vs Guided / Backtest</summary>" +
+      '<p class="sim-tab-hint" style="margin:0.35rem 0 0">' +
+      "<strong>Guided Lab</strong> = practicar. <strong>Backtest</strong> = velas sintéticas. " +
+      "<strong>Simulador</strong> = Binance/OKX/Bybit/HL/A3 × productos × leverage. " +
+      "Solapa 1 = comparar arriba · solapa 2 = guías abajo. A3 = margen + diferencias diarias." +
+      "</p></details>" +
+      '<div class="sim-common">' +
+      '<div class="sim-toolbar">' +
+      '<label>Modo<select id="sim-market">' +
       '<option value="spot">Spot</option><option value="futures" selected>Futuros</option></select></label>' +
-      '<label class="muted">Leverage <input type="range" id="sim-lev" min="1" max="125" value="1" style="vertical-align:middle"> ' +
-      '<input type="number" id="sim-lev-num" min="1" max="125" step="1" value="1" style="width:3.6em" data-tip="Apalancamiento.\nPodés usar el deslizador o escribir el número a mano (1–125).\nEn spot suele ir 1x; en futuros podés subir la x."> <span class="muted">x</span></label>' +
-      '<label class="muted"><input type="checkbox" id="sim-multi-x"> multi-x (1,2,5,10)</label>' +
-      '<label class="muted">Período <select id="sim-period">' +
+      '<label class="sim-lev-lab">Leverage' +
+      '<span class="sim-lev-row">' +
+      '<input type="range" id="sim-lev" min="1" max="125" value="1">' +
+      '<input type="number" id="sim-lev-num" min="1" max="125" step="1" value="1" ' +
+      'data-tip="Apalancamiento.\nDeslizador o número (1–125).\nSpot ≈ 1x; futuros podés subir la x.">' +
+      '<span class="muted">x</span></span></label>' +
+      '<label class="sim-check"><input type="checkbox" id="sim-multi-x"> multi-x</label>' +
+      '<label>Período<select id="sim-period">' +
       optHtml(PERIODS, "30") +
       "</select></label>" +
-      '<label class="muted">Intervalo <select id="sim-interval">' +
+      '<label>Intervalo<select id="sim-interval">' +
       optHtml(INTERVALS, "1h") +
       "</select></label>" +
-      '<span class="mono" id="sim-nbars">≈ — velas</span>' +
+      '<label>Bench %<input type="number" id="sim-bench" value="5" min="0" step="0.1"></label>' +
+      '<label class="sim-check"><input type="checkbox" id="sim-liq" checked> liq.</label>' +
+      '<label class="sim-check"><input type="checkbox" id="sim-funding" checked> funding</label>' +
+      '<span class="mono muted sim-nbars" id="sim-nbars">≈ —</span>' +
       "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem;margin-top:0.4rem">' +
-      '<fieldset class="sim-capital-mode" style="border:1px solid var(--border,#333);border-radius:6px;padding:0.35rem 0.55rem;margin:0">' +
-      '<legend class="muted" style="padding:0 0.25rem">Capital</legend>' +
-      '<label class="muted"><input type="radio" name="sim-cap-mode" id="sim-cap-fixed" value="fixed" checked> Monto fijo</label> ' +
-      '<label class="muted"><input type="radio" name="sim-cap-mode" id="sim-cap-free" value="unconstrained"> Sin monto</label>' +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.45rem;align-items:center;margin-top:0.25rem">' +
-      '<label class="muted" id="sim-capital-wrap">Capital USDT <input type="number" id="sim-capital" value="10000" min="1" style="width:6em"></label>' +
-      '<label class="muted">Por trade (margen) USDT <input type="number" id="sim-per-trade" value="500" min="1" style="width:5em"></label>' +
+      '<div class="sim-toolbar sim-toolbar-cap">' +
+      '<fieldset class="sim-capital-mode">' +
+      "<legend>Capital</legend>" +
+      '<label class="sim-check"><input type="radio" name="sim-cap-mode" id="sim-cap-fixed" value="fixed" checked> Fijo</label> ' +
+      '<label class="sim-check"><input type="radio" name="sim-cap-mode" id="sim-cap-free" value="unconstrained"> Sin monto</label>' +
+      '<label id="sim-capital-wrap">USDT <input type="number" id="sim-capital" value="10000" min="1"></label>' +
+      '<label>Por trade <input type="number" id="sim-per-trade" value="500" min="1"></label>' +
       '<span class="mono muted" id="sim-size-hint">—</span>' +
-      "</div>" +
-      '<p class="muted" id="sim-cap-help" style="font-size:0.72em;margin:0.2rem 0 0;max-width:42rem">' +
-      "Siempre se calcula el margen pico aparte del capital. En fijo: ves si te faltó plata. En sin monto: el pico es el capital mínimo sugerido." +
-      "</p>" +
       "</fieldset>" +
-      '<label class="muted">Bench anual % <input type="number" id="sim-bench" value="5" min="0" step="0.1" style="width:4em"></label>' +
-      '<label class="muted"><input type="checkbox" id="sim-liq" checked> liquidación</label>' +
-      '<label class="muted"><input type="checkbox" id="sim-funding" checked> funding</label>' +
       "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin-top:0.35rem;align-items:center">' +
+      '<details class="sim-more muted">' +
+      "<summary>Fees · gastos · capital (detalle)</summary>" +
+      '<p id="sim-cap-help" style="margin:0.3rem 0">' +
+      "Siempre se calcula el margen pico. En fijo: ves si faltó plata. En sin monto: el pico es el mínimo sugerido." +
+      "</p>" +
+      '<div class="sim-toolbar sim-toolbar-fees">' +
       '<span class="muted">Fees</span> ' +
-      '<span class="mono" id="sim-fee-preset" data-tip="Comisiones VIP0 del schedule del lab (por exchange).\nPor defecto cada mercado usa las suyas.\nAbrí el link oficial para corroborar a mano.">—</span>' +
-      ' <a id="sim-fee-source" class="sim-fee-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Ver tarifas oficiales</a>' +
-      '<label class="muted">maker bps <input id="sim-maker" type="number" step="0.1" style="width:4em"></label>' +
-      '<label class="muted">taker bps <input id="sim-taker" type="number" step="0.1" style="width:4em"></label>' +
-      '<button type="button" class="btn secondary" id="sim-fee-reset" data-tip="Vuelve a cargar maker/taker del schedule del mercado seleccionado.\nDesactiva el override manual.">Fees del mercado</button>' +
-      '<span class="mono muted" id="sim-fee-mode" style="font-size:0.75em">modo: por mercado</span>' +
-      '<button type="button" class="btn secondary" id="sim-add-cost">+ Gasto extra</button>' +
+      '<span class="mono" id="sim-fee-preset" data-tip="Comisiones VIP0 del schedule del lab.\nPor defecto cada mercado usa las suyas.">—</span>' +
+      ' <a id="sim-fee-source" class="sim-fee-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Tarifas</a>' +
+      '<label>maker <input id="sim-maker" type="number" step="0.1"></label>' +
+      '<label>taker <input id="sim-taker" type="number" step="0.1"></label>' +
+      '<button type="button" class="btn secondary" id="sim-fee-reset" data-tip="Vuelve al schedule del mercado.">Fees mercado</button>' +
+      '<span class="mono muted" id="sim-fee-mode" style="font-size:0.72em">por mercado</span>' +
+      '<button type="button" class="btn secondary" id="sim-add-cost">+ Gasto</button>' +
       "</div>" +
-      '<div id="sim-extra-costs" class="mono muted" style="font-size:0.8em"></div>' +
+      '<div id="sim-extra-costs" class="mono muted" style="font-size:0.78em"></div>' +
+      "</details>" +
       "</div>" +
-      '<div class="pane-section sim-panel" data-panel="comparar">' +
-      "<h4>Comparar mercados (histórico)</h4>" +
-      '<div class="pane-row sim-step-first" style="flex-wrap:wrap;gap:0.45rem;align-items:center">' +
-      "<strong>1.</strong> " +
-      '<label class="muted">Estrategia <select id="sim-strat-hist"></select></label>' +
-      '<button type="button" class="btn secondary" id="sim-strat-info" data-tip="Abre una ventana del escritorio (mover, redimensionar, minimizar, cerrar ×) con el detalle de la estrategia.">¿Cómo opera?</button>' +
+      '<div class="sim-panel" data-panel="comparar">' +
+      '<div class="sim-actions sim-step-first">' +
+      '<label>Estrategia <select id="sim-strat-hist"></select></label>' +
+      '<button type="button" class="btn secondary" id="sim-strat-info" data-tip="Ventana con el detalle de la estrategia.">¿Cómo opera?</button>' +
       '<button type="button" class="btn" id="sim-run-hist">Correr y comparar</button>' +
+      '<button type="button" class="btn secondary" id="sim-jump-guides">↓ Guías</button>' +
       "</div>" +
-      '<p class="muted" style="font-size:0.8em;margin:0.55rem 0 0.35rem"><strong>2.</strong> Mercados y monedas (uno al lado del otro):</p>' +
+      '<p class="muted sim-meta">Mercados y monedas</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
-      '<p class="muted" style="font-size:0.8em;margin:0.45rem 0 0">' +
-      'Atajos: <button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button> ' +
-      '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button> ' +
+      '<div class="sim-actions sim-shortcuts">' +
+      '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
+      '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button>' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
-      "</p>" +
+      "</div>" +
       '<div class="mono" id="sim-out-hist">—</div>' +
-      '<p class="muted" style="margin:0.65rem 0 0">' +
-      '<button type="button" class="btn secondary" id="sim-jump-guides">' +
-      "↓ Ir a guías de estrategias</button>" +
-      "</p></div>" +
-      '<div class="pane-section sim-panel sim-strat-section" data-panel="estrategias" id="sim-strat-section">' +
-      "<h4>2 · Guías de estrategias (abajo · todas · por tipo)</h4>" +
-      '<p class="muted" style="margin-top:0">' +
-      "Esta sección queda <strong>debajo</strong> de Comparar (scrolleá o usá la solapa 2). " +
-      "En cada ficha: <strong>En simple</strong>, <strong>Paso a paso</strong>, " +
-      "<strong>Ejemplo</strong> (texto + lista) y cuándo comprar/vender. " +
-      "Stub = aún no corre. «Usar en Comparar» prellena la estrategia de arriba." +
-      "</p>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin:0.35rem 0">' +
+      "</div>" +
+      '<div class="sim-panel sim-strat-section" data-panel="estrategias" id="sim-strat-section">' +
+      "<h4>Guías de estrategias</h4>" +
+      '<details class="sim-more muted"><summary>Cómo usar las fichas</summary>' +
+      "<p style=\"margin:0.35rem 0 0\">Debajo de Comparar. En cada ficha: En simple, Paso a paso, Ejemplo. " +
+      "Stub = aún no corre. «Usar en Comparar» prellena la estrategia de arriba.</p></details>" +
+      '<div class="sim-actions" style="margin:0.3rem 0">' +
       '<input type="search" id="sim-strat-search" placeholder="Buscar estrategia o familia…" ' +
-      'style="flex:1;min-width:12rem;font-size:0.8rem">' +
+      'style="flex:1;min-width:10rem;font-size:0.78rem">' +
       '<span class="mono muted" id="sim-strat-count">—</span>' +
       "</div>" +
-      '<div id="sim-strat-list">cargando…</div></div>';
+      '<div id="sim-strat-list">cargando…</div></div>' +
+      "</div>";
 
     var extraCosts = [];
     var feeSchedules = [];

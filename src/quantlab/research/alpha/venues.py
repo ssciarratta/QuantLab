@@ -23,6 +23,7 @@ VENUE_BINANCE = "binance"
 VENUE_HYPERLIQUID = "hyperliquid"
 VENUE_BYBIT = "bybit"
 VENUE_OKX = "okx"
+VENUE_A3 = "a3"
 VENUE_LAB = "lab"
 
 
@@ -102,6 +103,21 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         perpetuals=True,
         fetch_implemented=True,
         notes="Candles + funding; Alpha Scanner vía md_router.",
+    ),
+    VENUE_A3: VenueCapabilities(
+        venue=VENUE_A3,
+        public_klines=True,
+        public_ticker=True,
+        order_book=False,
+        funding=False,
+        open_interest=False,
+        spot=False,
+        perpetuals=False,
+        fetch_implemented=True,
+        notes=(
+            "Futuros granos/FX Matba Rofex (A3). Lab: catálogo curado + fake/env MD. "
+            "Solo futures (vencimiento)."
+        ),
     ),
     VENUE_LAB: VenueCapabilities(
         venue=VENUE_LAB,

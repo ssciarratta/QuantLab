@@ -444,13 +444,17 @@
     venueScanner: function (opts) {
       const o = opts || {};
       const body = {
-        venue: o.venue || "binance",
         market_type: o.market_type || "spot",
         top_n: o.top_n || 5,
-        symbol_limit: o.symbol_limit || 15,
+        symbol_limit: o.symbol_limit != null ? o.symbol_limit : 30,
         interval: o.interval || "1h",
-        profile: o.profile || "legacy_v1",
+        profile: o.profile || "trend",
       };
+      if (o.venues && o.venues.length) {
+        body.venues = o.venues;
+      } else {
+        body.venue = o.venue || "binance";
+      }
       if (o.kline_limit != null && o.kline_limit !== "") {
         body.kline_limit = o.kline_limit;
       }
