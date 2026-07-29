@@ -90,6 +90,33 @@ def _params_lines(meta: StrategyMeta) -> list[str]:
     return out
 
 
+def _params_summary(meta: StrategyMeta) -> str:
+    parts = [f"{k}={v}" for k, v in list(meta.default_params.items())[:6]]
+    return ", ".join(parts) if parts else "params por defecto del catálogo"
+
+
+def _default_example_steps(
+    meta: StrategyMeta,
+    *,
+    when_buy: str,
+    when_sell: str,
+) -> list[str]:
+    """Ejemplo numérico genérico pero concreto para cualquier id."""
+    name = meta.name
+    sid = meta.id
+    ps = _params_summary(meta)
+    return [
+        f"Abrís Simulador → elegís «{name}» (id={sid}) con {ps}.",
+        "En Comparar: BTCUSDT (o la moneda que quieras), intervalo 1h, período 30 días, "
+        "capital 10.000 USDT y fees del mercado.",
+        f"El lab recorre cada vela. Cuando se cumple: «{when_buy}» → compra "
+        f"(cantidad ≈ {meta.default_params.get('quantity', '1')}) y paga fee taker/maker.",
+        "Mientras la señal sigue activa, no recompra de más: tu capital sube/baja con el precio.",
+        f"Cuando se cumple: «{when_sell}» → vende, vuelve a efectivo y suma la fee de salida.",
+        "Al terminar ves en la tabla: PnL neto, fees, margen pico y si te faltó capital.",
+    ]
+
+
 def _guide(
     *,
     idea: str,
@@ -102,19 +129,25 @@ def _guide(
     runnable_note: str | None = None,
     in_plain_words: str | None = None,
     example: str | None = None,
+    example_steps: list[str] | None = None,
     when_to_use: list[str] | None = None,
+    meta: StrategyMeta | None = None,
 ) -> dict[str, Any]:
     plain = (in_plain_words or idea).strip()
     ex = (example or "").strip() or (
-        "Ejemplo paso a paso: imaginá BTC a 100 en la vela 1. "
-        "Si la estrategia dice ‘comprar’, el lab compra ahí. "
-        "En la vela 20 el precio está 110 y dice ‘salir’: vende y vuelve a efectivo. "
+        "Ejemplo: imaginá BTC a 60.000 en la vela 1. "
+        "Si la estrategia dice ‘comprar’, el lab compra ahí y paga fee. "
+        "En la vela 40 el precio está 63.000 y dice ‘salir’: vende y vuelve a efectivo. "
         "Entre medias, si no hay señal, no opera (ahorra fees)."
     )
+    ex_steps = list(example_steps or [])
+    if not ex_steps and meta is not None:
+        ex_steps = _default_example_steps(meta, when_buy=when_buy, when_sell=when_sell)
     return {
         "idea": idea,
         "in_plain_words": plain,
         "example": ex,
+        "example_steps": ex_steps,
         "when_to_use": list(when_to_use or []),
         "steps": steps,
         "when_buy": when_buy,
@@ -462,95 +495,118 @@ def _family_template(meta: StrategyMeta) -> dict[str, Any]:
         "En el lab decide vela a vela si comprar o volver a efectivo."
     )
     example = (
-        f"Ejemplo genérico ({meta.id}): si la señal pasa a ‘compra’, el lab compra "
-        "en esa vela; si pasa a ‘salir’, vende. Si es stub (runnable=false), "
-        "aparece en el catálogo pero todavía no se puede correr."
+        f"Ejemplo con «{meta.name}» (params {_params_summary(meta)}): "
+        "en BTC 1h, cuando la señal pasa a compra el lab compra al cierre y paga fee; "
+        "cuando pasa a salir, vende. Si es stub (runnable=false), "
+        "aparece en el catálogo pero todavía no se puede correr en Comparar."
     )
     if fam == "trend":
         steps = [
-            "1) Lee el precio vela a vela.",
-            "2) Calcula un indicador de tendencia (medias, canal, MACD, etc.).",
-            "3) Si la tendencia es alcista → compra.",
-            "4) Si pierde la tendencia → vende y queda en efectivo.",
-            "5) Al inicio espera tener velas suficientes (warmup).",
+            "1) Lee el cierre de cada vela en orden.",
+            "2) Calcula el indicador de tendencia (medias, canal, MACD, SuperTrend, etc.).",
+            "3) Espera el warmup: no opera hasta tener velas suficientes para el indicador.",
+            "4) Si la tendencia es alcista → señal de compra.",
+            "5) Si no estás comprado y hay señal → compra (cantidad del param quantity).",
+            "6) Si pierde la tendencia → vende y queda en efectivo.",
+            "7) Si no hay cambio de señal → no opera (no gasta fees de más).",
         ]
         when_buy = "El indicador dice tendencia alcista / ruptura alcista."
         when_sell = "El indicador vuelve a flat o rompe el nivel de salida."
         plain = (
-            "Estrategias de tendencia: intentan comprar cuando el mercado ‘empuja’ "
-            "para arriba y salir cuando esa fuerza se corta. No intentan adivinar el piso."
+            f"«{meta.name}» es tendencial: intenta comprar cuando el mercado ‘empuja’ "
+            "para arriba y salir cuando esa fuerza se corta. No intenta adivinar el piso."
         )
         example = (
-            "Ejemplo: el indicador pasa a alcista en BTC → compra. Días después pasa a "
-            "bajista → vende. Si el mercado solo lateraliza, puede entrar y salir muchas veces."
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): el indicador pasa a alcista "
+            "en BTC → compra 1 unidad al cierre. Días después pasa a bajista → vende. "
+            "Si el mercado solo lateraliza, puede entrar y salir muchas veces y comer fees."
         )
     elif fam == "momentum":
         steps = [
-            "1) Mide si el precio viene fuerte (subiendo vs hace N velas).",
-            "2) Si el momentum es positivo → compra.",
-            "3) Si se agota → vende.",
-            "4) Solo opera cuando cambia el modo.",
+            "1) Mide si el precio viene fuerte (subiendo vs hace N velas / ROC / RSI).",
+            "2) Confirma el umbral de momentum según los params.",
+            "3) Si el momentum es positivo → señal de compra.",
+            "4) Si no estás comprado → compra al cambio de señal.",
+            "5) Si el momentum se agota → vende y vuelve a efectivo.",
+            "6) Entre señales estables no reopera (evita churn).",
         ]
         when_buy = "Momentum positivo / confirmación según el id."
         when_sell = "Momentum deja de confirmar."
         plain = (
-            "Estrategias de momentum: compran si el precio ya viene subiendo con fuerza "
-            "y salen cuando esa fuerza se corta."
+            f"«{meta.name}» es de momentum: compra si el precio ya viene subiendo con fuerza "
+            "y sale cuando esa fuerza se corta."
         )
         example = (
-            "Ejemplo: hoy está 5% arriba vs hace 20 velas → compra. Si después queda "
-            "abajo vs hace 20 → vende."
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): el precio está X% arriba "
+            "vs el lookback → compra. Si después queda abajo del umbral → vende. "
+            "Útil tras rupturas; peligroso si llegás tarde al movimiento."
         )
     elif fam == "mean_reversion":
         steps = [
-            "1) Estima un ‘precio justo’ (promedio, bandas, z-score).",
-            "2) Si el precio está barato vs justo → compra.",
-            "3) Si vuelve al justo o se va caro → vende.",
+            "1) Estima un ‘precio justo’ (promedio, bandas Bollinger, z-score, VWAP).",
+            "2) Mide qué tan lejos está el cierre respecto a ese justo.",
+            "3) Si está ‘barato’ (banda baja / z negativo / RSI oversold) → compra.",
+            "4) Espera que el precio vuelva hacia el justo.",
+            "5) Si vuelve al justo o se va ‘caro’ → vende.",
+            "6) En tendencias fuertes puede comprar barato y seguir cayendo: recortá tamaño.",
         ]
-        when_buy = "Precio barato vs media/banda."
-        when_sell = "Volvió al justo o se fue caro."
+        when_buy = "Precio barato vs media/banda/z-score."
+        when_sell = "Volvió al justo o se fue caro / overbought."
         plain = (
-            "Estrategias de reversión: compran cuando el precio se fue ‘demasiado abajo’ "
+            f"«{meta.name}» es de reversión: compra cuando el precio se fue ‘demasiado abajo’ "
             "respecto a su promedio, esperando que vuelva."
         )
         example = (
-            "Ejemplo: el precio toca la banda de abajo → compra; toca la de arriba → vende."
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): el precio toca la banda "
+            "o z-score de abajo → compra; cuando vuelve al medio o toca la banda de arriba → vende."
         )
     elif fam == "market_making":
         steps = [
-            "1) Arma un precio medio sintético desde el cierre.",
-            "2) Cotiza compra y venta con un spread.",
-            "3) Si la vela toca el límite, hay fill.",
-            "4) El inventario mueve un poco las próximas cotizaciones.",
+            "1) Arma un precio medio sintético desde el cierre de la vela.",
+            "2) Calcula bid (compra) y ask (venta) con un half-spread.",
+            "3) Ajusta (skew) según inventario: si estás largo, facilitá vender.",
+            "4) Publica límites; si la vela toca el precio, hay fill.",
+            "5) Actualiza inventario y fees de cada fill.",
+            "6) Repite en la siguiente vela (no es el libro L2 real del exchange).",
         ]
-        when_buy = "Fill en el bid."
-        when_sell = "Fill en el ask."
+        when_buy = "Fill en el bid cotizado."
+        when_sell = "Fill en el ask cotizado."
         plain = (
-            "Market making: no apuesta fuerte a ‘va a subir’. Pone precios de compra y "
-            "venta cerca del medio y gana (en teoría) el spread, equilibrando inventario."
+            f"«{meta.name}» es market making: no apuesta fuerte a ‘va a subir’. "
+            "Pone precios de compra y venta cerca del medio y gana (en teoría) el spread."
         )
         example = (
-            "Ejemplo: mid 100 → compra 99,8 / vende 100,2. Si se llena de stock, sesga "
-            "para vender más fácil."
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): mid 100 → compra 99,5 / "
+            "vende 100,5. Si se llena de stock, sesga para vender más fácil. "
+            "En el lab el book es sintético desde la vela."
         )
     elif fam == "stats":
         steps = [
-            "1) Aplica un proxy estadístico sobre cierres.",
-            "2) Señal de compra o efectivo según el residual/filtro.",
-            "3) Opera cantidad fija al cambiar la señal.",
+            "1) Aplica un proxy estadístico sobre cierres (residual, z, filtro).",
+            "2) Espera warmup del período estadístico.",
+            "3) Si el residual dice infra-precio → compra.",
+            "4) Si se normaliza → vende / flat.",
+            "5) Opera cantidad fija al cambiar la señal.",
+            "6) Recordá: es proxy single-serie, no arbitraje multi-venue real.",
         ]
         when_buy = "El filtro dice infra-precio."
         when_sell = "El filtro se normaliza o pasa a flat."
         plain = (
-            "Familia estadística: usa residuales o filtros (pairs/coint simplificados) "
+            f"«{meta.name}» es estadística: usa residuales o filtros "
             "para decidir compra o efectivo sobre una serie."
+        )
+        example = (
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): el residual cae bajo el "
+            "umbral de entrada → compra; cuando vuelve a 0 → vende."
         )
     else:
         steps = [
             "1) Esta familia puede ser stub de research o proxy por vela.",
-            "2) Si runnable=false: todavía no se puede correr en el lab.",
-            "3) Si runnable=true: sigue el patrón compra/efectivo del motor.",
-            f"4) Descripción: {meta.description}",
+            "2) Leé ‘En simple’ y el ejemplo: ahí está la lógica en español.",
+            "3) Si runnable=false: todavía no se puede correr en el lab.",
+            "4) Si runnable=true: sigue el patrón compra/efectivo del motor.",
+            "5) Configurá params del catálogo y probá en Comparar con histórico.",
+            f"6) Descripción del catálogo: {meta.description}",
         ]
         when_buy = "Según la señal de esa estrategia (ver ‘En simple’ y el ejemplo)."
         when_sell = "Según la señal de salida / flat."
@@ -577,7 +633,39 @@ def _family_template(meta: StrategyMeta) -> dict[str, Any]:
             f"factory={meta.factory}; signal_kind={meta.signal_kind!r}.",
         ],
         runnable_note=stub_note,
+        meta=meta,
     )
+
+
+def _ensure_rich_guide(meta: StrategyMeta, base: dict[str, Any]) -> dict[str, Any]:
+    """Completa example_steps y refuerza pasos cortos de guías legacy."""
+    out = dict(base)
+    when_buy = str(out.get("when_buy") or "señal de compra")
+    when_sell = str(out.get("when_sell") or "señal de salida")
+    if not out.get("when_to_use"):
+        out["when_to_use"] = list(FAMILY_WHEN_TO_USE.get(meta.family, []))
+    if not out.get("example_steps"):
+        out["example_steps"] = _default_example_steps(
+            meta, when_buy=when_buy, when_sell=when_sell
+        )
+    steps = list(out.get("steps") or [])
+    if len(steps) < 5:
+        steps.extend(
+            [
+                "Esperá el warmup del indicador antes de la primera orden.",
+                "Cada fill paga fee del schedule del exchange (VIP0 / override del panel).",
+                "Al final del run revisá PnL neto y margen pico en Comparar.",
+            ][: 5 - len(steps)]
+        )
+        out["steps"] = steps
+    ex = str(out.get("example") or "").strip()
+    if len(ex) < 90:
+        out["example"] = (
+            f"Ejemplo «{meta.name}» ({_params_summary(meta)}): "
+            f"compra cuando «{when_buy}»; vende cuando «{when_sell}». "
+            "Probá BTCUSDT 1h · 30 días en Comparar y mirá fees + PnL neto."
+        )
+    return out
 
 
 def get_strategy_guide(strategy_id: str) -> dict[str, Any]:
@@ -585,10 +673,8 @@ def get_strategy_guide(strategy_id: str) -> dict[str, Any]:
     meta = next((m for m in STRATEGY_CATALOG if m.id == strategy_id), None)
     if meta is None:
         raise KeyError(strategy_id)
-    base = dict(_GUIDES.get(strategy_id) or _family_template(meta))
-    # Asegurar when_to_use (guías viejas sin el campo)
-    if not base.get("when_to_use"):
-        base["when_to_use"] = list(FAMILY_WHEN_TO_USE.get(meta.family, []))
+    raw = _GUIDES.get(strategy_id) or _family_template(meta)
+    base = _ensure_rich_guide(meta, dict(raw))
     return {
         "id": meta.id,
         "name": meta.name,
@@ -614,6 +700,7 @@ def attach_guides_to_catalog_rows(rows: list[dict[str, Any]]) -> list[dict[str, 
             "idea": guide["idea"],
             "in_plain_words": guide["in_plain_words"],
             "example": guide["example"],
+            "example_steps": guide.get("example_steps") or [],
             "when_to_use": guide.get("when_to_use") or [],
             "steps": guide["steps"],
             "when_buy": guide["when_buy"],

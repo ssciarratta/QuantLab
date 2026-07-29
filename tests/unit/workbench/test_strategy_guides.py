@@ -14,7 +14,10 @@ def test_every_strategy_has_guide() -> None:
         assert g["idea"]
         assert g["in_plain_words"]
         assert g["example"]
-        assert len(g["steps"]) >= 3
+        assert len(g["example"]) >= 80
+        assert len(g["steps"]) >= 5
+        assert g["example_steps"]
+        assert len(g["example_steps"]) >= 4
         assert g["when_buy"]
         assert g["when_sell"]
         assert g["params_explained"]
@@ -33,6 +36,7 @@ def test_catalog_rows_include_how_it_works() -> None:
     assert all("how_it_works" in r for r in rows)
     assert all("family_label_es" in r for r in rows)
     assert all(r["how_it_works"].get("example") for r in rows)
+    assert all(r["how_it_works"].get("example_steps") for r in rows)
     assert all(r["how_it_works"].get("in_plain_words") for r in rows)
     assert all(r["how_it_works"].get("when_to_use") for r in rows)
 
@@ -44,6 +48,7 @@ def test_lab_strategies_exposes_family_labels() -> None:
     assert payload["family_labels_es"]["demo"] == FAMILY_LABELS_ES["demo"]
     assert payload["strategies"][0]["how_it_works"]["steps"]
     assert payload["strategies"][0]["how_it_works"]["example"]
+    assert payload["strategies"][0]["how_it_works"]["example_steps"]
 
 
 def test_simulator_js_has_accordion_and_guide_window() -> None:
@@ -62,6 +67,9 @@ def test_simulator_js_has_accordion_and_guide_window() -> None:
     assert 'data-tab="comparar"' in js
     assert 'data-tab="estrategias"' in js
     assert "Guías de estrategias" in js
+    assert "sim-strat-section" in js
+    assert "sim-jump-guides" in js
+    assert "example_steps" in js
     assert "sim-strat-group" in js
     assert "sim-strat-card" in js
     assert "when_to_use" in js
@@ -75,6 +83,9 @@ def test_simulator_js_has_accordion_and_guide_window() -> None:
     assert 'data-tab="aprender"' not in js
     assert 'data-tab="estres"' not in js
     assert 'data-tab="practicar"' not in js
+    # Guías siempre abajo (sección permanente, no display:none)
+    assert 'id="sim-strat-section"' in js
+    assert "Ambas secciones siempre visibles" in js
 
 
 def test_start_menu_has_accordion_groups() -> None:

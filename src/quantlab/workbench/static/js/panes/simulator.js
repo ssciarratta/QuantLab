@@ -134,11 +134,12 @@
       '<button type="button" class="sim-tab active" data-tab="comparar" id="sim-tab-comparar">' +
       "1 · Comparar mercados</button>" +
       '<button type="button" class="sim-tab" data-tab="estrategias" id="sim-tab-estrategias">' +
-      "2 · Guías de estrategias</button>" +
+      "2 · Guías de estrategias ↓</button>" +
       "</div>" +
       '<p class="muted sim-tab-hint" style="font-size:0.75em;margin:0.25rem 0 0">' +
-      "Solapas arriba: <strong>1 Comparar</strong> · <strong>2 Guías</strong> (50 fichas). " +
-      "Los controles de capital/fees solo se ven en Comparar." +
+      "Solapas = atajo de scroll: <strong>1 Comparar</strong> (arriba) · " +
+      "<strong>2 Guías</strong> (abajo, siempre visibles). " +
+      "Cada ficha trae explicación + pasos + ejemplo numérico." +
       "</p></div>" +
       '<div class="pane-section sim-common">' +
       "<h4>Controles de comparación</h4>" +
@@ -201,13 +202,18 @@
       '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button> ' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
       "</p>" +
-      '<div class="mono" id="sim-out-hist">—</div></div>' +
-      '<div class="pane-section sim-panel" data-panel="estrategias" style="display:none">' +
-      "<h4>Guías de estrategias (todas · por tipo)</h4>" +
+      '<div class="mono" id="sim-out-hist">—</div>' +
+      '<p class="muted" style="margin:0.65rem 0 0">' +
+      '<button type="button" class="btn secondary" id="sim-jump-guides">' +
+      "↓ Ir a guías de estrategias</button>" +
+      "</p></div>" +
+      '<div class="pane-section sim-panel sim-strat-section" data-panel="estrategias" id="sim-strat-section">' +
+      "<h4>2 · Guías de estrategias (abajo · todas · por tipo)</h4>" +
       '<p class="muted" style="margin-top:0">' +
-      "Abrí una familia · en cada ficha: <strong>En simple</strong>, " +
-      "<strong>Detalle</strong> (colapsable), <strong>Cuándo usarla</strong> y ejemplo. " +
-      "Stub = aún no corre. «Usar en Comparar» prellena y cambia de solapa." +
+      "Esta sección queda <strong>debajo</strong> de Comparar (scrolleá o usá la solapa 2). " +
+      "En cada ficha: <strong>En simple</strong>, <strong>Paso a paso</strong>, " +
+      "<strong>Ejemplo</strong> (texto + lista) y cuándo comprar/vender. " +
+      "Stub = aún no corre. «Usar en Comparar» prellena la estrategia de arriba." +
       "</p>" +
       '<div class="pane-row" style="flex-wrap:wrap;gap:0.4rem;margin:0.35rem 0">' +
       '<input type="search" id="sim-strat-search" placeholder="Buscar estrategia o familia…" ' +
@@ -243,6 +249,19 @@
     var searchByVenue = {};
     var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
+    function scrollToPanel(tab) {
+      var target =
+        tab === "estrategias"
+          ? root.querySelector("#sim-strat-section")
+          : root.querySelector('.sim-panel[data-panel="comparar"]');
+      var win = root.closest && root.closest(".win-body");
+      if (target && typeof target.scrollIntoView === "function") {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (win && target) {
+        win.scrollTop = Math.max(0, target.offsetTop - 8);
+      }
+    }
+
     function showTab(name) {
       var tab = name || "comparar";
       root.querySelectorAll(".sim-tab").forEach(function (b) {
@@ -250,24 +269,20 @@
         b.classList.toggle("active", on);
         b.setAttribute("aria-selected", on ? "true" : "false");
       });
+      // Ambas secciones siempre visibles (Comparar arriba · Guías abajo).
       root.querySelectorAll(".sim-panel").forEach(function (p) {
-        p.style.display = p.getAttribute("data-panel") === tab ? "" : "none";
+        p.style.display = "";
       });
-      // Controles de capital/fees solo en Comparar (antes tapaban Guías)
       var common = root.querySelector(".sim-common");
       if (common) {
-        common.style.display = tab === "comparar" ? "" : "none";
+        common.style.display = "";
       }
       var hint = root.querySelector(".sim-tab-hint");
       if (hint) {
-        hint.style.display = tab === "comparar" ? "" : "none";
+        hint.style.display = "";
       }
+      scrollToPanel(tab);
       if (tab === "estrategias") {
-        try {
-          root.scrollTop = 0;
-          var win = root.closest && root.closest(".win-body");
-          if (win) win.scrollTop = 0;
-        } catch (_e) {}
         // Si el catálogo no cargó, reintentar
         var listEl = root.querySelector("#sim-strat-list");
         if (
@@ -894,6 +909,11 @@
           return "<li>" + esc(x) + "</li>";
         })
         .join("");
+      var exSteps = (g.example_steps || [])
+        .map(function (x) {
+          return "<li>" + esc(x) + "</li>";
+        })
+        .join("");
       var params = (g.params_explained || [])
         .map(function (x) {
           return "<li>" + esc(x) + "</li>";
@@ -919,14 +939,30 @@
         esc(g.in_plain_words || g.idea || s.description || "—") +
         "</p>" +
         (whenUse
-          ? "<p><strong>Cuándo usarla (recomendación general)</strong></p>" +
-            '<ul style="margin:0 0 0.75rem 1.1rem;padding:0">' +
+          ? "<p><strong>Cuándo usarla</strong></p>" +
+            '<ul class="sim-guide-list">' +
             whenUse +
             "</ul>"
           : "") +
-        '<p class="sim-guide-example"><strong>Ejemplo detallado</strong><br>' +
-        esc(g.example || "—") +
+        "<p><strong>Paso a paso (cómo decide el lab)</strong></p>" +
+        '<ol class="sim-guide-list">' +
+        (steps || "<li>—</li>") +
+        "</ol>" +
+        "<p><strong>Cuándo compra</strong></p><p class=\"sim-guide-line\">" +
+        esc(g.when_buy || "—") +
         "</p>" +
+        "<p><strong>Cuándo vende / queda en efectivo</strong></p><p class=\"sim-guide-line\">" +
+        esc(g.when_sell || "—") +
+        "</p>" +
+        '<div class="sim-guide-example"><strong>Ejemplo</strong><br>' +
+        esc(g.example || "—") +
+        (exSteps
+          ? '<p style="margin:0.45rem 0 0.2rem"><strong>Ejemplo paso a paso</strong></p>' +
+            '<ol class="sim-guide-list">' +
+            exSteps +
+            "</ol>"
+          : "") +
+        "</div>" +
         "<p><strong>Runnable:</strong> " +
         (s.runnable === false ? "no (stub research)" : "sí") +
         (g.runnable_note ? " — " + esc(g.runnable_note) : "") +
@@ -936,36 +972,30 @@
         " · <span class=\"muted\">id=" +
         esc(s.id) +
         "</span></p>" +
-        "<details class=\"sim-guide-detail\"><summary><strong>Detalle técnico</strong> (pasos, compra/venta, params)</summary>" +
-        "<p><strong>Cuándo compra</strong></p><p>" +
-        esc(g.when_buy || "—") +
-        "</p>" +
-        "<p><strong>Cuándo vende / queda en efectivo</strong></p><p>" +
-        esc(g.when_sell || "—") +
-        "</p>" +
-        "<p><strong>Paso a paso</strong></p><ol style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
-        steps +
-        "</ol>" +
-        "<p><strong>Parámetros</strong></p><ul style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
+        "<details class=\"sim-guide-detail\"><summary><strong>Parámetros, riesgos y notas del lab</strong></summary>" +
+        "<p><strong>Parámetros</strong></p><ul class=\"sim-guide-list\">" +
         params +
         "</ul>" +
-        "<p><strong>Riesgos / límites</strong></p><ul style=\"margin:0 0 0.75rem 1.1rem;padding:0\">" +
+        "<p><strong>Riesgos / límites</strong></p><ul class=\"sim-guide-list\">" +
         risks +
         "</ul>" +
-        "<p><strong>Notas del lab</strong></p><ul style=\"margin:0 0 0.5rem 1.1rem;padding:0\">" +
+        "<p><strong>Notas del lab</strong></p><ul class=\"sim-guide-list\">" +
         notes +
         "</ul></details>"
       );
     }
 
-    function strategyCardHtml(s) {
+    function strategyCardHtml(s, openCard) {
       var id = s.id || s.strategy_id;
       var runnable = s.runnable !== false;
       var g = s.how_it_works || {};
+      var teaser = (g.in_plain_words || s.description || "").slice(0, 110);
       return (
         '<details class="sim-strat-card" data-strat-id="' +
         esc(id) +
-        '">' +
+        '"' +
+        (openCard ? " open" : "") +
+        ">" +
         "<summary>" +
         "<strong>" +
         esc(s.name || id) +
@@ -976,6 +1006,12 @@
         (runnable
           ? ' <span class="data-badge">runnable</span>'
           : ' <span class="data-badge data-badge-synth">stub · aún no corre</span>') +
+        (teaser
+          ? '<div class="muted" style="font-weight:400;font-size:0.72em;margin-top:0.15rem">' +
+            esc(teaser) +
+            (teaser.length >= 110 ? "…" : "") +
+            "</div>"
+          : "") +
         "</summary>" +
         '<div class="sim-strat-card-body">' +
         renderGuideHtml(s) +
@@ -1001,6 +1037,8 @@
           var sel = root.querySelector("#sim-strat-hist");
           if (sel) sel.value = id;
           showTab("comparar");
+          var hist = root.querySelector("#sim-strat-hist");
+          if (hist && typeof hist.focus === "function") hist.focus();
         });
       });
       root.querySelectorAll(".sim-strat-detail").forEach(function (btn) {
@@ -1085,7 +1123,11 @@
             ")</span></summary>" +
             '<div class="sim-strat-group-body">' +
             famIntro +
-            items.map(strategyCardHtml).join("") +
+            items
+              .map(function (s, j) {
+                return strategyCardHtml(s, !q && idx === 0 && j === 0);
+              })
+              .join("") +
             "</div></details>"
           );
         })
@@ -1653,6 +1695,13 @@
         showTab(btn.getAttribute("data-tab"));
       });
     });
+    var jumpGuides = root.querySelector("#sim-jump-guides");
+    if (jumpGuides) {
+      jumpGuides.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        showTab("estrategias");
+      });
+    }
     var stratSearch = root.querySelector("#sim-strat-search");
     if (stratSearch) {
       stratSearch.addEventListener("input", function () {

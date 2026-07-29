@@ -9,18 +9,20 @@ ESTADO
 - Alpha Scanner (menú): MD real Binance/OKX/Bybit/HL + recomendaciones
   familia + 2–3 estrategias + TF → chips → Simulador (prefill)
 - Demo sintético WB sigue disponible como fuente opcional
-- Simulador: Guías de estrategias + compare multi-venue
+- Simulador: Comparar arriba · Guías de estrategias siempre abajo
+  (solapa 2 = scroll) · pasos + ejemplos + example_steps en cada ficha
 - Guided Lab: sigue con su scanner Binance (ahora también trae recommendation)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Menú QL permanece abierto al elegir paneles (seguir navegando)
-Presets ya no hacen closeAll · Ctrl+W no cierra ventanas · no reabre minimizado
+Simulador: guías fijas debajo de Comparar (no se ocultan)
+Guías: paso a paso visible + ejemplo + example_steps (todas las 50)
+Botón «↓ Ir a guías» · solapa 2 hace scroll · 1ª ficha abierta
 
 PRÓXIMO
 -------
-Ctrl+F5 (o reiniciar workbench) → probar menú QL: abrir varios paneles seguidos
-Cerrar menú: Escape / clic afuera / otra vez en QL
+Ctrl+F5 → Simulador: scrollear debajo de Comparar / solapa «2 · Guías»
+Abrir fichas: En simple, Pasos, Ejemplo, Ejemplo paso a paso
 
 INVARIANTES
 -----------

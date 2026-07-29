@@ -3,13 +3,13 @@
 **Actualizado:** 2026-07-28  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Alpha Scanner MD real multi-venue + recommend→Simulador  
-**Simulador:** Binance/OKX/Bybit/HL/A3 · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op · `applyPrefill` desde Scanner  
+**Simulador:** Binance/OKX/Bybit/HL/A3 · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op · `applyPrefill` desde Scanner · **Guías siempre abajo** (scroll solapa 2) + pasos/ejemplos/`example_steps`  
 **Alpha Scanner:** `POST /api/lab/venue/scanner` · `research/alpha/recommend.py` (familia+estrategias+TF) · UI chips  
 **Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Alpha Scanner=ranking MD real · Backtest=velas sintéticas · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
-**Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); tabs propias opcionales  
+**Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); params editables a mano por estrategia en Comparar  
 **Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner v local + GH tip + sync · «mod» = max(commit, GH, mtime working tree `src/quantlab`) · `/api/update/*`  
 **Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)  
   

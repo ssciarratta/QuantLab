@@ -292,6 +292,29 @@ html {
   background: rgba(212, 140, 50, 0.18);
 }
 
+.sim-strat-section {
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 2px solid var(--amber-dim, #a67c3a);
+}
+
+.sim-guide-list {
+  margin: 0.2rem 0 0.75rem 1.15rem;
+  padding: 0;
+}
+
+.sim-guide-line {
+  margin: 0 0 0.55rem;
+}
+
+.sim-guide-example {
+  margin: 0.45rem 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border-left: 3px solid var(--amber-dim, #a67c3a);
+  background: color-mix(in srgb, var(--bg-elevated, #1a1a1a) 85%, transparent);
+  border-radius: 0 4px 4px 0;
+}
+
 .sim-strat-card {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 4px;
