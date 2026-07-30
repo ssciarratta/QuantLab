@@ -214,7 +214,7 @@
       });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Tanda = monedas scoreadas. Universo «Moneda puntual» = escribí el ticker (BTC, NEAR…). Multi-venue = Comparar + ranking por mercado.";
+        : "Tanda = monedas scoreadas. Universo «Moneda puntual» scorea vs anclas BTC/ETH/SOL (no listadas). Multi-venue = Comparar + ranking por mercado.";
       syncUniverseUI();
     }
 

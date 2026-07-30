@@ -73,6 +73,7 @@ def assess_scan_quality(
     comps = composites_of(scores)
     tied_factors = zero_variance_factor_names(scores)
     all_zero = len(comps) >= 2 and all(abs(c) <= _EPS for c in comps)
+    single_zero = len(comps) == 1 and abs(comps[0]) <= _EPS
 
     failures = dict(fetch_failures or scan_out.get("fetch_failures") or {})
     if failures:
@@ -116,7 +117,19 @@ def assess_scan_quality(
             "sin book se usa proxy OHLC y puede empatar todo en 0."
         )
 
-    if all_zero:
+    if single_zero:
+        status = "degraded"
+        reason = "single_instrument_zero"
+        warnings.append(
+            "Universo de 1 moneda: el score min-max no discrimina (queda 0). "
+            "Reiniciá el workbench si pediste moneda puntual (usa anclas BTC/ETH/SOL)."
+        )
+        for row in scores:
+            if not isinstance(row, dict):
+                continue
+            row["score_status"] = "tied_zero"
+            row["score_reason"] = "single_instrument"
+    elif all_zero:
         status = "degraded"
         reason = "zero_cross_section_variance"
         fac_txt = ", ".join(tied_factors) if tied_factors else "factores del perfil"

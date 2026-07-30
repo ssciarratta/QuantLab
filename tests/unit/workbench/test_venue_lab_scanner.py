@@ -265,16 +265,36 @@ def test_venue_scanner_accepts_single_underlying() -> None:
         del interval, kline_limit
         assert venue == "binance"
         assert market_type == "futures"
-        assert underlying == "NEAR"
-        sym = "NEARUSDT"
+        sym = f"{underlying}USDT"
+        # Volúmenes distintos para que el min-max anclado discrimine.
+        n = 12
+        base = datetime(2024, 1, 1, tzinfo=UTC)
+        vol = Decimal("5000") if underlying == "NEAR" else Decimal("1000")
+        bars: list[Bar] = []
+        for i in range(n):
+            px = Decimal(100 + (i % 5) + (10 if underlying == "NEAR" else 0))
+            t0 = base + timedelta(hours=i)
+            bars.append(
+                Bar(
+                    instrument_id=f"BNF:{sym}",
+                    open=px,
+                    high=px + Decimal("1"),
+                    low=px - Decimal("1"),
+                    close=px,
+                    volume=vol + Decimal(i),
+                    timestamp_open=t0,
+                    timestamp_close=t0 + timedelta(hours=1),
+                    timeframe="1h",
+                )
+            )
         resolved = ResolvedInstrument(
             venue=venue,
             market_type=market_type,
-            underlying="NEAR",
+            underlying=underlying,
             symbol=sym,
             instrument_id=f"BNF:{sym}",
         )
-        return resolved, _bars(sym)
+        return resolved, bars
 
     with patch(
         "quantlab.brokers.md_router.fetch_bars_for_instrument",
@@ -290,8 +310,12 @@ def test_venue_scanner_accepts_single_underlying() -> None:
             profile="trend",
         )
     assert out["ok"] is True
-    assert len(out["scores"]) >= 1
+    assert out.get("score_mode") == "anchored_cross_section"
+    assert out.get("score_anchors")
+    assert len(out["scores"]) == 1
     assert out["scores"][0].get("underlying") == "NEAR"
+    comp = float(out["scores"][0].get("composite") or 0)
+    assert comp > 0.0
 
 
 def test_venue_scanner_rejects_empty_underlyings() -> None:

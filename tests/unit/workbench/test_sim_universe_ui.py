@@ -32,6 +32,7 @@ def test_api_sim_universe_handler() -> None:
 
 
 def test_run_sim_compare_accepts_pairs(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    from quantlab.brokers import md_router
     from quantlab.research.sim import compare as compare_mod
 
     calls: list[tuple[str, str]] = []
@@ -40,7 +41,7 @@ def test_run_sim_compare_accepts_pairs(monkeypatch) -> None:  # type: ignore[no-
         calls.append((venue, underlying))
         raise compare_mod.ValidationError("skip-fetch-for-test")
 
-    monkeypatch.setattr(compare_mod, "fetch_bars_for_instrument", fake_fetch)
+    monkeypatch.setattr(md_router, "fetch_bars_for_instrument", fake_fetch)
     out = compare_mod.run_sim_compare(
         {
             "pairs": [

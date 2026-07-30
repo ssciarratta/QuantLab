@@ -10,7 +10,6 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX, LAB_KLINE_LIMIT_MIN
-from quantlab.brokers.md_router import fetch_bars_for_instrument, fetch_funding_rates
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 from quantlab.execution.live_gate import LIVE_BLOCKED
@@ -148,6 +147,9 @@ def run_sim_compare(request: dict[str, Any]) -> dict[str, Any]:
     Acepta ``pairs: [{venue, underlying}, ...]`` (preferido UI) o el producto
     cartesiano ``venues`` × ``underlyings``.
     """
+    # Lazy: evita ciclo md_router → sim.symbol_map → sim.__init__ → compare
+    from quantlab.brokers.md_router import fetch_bars_for_instrument, fetch_funding_rates
+
     pairs_raw = request.get("pairs")
     work: list[tuple[str, str]] = []
     if isinstance(pairs_raw, list) and pairs_raw:

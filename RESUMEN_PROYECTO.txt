@@ -1,22 +1,22 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-29
-Versión: 1.01.0 · Scanner: Comparar + moneda puntual
+Actualizado: 2026-07-30
+Versión: 1.01.0 · Moneda puntual con score anclado
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha Scanner: vista Comparar multi-venue + Universo «Moneda puntual…»
+- Workbench :8765 reiniciado
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Universo: opción «Moneda puntual…» con input (BTC, NEAR o NEAR,SOL).
-Backend acepta 1+ underlyings explícitos (antes mínimo 3).
-Vista Comparar (agrupado/plano) sigue vigente.
+Fix score=0 en moneda puntual: el min-max cross-section
+colapsaba con N=1. Ahora ancla vs BTC/ETH/SOL (no listadas)
+y muestra solo la moneda pedida. N=1 sin anclas → neutro 0.5.
 
 PRÓXIMO
 -------
-Ctrl+F5 · Universo → Moneda puntual → escribir ticker → Escanear
+Ctrl+F5 · Moneda puntual → NEAR → Escanear · Comparar
 
 INVARIANTES
 -----------

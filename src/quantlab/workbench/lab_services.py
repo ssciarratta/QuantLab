@@ -713,6 +713,9 @@ SYMBOL_LIMIT_MIN = 5
 SYMBOL_LIMIT_MAX = 50
 # Tope práctico al pedir «todas» en Binance spot (USDT TRADING).
 SYMBOL_LIMIT_ALL_BINANCE_SPOT = 2000
+# Anclas para min-max cuando el usuario pide 1–2 monedas (puntual).
+SCORE_ANCHOR_UNDERLYINGS: tuple[str, ...] = ("BTC", "ETH", "SOL")
+SCORE_CROSS_SECTION_MIN = 3
 
 
 def _validate_symbol_limit(symbol_limit: int) -> None:
@@ -827,10 +830,22 @@ def run_venue_lab_scanner(
             out_bn["n_bars_estimate"] = period_meta.get("n_bars")
         return out_bn
 
+    requested_underlyings: list[str] | None = None
+    score_anchors: list[str] = []
     if underlyings is not None:
         coins = [str(u).strip() for u in underlyings if str(u).strip()]
         if not coins:
             raise ValidationError("underlyings vacío: escribí al menos una moneda")
+        # Dedup preservando orden (case-insensitive).
+        seen_u: set[str] = set()
+        requested_underlyings = []
+        for c in coins:
+            key = c.upper()
+            if key in seen_u:
+                continue
+            seen_u.add(key)
+            requested_underlyings.append(key)
+        coins = list(requested_underlyings)
     elif v == "a3":
         from quantlab.research.sim.universe import A3_CURATED_PRODUCTS
 
@@ -843,6 +858,21 @@ def run_venue_lab_scanner(
             raise ValidationError("se requieren al menos 3 underlyings para el scan")
     if symbol_limit != SYMBOL_LIMIT_ALL:
         coins = coins[:symbol_limit]
+
+    # Moneda puntual / pocas: anclar cross-section con majors (no se listan al final).
+    if (
+        requested_underlyings is not None
+        and len(requested_underlyings) < SCORE_CROSS_SECTION_MIN
+    ):
+        have = {c.upper() for c in coins}
+        for anchor in SCORE_ANCHOR_UNDERLYINGS:
+            if len(coins) >= SCORE_CROSS_SECTION_MIN:
+                break
+            if anchor in have:
+                continue
+            coins.append(anchor)
+            score_anchors.append(anchor)
+            have.add(anchor)
 
     bars_by_symbol: dict[str, list[Bar]] = {}
     symbol_to_underlying: dict[str, str] = {}
@@ -981,6 +1011,27 @@ def run_venue_lab_scanner(
         row["symbol"] = sym
         row["underlying"] = symbol_to_underlying.get(sym) or underlying_from_symbol(sym)
 
+    if requested_underlyings is not None and score_anchors:
+        want = {u.upper() for u in requested_underlyings}
+        scores_out = [
+            r
+            for r in scores_out
+            if isinstance(r, dict)
+            and str(r.get("underlying") or "").strip().upper() in want
+        ]
+        selected = [
+            iid
+            for iid in selected
+            if str(
+                symbol_to_underlying.get(symbol_map.get(iid, iid), "")
+                or underlying_from_symbol(symbol_map.get(iid, iid))
+            )
+            .strip()
+            .upper()
+            in want
+        ]
+        selected_symbols = [symbol_map.get(iid, iid) for iid in selected]
+
     out: dict[str, Any] = {
         "ok": True,
         "kind": "venue_scanner",
@@ -1015,11 +1066,23 @@ def run_venue_lab_scanner(
             "no rentabilidad garantizada."
             + (
                 f" Universo completo del venue: {len(coins)} activos pedidos."
-                if symbol_limit == SYMBOL_LIMIT_ALL
+                if symbol_limit == SYMBOL_LIMIT_ALL and not score_anchors
+                else ""
+            )
+            + (
+                " Moneda puntual: score relativo a anclas "
+                + "/".join(score_anchors)
+                + " (no listadas)."
+                if score_anchors
                 else ""
             )
         ),
     }
+    if requested_underlyings is not None:
+        out["requested_underlyings"] = list(requested_underlyings)
+    if score_anchors:
+        out["score_mode"] = "anchored_cross_section"
+        out["score_anchors"] = list(score_anchors)
     if period_meta is not None:
         out["period_days"] = period_meta.get("period_days")
         out["n_bars_estimate"] = period_meta.get("n_bars")
