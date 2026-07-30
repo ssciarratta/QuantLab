@@ -105,6 +105,7 @@ from quantlab.workbench.api import (
     handle_post_lab_optimize,
     handle_post_lab_scanner,
     handle_post_lab_sim_compare,
+    handle_post_lab_sim_rank_strategies,
     handle_post_lab_sim_sizing,
     handle_post_lab_validation_run,
     handle_post_live_demo_cancel,
@@ -720,6 +721,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/sim/compare":
                     self._send_json(handle_post_lab_sim_compare(state, body))
+                    return
+                if path == "/api/lab/sim/rank-strategies":
+                    self._send_json(handle_post_lab_sim_rank_strategies(state, body))
                     return
                 if path == "/api/lab/sim/sizing":
                     self._send_json(handle_post_lab_sim_sizing(state, body))

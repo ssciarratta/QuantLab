@@ -11,7 +11,7 @@
       '<div class="pane-head"><h3>Market Data</h3>' +
       '<p class="muted pane-sub">Conexión · instrumentos · snapshot</p></div>' +
       '<div class="pane-toolbar">' +
-      '<label class="field">Venue<select id="md-venue"></select></label>' +
+      '<label class="field">Mercado<select id="md-venue"></select></label>' +
       '<label class="field">MD source<select id="md-source">' +
       '<option value="fake">fake</option>' +
       '<option value="env">env</option>' +

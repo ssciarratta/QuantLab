@@ -1,4 +1,4 @@
-/** Simulador multi-venue — Comparar + Estrategias (sin duplicar Guided/MC). */
+/** Simulador multi-mercado — comparar venues × productos (guías en panel Estrategias). */
 (function (global) {
   "use strict";
 
@@ -123,20 +123,14 @@
       '<div class="pane-section sim-pane">' +
       '<div class="sim-head">' +
       "<h3>Simulador</h3>" +
-      '<p class="muted sim-sub">Comparar venues × productos × leverage · LIVE bloqueado</p>' +
-      "</div>" +
-      '<div class="sim-tabs sticky-tabs" role="tablist" aria-label="Secciones del Simulador">' +
-      '<button type="button" class="sim-tab active" data-tab="comparar" id="sim-tab-comparar">' +
-      "1 · Comparar</button>" +
-      '<button type="button" class="sim-tab" data-tab="estrategias" id="sim-tab-estrategias">' +
-      "2 · Guías ↓</button>" +
+      '<p class="muted sim-sub">Comparar mercados × productos × leverage · LIVE bloqueado</p>' +
       "</div>" +
       '<details class="sim-more muted">' +
       "<summary>Ayuda · qué es vs Guided / Backtest</summary>" +
       '<p class="sim-tab-hint" style="margin:0.35rem 0 0">' +
       "<strong>Guided Lab</strong> = practicar. <strong>Backtest</strong> = velas sintéticas. " +
       "<strong>Simulador</strong> = Binance/OKX/Bybit/HL/A3 × productos × leverage. " +
-      "Solapa 1 = comparar arriba · solapa 2 = guías abajo. A3 = margen + diferencias diarias." +
+      "Guías de estrategias → menú QL · <strong>Estrategias</strong>. A3 = margen + diferencias diarias." +
       "</p></details>" +
       '<div class="sim-common">' +
       '<div class="sim-toolbar">' +
@@ -146,7 +140,7 @@
       '<span class="sim-lev-row">' +
       '<input type="range" id="sim-lev" min="1" max="125" value="1">' +
       '<input type="number" id="sim-lev-num" min="1" max="125" step="1" value="1" ' +
-      'data-tip="Apalancamiento.\nDeslizador o número (1–125).\nSpot ≈ 1x; futuros podés subir la x.">' +
+      'data-tip="Apalancamiento. Deslizador o número (1–125). Spot ≈ 1x; futuros podés subir la x.">' +
       '<span class="muted">x</span></span></label>' +
       '<label class="sim-check"><input type="checkbox" id="sim-multi-x"> multi-x</label>' +
       '<label>Período<select id="sim-period">' +
@@ -158,7 +152,7 @@
       '<label>Bench %<input type="number" id="sim-bench" value="5" min="0" step="0.1"></label>' +
       '<label class="sim-check"><input type="checkbox" id="sim-liq" checked> liq.</label>' +
       '<label class="sim-check"><input type="checkbox" id="sim-funding" checked> funding</label>' +
-      '<span class="mono muted sim-nbars" id="sim-nbars">≈ —</span>' +
+      '<span class="muted sim-nbars" id="sim-nbars">≈ —</span>' +
       "</div>" +
       '<div class="sim-toolbar sim-toolbar-cap">' +
       '<fieldset class="sim-capital-mode">' +
@@ -177,7 +171,7 @@
       "</p>" +
       '<div class="sim-toolbar sim-toolbar-fees">' +
       '<span class="muted">Fees</span> ' +
-      '<span class="mono" id="sim-fee-preset" data-tip="Comisiones VIP0 del schedule del lab.\nPor defecto cada mercado usa las suyas.">—</span>' +
+      '<span class="mono" id="sim-fee-preset" data-tip="Comisiones VIP0 del schedule del lab. Por defecto cada mercado usa las suyas.">—</span>' +
       ' <a id="sim-fee-source" class="sim-fee-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Tarifas</a>' +
       '<label>maker <input id="sim-maker" type="number" step="0.1"></label>' +
       '<label>taker <input id="sim-taker" type="number" step="0.1"></label>' +
@@ -191,30 +185,23 @@
       '<div class="sim-panel" data-panel="comparar">' +
       '<div class="sim-actions sim-step-first">' +
       '<label>Estrategia <select id="sim-strat-hist"></select></label>' +
-      '<button type="button" class="btn secondary" id="sim-strat-info" data-tip="Ventana con el detalle de la estrategia.">¿Cómo opera?</button>' +
+      '<button type="button" class="btn secondary" id="sim-strat-info" data-tip="Detalle de la estrategia (panel Estrategias).">¿Cómo opera?</button>' +
       '<button type="button" class="btn" id="sim-run-hist">Correr y comparar</button>' +
-      '<button type="button" class="btn secondary" id="sim-jump-guides">↓ Guías</button>' +
+      '<button type="button" class="btn secondary" id="sim-run-rank" hidden ' +
+      'data-tip="Solo con UNA moneda agregada (chip) en mercados tildados. Corre el universo runnable (sin dummy/buy_once) y muestra top por PnL %.">' +
+      "Mejores estrategias (1 moneda)</button>" +
+      '<button type="button" class="btn secondary" id="sim-open-strategies">Estrategias</button>' +
+      '<span class="mono muted sim-run-status" id="sim-run-status">—</span>' +
       "</div>" +
-      '<p class="muted sim-meta">Mercados y monedas</p>' +
+      '<div class="mono" id="sim-out-hist">—</div>' +
+      '<p class="muted sim-meta">Mercados y monedas · agregá con «+» (no alcanza con buscar en la lista)</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
       '<div class="sim-actions sim-shortcuts">' +
       '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
       '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button>' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
       "</div>" +
-      '<div class="mono" id="sim-out-hist">—</div>' +
       "</div>" +
-      '<div class="sim-panel sim-strat-section" data-panel="estrategias" id="sim-strat-section">' +
-      "<h4>Guías de estrategias</h4>" +
-      '<details class="sim-more muted"><summary>Cómo usar las fichas</summary>' +
-      "<p style=\"margin:0.35rem 0 0\">Debajo de Comparar. En cada ficha: En simple, Paso a paso, Ejemplo. " +
-      "Stub = aún no corre. «Usar en Comparar» prellena la estrategia de arriba.</p></details>" +
-      '<div class="sim-actions" style="margin:0.3rem 0">' +
-      '<input type="search" id="sim-strat-search" placeholder="Buscar estrategia o familia…" ' +
-      'style="flex:1;min-width:10rem;font-size:0.78rem">' +
-      '<span class="mono muted" id="sim-strat-count">—</span>' +
-      "</div>" +
-      '<div id="sim-strat-list">cargando…</div></div>' +
       "</div>";
 
     var extraCosts = [];
@@ -244,51 +231,8 @@
     var searchByVenue = {};
     var STRAT_GUIDE_WIN = "sim_strategy_guide";
 
-    function scrollToPanel(tab) {
-      var target =
-        tab === "estrategias"
-          ? root.querySelector("#sim-strat-section")
-          : root.querySelector('.sim-panel[data-panel="comparar"]');
-      var win = root.closest && root.closest(".win-body");
-      if (target && typeof target.scrollIntoView === "function") {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (win && target) {
-        win.scrollTop = Math.max(0, target.offsetTop - 8);
-      }
-    }
-
-    function showTab(name) {
-      var tab = name || "comparar";
-      root.querySelectorAll(".sim-tab").forEach(function (b) {
-        var on = b.getAttribute("data-tab") === tab;
-        b.classList.toggle("active", on);
-        b.setAttribute("aria-selected", on ? "true" : "false");
-      });
-      // Ambas secciones siempre visibles (Comparar arriba · Guías abajo).
-      root.querySelectorAll(".sim-panel").forEach(function (p) {
-        p.style.display = "";
-      });
-      var common = root.querySelector(".sim-common");
-      if (common) {
-        common.style.display = "";
-      }
-      var hint = root.querySelector(".sim-tab-hint");
-      if (hint) {
-        hint.style.display = "";
-      }
-      scrollToPanel(tab);
-      if (tab === "estrategias") {
-        // Si el catálogo no cargó, reintentar
-        var listEl = root.querySelector("#sim-strat-list");
-        if (
-          listEl &&
-          (!strategiesCache.length ||
-            listEl.textContent.indexOf("cargando") >= 0 ||
-            listEl.textContent.indexOf("error") >= 0)
-        ) {
-          loadStrategies();
-        }
-      }
+    function showTab(_name) {
+      /* Guías viven en panel Estrategias — no hay solapas acá. */
     }
 
     function productFor(venue, id) {
@@ -561,6 +505,7 @@
           applyFeePreset();
         });
       });
+      syncRankButton();
     }
 
     function canonicalTicker(venue, id) {
@@ -628,6 +573,26 @@
         });
       });
       return pairs;
+    }
+
+    function uniqueCoinKeys() {
+      var keys = {};
+      collectPairs().forEach(function (p) {
+        var t = canonicalTicker(p.venue, p.underlying) || p.underlying;
+        var base = String(t || "")
+          .toUpperCase()
+          .replace(/[-/]/g, "")
+          .replace(/(USDT|USD|USDC|PERP)$/i, "");
+        keys[base || foldText(t)] = true;
+      });
+      return Object.keys(keys);
+    }
+
+    function syncRankButton() {
+      var btn = root.querySelector("#sim-run-rank");
+      if (!btn) return;
+      var show = uniqueCoinKeys().length === 1;
+      btn.hidden = !show;
     }
 
     function periodDays() {
@@ -1135,71 +1100,14 @@
     }
 
     function openStrategyGuide(id) {
-      var s = findStrategy(id);
-      if (!s) {
-        window.alert("Estrategia no cargada todavía. Esperá un segundo y reintentá.");
+      if (global.QLShell && QLShell.open) {
+        QLShell.open("strategies", { focusId: id });
         return;
       }
-      guideStrategyId = id;
-      var title =
-        "Estrategia: " + (s.name || id) + (s.runnable === false ? " [stub]" : "");
-      var pane = document.createElement("div");
-      pane.className = "pane-sim-strat-guide";
-      pane.innerHTML =
-        '<div class="sim-guide-body mono">' +
-        renderGuideHtml(s) +
-        "</div>" +
-        '<div class="pane-row" style="margin-top:0.75rem;gap:0.4rem;flex-wrap:wrap">' +
-        '<button type="button" class="btn" id="sim-guide-use">Usar en Comparar</button>' +
-        '<button type="button" class="btn secondary" id="sim-guide-close">Cerrar</button>' +
-        '<span class="muted" style="font-size:0.75em">Ventana del escritorio: arrastrá el título, redimensioná bordes, × para cerrar.</span>' +
-        "</div>";
-
-      var wm = global.QLShell && global.QLShell.wm;
-      if (wm && typeof wm.open === "function") {
-        if (wm.windows && wm.windows.has(STRAT_GUIDE_WIN)) {
-          wm.close(STRAT_GUIDE_WIN);
-        }
-        wm.open(STRAT_GUIDE_WIN, title, pane, {
-          x: 72,
-          y: 48,
-          w: 540,
-          h: 520,
-        });
-      } else {
-        // Fallback sin shell: panel flotante mínimo (sin overlay a pantalla completa)
-        var old = document.getElementById("sim-strat-fallback");
-        if (old) old.remove();
-        var wrap = document.createElement("div");
-        wrap.id = "sim-strat-fallback";
-        wrap.className = "sim-guide-fallback";
-        wrap.appendChild(pane);
-        document.body.appendChild(wrap);
-      }
-
-      var useBtn = pane.querySelector("#sim-guide-use");
-      var closeBtn = pane.querySelector("#sim-guide-close");
-      if (useBtn) {
-        useBtn.addEventListener("click", function () {
-          if (guideStrategyId) {
-            root.querySelector("#sim-strat-hist").value = guideStrategyId;
-          }
-          closeStrategyGuide();
-          showTab("comparar");
-        });
-      }
-      if (closeBtn) {
-        closeBtn.addEventListener("click", closeStrategyGuide);
-      }
+      window.alert("Abrí el panel Estrategias desde el menú QL.");
     }
 
     function closeStrategyGuide() {
-      var wm = global.QLShell && global.QLShell.wm;
-      if (wm && wm.windows && wm.windows.has(STRAT_GUIDE_WIN)) {
-        wm.close(STRAT_GUIDE_WIN);
-      }
-      var fb = document.getElementById("sim-strat-fallback");
-      if (fb) fb.remove();
       guideStrategyId = null;
     }
 
@@ -1250,12 +1158,14 @@
             })
             .join("");
           root.querySelector("#sim-strat-hist").innerHTML = opts;
-          renderStratCatalog();
           tryApplyPrefill();
         })
         .catch(function (e) {
-          root.querySelector("#sim-strat-list").textContent =
-            e.message || "error";
+          var sel = root.querySelector("#sim-strat-hist");
+          if (sel) {
+            sel.innerHTML =
+              "<option value=\"\">" + esc(e.message || "error") + "</option>";
+          }
         });
     }
 
@@ -1298,6 +1208,18 @@
       return [Number(root.querySelector("#sim-lev").value) || 1];
     }
 
+    function setRunStatus(msg, isErr) {
+      var st = root.querySelector("#sim-run-status");
+      var out = root.querySelector("#sim-out-hist");
+      if (st) {
+        st.textContent = msg || "—";
+        st.style.color = isErr ? "#d4544a" : "";
+      }
+      if (out && msg) {
+        out.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+
     function runCompare(strategyId) {
       var pairs = collectPairs();
       var mode = capitalMode();
@@ -1318,7 +1240,7 @@
       if (mode === "fixed") {
         payload.initial_capital = root.querySelector("#sim-capital").value;
       }
-      // Solo override manual: si no, cada venue usa su schedule VIP0 real
+      // Solo override manual: si no, cada mercado usa su schedule VIP0 real
       if (feesManualOverride) {
         var mk = root.querySelector("#sim-maker").value;
         var tk = root.querySelector("#sim-taker").value;
@@ -1326,6 +1248,42 @@
         if (tk !== "") payload.taker_bps = tk;
       }
       return QLApi.simCompare(payload);
+    }
+
+    function runRankStrategies() {
+      if (!QLApi.simRankStrategies) {
+        return Promise.reject(
+          new Error(
+            "API simRankStrategies no cargada — reiniciá el Workbench y Ctrl+F5."
+          )
+        );
+      }
+      var pairs = collectPairs();
+      var mode = capitalMode();
+      var payload = {
+        pairs: pairs,
+        market_type: root.querySelector("#sim-market").value,
+        leverage: Number(root.querySelector("#sim-lev").value) || 1,
+        interval: root.querySelector("#sim-interval").value,
+        period_days: periodDays(),
+        capital_mode: mode,
+        per_trade_usd: root.querySelector("#sim-per-trade").value,
+        simulate_liquidation: root.querySelector("#sim-liq").checked,
+        apply_funding: root.querySelector("#sim-funding").checked,
+        annual_bench_rate: Number(root.querySelector("#sim-bench").value || 0) / 100,
+        extra_costs: collectExtraCosts(),
+        top_n: 10,
+      };
+      if (mode === "fixed") {
+        payload.initial_capital = root.querySelector("#sim-capital").value;
+      }
+      if (feesManualOverride) {
+        var mk = root.querySelector("#sim-maker").value;
+        var tk = root.querySelector("#sim-taker").value;
+        if (mk !== "") payload.maker_bps = mk;
+        if (tk !== "") payload.taker_bps = tk;
+      }
+      return QLApi.simRankStrategies(payload);
     }
 
     var SUMMARY_TIPS = {
@@ -1398,7 +1356,7 @@
       "fee-op":
         "Fee promedio por operación (fill).\n" +
         "Se calcula: fees totales ÷ nº de fills.\n" +
-        "Útil para comparar venues con distinta actividad.\n" +
+        "Útil para comparar mercados con distinta actividad.\n" +
         "Si no hubo fills, muestra —.\n" +
         "No incluye gastos extra fijos del panel.",
       rentab:
@@ -1437,10 +1395,24 @@
     }
 
     function fmtMoney(v) {
+      if (global.QLFmt && QLFmt.num) return QLFmt.num(v, 2);
       if (v == null || v === "") return "—";
       var n = Number(v);
       if (!isFinite(n)) return esc(v);
-      return esc(n.toLocaleString("es-AR", { maximumFractionDigits: 4 }));
+      return esc(
+        n.toLocaleString("es-AR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
+      );
+    }
+
+    function fmtPct(v) {
+      if (global.QLFmt && QLFmt.pct) return QLFmt.pct(v);
+      if (v == null || v === "") return "—";
+      var n = Number(v);
+      if (!isFinite(n)) return esc(v);
+      return fmtMoney(n) + "%";
     }
 
     /** Margen/trade y pico: margin_report, o fallback sizing / aliases. */
@@ -1481,7 +1453,7 @@
       return (
         '<p class="muted" style="font-size:0.75em;margin:0.2rem 0 0.35rem">' +
         "Resumen — orden: moneda A→Z, luego rentabilidad % ↓. " +
-        "Al agregar una moneda en un venue tildado se intenta copiar a los otros tildados." +
+        "Al agregar una moneda en un mercado tildado se intenta copiar a los otros tildados." +
         "</p>" +
         '<table class="sim-summary-table mono"><thead><tr>' +
         "<th" +
@@ -1573,7 +1545,10 @@
                   ? esc(r.error)
                   : "—"
                 : (dif > 0 ? "+" : "") +
-                  dif.toLocaleString("es-AR", { maximumFractionDigits: 4 });
+                  dif.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  });
             var shortN = numOrNull(mr.capital_shortfall);
             var needMore = mr.needed_more_money === true;
             var hasMarginReport =
@@ -1599,7 +1574,7 @@
             var rentTxt =
               pnlPct == null || pnlPct === ""
                 ? "—"
-                : fmtMoney(pnlPct) + "%";
+                : fmtPct(pnlPct);
             return (
               "<tr><td" +
               tipAttr("venue") +
@@ -1671,6 +1646,152 @@
       );
     }
 
+    function rankTableHtml(m) {
+      if (!m.ok) {
+        return (
+          '<p class="muted">' + esc(m.error || "sin datos") + "</p>"
+        );
+      }
+      var rows = m.ranked || [];
+      return (
+        '<table class="sim-summary-table sim-rank-table mono"><thead><tr>' +
+        "<th>#</th><th>PnL %</th><th>PnL</th><th>Familia</th><th>Estrategia</th><th>Ops</th>" +
+        "</tr></thead><tbody>" +
+        rows
+          .map(function (r) {
+            var o = r.overlay || {};
+            var bt = r.backtest || {};
+            var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
+            return (
+              '<tr data-strategy="' +
+              esc(r.strategy_id) +
+              '"><td>' +
+              esc(r.rank) +
+              "</td><td>" +
+              fmtPct(o.pnl_pct) +
+              "</td><td>" +
+              fmtMoney(o.pnl) +
+              "</td><td>" +
+              esc(r.family_label_es || r.family || "—") +
+              "</td><td>" +
+              esc(r.strategy_name || r.strategy_id) +
+              "</td><td>" +
+              (nOps != null ? esc(nOps) : "—") +
+              "</td></tr>"
+            );
+          })
+          .join("") +
+        "</tbody></table>" +
+        '<p class="muted" style="font-size:0.75em;margin:0.35rem 0 0">' +
+        esc(m.n_strategies_ok || 0) +
+        "/" +
+        esc(m.n_strategies_run || 0) +
+        " OK · " +
+        esc(m.n_families_covered || 0) +
+        " familias</p>"
+      );
+    }
+
+    function openRankMarketWindow(coin, m, common, index) {
+      var venue = m.venue || m.market_label || "market";
+      var winId = "sim_rank_" + String(venue).replace(/[^a-z0-9_]/gi, "_");
+      var pane = document.createElement("div");
+      pane.className = "pane-sim-rank";
+      pane.style.fontSize = "0.85rem";
+      pane.innerHTML =
+        '<div class="sim-rank-toolbar">' +
+        '<label>Letra <input type="range" class="sim-rank-font" min="70" max="160" value="100" step="5"> ' +
+        '<span class="sim-rank-font-val mono">100%</span></label>' +
+        '<span class="muted mono">×' +
+        esc(common.leverage || "1") +
+        " · " +
+        esc(coin) +
+        "</span>" +
+        "</div>" +
+        '<div class="sim-rank-body">' +
+        rankTableHtml(m) +
+        "</div>";
+      var fontRange = pane.querySelector(".sim-rank-font");
+      var fontVal = pane.querySelector(".sim-rank-font-val");
+      if (fontRange) {
+        fontRange.addEventListener("input", function () {
+          var pct = Number(fontRange.value) || 100;
+          pane.style.fontSize = pct / 100 + "rem";
+          if (fontVal) fontVal.textContent = pct + "%";
+        });
+      }
+      pane.querySelectorAll("tr[data-strategy]").forEach(function (tr) {
+        tr.style.cursor = "pointer";
+        tr.title = "Click: usar en Comparar";
+        tr.addEventListener("click", function () {
+          var sid = tr.getAttribute("data-strategy");
+          var sel = root.querySelector("#sim-strat-hist");
+          if (sel && sid) sel.value = sid;
+        });
+      });
+      var wm = global.QLShell && global.QLShell.wm;
+      if (wm && typeof wm.open === "function") {
+        if (wm.windows && wm.windows.has(winId)) {
+          wm.close(winId);
+        }
+        wm.open(winId, "Rank " + coin + " · " + venue, pane, {
+          x: 40 + index * 36,
+          y: 36 + index * 28,
+          w: 420,
+          h: 480,
+        });
+        return true;
+      }
+      return false;
+    }
+
+    function formatRankResults(data) {
+      var markets = data.markets || [];
+      var coin = data.coin || "?";
+      var common = data.common || {};
+      if (!markets.length) return "sin mercados";
+      var opened = 0;
+      markets.forEach(function (m, i) {
+        if (openRankMarketWindow(coin, m, common, i)) opened += 1;
+      });
+      var head =
+        '<p class="muted" style="font-size:0.78em;margin:0.2rem 0">' +
+        '<span class="data-badge data-badge-real">RANK</span> ' +
+        esc(coin) +
+        " · universo " +
+        esc(common.n_strategies_universe || "—") +
+        " · top " +
+        esc(common.top_n || 10) +
+        " por PnL % (≥1 familia) · x" +
+        esc(common.leverage || "1") +
+        "</p>";
+      if (opened) {
+        return (
+          head +
+          '<p>Se abrieron <strong>' +
+          opened +
+          "</strong> ventana(s) de mercado (cerrá con ×, redimensioná bordes, A± con el slider de letra).</p>"
+        );
+      }
+      /* Fallback embebido si no hay WM */
+      return (
+        head +
+        '<div class="sim-rank-cols">' +
+        markets
+          .map(function (m) {
+            return (
+              '<div class="sim-rank-col"><h5 class="sim-rank-h">' +
+              esc(m.venue) +
+              "</h5>" +
+              rankTableHtml(m) +
+              "</div>"
+            );
+          })
+          .join("") +
+        "</div>"
+      );
+    }
+
     function syncLeverage(from) {
       var range = root.querySelector("#sim-lev");
       var num = root.querySelector("#sim-lev-num");
@@ -1690,18 +1811,16 @@
         showTab(btn.getAttribute("data-tab"));
       });
     });
-    var jumpGuides = root.querySelector("#sim-jump-guides");
-    if (jumpGuides) {
-      jumpGuides.addEventListener("click", function (ev) {
+    var openStratBtn = root.querySelector("#sim-open-strategies");
+    if (openStratBtn) {
+      openStratBtn.addEventListener("click", function (ev) {
         ev.preventDefault();
-        showTab("estrategias");
+        if (global.QLShell && QLShell.open) QLShell.open("strategies");
       });
     }
     var stratSearch = root.querySelector("#sim-strat-search");
     if (stratSearch) {
-      stratSearch.addEventListener("input", function () {
-        renderStratCatalog();
-      });
+      stratSearch.addEventListener("input", function () {});
     }
     root.querySelector("#sim-lev").addEventListener("input", function () {
       syncLeverage("range");
@@ -1745,21 +1864,79 @@
       var out = root.querySelector("#sim-out-hist");
       var pairs = collectPairs();
       if (!pairs.length) {
-        out.textContent =
-          "Elegí al menos un exchange activo y agregá una moneda (menú Nombre (TICKER)).";
+        var msg =
+          "Elegí al menos un mercado activo y agregá una moneda con el botón «+».";
+        out.textContent = msg;
+        setRunStatus(msg, true);
         return;
       }
       out.textContent = "comparando " + pairs.length + " pares…";
+      setRunStatus("comparando " + pairs.length + " pares…");
       runCompare(root.querySelector("#sim-strat-hist").value)
         .then(function (d) {
           out.innerHTML =
             '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
             formatRows(d);
+          setRunStatus("listo · " + (d.rows || []).length + " filas");
         })
         .catch(function (e) {
-          out.textContent = e.message || String(e);
+          var err = e.message || String(e);
+          out.textContent = err;
+          setRunStatus(err, true);
         });
     });
+    var rankBtn = root.querySelector("#sim-run-rank");
+    if (rankBtn) {
+      rankBtn.addEventListener("click", function () {
+        var out = root.querySelector("#sim-out-hist");
+        var coins = uniqueCoinKeys();
+        if (coins.length !== 1) {
+          var need =
+            coins.length === 0
+              ? "Agregá UNA moneda con «+» en un mercado tildado (buscar en la lista no alcanza)."
+              : "Para ranking dejá exactamente UNA moneda (sacá las otras con ×).";
+          out.textContent = need;
+          setRunStatus(need, true);
+          syncRankButton();
+          return;
+        }
+        var pairs = collectPairs();
+        if (!pairs.length) {
+          var noPair = "Elegí al menos un mercado con esa moneda.";
+          out.textContent = noPair;
+          setRunStatus(noPair, true);
+          return;
+        }
+        var busy =
+          "Ranking " +
+          coins[0] +
+          " · " +
+          pairs.length +
+          " mercado(s) · ~37 estrategias (puede tardar 1–3 min)…";
+        out.textContent = busy;
+        setRunStatus(busy);
+        rankBtn.disabled = true;
+        runRankStrategies()
+          .then(function (d) {
+            out.innerHTML = formatRankResults(d);
+            var nOk = (d.markets || []).filter(function (m) {
+              return m.ok;
+            }).length;
+            setRunStatus(
+              "listo · " + coins[0] + " · " + nOk + "/" + pairs.length + " mercados"
+            );
+          })
+          .catch(function (e) {
+            var err = e.message || String(e);
+            out.textContent = err;
+            setRunStatus(err, true);
+          })
+          .then(function () {
+            rankBtn.disabled = false;
+            syncRankButton();
+          });
+      });
+    }
     root.querySelector("#sim-strat-info").addEventListener("click", function () {
       openStrategyGuide(root.querySelector("#sim-strat-hist").value);
     });

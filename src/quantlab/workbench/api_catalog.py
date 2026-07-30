@@ -94,7 +94,13 @@ API_ROUTES: tuple[ApiRoute, ...] = (
     ApiRoute(
         "/api/lab/sim/compare",
         "POST",
-        "Comparación multi-venue spot/futuros + leverage + bench",
+        "Comparación multi-mercado spot/futuros + leverage + bench",
+        ("lab", "sim"),
+    ),
+    ApiRoute(
+        "/api/lab/sim/rank-strategies",
+        "POST",
+        "Ranking top estrategias (1 moneda × mercados) por PnL % + diversidad por familia",
         ("lab", "sim"),
     ),
     ApiRoute(

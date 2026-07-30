@@ -42,5 +42,30 @@
     });
   }
 
-  global.QLLabUI = { preJson: preJson, escapeHtml: escapeHtml, setStatus: setStatus, bindRun: bindRun };
+  /** Formato numérico UI — siempre 2 decimales (es-AR). */
+  function num(v, digits) {
+    if (v == null || v === "") return "—";
+    var n = typeof v === "number" ? v : Number(v);
+    if (!isFinite(n)) return escapeHtml(v);
+    var d = digits == null ? 2 : digits;
+    return n.toLocaleString("es-AR", {
+      minimumFractionDigits: d,
+      maximumFractionDigits: d,
+    });
+  }
+
+  function pct(v) {
+    if (v == null || v === "") return "—";
+    var n = typeof v === "number" ? v : Number(v);
+    if (!isFinite(n)) return escapeHtml(v);
+    return num(n, 2) + "%";
+  }
+
+  global.QLLabUI = {
+    preJson: preJson,
+    escapeHtml: escapeHtml,
+    setStatus: setStatus,
+    bindRun: bindRun,
+  };
+  global.QLFmt = { num: num, pct: pct, money: num };
 })(window);

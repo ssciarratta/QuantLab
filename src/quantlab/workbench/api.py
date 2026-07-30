@@ -3068,6 +3068,24 @@ def handle_post_lab_sim_compare(state: WorkbenchState, body: dict[str, Any]) -> 
     return result
 
 
+def handle_post_lab_sim_rank_strategies(
+    state: WorkbenchState, body: dict[str, Any]
+) -> dict[str, Any]:
+    """POST /api/lab/sim/rank-strategies — top estrategias por moneda × mercados."""
+    from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
+
+    session = state.ensure_session()
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        result = run_sim_strategy_rank(body)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    state.last_lab_result = result
+    return result
+
+
 def handle_post_lab_sim_sizing(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/sim/sizing — valida capital / por trade / leverage."""
     from decimal import Decimal

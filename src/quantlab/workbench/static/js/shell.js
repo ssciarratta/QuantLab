@@ -448,6 +448,27 @@
     wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 }));
   }
 
+  function openStrategies(opts) {
+    opts = opts || {};
+    if (wm.windows.has("strategies")) {
+      wm.focus("strategies");
+      const root = wm.windows.get("strategies").body.firstElementChild;
+      if (root && opts.focusId && typeof root.focusStrategy === "function") {
+        root.focusStrategy(opts.focusId);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
+      return;
+    }
+    const pane = QLPanes.createStrategiesPane({ focusId: opts.focusId });
+    wm.open(
+      "strategies",
+      tr("pane.strategies", "Estrategias"),
+      pane,
+      mergeOpts("strategies", { x: 60, y: 30, w: 640, h: 700 })
+    );
+  }
+
   function openMetrics() {
     const pane = QLPanes.createMetricsPane();
     wm.open("metrics", tr("pane.metrics", "Metrics / Último"), pane, mergeOpts("metrics", { x: 100, y: 80, w: 480, h: 400 }));
@@ -661,6 +682,7 @@
     diagnostics: openDiagnostics,
     guided_lab: openGuidedLab,
     simulator: openSimulator,
+    strategies: openStrategies,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
@@ -692,6 +714,7 @@
       return false;
     },
     openers: openers,
+    wm: wm,
     setFontScale: function (s, persist) {
       applyFontScale(s, persist !== false);
     },
@@ -810,12 +833,139 @@
       if (typeof refreshPresetsMenu === "function") {
         refreshPresetsMenu();
       }
+      if (typeof renderFavoritesMenu === "function") {
+        renderFavoritesMenu();
+      }
     } else {
       startMenu.setAttribute("hidden", "");
       startMenu.classList.add("hidden");
       startBtn.classList.remove("active");
     }
   });
+
+  // —— Favoritos del menú QL (orden custom, persistido) ——
+  var FAV_DEFAULT = ["scanner", "simulator", "strategies"];
+  var FAV_META = {
+    scanner: {
+      label: "Alpha Scanner",
+      tip: "Ranking MD real multi-mercado.",
+    },
+    simulator: {
+      label: "Simulador",
+      tip: "Comparar mercados × monedas × leverage.",
+    },
+    strategies: {
+      label: "Estrategias",
+      tip: "Guías del catálogo (antes en el Simulador).",
+    },
+    guided_lab: { label: "Guided Lab", tip: "Wizard paper/demo." },
+    montecarlo: { label: "Monte Carlo", tip: "Estrés estadístico." },
+    backtest: { label: "Backtest", tip: "Velas sintéticas." },
+    chat: { label: "Chat IA", tip: "Asistente research." },
+  };
+
+  function loadFavorites() {
+    try {
+      var raw = localStorage.getItem("ql_menu_favorites");
+      if (raw) {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) {
+          return arr.filter(function (id) {
+            return !!openers[id];
+          });
+        }
+      }
+    } catch (e) {}
+    return FAV_DEFAULT.slice();
+  }
+
+  function saveFavorites(ids) {
+    try {
+      localStorage.setItem("ql_menu_favorites", JSON.stringify(ids));
+    } catch (e) {}
+  }
+
+  function renderFavoritesMenu() {
+    var box = document.getElementById("ql-fav-list");
+    if (!box) return;
+    var ids = loadFavorites();
+    box.innerHTML = ids
+      .map(function (id, idx) {
+        var meta = FAV_META[id] || { label: id, tip: id };
+        return (
+          '<div class="ql-fav-row" data-fav="' +
+          id +
+          '">' +
+          '<button type="button" class="ql-fav-open" data-open="' +
+          id +
+          '" data-tip="' +
+          meta.tip +
+          '">' +
+          meta.label +
+          "</button>" +
+          '<span class="ql-fav-moves">' +
+          '<button type="button" class="ql-fav-up" data-i="' +
+          idx +
+          '" title="Subir"' +
+          (idx === 0 ? " disabled" : "") +
+          ">↑</button>" +
+          '<button type="button" class="ql-fav-down" data-i="' +
+          idx +
+          '" title="Bajar"' +
+          (idx === ids.length - 1 ? " disabled" : "") +
+          ">↓</button>" +
+          "</span></div>"
+        );
+      })
+      .join("");
+    box.querySelectorAll(".ql-fav-open").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var key = btn.getAttribute("data-open");
+        if (openers[key]) openers[key]();
+      });
+    });
+    box.querySelectorAll(".ql-fav-up").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var i = Number(btn.getAttribute("data-i"));
+        if (i <= 0) return;
+        var cur = loadFavorites();
+        var t = cur[i - 1];
+        cur[i - 1] = cur[i];
+        cur[i] = t;
+        saveFavorites(cur);
+        renderFavoritesMenu();
+      });
+    });
+    box.querySelectorAll(".ql-fav-down").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var i = Number(btn.getAttribute("data-i"));
+        var cur = loadFavorites();
+        if (i >= cur.length - 1) return;
+        var t = cur[i + 1];
+        cur[i + 1] = cur[i];
+        cur[i] = t;
+        saveFavorites(cur);
+        renderFavoritesMenu();
+      });
+    });
+  }
+
+  var favReset = document.getElementById("ql-fav-reset");
+  if (favReset) {
+    favReset.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      saveFavorites(FAV_DEFAULT.slice());
+      renderFavoritesMenu();
+    });
+  }
+  renderFavoritesMenu();
 
   // Clicks dentro del menú no deben cerrarlo (seguir abriendo paneles).
   startMenu.addEventListener("click", function (ev) {

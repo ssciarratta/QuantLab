@@ -107,7 +107,7 @@
       'autocomplete="off" spellcheck="false" /></label>' +
       "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
-      "<span class=\"muted\">Venues</span>" +
+      "<span class=\"muted\">Mercados</span>" +
       '<label><input type="checkbox" class="sc-venue-cb" value="binance" checked> Binance</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="okx"> OKX</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="bybit"> Bybit</label>' +
@@ -120,9 +120,9 @@
       '<button type="button" class="btn secondary" id="sc-export" title="Descarga JSON auditable de la última consulta">Exportar JSON</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
-      '<details class="sc-more muted"><summary>Ayuda · tandas y multi-venue</summary>' +
+      '<details class="sc-more muted"><summary>Ayuda · tandas y multi-mercado</summary>' +
       '<p id="sc-hint" style="margin:0.35rem 0 0">' +
-      "Tanda = monedas scoreadas. Multi-venue = pestaña Comparar (misma moneda, scores por venue) + ranking por mercado. " +
+      "Tanda = monedas scoreadas. Multi-mercado = pestaña Comparar (misma moneda, scores por mercado) + ranking por mercado. " +
       "A3/HL = futuros. Exportá el JSON para auditoría de terceros." +
       "</p></details>" +
       '<div id="sc-warn"></div>' +
@@ -408,7 +408,7 @@
         "border-left:3px solid var(--amber-dim,#a67c3a);" +
         'background:rgba(212,140,50,0.07);border-radius:0 6px 6px 0">' +
         '<p style="margin:0 0 0.35rem"><strong>Score ' +
-        esc(comp != null ? comp.toFixed(3) : "—") +
+        esc(comp != null ? comp.toFixed(2) : "—") +
         "</strong>" +
         (comp != null ? " (" + esc((comp * 100).toFixed(1)) + " pts)" : "") +
         (band.title ? " · " + esc(band.title) : "") +
@@ -577,7 +577,7 @@
               : s.base_score != null
                 ? Number(s.base_score)
                 : null;
-          var comp = compN != null ? compN.toFixed(3) : "—";
+          var comp = compN != null ? compN.toFixed(2) : "—";
           var pts = compN != null ? (compN * 100).toFixed(1) : "—";
           var fam =
             (s.recommendation && s.recommendation.family_label_es) ||
@@ -822,7 +822,7 @@
     }
 
     function formatScoreCell(compN, tied) {
-      var comp = compN != null ? compN.toFixed(3) : "—";
+      var comp = compN != null ? compN.toFixed(2) : "—";
       var pts = compN != null ? (compN * 100).toFixed(1) : "—";
       return (
         '<td class="mono sc-score-cell' +

@@ -88,6 +88,13 @@ def test_simulator_js_has_per_venue_coin_menu() -> None:
     assert "sim-lev-num" in js
     assert "feesManualOverride" in js
     assert "Fees del mercado" in js
+    assert "sim-run-rank" in js
+    assert "simRankStrategies" in js or "sim-run-rank" in js
+    assert "formatRankResults" in js
+    assert "uniqueCoinKeys" in js
+    assert "sim-run-status" in js
+    assert js.index("sim-out-hist") < js.index("sim-venue-picks")
+    assert "sim-strat-section" not in js
     assert "sim-strat-modal" not in js
 
 
@@ -100,6 +107,7 @@ def test_simulator_css_venues_side_by_side() -> None:
     ).read_text(encoding="utf-8")
     assert "flex-direction: row" in css
     assert ".sim-venue-picks" in css
+    assert ".sim-rank-cols" in css
     assert "pane-sim-strat-guide" in css
     assert "sim-modal-float" not in css
 

@@ -67,6 +67,19 @@
 
   <div id="start-menu" class="start-menu hidden" hidden>
     <details class="start-acc" open>
+      <summary class="start-acc-sum">Mis favoritos</summary>
+      <div class="start-acc-body" id="ql-favorites">
+        <p class="muted" style="font-size:0.72em;margin:0.2rem 0 0.35rem">
+          Arriba: los que más usás. ↑↓ para ordenar · se guarda solo.
+        </p>
+        <div id="ql-fav-list"></div>
+        <button type="button" id="ql-fav-reset" class="btn secondary" style="margin-top:0.35rem;font-size:0.72rem">
+          Restaurar favoritos (Scanner · Sim · Estrategias)
+        </button>
+      </div>
+    </details>
+
+    <details class="start-acc" open>
       <summary class="start-acc-sum" data-i18n="menu.workspaces">Espacios de trabajo</summary>
       <div class="start-acc-body">
         <button type="button" data-preset="research" data-i18n="preset.research" data-tip="Abre ventanas del layout research (Salud, Backtest, Reports, Chat).\nNo cierra las que ya tenés abiertas." data-i18n-tip="tip.preset.research">
@@ -89,7 +102,6 @@
       <summary class="start-acc-sum">Empezar aquí (lab)</summary>
       <div class="start-acc-body">
         <button type="button" data-open="guided_lab" data-i18n="pane.guided_lab" data-tip="Wizard paso a paso en UN venue (Binance).\nDescubrí, backtesteá y practicá paper/demo.\nNo compara varios exchanges a la vez." data-i18n-tip="tip.pane.guided_lab">Guided Lab</button>
-        <button type="button" data-open="simulator" data-tip="Compará varios exchanges × monedas × leverage × fees.\nMisma estrategia en paralelo.\nNo es el wizard de aprendizaje.">Simulador</button>
         <button type="button" data-open="backtest" data-i18n="pane.backtest" data-tip="Backtest técnico 5A sobre barras SINTÉTICAS del lab.\nPara debug de estrategia, no para ‘cómo operó el mercado real’." data-i18n-tip="tip.pane.backtest">Backtest</button>
         <button type="button" data-open="montecarlo" data-i18n="pane.montecarlo" data-tip="Estrés estadístico sobre un resultado ya corrido.\nNo reemplaza Guided ni Simulador." data-i18n-tip="tip.pane.montecarlo">Monte Carlo</button>
         <button type="button" data-open="chat" data-i18n="pane.chat" data-tip="Asistente IA con memoria local.\nPuede abrir paneles (sin órdenes)." data-i18n-tip="tip.pane.chat">Chat IA</button>
@@ -115,7 +127,6 @@
     <details class="start-acc">
       <summary class="start-acc-sum" data-i18n="menu.lab">Laboratorio avanzado</summary>
       <div class="start-acc-body">
-        <button type="button" data-open="scanner" data-i18n="pane.scanner" data-tip="Alpha Scanner sobre universo configurado.\nRanking de señales research." data-i18n-tip="tip.pane.scanner">Alpha Scanner</button>
         <button type="button" data-open="metrics" data-i18n="pane.metrics" data-tip="Métricas del último run (Sharpe, DD, etc.).\nVista rápida post-backtest." data-i18n-tip="tip.pane.metrics">Metrics / Último</button>
         <button type="button" data-open="reports" data-i18n="pane.reports" data-tip="Reportes e informes de experimentos.\nExportá resultados del lab." data-i18n-tip="tip.pane.reports">Reports</button>
         <button type="button" data-open="experiments" data-i18n="pane.experiments" data-tip="Registro de experimentos y variantes.\nSeguimiento de hipótesis." data-i18n-tip="tip.pane.experiments">Experiments</button>
@@ -196,6 +207,7 @@
   <script src="/static/js/panes/diagnostics.js"></script>
   <script src="/static/js/panes/guided_lab.js"></script>
   <script src="/static/js/panes/simulator.js"></script>
+  <script src="/static/js/panes/strategies.js"></script>
   <script src="/static/js/panes/chat.js"></script>
   <script src="/static/js/panes/backtest.js"></script>
   <script src="/static/js/panes/scanner.js"></script>

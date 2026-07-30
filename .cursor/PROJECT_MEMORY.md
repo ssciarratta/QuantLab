@@ -1,12 +1,14 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-29  
+**Actualizado:** 2026-07-30  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · UX compacta workbench (todas las ventanas) + Alpha Auto + Scanner/Sim densos  
-**Simulador:** Binance/OKX/Bybit/HL/A3 · **UI toolbar compacta** (ayuda/fees en `<details>`) · HL HIP-3+buscador · capital fijo|sin monto · auto-add ticker · resumen rentab%+fee/op · `applyPrefill` desde Scanner · Guías abajo + pasos/ejemplos  
-**Alpha Scanner:** `POST /api/lab/venue/scanner` · **venues[]** multi · tandas **20/30/40/50/Todas/Moneda puntual** · puntual ancla BTC/ETH/SOL · **perfil Auto** · propuesta global/por venue · **vista Comparar** · **warnings/score_status** · export JSON · chips → Simulador  
-**UX ventanas:** `win-body` wrap/pre-wrap · paneles densos (`pane-head`/`pane-toolbar`/`pane-more`) · defaults w/h ↑ Guided/Sim/Scanner/MC/Reports  
-**Roles paneles:** Guided Lab=aprender 1 flujo · Simulador=comparar venues · Alpha Scanner=ranking MD real · Backtest=velas sintéticas · MC=estrés  
+**Versión tip:** **1.01.0** · Menú favoritos + panel Estrategias + ranking ventanas WM  
+**Simulador:** comparar mercados · **sin guías embebidas** · ranking 1 moneda → ventanas WM por mercado (×/resize/letra) · `POST /api/lab/sim/rank-strategies` · labels «mercado»  
+**Estrategias:** panel propio desde menú QL (guías catálogo) · «Abrir en Simulador»  
+**Menú QL:** sección **Mis favoritos** (default Scanner→Simulador→Estrategias, ↑↓ persistido)  
+**Números UI:** `QLFmt` 2 decimales (sim + scanner scores)  
+**Alpha Scanner:** multi-mercado · puntual ancla BTC/ETH/SOL · perfil Auto · chips → Simulador  
+**Roles:** Guided=aprender · Sim=comparar mercados · Scanner=ranking MD · Estrategias=guías · Backtest=sintético · MC=estrés  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  

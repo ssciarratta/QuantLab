@@ -327,11 +327,14 @@ html {
 }
 
 .pane-simulator .sim-toolbar {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
-  gap: 0.28rem 0.4rem;
-  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: flex-end;
   margin: 0.15rem 0 0.3rem;
+  /* Evita que overflow-wrap:anywhere del win-body parta labels letra a letra */
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .pane-simulator .sim-toolbar label {
@@ -342,6 +345,12 @@ html {
   font-size: 0.68rem;
   line-height: 1.2;
   color: var(--muted, #9a9a9a);
+  min-width: 5.5rem;
+  max-width: 11rem;
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .pane-simulator .sim-toolbar label.sim-check {
@@ -349,6 +358,9 @@ html {
   align-items: center;
   gap: 0.25rem;
   padding-bottom: 0.35rem;
+  min-width: auto;
+  max-width: none;
+  white-space: nowrap;
 }
 
 .pane-simulator .sim-toolbar select,
@@ -357,13 +369,22 @@ html {
   padding: 0.2rem 0.3rem;
   min-height: 1.65rem;
   width: 100%;
+  min-width: 4.5rem;
   box-sizing: border-box;
+  white-space: normal;
+}
+
+.pane-simulator .sim-lev-lab {
+  min-width: 9rem;
+  max-width: 14rem;
+  white-space: normal;
 }
 
 .pane-simulator .sim-lev-lab .sim-lev-row {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  white-space: nowrap;
 }
 
 .pane-simulator .sim-lev-lab input[type="range"] {
@@ -378,12 +399,15 @@ html {
 
 .pane-simulator .sim-nbars {
   font-size: 0.72rem;
-  align-self: end;
+  align-self: flex-end;
   padding-bottom: 0.35rem;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
 }
 
 .pane-simulator .sim-toolbar-cap {
-  grid-template-columns: 1fr;
+  display: block;
 }
 
 .pane-simulator .sim-capital-mode {
@@ -396,6 +420,8 @@ html {
   gap: 0.35rem 0.55rem;
   align-items: center;
   font-size: 0.72rem;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .pane-simulator .sim-capital-mode legend {
@@ -412,6 +438,9 @@ html {
   font-size: 0.72rem;
   color: var(--muted, #9a9a9a);
   margin: 0;
+  white-space: nowrap;
+  min-width: auto;
+  max-width: none;
 }
 
 .pane-simulator .sim-capital-mode input[type="number"] {
@@ -421,7 +450,6 @@ html {
 }
 
 .pane-simulator .sim-toolbar-fees {
-  grid-template-columns: repeat(auto-fill, minmax(90px, max-content));
   align-items: center;
 }
 
@@ -429,6 +457,8 @@ html {
   flex-direction: row;
   align-items: center;
   gap: 0.25rem;
+  min-width: auto;
+  max-width: none;
 }
 
 .pane-simulator .sim-toolbar-fees input[type="number"] {
@@ -441,6 +471,8 @@ html {
   gap: 0.3rem;
   align-items: center;
   margin: 0.2rem 0 0.35rem;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 .pane-simulator .sim-actions label {
@@ -450,12 +482,22 @@ html {
   font-size: 0.72rem;
   color: var(--muted, #9a9a9a);
   margin: 0;
+  white-space: nowrap;
 }
 
 .pane-simulator .sim-actions select {
   font-size: 0.8rem;
   padding: 0.22rem 0.35rem;
   min-width: 10rem;
+}
+
+.pane-simulator .sim-run-status {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  font-size: 0.72rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .pane-simulator .sim-meta {
@@ -478,7 +520,33 @@ html {
 }
 
 .pane-simulator #sim-out-hist {
-  margin-top: 0.35rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.45rem;
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 0.35rem 0.4rem;
+  /* Resultado: sí puede wrap; controles no */
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.pane-simulator .sim-toolbar,
+.pane-simulator .sim-actions,
+.pane-simulator .sim-common,
+.pane-simulator .sim-capital-mode,
+.pane-simulator .sim-venue-picks {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.pane-simulator .sim-coin-chip,
+.pane-simulator .sim-coin-meta {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .sim-guide-list {
@@ -530,6 +598,88 @@ html {
   flex-wrap: wrap;
   gap: 0.45rem;
   align-items: stretch;
+}
+
+.sim-rank-cols {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: flex-start;
+  margin-top: 0.35rem;
+}
+
+.sim-rank-col {
+  flex: 1 1 14rem;
+  min-width: 12rem;
+  max-width: 22rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.35rem 0.4rem;
+}
+
+.sim-rank-h {
+  margin: 0 0 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sim-rank-table {
+  width: 100%;
+  font-size: 0.72rem;
+}
+
+.ql-fav-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0.15rem 0;
+}
+
+.ql-fav-row .ql-fav-open {
+  flex: 1 1 auto;
+  text-align: left;
+}
+
+.ql-fav-moves {
+  display: inline-flex;
+  gap: 0.1rem;
+  flex: 0 0 auto;
+}
+
+.ql-fav-moves button {
+  min-width: 1.5rem;
+  padding: 0.1rem 0.25rem;
+  font-size: 0.7rem;
+}
+
+.pane-sim-rank .sim-rank-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.75rem;
+  align-items: center;
+  margin-bottom: 0.45rem;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.pane-sim-rank .sim-rank-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.pane-sim-rank .sim-rank-font {
+  width: 7rem;
+}
+
+.pane-sim-rank .sim-rank-body {
+  overflow: auto;
+  max-height: none;
 }
 
 .sim-venue-row {

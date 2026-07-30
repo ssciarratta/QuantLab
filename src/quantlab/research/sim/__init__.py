@@ -6,6 +6,7 @@ from quantlab.research.sim.benchmark import (
     compute_benchmark,
 )
 from quantlab.research.sim.compare import run_sim_compare
+from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
 from quantlab.research.sim.costs import ExtraCost, apply_extra_costs
 from quantlab.research.sim.fee_schedules import (
     PRESETS,
@@ -56,6 +57,7 @@ __all__ = [
     "list_fee_schedules",
     "resolve_instrument",
     "run_sim_compare",
+    "run_sim_strategy_rank",
     "schedule_to_lab_fee_dict",
     "validate_trade_size",
 ]

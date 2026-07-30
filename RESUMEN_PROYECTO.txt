@@ -1,24 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-30
-Versión: 1.01.0 · Moneda puntual con score anclado
+Versión: 1.01.0 · Menú favoritos + Estrategias
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Workbench :8765 reiniciado
+- Guías fuera del Sim → panel Estrategias (menú QL)
+- Favoritos: Scanner · Simulador · Estrategias (↑↓)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Fix score=0 en moneda puntual: el min-max cross-section
-colapsaba con N=1. Ahora ancla vs BTC/ETH/SOL (no listadas)
-y muestra solo la moneda pedida. N=1 sin anclas → neutro 0.5.
+Menú QL «Mis favoritos» customizable (localStorage).
+Ranking 1 moneda abre 1 ventana WM por mercado
+(cerrar ×, resize, slider letra). Números UI → 2 dec.
 
 PRÓXIMO
 -------
-Ctrl+F5 · Moneda puntual → NEAR → Escanear · Comparar
+Ctrl+F5 · menú QL · favoritos arriba · ranking ventanas
 
 INVARIANTES
 -----------
 LIVE_BLOCKED=True · REAL=PAPER
-Score ≠ rentabilidad garantizada

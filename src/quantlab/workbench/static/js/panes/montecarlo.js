@@ -139,7 +139,7 @@
       if (v == null || initial == null || !initial) return "No disponible";
       const p = ((Number(v) - Number(initial)) / Number(initial)) * 100;
       const sign = p >= 0 ? "+" : "";
-      return sign + p.toFixed(4) + " %";
+      return sign + p.toFixed(2) + " %";
     }
 
     function pctProb(v) {

@@ -516,6 +516,9 @@
     simCompare: function (body) {
       return request("POST", "/api/lab/sim/compare", body || {});
     },
+    simRankStrategies: function (body) {
+      return request("POST", "/api/lab/sim/rank-strategies", body || {});
+    },
     simSizing: function (body) {
       return request("POST", "/api/lab/sim/sizing", body || {});
     },
