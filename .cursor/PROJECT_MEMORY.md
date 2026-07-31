@@ -2,13 +2,14 @@
 
 **Actualizado:** 2026-07-31  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Scanner typeahead moneda + preview velas  
+**Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
 **Simulador:** comparar · ranking · **memorando** · registro en «Mis simulaciones»  
 **Monte Carlo:** estrés N escenarios · **memo al terminar** · entra al mismo registro  
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Chat IA → Scanner → Simulador → Estrategias** · click **QUANTLAB**/QL · z-index fijo  
-**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` al cambiar horizonte (fix CSS hidden)  
+**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF`  
+**Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  
 **Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés (no predicción)  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
