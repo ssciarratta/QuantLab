@@ -453,6 +453,7 @@
         } catch (e) {}
       }
       if (
+        !doRegister &&
         global.QLSimRegistry &&
         typeof global.QLSimRegistry.openMemo === "function"
       ) {

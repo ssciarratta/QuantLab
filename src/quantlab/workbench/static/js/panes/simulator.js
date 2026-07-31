@@ -607,8 +607,10 @@
         );
         return;
       }
-      // Prefill horizonte MC al tope (500): 60 velas default ≠ período Comparar.
-      var nbarsHint = 500;
+            // Prefill: horizonte ~ periodo Comparar (tope 5000) + ruido estres 50 bps.
+      // Fidelidad de motor (estrategia/caja/L/funding); NO calibra el % historico.
+      var MC_MAX_BARS = 5000;
+      var nbarsHint = 60;
       var pd = Number(handoff.period_days);
       var iv = String(handoff.interval || "1h");
       if (isFinite(pd) && pd > 0) {
@@ -617,23 +619,25 @@
         else if (/^\d+h$/i.test(iv)) mins = parseInt(iv, 10) * 60;
         else if (/^\d+d$/i.test(iv)) mins = parseInt(iv, 10) * 1440;
         var est = Math.ceil((pd * 24 * 60) / mins);
-        if (isFinite(est) && est > 0) nbarsHint = Math.max(60, Math.min(500, est));
+        if (isFinite(est) && est > 0) nbarsHint = Math.max(60, Math.min(MC_MAX_BARS, est));
+      } else {
+        nbarsHint = MC_MAX_BARS;
       }
       if (global.QLShell && QLShell.open) {
         QLShell.open("montecarlo", {
           prefill: {
             sim_context: handoff,
             n_bars: nbarsHint,
+            noise_bps: 50,
             message:
-              "Estrés ligado a: " +
-              (handoff.summary_line || handoff.coin || "simulación") +
+              "Estres ligado a: " +
+              (handoff.summary_line || handoff.coin || "simulacion") +
               " · velas/esc≈" +
               nbarsHint +
-              " (tope MC; no es todo el período Comparar)",
+              " · ruido 50 bps · mismo leverage/funding que Comparar (no calibra PnL)",
           },
         });
       }
-    }
 
     function canonicalTicker(venue, id) {
       var p = productFor(venue, id);
@@ -2597,6 +2601,18 @@
       if (opts.register) {
         registerSimRun(memo, opts.summary, opts.params);
       }
+      // Tras una corrida (register): no saltar a Mis simulaciones ni al memo.
+      // Solo abrir el memorando si el usuario lo pide (botón «Ver memorando»).
+      var openMemo =
+        opts.openMemo === true || (!opts.register && opts.openMemo !== false);
+      if (!openMemo) {
+        if (opts.register) {
+          setRunStatus(
+            "listo · guardado en Mis simulaciones (panel queda detrás)"
+          );
+        }
+        return;
+      }
       if (global.QLSimRegistry && typeof global.QLSimRegistry.openMemo === "function") {
         global.QLSimRegistry.openMemo(memo, opts.params);
         setRunStatus(
@@ -2752,7 +2768,7 @@
             (d.rows || []).length +
             " filas · mercados: " +
             markets.join(", ") +
-            " · memorando abierto"
+            " · guardado en Mis simulaciones"
         );
         try {
           var cmpMemo = buildCompareMemo(d);

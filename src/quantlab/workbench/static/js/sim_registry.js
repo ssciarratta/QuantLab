@@ -871,8 +871,19 @@
     };
     list.unshift(item);
     save(list);
-    openWindow();
-    renderList();
+    // Guardar en silencio: NO abrir ni traer al frente «Mis simulaciones».
+    // El usuario se queda viendo el resultado en el panel que corrió.
+    // Si la ventana ya está abierta detrás, solo refrescar la lista.
+    if (wm && wm.windows && wm.windows.has(WIN_ID)) {
+      var rec = wm.windows.get(WIN_ID);
+      if (rec && rec.body && rec.body.firstElementChild) {
+        contentEl = rec.body.firstElementChild;
+        if (typeof contentEl.refresh === "function") contentEl.refresh();
+        else renderList();
+      } else {
+        renderList();
+      }
+    }
     syncBadge();
     return item;
   }

@@ -3537,14 +3537,15 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         ASYNC_JOB_THRESHOLD,
         CONFIRM_LARGE_THRESHOLD,
         DEFAULT_BARS,
+        DEFAULT_NOISE_BPS,
         DEFAULT_SCENARIOS,
+        SIM_LINKED_DEFAULT_NOISE_BPS,
         estimate_cost,
     )
     from quantlab.workbench.montecarlo_jobs import get_job_store
 
     n_scenarios = body.get("n_scenarios", DEFAULT_SCENARIOS)
     n_bars = body.get("n_bars", DEFAULT_BARS)
-    noise_bps = body.get("noise_bps", 10.0)
     seed = body.get("seed", 42)
     scan_id = body.get("scan_id")
     backtest_id = body.get("backtest_id")
@@ -3557,6 +3558,14 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
     async_job = body.get("async")
     estimate_only = body.get("estimate_only", False)
     sim_context_raw = body.get("sim_context")
+    if "noise_bps" in body:
+        noise_bps = body.get("noise_bps")
+    else:
+        noise_bps = (
+            SIM_LINKED_DEFAULT_NOISE_BPS
+            if isinstance(sim_context_raw, dict) and sim_context_raw
+            else DEFAULT_NOISE_BPS
+        )
 
     if not isinstance(n_scenarios, int) or isinstance(n_scenarios, bool):
         raise ApiError(400, "n_scenarios debe ser int")

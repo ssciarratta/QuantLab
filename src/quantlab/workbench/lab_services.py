@@ -2184,6 +2184,80 @@ def run_lab_optimize(
     return payload
 
 
+def _mc_sim_with_compare_overlay(
+    sim: SimulationResult,
+    *,
+    initial_cash: Decimal,
+    leverage: Decimal,
+    simulate_liquidation: bool,
+    apply_funding: bool,
+    funding_rates: Sequence[Decimal] | None,
+) -> Any:
+    """Aplica el mismo overlay post-backtest que Comparar (PnL×L, liq, funding).
+
+    No calibra el resultado hacia el % histórico: solo reutiliza el motor.
+    """
+    from types import SimpleNamespace
+
+    from quantlab.core.types.results import EquityPoint
+    from quantlab.research.sim.leverage_overlay import (
+        LeverageOverlayConfig,
+        apply_leverage_overlay,
+    )
+
+    curve = sim.equity_curve
+    if not curve:
+        return sim
+    lev = leverage if leverage >= Decimal("1") else Decimal("1")
+    # Comparar siempre pasa por overlay; a 1x sin funding es identidad.
+    if (
+        lev == Decimal("1")
+        and not (apply_funding and funding_rates)
+        and not simulate_liquidation
+    ):
+        return sim
+
+    bt_dict: dict[str, Any] = {
+        "initial_equity": str(initial_cash),
+        "final_equity": str(curve[-1].equity),
+        "equity_curve_tail": [
+            {"ts": p.timestamp.isoformat(), "equity": str(p.equity)} for p in curve
+        ],
+    }
+    rates: list[Decimal] | None = None
+    if apply_funding and funding_rates:
+        rates = list(funding_rates)[: len(curve)]
+        if len(rates) < len(curve):
+            rates = rates + [Decimal("0")] * (len(curve) - len(rates))
+
+    overlay = apply_leverage_overlay(
+        bt_dict,
+        config=LeverageOverlayConfig(
+            leverage=lev,
+            simulate_liquidation=simulate_liquidation,
+            apply_funding=apply_funding,
+        ),
+        funding_rates=rates,
+    )
+    out_curve = overlay.get("equity_curve") or []
+    new_points: list[EquityPoint] = []
+    for i, item in enumerate(out_curve):
+        if not isinstance(item, Mapping):
+            continue
+        ts = curve[i].timestamp if i < len(curve) else curve[-1].timestamp
+        new_points.append(
+            EquityPoint(timestamp=ts, equity=Decimal(str(item["equity"])))
+        )
+    if not new_points:
+        return sim
+    return SimpleNamespace(
+        equity_curve=tuple(new_points),
+        fills=sim.fills,
+        liquidated=bool(overlay.get("liquidated")),
+        total_funding=str(overlay.get("total_funding") or "0"),
+    )
+
+
 def _mc_cash_from_sim_context(
     sim_context: Mapping[str, Any],
 ) -> tuple[str, Decimal, Decimal]:
@@ -2244,7 +2318,7 @@ def _resolve_mc_from_sim_context(
 ) -> dict[str, Any]:
     """Resuelve velas + estrategia + capital desde el handoff del Simulador."""
     from quantlab.brokers.md_router import fetch_bars_for_instrument
-    from quantlab.montecarlo.limits import DEFAULT_BARS, MAX_BARS, MIN_BARS
+    from quantlab.montecarlo.limits import MAX_BARS, MIN_BARS
     from quantlab.research.sim.fee_schedules import (
         fee_model_from_schedule,
         get_fee_schedule,
@@ -2276,8 +2350,8 @@ def _resolve_mc_from_sim_context(
     interval = str(sim_context.get("interval") or "1h").strip()
     period_days = sim_context.get("period_days")
 
-    # Horizonte: la Comparar puede ser 365d; MC tiene tope MAX_BARS.
-    # Si el form trae el default corto (60), ampliar a lo que permita el tope.
+    # Horizonte: fidelidad al período Comparar (hasta MAX_BARS).
+    # No calibra el PnL histórico — solo alinea la ventana de velas.
     effective_n = max(MIN_BARS, min(int(n_bars), MAX_BARS))
     sim_bars_est: int | None = None
     horizon_warning: str | None = None
@@ -2285,20 +2359,21 @@ def _resolve_mc_from_sim_context(
         try:
             est = estimate_n_bars(period_days=period_days, interval=interval)
             sim_bars_est = int(est["n_bars"])
-            if effective_n <= DEFAULT_BARS and sim_bars_est > effective_n:
-                bumped = min(MAX_BARS, sim_bars_est)
+            target = min(MAX_BARS, max(sim_bars_est, MIN_BARS))
+            if effective_n < target:
                 horizon_warning = (
-                    f"Horizonte MC ampliado {effective_n}→{bumped} velas "
-                    f"(tope MC={MAX_BARS}). La Comparar usó ≈{sim_bars_est} "
-                    f"velas ({period_days}d × {interval}); MC NO replica "
-                    f"todo el período — estresa solo esta ventana con ruido."
+                    f"Horizonte MC alineado al período Comparar: "
+                    f"{effective_n}→{target} velas (tope {MAX_BARS}). "
+                    f"Estimado Comparar ≈{sim_bars_est} "
+                    f"({period_days}d × {interval}). "
+                    "MC estresa esa ventana con ruido; "
+                    "no calibra al % de la tabla HISTÓRICO."
                 )
-                effective_n = bumped
-            elif sim_bars_est > effective_n:
+                effective_n = target
+            elif sim_bars_est > MAX_BARS:
                 horizon_warning = (
-                    f"MC usa {effective_n} velas/{interval}; la Comparar "
-                    f"cubrió ≈{sim_bars_est}. La rentabilidad de MC no es "
-                    f"comparable 1:1 con el % de la tabla HISTÓRICO."
+                    f"Comparar ≈{sim_bars_est} velas; MC usa tope {MAX_BARS}. "
+                    "Ventana más corta que el histórico completo."
                 )
         except (ValidationError, KeyError, TypeError, ValueError):
             pass
@@ -2346,6 +2421,33 @@ def _resolve_mc_from_sim_context(
         sim_ctx_out["initial_capital"] = str(initial_cash)
     sim_ctx_out["run_cash"] = str(initial_cash)
 
+    # Mismos toggles de ejecución que Comparar (motor), sin forzar el PnL.
+    try:
+        leverage = Decimal(str(sim_context.get("leverage") or "1"))
+    except Exception:
+        leverage = Decimal("1")
+    if leverage < Decimal("1"):
+        leverage = Decimal("1")
+    if leverage > Decimal("125"):
+        leverage = Decimal("125")
+    simulate_liquidation = bool(
+        sim_context.get(
+            "liq",
+            sim_context.get("simulate_liquidation", True),
+        )
+    )
+    apply_funding = bool(
+        sim_context.get(
+            "funding",
+            sim_context.get("apply_funding", True),
+        )
+    )
+    sim_ctx_out["leverage"] = str(leverage)
+    sim_ctx_out["liq"] = simulate_liquidation
+    sim_ctx_out["funding"] = apply_funding
+    sim_ctx_out["simulate_liquidation"] = simulate_liquidation
+    sim_ctx_out["apply_funding"] = apply_funding
+
     fee_sched = get_fee_schedule(venue, market_type)
     fee_model = fee_model_from_schedule(fee_sched)
     fee_dict = schedule_to_lab_fee_dict(fee_sched)
@@ -2358,6 +2460,10 @@ def _resolve_mc_from_sim_context(
         "initial_cash": initial_cash,
         "per_trade_usd": per_trade_usd,
         "capital_mode": capital_mode,
+        "leverage": leverage,
+        "simulate_liquidation": simulate_liquidation,
+        "apply_funding": apply_funding,
+        "resolved": resolved,
         "equity_currency": "USDT",
         "fee_model": fee_model,
         "fee_dict": fee_dict,
@@ -2481,6 +2587,20 @@ def run_lab_montecarlo(
         fee_model = sim_linked["fee_model"]
         fee_dict = dict(sim_linked["fee_dict"])
         mc_strategy = sim_linked["strategy"]
+        leverage = Decimal(str(sim_linked.get("leverage") or "1"))
+        simulate_liquidation = bool(sim_linked.get("simulate_liquidation", True))
+        apply_funding = bool(sim_linked.get("apply_funding", True))
+        funding_rates: list[Decimal] | None = None
+        if apply_funding and str(sim_linked.get("market_type")) == "futures":
+            try:
+                from quantlab.brokers.md_router import fetch_funding_rates
+
+                funding_rates = fetch_funding_rates(
+                    sim_linked["resolved"],
+                    limit=len(bars),
+                )
+            except Exception:
+                funding_rates = None
         ds_hash = hash_bars(bars)
         first_bar = bars[0]
         last_bar = bars[-1]
@@ -2503,6 +2623,9 @@ def run_lab_montecarlo(
                 "origin": "simulator_sim_context",
                 "summary_line": sim_linked.get("summary_line") or "",
                 "pairs_count": sim_linked.get("pairs_count"),
+                "leverage": str(leverage),
+                "simulate_liquidation": simulate_liquidation,
+                "apply_funding": apply_funding,
             },
             seed=seed,
         )
@@ -2516,6 +2639,10 @@ def run_lab_montecarlo(
         fee_model = binance_spot_fee_model()
         fee_dict = fee_schedule.to_dict()
         mc_strategy = BuyOnceStrategy(strategy_params)
+        leverage = Decimal("1")
+        simulate_liquidation = False
+        apply_funding = False
+        funding_rates = None
         ds_hash = hash_bars(bars)
         dataset_ref = DatasetReference.from_synthetic_bars(
             bars, dataset_hash=ds_hash, seed=seed
@@ -2524,7 +2651,7 @@ def run_lab_montecarlo(
     fee_totals: list[float] = []
     fill_counts: list[int] = []
 
-    def runner(noisy: Any) -> SimulationResult:
+    def runner(noisy: Any) -> Any:
         if hasattr(mc_strategy, "reset"):
             try:
                 mc_strategy.reset()
@@ -2538,6 +2665,15 @@ def run_lab_montecarlo(
         n_f = len(sim.fills)
         fill_counts.append(n_f)
         fee_totals.append(sum(float(f.fee.amount) for f in sim.fills))
+        if sim_linked is not None:
+            return _mc_sim_with_compare_overlay(
+                sim,
+                initial_cash=initial_cash,
+                leverage=leverage,
+                simulate_liquidation=simulate_liquidation,
+                apply_funding=apply_funding,
+                funding_rates=funding_rates,
+            )
         return sim
 
     cfg = MonteCarloConfig(
@@ -2620,6 +2756,11 @@ def run_lab_montecarlo(
             else None
         )
         ctx_dict["run_cash"] = str(sim_linked["initial_cash"])
+        ctx_dict["leverage"] = str(sim_linked.get("leverage") or "1")
+        ctx_dict["simulate_liquidation"] = bool(
+            sim_linked.get("simulate_liquidation", True)
+        )
+        ctx_dict["apply_funding"] = bool(sim_linked.get("apply_funding", True))
         if sim_linked.get("horizon_warning"):
             ctx_dict["horizon_warning"] = sim_linked["horizon_warning"]
         if sim_linked.get("sim_bars_estimate") is not None:
@@ -2803,6 +2944,11 @@ def run_lab_montecarlo(
             else None
         )
         ctx_out["run_cash"] = str(sim_linked["initial_cash"])
+        ctx_out["leverage"] = str(sim_linked.get("leverage") or "1")
+        ctx_out["simulate_liquidation"] = bool(
+            sim_linked.get("simulate_liquidation", True)
+        )
+        ctx_out["apply_funding"] = bool(sim_linked.get("apply_funding", True))
         if sim_linked.get("horizon_warning"):
             ctx_out["horizon_warning"] = sim_linked["horizon_warning"]
         if sim_linked.get("sim_bars_estimate") is not None:

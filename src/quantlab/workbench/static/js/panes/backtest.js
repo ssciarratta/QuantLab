@@ -526,7 +526,11 @@
           });
         } catch (e) {}
       }
-      if (global.QLSimRegistry && typeof global.QLSimRegistry.openMemo === "function") {
+      if (
+        !doRegister &&
+        global.QLSimRegistry &&
+        typeof global.QLSimRegistry.openMemo === "function"
+      ) {
         global.QLSimRegistry.openMemo(memo, params);
       }
     }

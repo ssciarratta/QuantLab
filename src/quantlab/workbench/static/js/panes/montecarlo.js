@@ -33,8 +33,8 @@
       '<label title="Cantidad de escenarios independientes">Escenarios' +
       '<input id="mc-n" type="number" value="1000" min="2" max="1000000" step="1" /></label>' +
       '<label title="Velas perturbadas por escenario">Velas/esc.' +
-      '<input id="mc-bars" type="number" value="60" min="8" max="500" /></label>' +
-      '<label title="10 bps = 0,10 %">Ruido bps' +
+      '<input id="mc-bars" type="number" value="60" min="8" max="5000" /></label>' +
+      '<label title="50 bps = 0,50 % estrés ligado; 10 = micro-ruido">Ruido bps' +
       '<input id="mc-noise" type="number" value="10" min="0" max="500" step="1" /></label>' +
       '<label title="Misma seed = mismo resultado">Seed' +
       '<input id="mc-seed" type="number" value="42" /></label>' +
@@ -179,7 +179,9 @@
             })
             .join(", ") || "—"),
         "",
-        "Monte Carlo usará la moneda, estrategia, capital y por-trade de arriba (velas reales + ruido).",
+        "Monte Carlo re-ejecuta ESA estrategia (mismo capital, leverage, funding/liq) sobre velas reales + ruido.
+" +
+        "No calibra el resultado para igualar el % de Comparar.",
         "",
         "¿Confirmás correr con estos parámetros?",
       ];
@@ -365,9 +367,12 @@
       return Math.max(2, Math.min(1000000, Math.trunc(n)));
     }
 
+    var MC_MAX_BARS = 5000;
+    var SIM_LINKED_NOISE = 50;
+
     function clampBars(n) {
       if (!isFinite(n)) return 60;
-      return Math.max(8, Math.min(500, Math.trunc(n)));
+      return Math.max(8, Math.min(MC_MAX_BARS, Math.trunc(n)));
     }
 
     function readScenarios() {
@@ -1195,7 +1200,12 @@
           });
         } catch (e) {}
       }
-      if (global.QLSimRegistry && typeof global.QLSimRegistry.openMemo === "function") {
+      // Tras corrida: solo guardar. Abrir memo solo si el usuario lo pide.
+      if (
+        !doRegister &&
+        global.QLSimRegistry &&
+        typeof global.QLSimRegistry.openMemo === "function"
+      ) {
         global.QLSimRegistry.openMemo(memo, params);
       }
     }
@@ -1755,8 +1765,9 @@
         const p = focus.prefill;
         if (p.sim_context) setSimContext(p.sim_context, { clearLabIds: true });
         if (p.n_scenarios != null) setScenarios(p.n_scenarios);
-        if (p.n_bars != null) root.querySelector("#mc-bars").value = p.n_bars;
+        if (p.n_bars != null) root.querySelector("#mc-bars").value = String(clampBars(p.n_bars));
         if (p.noise_bps != null) root.querySelector("#mc-noise").value = p.noise_bps;
+        else if (p.sim_context) root.querySelector("#mc-noise").value = String(SIM_LINKED_NOISE);
         if (p.seed != null) root.querySelector("#mc-seed").value = p.seed;
         if (!p.sim_context) {
           if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
@@ -1777,8 +1788,15 @@
       if (!prefill || typeof prefill !== "object") return;
       if (prefill.sim_context) setSimContext(prefill.sim_context, { clearLabIds: true });
       if (prefill.n_scenarios != null) setScenarios(prefill.n_scenarios);
-      if (prefill.n_bars != null) root.querySelector("#mc-bars").value = prefill.n_bars;
-      if (prefill.noise_bps != null) root.querySelector("#mc-noise").value = prefill.noise_bps;
+      if (prefill.n_bars != null) {
+        root.querySelector("#mc-bars").value = String(clampBars(prefill.n_bars));
+      }
+      if (prefill.noise_bps != null) {
+        root.querySelector("#mc-noise").value = prefill.noise_bps;
+      } else if (prefill.sim_context) {
+        // Estrés real al ligar Sim (no micro-ruido 10). No calibra PnL.
+        root.querySelector("#mc-noise").value = String(SIM_LINKED_NOISE);
+      }
       if (prefill.seed != null) root.querySelector("#mc-seed").value = prefill.seed;
       // Solo aplicar scan/bt si NO viene sim_context (evita residuo TRXUSDT de Guided Lab)
       if (!prefill.sim_context) {

@@ -1,21 +1,22 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · MC hereda capital del Sim
+Versión: 1.01.0 · MC fidelidad Comparar
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Monte Carlo ligado al Sim: capital fijo (ej. 100) + por trade (ej. 2)
-  se congelan de la Comparar y NO caen al piso lab 10.000
-- Banner/confirm MC muestran capital · por trade
-- Barra avance + ⏳ en corridas largas
+- Monte Carlo ligado al Sim (fidelidad de motor, NO calibra PnL):
+  · horizonte ≈ período Comparar (tope 5000 velas)
+  · ruido default 50 bps (estrés)
+  · mismo leverage + funding + liq que Comparar
+- Mis simulaciones queda detrás al terminar corridas
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 · reiniciar Workbench :8765
-Sim: capital 100 · por trade 2 → Comparar → Monte Carlo
-Confirmá: Capital inicial = 100 (no 10.000)
+Ctrl+F5 · reiniciar Workbench
+Sim 100/2 → Comparar → Monte Carlo
+Confirmá: velas≈período · ruido 50 · media ya no “plana” por x1/500velas/10bps
 
 INVARIANTES
 -----------

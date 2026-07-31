@@ -16,6 +16,13 @@ def test_sim_registry_is_wm_window() -> None:
     assert 'WIN_ID = "sim_registry"' in js
     assert "pane-sim-registry" in js
     assert "ql_sim_registry_v1" in js
+    # add() guarda en silencio: no debe forzar openWindow / bringToFront
+    add_idx = js.find("function add(entry)")
+    assert add_idx > 0
+    add_chunk = js[add_idx : add_idx + 900]
+    assert "openWindow()" not in add_chunk
+    assert "bringToFront" not in add_chunk
+    assert "NO abrir" in add_chunk or "silencio" in add_chunk.lower()
 
 
 def test_shell_opens_sim_registry() -> None:
