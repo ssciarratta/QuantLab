@@ -1042,18 +1042,37 @@
         VENUES.forEach(function (vid) {
           selectedByVenue[vid] = [];
           venueEnabled[vid] = false;
+          searchByVenue[vid] = "";
         });
+        var restored = 0;
         p.pairs.forEach(function (pair) {
-          if (!pair || !pair.venue || !pair.underlying) return;
+          if (!pair || !pair.venue) return;
+          var raw = pair.underlying || pair.ticker;
+          if (!raw) return;
           var cid =
-            findProductIdByTicker(pair.venue, pair.underlying) ||
-            pair.underlying;
-          addProductToVenue(pair.venue, cid, false);
+            findProductIdByTicker(pair.venue, raw) ||
+            (pair.ticker ? findProductIdByTicker(pair.venue, pair.ticker) : null) ||
+            raw;
+          if (addProductToVenue(pair.venue, cid, false)) restored += 1;
+          else if ((selectedByVenue[pair.venue] || []).indexOf(cid) >= 0) {
+            restored += 1;
+          }
+          venueEnabled[pair.venue] = true;
         });
         renderVenuePicks();
         applyFeePreset();
         refreshSizing();
         syncRankButton();
+        syncMcSelHint();
+        showTab("comparar");
+        setRunStatus(
+          restored
+            ? "reabierto · " +
+                restored +
+                " par(es) · listo para Comparar / Monte Carlo"
+            : "reabierto · params de form (sin pares coincidentes en catálogo)",
+          !restored
+        );
         pendingPrefill = null;
         return;
       }

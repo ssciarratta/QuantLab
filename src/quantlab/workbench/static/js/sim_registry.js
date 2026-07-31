@@ -162,37 +162,98 @@
     params = params || {};
     var meta = params.meta || {};
     var common = params.common || {};
+    var ctx = params.sim_context && typeof params.sim_context === "object"
+      ? params.sim_context
+      : {};
     function pick() {
       for (var i = 0; i < arguments.length; i++) {
         if (arguments[i] != null && arguments[i] !== "") return arguments[i];
       }
       return null;
     }
+    var pairs = [];
+    if (Array.isArray(params.pairs) && params.pairs.length) {
+      pairs = params.pairs.slice();
+    } else if (Array.isArray(ctx.pairs) && ctx.pairs.length) {
+      pairs = ctx.pairs.map(function (p) {
+        return {
+          venue: p.venue,
+          underlying: p.underlying || p.ticker,
+          ticker: p.ticker || p.underlying,
+        };
+      });
+    }
     var prefill = {
-      kind: params.kind || "compare",
-      market_type: pick(meta.market_type, common.market_type, params.market_type),
-      interval: pick(meta.interval, common.interval, params.interval),
-      period_days: pick(meta.period_days, common.period_days, params.period_days),
-      leverage: pick(meta.leverage, common.leverage, params.leverage),
-      capital_mode: pick(meta.capital_mode, common.capital_mode, params.capital_mode),
+      kind: params.kind || ctx.kind || "compare",
+      market_type: pick(
+        meta.market_type,
+        common.market_type,
+        params.market_type,
+        ctx.market_type
+      ),
+      interval: pick(meta.interval, common.interval, params.interval, ctx.interval),
+      period_days: pick(
+        meta.period_days,
+        common.period_days,
+        params.period_days,
+        ctx.period_days
+      ),
+      leverage: pick(meta.leverage, common.leverage, params.leverage, ctx.leverage),
+      capital_mode: pick(
+        meta.capital_mode,
+        common.capital_mode,
+        params.capital_mode,
+        ctx.capital_mode
+      ),
       initial_capital: pick(
         meta.initial_capital,
         common.initial_capital,
-        params.initial_capital
+        params.initial_capital,
+        ctx.initial_capital
       ),
-      per_trade_usd: pick(meta.per_trade_usd, common.per_trade_usd, params.per_trade_usd),
-      bench_pct: pick(meta.bench_pct, params.bench_pct),
+      per_trade_usd: pick(
+        meta.per_trade_usd,
+        common.per_trade_usd,
+        params.per_trade_usd,
+        ctx.per_trade_usd
+      ),
+      bench_pct: pick(meta.bench_pct, params.bench_pct, ctx.bench_pct),
       annual_bench_rate: pick(common.annual_bench_rate, params.annual_bench_rate),
-      liq: pick(meta.liq, common.simulate_liquidation, params.liq),
-      funding: pick(meta.funding, common.apply_funding, params.funding),
-      strategy_id: pick(params.strategy_id, common.strategy_id),
-      pairs: Array.isArray(params.pairs) ? params.pairs.slice() : [],
+      liq: pick(meta.liq, common.simulate_liquidation, params.liq, ctx.liq),
+      funding: pick(meta.funding, common.apply_funding, params.funding, ctx.funding),
+      strategy_id: pick(
+        params.strategy_id,
+        common.strategy_id,
+        ctx.strategy_id
+      ),
+      pairs: pairs,
+      _from_registry: true,
     };
     if ((!prefill.pairs || !prefill.pairs.length) && params.venue && params.underlying) {
       prefill.venue = params.venue;
       prefill.underlying = params.underlying;
     }
     return prefill;
+  }
+
+  function focusPane(paneId) {
+    try {
+      var wm = getWm();
+      if (!wm) return;
+      if (wm.windows && wm.windows.has(paneId)) {
+        var rec = wm.windows.get(paneId);
+        if (
+          rec &&
+          rec.el &&
+          rec.el.classList.contains("minimized") &&
+          typeof wm.restore === "function"
+        ) {
+          wm.restore(paneId);
+        }
+        if (typeof wm.focus === "function") wm.focus(paneId);
+        if (typeof wm.bringToFront === "function") wm.bringToFront(paneId);
+      }
+    } catch (e) {}
   }
 
   /**
@@ -209,12 +270,32 @@
       return;
     }
     if (kind === "montecarlo") {
-      global.QLShell.open("montecarlo", { prefill: params });
+      var mcPrefill = {
+        n_scenarios: params.n_scenarios,
+        n_bars: params.n_bars,
+        noise_bps: params.noise_bps,
+        seed: params.seed,
+        scan_id: params.scan_id,
+        backtest_id: params.backtest_id,
+        store_paths: params.store_paths,
+        sim_context: params.sim_context || null,
+        message:
+          "Reabierto desde Mis simulaciones · " +
+          (entry.title || "Monte Carlo"),
+      };
+      global.QLShell.open("montecarlo", { prefill: mcPrefill });
+      focusPane("montecarlo");
       return;
     }
-    global.QLShell.open("simulator", {
-      prefill: buildSimulatorPrefill(params),
-    });
+    var prefill = buildSimulatorPrefill(params);
+    if ((!prefill.pairs || !prefill.pairs.length) && !prefill.venue) {
+      window.alert(
+        "Esta entrada no tiene mercado/moneda guardados.\n" +
+          "Abrí el memorando o volvé a correr Comparar/Ranking."
+      );
+    }
+    global.QLShell.open("simulator", { prefill: prefill });
+    focusPane("simulator");
   }
 
   function renderList() {

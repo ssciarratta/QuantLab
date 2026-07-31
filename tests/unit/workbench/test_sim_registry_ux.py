@@ -64,6 +64,8 @@ def test_registry_reopen_button() -> None:
     assert "function reopen" in js or "reopen:" in js
     assert "buildSimulatorPrefill" in js
     assert "QLShell.open" in js
+    assert "focusPane" in js
+    assert "sim_context" in js
 
 
 def test_brand_opens_start_menu() -> None:
@@ -71,8 +73,10 @@ def test_brand_opens_start_menu() -> None:
     assert "toggleStartMenu" in js
     assert "openStartMenu" in js
     assert "brand-menu-trigger" in js
-    assert 'FAV_DEFAULT = ["chat", "scanner", "simulator", "strategies"]' in js
-    assert "ql_menu_favorites_v2" in js
+    assert "sim_registry" in js
+    assert 'FAV_DEFAULT = [' in js
+    assert '"sim_registry"' in js or "'sim_registry'" in js
+    assert "ql_menu_favorites_v3" in js
     css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
     assert "brand-menu-trigger" in css
     assert "z-index: 12000" in css

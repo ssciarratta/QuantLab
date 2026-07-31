@@ -8,7 +8,7 @@
 **Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`  
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  
 **Estrategias:** panel propio · «Abrir en Simulador»  
-**Menú QL:** favoritos **Chat IA → Scanner → Simulador → Estrategias** · click **QUANTLAB**/QL · z-index fijo  
+**Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  
 **Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF`  
 **Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  

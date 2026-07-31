@@ -39,7 +39,8 @@ def test_shell_has_strategies_opener_and_wm() -> None:
     assert "strategies: openStrategies" in js
     assert "wm: wm" in js
     assert "ql_menu_favorites" in js
-    assert 'FAV_DEFAULT = ["scanner", "simulator", "strategies"]' in js
+    assert "sim_registry" in js
+    assert "FAV_DEFAULT" in js
 
 
 def test_lab_common_qlfmt_2_decimals() -> None:

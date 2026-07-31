@@ -1,23 +1,18 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · MC ≠ Comparar (horizonte)
+Versión: 1.01.0 · Mis sims arriba + Reabrir al frente
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Comparar 365d × 5m ≠ MC default 60 velas (por eso equity plana)
-- Al abrir MC desde Sim: sube velas al tope 500 + aviso en memo
-
-ÚLTIMA
-------
-Media 10.000 / std 0 = sin trades en ventana corta.
-MC ahora amplía horizonte y explica que no replica el % HISTÓRICO.
+- Menú QL: Mis simulaciones → Chat IA → …
+- Reabrir: restaura params y trae Sim/MC al frente
 
 CÓMO PROBAR
 -----------
-Reiniciar WB + Ctrl+F5 · Comparar → Monte Carlo con esta corrida
-Ver avisos de horizonte · velas/esc ≈ 500
+Ctrl+F5 · menú QL: Mis simulaciones primero
+Reabrir una corrida → Simulador/MC delante · status «reabierto»
 
 INVARIANTES
 -----------

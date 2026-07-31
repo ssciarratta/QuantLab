@@ -926,9 +926,19 @@
   }
 
   // —— Favoritos del menú QL (orden custom, persistido) ——
-  var FAV_STORAGE_KEY = "ql_menu_favorites_v2";
-  var FAV_DEFAULT = ["chat", "scanner", "simulator", "strategies"];
+  var FAV_STORAGE_KEY = "ql_menu_favorites_v3";
+  var FAV_DEFAULT = [
+    "sim_registry",
+    "chat",
+    "scanner",
+    "simulator",
+    "strategies",
+  ];
   var FAV_META = {
+    sim_registry: {
+      label: "Mis simulaciones",
+      tip: "Historial Comparar / Ranking / Monte Carlo.",
+    },
     chat: { label: "Chat IA", tip: "Asistente research." },
     scanner: {
       label: "Alpha Scanner",
@@ -951,16 +961,22 @@
     try {
       var raw = localStorage.getItem(FAV_STORAGE_KEY);
       if (!raw) {
-        /* migrar v1 si existía, anteponiendo Chat IA */
-        var legacy = localStorage.getItem("ql_menu_favorites");
+        /* migrar v2 / v1 */
+        var legacy =
+          localStorage.getItem("ql_menu_favorites_v2") ||
+          localStorage.getItem("ql_menu_favorites");
         if (legacy) {
           var old = JSON.parse(legacy);
           if (Array.isArray(old) && old.length) {
             var merged = old.filter(function (id) {
               return !!openers[id];
             });
+            if (merged.indexOf("sim_registry") < 0 && openers.sim_registry) {
+              merged.unshift("sim_registry");
+            }
             if (merged.indexOf("chat") < 0 && openers.chat) {
-              merged.unshift("chat");
+              var sri = merged.indexOf("sim_registry");
+              merged.splice(sri >= 0 ? sri + 1 : 0, 0, "chat");
             }
             if (merged.length) {
               saveFavorites(merged);
@@ -971,9 +987,14 @@
       } else {
         var arr = JSON.parse(raw);
         if (Array.isArray(arr) && arr.length) {
-          return arr.filter(function (id) {
+          var filtered = arr.filter(function (id) {
             return !!openers[id];
           });
+          if (filtered.indexOf("sim_registry") < 0 && openers.sim_registry) {
+            filtered.unshift("sim_registry");
+            saveFavorites(filtered);
+          }
+          return filtered;
         }
       }
     } catch (e) {}
