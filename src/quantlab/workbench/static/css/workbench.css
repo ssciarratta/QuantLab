@@ -944,7 +944,23 @@ html {
   min-width: 0;
   max-width: 100%;
   font-size: 0.75rem;
-  min-height: 7.5rem;
+  min-height: 6rem;
+}
+
+.sim-coin-select[hidden] {
+  display: none !important;
+}
+
+.sim-mc-from-sel {
+  margin: 0.55rem 0 0.35rem;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.sim-mc-from-sel #sim-open-mc-sel:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .sim-coin-meta {

@@ -3,7 +3,7 @@
 **Actualizado:** 2026-07-31  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
-**Simulador:** comparar · ranking · **memorando** · registro en «Mis simulaciones»  
+**Simulador:** comparar · ranking · **sin monedas default** · búsqueda on-demand · botón **MC con esta selección** · memo · registro  
 **Monte Carlo:** estrés N escenarios · **ligado de verdad al Sim** (confirm + velas reales + strategy_id) · mode=`sim_linked` · memo CONTEXTO ORIGEN  
 **Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`  
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  

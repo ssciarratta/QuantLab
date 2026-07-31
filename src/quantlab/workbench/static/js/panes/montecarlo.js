@@ -734,11 +734,13 @@
         row("Scan origen", na(scanId)) +
         row("run_id", na(data && data.run_id)) +
         row("schema", na(data && data.schema_version)) +
-        (ctx.orphan_technical_mode
+        (ctx.orphan_technical_mode && !ctx.sim_linked && !simContext
           ? '<p class="status-bad" style="margin-top:0.4rem">' +
             esc(ctx.orphan_warning || "Modo técnico huérfano") +
             "</p>"
-          : "");
+          : ctx.sim_linked || simContext
+            ? '<p class="status-ok" style="margin-top:0.4rem">Ligado al Simulador · no es modo huérfano</p>'
+            : "");
       updateNavButtons(data);
     }
 
@@ -1406,11 +1408,16 @@
         backtest_id: ctx ? null : bt || null,
         store_paths: storePaths,
         confirm_large: !!confirmLarge,
-        mode: ctx ? "sim_linked" : bt ? "normal" : "technical_lab",
+        mode: ctx ? "technical_lab" : bt ? "normal" : "technical_lab",
         max_persisted_trajectories: MAX_TRAJECTORIES,
       };
       if (sid) body.strategy_id = sid;
-      if (ctx) body.sim_context = ctx;
+      if (ctx) {
+        body.sim_context = ctx;
+        // El backend fuerza mode=sim_linked al ver sim_context.
+        // No mandar "sim_linked" en el wire: evita 400 si el proceso
+        // Workbench no se reinició aún (validación vieja solo lab/normal).
+      }
       if (asyncFlag) body.async = true;
       return body;
     }

@@ -1,32 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · MC ligado de verdad al Simulador
+Versión: 1.01.0 · Simulador: búsqueda monedas + MC selección
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Monte Carlo: confirma moneda/estrategia/params antes de correr
-- Motor: con sim_context usa velas reales + strategy_id del Sim (no WB:SYN)
-- Memo: CONTEXTO ORIGEN arriba · mode=sim_linked
+- Simulador: sin BTC/ETH por defecto · lista oculta hasta escribir
+- Botón «Monte Carlo con esta selección» bajo mercados/monedas
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Antes el banner era cosmético y el POST seguía en demo sintético.
-Ahora: confirm dialog + POST con sim_context + runner real sobre el activo.
+Al abrir Simulador no hay monedas ni mercados premarcados.
+Escribís apt/BTC/… y recién ahí aparece la lista.
+Botón al final abre MC con mercado+moneda+params actuales.
 
 CÓMO PROBAR
 -----------
-1. Ctrl+F5 / reiniciar Workbench
-2. Simulador: moneda + mercados + estrategia → Comparar (o Ranking)
-3. Botón «Monte Carlo» (no abrir MC suelto con backtest TRX viejo)
-4. Al Simular: diálogo con moneda/estrategia/params → Confirmar
-5. Memo debe decir CONTEXTO ORIGEN (SIMULADOR) y mode=sim_linked
-6. Contexto: símbolo real, no WB:SYN / BuyOnce
-
-PRÓXIMO
--------
-Si multi-par: hoy MC estresa el primer par del handoff (resto en contexto)
+Ctrl+F5 · Simulador vacío · tildá Binance · escribí «apt» · Agregar
+→ «Monte Carlo con esta selección»
 
 INVARIANTES
 -----------

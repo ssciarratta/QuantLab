@@ -37,6 +37,6 @@ def test_montecarlo_confirms_identity_before_run() -> None:
     assert "confirmRunIdentity" in js
     assert "formatConfirmIdentity" in js
     assert "Vas a estresar ESTA simulación" in js
-    assert 'body.sim_context = ctx' in js or "body.sim_context = ctx" in js
-    assert 'mode: ctx ? "sim_linked"' in js
+    assert "body.sim_context = ctx" in js or "body.sim_context = ctx" in js
+    assert "sim_context" in js
     assert "getSimHandoff" in (STATIC / "js/shell.js").read_text(encoding="utf-8")

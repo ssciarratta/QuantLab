@@ -194,8 +194,14 @@
       '<span class="mono muted sim-run-status" id="sim-run-status">—</span>' +
       "</div>" +
       '<div class="mono" id="sim-out-hist">—</div>' +
-      '<p class="muted sim-meta">Mercados y monedas · agregá con «+» · al tildar otro mercado se copia la misma moneda</p>' +
+      '<p class="muted sim-meta">Mercados y monedas · escribí para buscar · Agregar · al tildar otro mercado se copia la misma moneda</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
+      '<div class="sim-actions sim-mc-from-sel">' +
+      '<button type="button" class="btn" id="sim-open-mc-sel" ' +
+      'title="Abre Monte Carlo con el mercado, moneda y params actuales del Simulador">' +
+      "Monte Carlo con esta selección</button>" +
+      '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda arriba</span>' +
+      "</div>" +
       '<div class="sim-actions sim-shortcuts">' +
       '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
       '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button>' +
@@ -223,7 +229,7 @@
     var lastSimHandoff = null;
     /** @type {Object.<string, boolean>} */
     var venueEnabled = {
-      binance: true,
+      binance: false,
       okx: false,
       bybit: false,
       hyperliquid: false,
@@ -324,13 +330,14 @@
           var q = searchByVenue[vid] || "";
           var plist = filteredProducts(vid);
           if (!selectedByVenue[vid]) {
-            selectedByVenue[vid] =
-              vid === "binance" ? ["BTC", "ETH"] : [];
+            selectedByVenue[vid] = [];
           }
           if (venueEnabled[vid] == null) {
-            venueEnabled[vid] = selectedByVenue[vid].length > 0;
+            venueEnabled[vid] = false;
           }
           var checked = !!venueEnabled[vid];
+          var qTrim = String(q || "").trim();
+          var listOpen = checked && qTrim.length > 0;
           var chips = (selectedByVenue[vid] || [])
             .map(function (cid) {
               var p = productFor(vid, cid);
@@ -361,18 +368,19 @@
             .join(" ");
           var searchPh =
             vid === "hyperliquid"
-              ? "Buscar: petróleo, oro, GOLD, trigo…"
+              ? "Escribí: petróleo, oro, GOLD…"
               : vid === "a3"
-                ? "Buscar: soja, maíz, trigo…"
-                : "Buscar moneda / ticker…";
-          var countTxt =
-            (q
-              ? plist.length + " / " + allList.length
-              : String(allList.length)) + " productos";
+                ? "Escribí: soja, maíz, trigo…"
+                : "Escribí moneda o símbolo (apt, BTC…)";
+          var countTxt = !checked
+            ? "tildá el mercado para buscar"
+            : !listOpen
+              ? "escribí para buscar · catálogo " + allList.length
+              : plist.length + " / " + allList.length + " coincidencias";
           var kindHint = "";
-          if (vid === "hyperliquid" && allList.length) {
+          if (vid === "hyperliquid" && allList.length && listOpen) {
             var kinds = {};
-            allList.forEach(function (p) {
+            plist.forEach(function (p) {
               var k = p.asset_kind || "otro";
               kinds[k] = (kinds[k] || 0) + 1;
             });
@@ -409,11 +417,12 @@
             esc(q) +
             '"' +
             (checked ? "" : " disabled") +
-            ">" +
+            ' autocomplete="off">' +
             '<select class="sim-coin-select" data-venue="' +
             esc(vid) +
-            '" size="7"' +
+            '" size="6"' +
             (checked ? "" : " disabled") +
+            (listOpen ? "" : " hidden") +
             ">" +
             (plist.length
               ? optionsHtmlForVenue(vid, plist)
@@ -425,7 +434,7 @@
             '<button type="button" class="btn secondary sim-coin-add" data-venue="' +
             esc(vid) +
             '"' +
-            (checked ? "" : " disabled") +
+            (checked && listOpen ? "" : " disabled") +
             ">Agregar</button>" +
             "</div>" +
             '<div class="sim-coin-chips" data-venue="' +
@@ -445,26 +454,35 @@
           var meta = box.querySelector(
             '.sim-venue-row[data-venue="' + vid + '"] .sim-coin-meta'
           );
+          var addBtn = box.querySelector('.sim-coin-add[data-venue="' + vid + '"]');
           var allList = sortByLabel(productsByVenue[vid] || coinsCache || []);
+          var qTrim = String(searchByVenue[vid] || "").trim();
           var plist = filteredProducts(vid);
           if (sel) {
-            sel.innerHTML = plist.length
-              ? optionsHtmlForVenue(vid, plist)
-              : '<option value="">(sin coincidencias)</option>';
+            if (!qTrim) {
+              sel.hidden = true;
+              sel.innerHTML = "";
+            } else {
+              sel.hidden = false;
+              sel.innerHTML = plist.length
+                ? optionsHtmlForVenue(vid, plist)
+                : '<option value="">(sin coincidencias)</option>';
+            }
           }
+          if (addBtn) addBtn.disabled = !qTrim;
           if (meta) {
-            meta.textContent =
-              (searchByVenue[vid]
-                ? plist.length + " / " + allList.length
-                : String(allList.length)) + " productos";
+            meta.textContent = !qTrim
+              ? "escribí para buscar · catálogo " + allList.length
+              : plist.length + " / " + allList.length + " coincidencias";
           }
+          syncMcSelHint();
         });
         inp.addEventListener("keydown", function (ev) {
           if (ev.key === "Enter") {
             ev.preventDefault();
             var vid = inp.getAttribute("data-venue");
             var add = box.querySelector('.sim-coin-add[data-venue="' + vid + '"]');
-            if (add) add.click();
+            if (add && !add.disabled) add.click();
           }
         });
       });
@@ -516,6 +534,60 @@
         });
       });
       syncRankButton();
+      syncMcSelHint();
+    }
+
+    function syncMcSelHint() {
+      var hint = root.querySelector("#sim-mc-sel-hint");
+      var btn = root.querySelector("#sim-open-mc-sel");
+      var pairs = collectPairs();
+      var label =
+        pairs.length > 0
+          ? pairs
+              .map(function (p) {
+                return (p.venue || "?") + "/" + (p.underlying || "?");
+              })
+              .join(", ")
+          : "";
+      if (hint) {
+        hint.textContent = label
+          ? "Listo · " + label
+          : "Elegí mercado + moneda arriba";
+      }
+      if (btn) {
+        btn.disabled = pairs.length === 0;
+        btn.title = label
+          ? "Monte Carlo ligado a: " + label
+          : "Elegí al menos un mercado y una moneda";
+      }
+    }
+
+    function openMonteCarloFromSelection() {
+      var prep = preparePairsForRun();
+      var sid =
+        (root.querySelector("#sim-strat-hist") &&
+          root.querySelector("#sim-strat-hist").value) ||
+        "";
+      var handoff = buildSimHandoff("compare", prep.pairs, {
+        strategy_id: sid,
+      });
+      if (!handoff.pairs || !handoff.pairs.length) {
+        window.alert(
+          "Elegí al menos un mercado y una moneda en el Simulador antes de abrir Monte Carlo.\n" +
+            "Así el estrés queda ligado a esa selección (no «al aire»)."
+        );
+        return;
+      }
+      if (global.QLShell && QLShell.open) {
+        QLShell.open("montecarlo", {
+          prefill: {
+            sim_context: handoff,
+            message:
+              "Estrés ligado a: " +
+              (handoff.summary_line || handoff.coin || "simulación"),
+          },
+        });
+      }
     }
 
     function canonicalTicker(venue, id) {
@@ -2680,34 +2752,15 @@
     root.querySelector("#sim-strat-info").addEventListener("click", function () {
       openStrategyGuide(root.querySelector("#sim-strat-hist").value);
     });
-    root.querySelector("#sim-open-mc").addEventListener("click", function () {
-      var prep = preparePairsForRun();
-      var handoff =
-        lastSimHandoff ||
-        buildSimHandoff("compare", prep.pairs, {
-          strategy_id:
-            (root.querySelector("#sim-strat-hist") &&
-              root.querySelector("#sim-strat-hist").value) ||
-            "",
-        });
-      if (!handoff.pairs || !handoff.pairs.length) {
-        window.alert(
-          "Elegí al menos un mercado y una moneda en el Simulador antes de abrir Monte Carlo.\n" +
-            "Así el estrés queda ligado a esa simulación (no «al aire»)."
-        );
-        return;
-      }
-      if (global.QLShell && QLShell.open) {
-        QLShell.open("montecarlo", {
-          prefill: {
-            sim_context: handoff,
-            message:
-              "Estrés ligado a: " +
-              (handoff.summary_line || handoff.coin || "simulación"),
-          },
-        });
-      }
-    });
+    function bindOpenMc(el) {
+      if (!el) return;
+      el.addEventListener("click", function () {
+        openMonteCarloFromSelection();
+      });
+    }
+    bindOpenMc(root.querySelector("#sim-open-mc"));
+    bindOpenMc(root.querySelector("#sim-open-mc-sel"));
+    syncMcSelHint();
 
     root.getSimHandoff = function () {
       return lastSimHandoff || buildSimHandoff("compare", collectPairs(), {});
