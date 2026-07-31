@@ -98,6 +98,8 @@
       sugBox.appendChild(b);
     });
 
+    var gateHandle = null;
+
     function setBusy(on) {
       busy = !!on;
       sendBtn.disabled = busy;
@@ -108,6 +110,12 @@
       } else {
         statusEl.hidden = true;
         statusEl.textContent = "";
+        if (gateHandle) {
+          try {
+            gateHandle.end();
+          } catch (e) {}
+          gateHandle = null;
+        }
       }
     }
 
@@ -168,32 +176,51 @@
       const trimmed = (msg || "").trim();
       if (!trimmed || busy) return;
       appendBubble("user", trimmed);
-      setBusy(true);
       var ctx = {
         pane: "chat",
         open_panes: openPanesHint(),
         focus: "workbench",
       };
-      QLApi.chat(trimmed, ctx)
-        .then(function (data) {
-          appendBubble("assistant", data.reply || "(sin respuesta)", {
-            provider: data.provider,
-            tools: data.tools_used || [],
+      function doChat(handle) {
+        gateHandle = handle || null;
+        setBusy(true);
+        QLApi.chat(trimmed, ctx)
+          .then(function (data) {
+            appendBubble("assistant", data.reply || "(sin respuesta)", {
+              provider: data.provider,
+              tools: data.tools_used || [],
+            });
+            runActions(data.actions || []);
+          })
+          .catch(function (err) {
+            appendBubble(
+              "assistant",
+              "No pude responder: " +
+                (err.message || String(err)) +
+                "\n\nProbá reformular o pedime «mapa de paneles»."
+            );
+          })
+          .then(function () {
+            setBusy(false);
+            input.focus();
           });
-          runActions(data.actions || []);
-        })
-        .catch(function (err) {
-          appendBubble(
-            "assistant",
-            "No pude responder: " +
-              (err.message || String(err)) +
-              "\n\nProbá reformular o pedime «mapa de paneles»."
-          );
-        })
-        .then(function () {
-          setBusy(false);
-          input.focus();
+      }
+      if (global.QLRunGate) {
+        QLRunGate.begin({
+          kind: "chat",
+          label: "Chat IA",
+          summary: trimmed.length > 40 ? trimmed.slice(0, 37) + "…" : trimmed,
+          busyRoot: root,
+        }).then(function (handle) {
+          if (!handle) {
+            if (history.lastChild) history.removeChild(history.lastChild);
+            return;
+          }
+          doChat(handle);
         });
+      } else {
+        doChat(null);
+      }
     }
 
     function loadHistory() {
@@ -241,6 +268,10 @@
       input.value = "";
       sendMessage(msg);
     });
+
+    if (global.QLRunGate) {
+      QLRunGate.bindBusyHost(root, { kinds: ["chat"] });
+    }
 
     root.refresh = async function () {};
 

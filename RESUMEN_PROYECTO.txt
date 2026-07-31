@@ -1,19 +1,21 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · MC unificado + docs
+Versión: 1.01.0 · MC hereda capital del Sim
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Sim: un solo botón «Monte Carlo» (antes había varios CTAs idénticos)
-- Backtest / Optimizer históricos + memos + Reabrir
-- Stop / gate de corridas · manuales 02/04/06/35 actualizados
+- Monte Carlo ligado al Sim: capital fijo (ej. 100) + por trade (ej. 2)
+  se congelan de la Comparar y NO caen al piso lab 10.000
+- Banner/confirm MC muestran capital · por trade
+- Barra avance + ⏳ en corridas largas
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 · Sim → Comparar → un Monte Carlo
-Mis simulaciones · Backtest/Optimizer histórico
+Ctrl+F5 · reiniciar Workbench :8765
+Sim: capital 100 · por trade 2 → Comparar → Monte Carlo
+Confirmá: Capital inicial = 100 (no 10.000)
 
 INVARIANTES
 -----------

@@ -841,8 +841,24 @@
           (snap.queued.label || snap.queued.kind || "siguiente");
       }
       if (label) {
-        label.textContent = txt.length > 72 ? txt.slice(0, 69) + "…" : txt;
+        label.textContent = txt.length > 56 ? txt.slice(0, 53) + "…" : txt;
         label.title = txt;
+      }
+      var elapsed = document.getElementById("sb-run-gate-elapsed");
+      if (elapsed) {
+        var ms = snap.elapsed_ms || 0;
+        var s = Math.floor(ms / 1000);
+        var m = Math.floor(s / 60);
+        s = s % 60;
+        elapsed.textContent =
+          m > 0 ? m + ":" + (s < 10 ? "0" : "") + s : s + "s";
+      }
+      var bar = document.getElementById("sb-run-gate-bar");
+      if (bar) {
+        var det = snap.progress != null && isFinite(snap.progress);
+        bar.classList.toggle("indeterminate", !det);
+        if (det) bar.style.width = snap.progress + "%";
+        else bar.style.width = "";
       }
     });
   })();

@@ -45,6 +45,11 @@
         kinds: opts.kinds || (opts.kind ? [opts.kind] : null),
       });
     }
+    if (global.QLRunGate && opts.busyHost !== false) {
+      QLRunGate.bindBusyHost(root, {
+        kinds: opts.kinds || (opts.kind ? [opts.kind] : null),
+      });
+    }
     btn.addEventListener("click", function () {
       var gateP =
         global.QLRunGate && opts.gate !== false
@@ -55,10 +60,12 @@
                 typeof opts.summary === "function"
                   ? opts.summary(root)
                   : opts.summary || "",
+              busyRoot: root,
             })
           : Promise.resolve({
               signal: null,
               end: function () {},
+              setProgress: function () {},
             });
       gateP.then(function (handle) {
         if (!handle) return;
@@ -66,7 +73,7 @@
         status.className = "mono muted";
         var p;
         try {
-          p = runner(handle.signal || null);
+          p = runner(handle.signal || null, handle);
         } catch (e) {
           handle.end();
           setStatus(status, false, e.message || String(e));

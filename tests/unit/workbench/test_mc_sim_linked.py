@@ -103,6 +103,59 @@ def test_mc_sim_context_uses_real_symbol_and_strategy(monkeypatch: pytest.Monkey
     assert "orphan_warning" not in out["context"]
 
 
+def test_mc_inherits_fixed_capital_100_and_per_trade(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Any
+) -> None:
+    """Comparar con capital=100 / por trade=2 → MC no debe caer en piso 10000."""
+    bars = _fake_bars(40, "BNF:APTUSDT")
+    resolved = MagicMock()
+    resolved.instrument_id = "BNF:APTUSDT"
+    resolved.underlying = "APT"
+
+    monkeypatch.setattr(
+        "quantlab.brokers.md_router.fetch_bars_for_instrument",
+        lambda *a, **k: (resolved, bars),
+    )
+
+    sim_context = {
+        "source": "simulator",
+        "kind": "compare",
+        "strategy_id": "momentum",
+        "coin": "aptos",
+        "pairs": [{"venue": "binance", "underlying": "APT", "ticker": "aptos"}],
+        "market_type": "futures",
+        "interval": "1h",
+        "period_days": 7,
+        "leverage": "10",
+        "capital_mode": "fixed",
+        "initial_capital": "100",
+        "per_trade_usd": "2",
+        "summary_line": "Comparar · aptos · binance · Momentum · 1h · 7d · x10",
+    }
+
+    out = lab_services.run_lab_montecarlo(
+        n_scenarios=3,
+        n_bars=16,
+        seed=1,
+        persist=False,
+        sim_context=sim_context,
+        montecarlo_root=tmp_path,
+    )
+
+    assert out["ok"] is True
+    assert out["mode"] == "sim_linked"
+    assert float(out["initial_equity"]) == 100.0
+    assert out["context"].get("capital_mode") == "fixed"
+    assert str(out["context"].get("per_trade_usd")) == "2"
+    assert str(out["context"].get("initial_capital")) == "100"
+    cap = out.get("capital_summary") or {}
+    assert float(cap.get("initial_equity", out["initial_equity"])) == 100.0
+    assert str(cap.get("per_trade_usd")) == "2"
+    sc = out["context"]["sim_context"]
+    assert str(sc.get("initial_capital")) == "100"
+    assert str(sc.get("per_trade_usd")) == "2"
+
+
 def test_mc_without_sim_context_stays_synthetic(tmp_path: Any) -> None:
     out = lab_services.run_lab_montecarlo(
         n_scenarios=3,

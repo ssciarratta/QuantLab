@@ -4,11 +4,11 @@
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
 **Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro  
-**Monte Carlo:** estrés N escenarios · **ligado de verdad al Sim** (confirm + velas reales + strategy_id) · mode=`sim_linked` · memo CONTEXTO ORIGEN  
+**Monte Carlo:** estrés N escenarios · **ligado de verdad al Sim** (confirm + velas reales + strategy_id) · mode=`sim_linked` · **hereda capital fijo + per_trade** (no piso 10k si Comparar usó 100/2) · memo CONTEXTO ORIGEN  
 **Backtest:** modo **HISTÓRICO** (venue/moneda/período/TF) + sintético debug · memo + reopen en Mis simulaciones · `run_market_lab_backtest`  
 **Optimizer:** mismo patrón histórico (momentum grid lookback×qty) · memo + reopen · `run_lab_optimize(mode=historical)`  
-**Corridas UX:** `QLRunGate` — Stop en paneles + status bar · diálogo esperar/cortar/cancelar si hay otra corrida  
-**Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`  
+**Corridas UX:** `QLRunGate` — Stop · banner `#ql-run-busy` (⏳ girando + barra + elapsed) · strip `.ql-pane-busy` en panel · `setProgress` (MC %) · diálogo esperar/cortar/cancelar · Chat IA también entra al gate  
+**Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`; capital MC = `initial_capital` de Comparar (fixed)  
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage · kinds compare/rank/MC/backtest/**optimize**  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  

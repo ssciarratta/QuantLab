@@ -1588,6 +1588,7 @@
           setStatus(false, "detenido");
         },
       });
+      QLRunGate.bindBusyHost(root, { kinds: ["scanner"] });
     }
 
     root.querySelector("#sc-run").addEventListener("click", function () {
@@ -1705,6 +1706,7 @@
         kind: "scanner",
         label: "Scanner",
         summary: summary,
+        busyRoot: root,
       }).then(function (handle) {
         if (!handle) return;
         startScan(handle);

@@ -14,6 +14,9 @@ def test_simulator_builds_mc_handoff() -> None:
     assert "sim_context" in js
     assert "IDENTIDAD DE ESTA CORRIDA" in js
     assert 'QLShell.open("montecarlo"' in js
+    assert "freezeHandoffCapital" in js
+    assert "lastSimHandoff" in js
+    assert "Preferir snapshot" in js
 
 
 def test_montecarlo_shows_source_banner() -> None:

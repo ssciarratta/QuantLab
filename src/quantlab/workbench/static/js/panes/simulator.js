@@ -561,15 +561,45 @@
       }
     }
 
+    function freezeHandoffCapital(handoff, common) {
+      if (!handoff || !common || typeof common !== "object") return handoff;
+      if (common.capital_mode) handoff.capital_mode = common.capital_mode;
+      if (common.initial_capital != null && common.initial_capital !== "") {
+        handoff.initial_capital = String(common.initial_capital);
+      }
+      if (common.per_trade_usd != null && common.per_trade_usd !== "") {
+        handoff.per_trade_usd = String(common.per_trade_usd);
+      }
+      if (common.run_cash != null && common.run_cash !== "") {
+        handoff.run_cash = String(common.run_cash);
+      }
+      lastSimHandoff = handoff;
+      return handoff;
+    }
+
     function openMonteCarloFromSelection() {
       var prep = preparePairsForRun();
       var sid =
         (root.querySelector("#sim-strat-hist") &&
           root.querySelector("#sim-strat-hist").value) ||
         "";
-      var handoff = buildSimHandoff("compare", prep.pairs, {
-        strategy_id: sid,
-      });
+      // Preferir snapshot de la ultima Comparar/Ranking (capital / por trade),
+      // no el formulario actual (puede haber vuelto al default 10000).
+      var handoff = null;
+      if (lastSimHandoff && lastSimHandoff.pairs && lastSimHandoff.pairs.length) {
+        try {
+          handoff = JSON.parse(JSON.stringify(lastSimHandoff));
+        } catch (e) {
+          handoff = lastSimHandoff;
+        }
+      }
+      if (!handoff || !handoff.pairs || !handoff.pairs.length) {
+        handoff = buildSimHandoff("compare", prep.pairs, {
+          strategy_id: sid,
+        });
+      } else if (sid && !handoff.strategy_id) {
+        handoff.strategy_id = sid;
+      }
       if (!handoff.pairs || !handoff.pairs.length) {
         window.alert(
           "Elegí al menos un mercado y una moneda en el Simulador antes de abrir Monte Carlo.\n" +
@@ -2262,9 +2292,12 @@
       var pairs = (rows || []).map(function (r) {
         return { venue: r.venue, underlying: r.underlying || r.instrument_id };
       });
-      var handoff = buildSimHandoff("compare", pairs.length ? pairs : null, {
-        strategy_id: (common && common.strategy_id) || "",
-      });
+            var handoff = freezeHandoffCapital(
+        buildSimHandoff("compare", pairs.length ? pairs : null, {
+          strategy_id: (common && common.strategy_id) || "",
+        }),
+        common
+      );
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Comparar)");
       lines.push("Generado: " + meta.generated_at);
@@ -2399,10 +2432,13 @@
       var pairs = markets.map(function (m) {
         return { venue: m.venue, underlying: m.underlying || data.coin };
       });
-      var handoff = buildSimHandoff("rank", pairs, {
-        strategy_id: "",
-        coin: data.coin || "",
-      });
+      var handoff = freezeHandoffCapital(
+        buildSimHandoff("rank", pairs, {
+          strategy_id: "",
+          coin: data.coin || "",
+        }),
+        common
+      );
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Ranking estrategias)");
       lines.push("Generado: " + meta.generated_at);
@@ -2672,6 +2708,7 @@
         kind: "sim_compare",
         label: "Comparar",
         summary: runSummaryLine("compare", pairs),
+        busyRoot: root,
       };
 
       function afterCompare(d) {
@@ -2732,9 +2769,13 @@
               pairs: pairs,
               common: d.common || {},
               meta: collectRunMeta(),
-              sim_context: lastSimHandoff || buildSimHandoff("compare", pairs, {
-                strategy_id: (d.common && d.common.strategy_id) || "",
-              }),
+              sim_context: freezeHandoffCapital(
+                lastSimHandoff ||
+                  buildSimHandoff("compare", pairs, {
+                    strategy_id: (d.common && d.common.strategy_id) || "",
+                  }),
+                d.common || {}
+              ),
             },
           });
         } catch (memoErr) {
@@ -2852,9 +2893,14 @@
                     }),
                     pairs: pairs,
                     meta: collectRunMeta(),
-                    sim_context: lastSimHandoff || buildSimHandoff("rank", pairs, {
-                      coin: d.coin || coins[0],
-                    }),
+                    sim_context: freezeHandoffCapital(
+                      lastSimHandoff ||
+                        buildSimHandoff("rank", pairs, {
+                          strategy_id: "",
+                          coin: d.coin || coins[0],
+                        }),
+                      d.common || {}
+                    ),
                   },
                 });
               } catch (memoErr) {
@@ -2889,6 +2935,7 @@
           kind: "sim_rank",
           label: "Ranking",
           summary: runSummaryLine("rank", pairs),
+          busyRoot: root,
         }).then(function (handle) {
           if (!handle) return;
           startRank(handle);
@@ -2904,6 +2951,7 @@
           if (out) out.textContent = "detenido";
         },
       });
+      QLRunGate.bindBusyHost(root, { kinds: ["sim_compare", "sim_rank"] });
     }
     root.querySelector("#sim-strat-info").addEventListener("click", function () {
       openStrategyGuide(root.querySelector("#sim-strat-hist").value);

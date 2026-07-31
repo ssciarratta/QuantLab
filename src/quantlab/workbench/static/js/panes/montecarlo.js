@@ -179,7 +179,7 @@
             })
             .join(", ") || "—"),
         "",
-        "Monte Carlo usará la moneda y la estrategia de arriba (velas reales + ruido).",
+        "Monte Carlo usará la moneda, estrategia, capital y por-trade de arriba (velas reales + ruido).",
         "",
         "¿Confirmás correr con estos parámetros?",
       ];
@@ -249,6 +249,10 @@
           " / " +
           (simContext.initial_capital != null
             ? simContext.initial_capital
+            : "—") +
+          " · por trade=" +
+          (simContext.per_trade_usd != null
+            ? simContext.per_trade_usd
             : "—")
       );
       if (simContext.pairs && simContext.pairs.length) {
@@ -487,6 +491,9 @@
       var eta = p.eta_seconds != null ? p.eta_seconds + " s" : "—";
       var sps = p.scenarios_per_second != null ? p.scenarios_per_second : "—";
       var barW = pct != null ? Math.max(0, Math.min(100, pct)) : 0;
+      if (global.QLRunGate && typeof QLRunGate.setProgress === "function") {
+        if (pct != null && isFinite(pct)) QLRunGate.setProgress(pct);
+      }
       progressEl.innerHTML =
         '<div class="muted">Job <span class="mono">' +
         esc(job.job_id || "") +
@@ -1495,6 +1502,7 @@
           kind: "montecarlo",
           label: "Monte Carlo",
           summary: summaryParts.join(" · "),
+          busyRoot: root,
           onCancel: function () {
             if (activeJobId) {
               jobCancel(activeJobId).catch(function () {});
@@ -1641,6 +1649,7 @@
     });
     if (global.QLRunGate) {
       QLRunGate.bindStopButton(cancelBtn, { kinds: ["montecarlo"] });
+      QLRunGate.bindBusyHost(root, { kinds: ["montecarlo"] });
     }
 
     root.querySelector("#mc-open-bt").addEventListener("click", function () {

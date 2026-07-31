@@ -726,6 +726,7 @@
         kind: "backtest",
         label: "Backtest",
         summary: summary,
+        busyRoot: root,
       }).then(function (handle) {
         if (!handle) return;
         startBt(handle);
@@ -736,6 +737,7 @@
       QLRunGate.bindStopButton(root.querySelector("#bt-stop"), {
         kinds: ["backtest"],
       });
+      QLRunGate.bindBusyHost(root, { kinds: ["backtest"] });
     }
 
     btnMemo.addEventListener("click", function () {

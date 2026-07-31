@@ -6,6 +6,8 @@
   var queue = null;
   var seq = 0;
   var listeners = [];
+  var elapsedTimer = null;
+  var progressPct = null; // null = indeterminado
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -15,29 +17,174 @@
       .replace(/"/g, "&quot;");
   }
 
+  function formatElapsed(ms) {
+    var s = Math.max(0, Math.floor(ms / 1000));
+    var m = Math.floor(s / 60);
+    s = s % 60;
+    return m > 0 ? m + ":" + (s < 10 ? "0" : "") + s : s + "s";
+  }
+
   function notify() {
     listeners.forEach(function (fn) {
       try {
         fn(snapshot());
       } catch (e) {}
     });
+    syncBusyChrome();
   }
 
   function snapshot() {
     return {
       busy: !!active,
+      progress: progressPct,
+      elapsed_ms: active ? Date.now() - active.startedAt : 0,
       active: active
         ? {
             id: active.id,
             kind: active.kind,
             label: active.label,
             summary: active.summary,
+            startedAt: active.startedAt,
           }
         : null,
       queued: queue
         ? { kind: queue.kind, label: queue.label, summary: queue.summary }
         : null,
     };
+  }
+
+  function ensureBusyBanner() {
+    var el = document.getElementById("ql-run-busy");
+    if (el) return el;
+    el = document.createElement("div");
+    el.id = "ql-run-busy";
+    el.className = "ql-run-busy";
+    el.hidden = true;
+    el.setAttribute("role", "status");
+    el.setAttribute("aria-live", "polite");
+    el.innerHTML =
+      '<div class="ql-run-busy-inner">' +
+      '<span class="ql-hourglass" aria-hidden="true">⏳</span>' +
+      '<div class="ql-run-busy-text">' +
+      '<span class="ql-run-busy-title mono" id="ql-run-busy-title">Procesando…</span>' +
+      '<span class="ql-run-busy-elapsed mono muted" id="ql-run-busy-elapsed">0s</span>' +
+      "</div>" +
+      '<div class="ql-run-busy-bar-wrap" title="Avance">' +
+      '<div class="ql-run-busy-bar" id="ql-run-busy-bar"></div>' +
+      "</div>" +
+      '<span class="ql-run-busy-pct mono muted" id="ql-run-busy-pct" hidden></span>' +
+      '<button type="button" class="btn secondary stop-run" id="ql-run-busy-stop">Stop</button>' +
+      "</div>";
+    var host =
+      document.getElementById("workspace") ||
+      document.getElementById("app") ||
+      document.body;
+    if (host.firstChild) host.insertBefore(el, host.firstChild);
+    else host.appendChild(el);
+    var stopBtn = el.querySelector("#ql-run-busy-stop");
+    if (stopBtn) {
+      stopBtn.addEventListener("click", function () {
+        stop();
+      });
+    }
+    return el;
+  }
+
+  function stopElapsedTick() {
+    if (elapsedTimer) {
+      clearInterval(elapsedTimer);
+      elapsedTimer = null;
+    }
+  }
+
+  function startElapsedTick() {
+    stopElapsedTick();
+    elapsedTimer = setInterval(function () {
+      if (!active) {
+        stopElapsedTick();
+        return;
+      }
+      var el = document.getElementById("ql-run-busy-elapsed");
+      if (el) el.textContent = formatElapsed(Date.now() - active.startedAt);
+      var sbEl = document.getElementById("sb-run-gate-elapsed");
+      if (sbEl) sbEl.textContent = formatElapsed(Date.now() - active.startedAt);
+    }, 250);
+  }
+
+  function applyProgressToBars(pct) {
+    var bar = document.getElementById("ql-run-busy-bar");
+    var pctEl = document.getElementById("ql-run-busy-pct");
+    var sbBar = document.getElementById("sb-run-gate-bar");
+    var determinate = pct != null && isFinite(pct);
+    var w = determinate ? Math.max(0, Math.min(100, Number(pct))) : null;
+    if (bar) {
+      bar.classList.toggle("indeterminate", !determinate);
+      if (determinate) {
+        bar.style.width = w + "%";
+      } else {
+        bar.style.width = "";
+      }
+    }
+    if (pctEl) {
+      if (determinate) {
+        pctEl.hidden = false;
+        pctEl.textContent = Math.round(w) + "%";
+      } else {
+        pctEl.hidden = true;
+        pctEl.textContent = "";
+      }
+    }
+    if (sbBar) {
+      sbBar.classList.toggle("indeterminate", !determinate);
+      if (determinate) sbBar.style.width = w + "%";
+      else sbBar.style.width = "";
+    }
+  }
+
+  function syncBusyChrome() {
+    var banner = ensureBusyBanner();
+    var snap = snapshot();
+    try {
+      document.body.classList.toggle("ql-is-busy", !!snap.busy);
+    } catch (e) {}
+    if (!snap.busy) {
+      banner.hidden = true;
+      stopElapsedTick();
+      progressPct = null;
+      applyProgressToBars(null);
+      return;
+    }
+    banner.hidden = false;
+    var a = snap.active || {};
+    var title =
+      (a.label || a.kind || "Corrida") +
+      (a.summary ? " · " + a.summary : "");
+    var titleEl = banner.querySelector("#ql-run-busy-title");
+    if (titleEl) {
+      titleEl.textContent = "Procesando · " + title;
+      titleEl.title = title;
+    }
+    var elapsedEl = banner.querySelector("#ql-run-busy-elapsed");
+    if (elapsedEl) {
+      elapsedEl.textContent = formatElapsed(snap.elapsed_ms || 0);
+    }
+    applyProgressToBars(progressPct);
+    startElapsedTick();
+  }
+
+  function setProgress(pct) {
+    if (pct == null || pct === "") {
+      progressPct = null;
+    } else {
+      var n = Number(pct);
+      progressPct = isFinite(n) ? Math.max(0, Math.min(100, n)) : null;
+    }
+    applyProgressToBars(progressPct);
+    listeners.forEach(function (fn) {
+      try {
+        fn(snapshot());
+      } catch (e) {}
+    });
   }
 
   function ensureModal() {
@@ -97,7 +244,9 @@
   function endActive(id) {
     if (!active) return;
     if (id != null && active.id !== id) return;
+    if (active.busyRoot) mountLocalBusy(active.busyRoot, false);
     active = null;
+    progressPct = null;
     notify();
     if (queue) {
       var q = queue;
@@ -120,7 +269,9 @@
     try {
       if (typeof cur.onCancel === "function") cur.onCancel();
     } catch (e2) {}
+    if (cur.busyRoot) mountLocalBusy(cur.busyRoot, false);
     active = null;
+    progressPct = null;
     notify();
     return true;
   }
@@ -134,6 +285,7 @@
     var id = "run-" + seq;
     var controller =
       typeof AbortController !== "undefined" ? new AbortController() : null;
+    progressPct = null;
     active = {
       id: id,
       kind: spec.kind || "run",
@@ -142,15 +294,19 @@
       controller: controller,
       onCancel: spec.onCancel || null,
       startedAt: Date.now(),
+      busyRoot: spec.busyRoot || null,
     };
     notify();
+    if (spec.busyRoot) mountLocalBusy(spec.busyRoot, true);
     return Promise.resolve({
       id: id,
       kind: active.kind,
       label: active.label,
       summary: active.summary,
       signal: controller ? controller.signal : null,
+      setProgress: setProgress,
       end: function () {
+        if (spec.busyRoot) mountLocalBusy(spec.busyRoot, false);
         endActive(id);
       },
       stop: function () {
@@ -159,10 +315,28 @@
     });
   }
 
-  /**
-   * Pide permiso para iniciar una corrida.
-   * @returns {Promise<object|null>} handle con signal/end, o null si el usuario cancela.
-   */
+  function mountLocalBusy(root, on) {
+    if (!root || !root.querySelector) return;
+    var strip = root.querySelector(".ql-pane-busy");
+    if (on) {
+      if (!strip) {
+        strip = document.createElement("div");
+        strip.className = "ql-pane-busy";
+        strip.innerHTML =
+          '<span class="ql-hourglass" aria-hidden="true">⏳</span>' +
+          '<div class="ql-pane-busy-bar-wrap"><div class="ql-pane-busy-bar indeterminate"></div></div>' +
+          '<span class="mono muted ql-pane-busy-label">procesando…</span>';
+        if (root.firstChild) root.insertBefore(strip, root.firstChild);
+        else root.appendChild(strip);
+      }
+      strip.hidden = false;
+      root.classList.add("ql-pane-is-busy");
+    } else if (strip) {
+      strip.hidden = true;
+      root.classList.remove("ql-pane-is-busy");
+    }
+  }
+
   function begin(spec) {
     spec = spec || {};
     if (!active) {
@@ -183,7 +357,6 @@
           notify();
         });
       }
-      // cut
       stopActive();
       return beginInternal(spec);
     });
@@ -191,7 +364,6 @@
 
   function stop() {
     var had = stopActive();
-    // Si había alguien esperando, arranca esa corrida (Stop = cortar actual).
     if (queue) {
       var q = queue;
       queue = null;
@@ -222,7 +394,6 @@
     };
   }
 
-  /** Helper: monta/ sincroniza un botón Stop en un panel. */
   function bindStopButton(btn, opts) {
     opts = opts || {};
     if (!btn) return function () {};
@@ -252,6 +423,46 @@
     return off;
   }
 
+  function bindBusyHost(root, opts) {
+    opts = opts || {};
+    if (!root) return function () {};
+    function sync() {
+      var snap = snapshot();
+      var mine =
+        snap.busy &&
+        (!opts.kinds ||
+          opts.kinds.indexOf(snap.active && snap.active.kind) >= 0);
+      mountLocalBusy(root, !!mine);
+      var label = root.querySelector(".ql-pane-busy-label");
+      if (label && mine && snap.active) {
+        label.textContent =
+          "procesando · " +
+          (snap.active.label || "") +
+          (snap.progress != null
+            ? " · " + Math.round(snap.progress) + "%"
+            : "…");
+      }
+      var bar = root.querySelector(".ql-pane-busy-bar");
+      if (bar) {
+        var det = snap.progress != null && isFinite(snap.progress);
+        bar.classList.toggle("indeterminate", !det);
+        if (det) bar.style.width = snap.progress + "%";
+        else bar.style.width = "";
+      }
+    }
+    var off = onChange(sync);
+    sync();
+    return off;
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      ensureBusyBanner();
+    });
+  } else {
+    ensureBusyBanner();
+  }
+
   global.QLRunGate = {
     begin: begin,
     end: endActive,
@@ -260,6 +471,8 @@
     current: current,
     snapshot: snapshot,
     onChange: onChange,
+    setProgress: setProgress,
     bindStopButton: bindStopButton,
+    bindBusyHost: bindBusyHost,
   };
 })(window);

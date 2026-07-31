@@ -2184,6 +2184,58 @@ def run_lab_optimize(
     return payload
 
 
+def _mc_cash_from_sim_context(
+    sim_context: Mapping[str, Any],
+) -> tuple[str, Decimal, Decimal]:
+    """Capital de trabajo MC = misma caja que Comparar.
+
+    - ``fixed``: usa ``initial_capital`` (obligatorio).
+    - ``unconstrained``: usa ``run_cash`` si viene; si no,
+      ``max(per_trade × 50, 10000)`` (misma fórmula que compare.py).
+    """
+    capital_mode = str(sim_context.get("capital_mode") or "fixed").strip().lower()
+    if capital_mode not in ("fixed", "unconstrained"):
+        capital_mode = "fixed"
+
+    def _dec_field(raw: Any, *, field: str, default: str | None = None) -> Decimal:
+        if raw is None or (isinstance(raw, str) and not str(raw).strip()):
+            if default is None:
+                raise ValidationError(f"sim_context: {field} requerido")
+            raw = default
+        try:
+            return Decimal(str(raw).strip())
+        except Exception as exc:
+            raise ValidationError(
+                f"sim_context {field} inválido: {raw!r}"
+            ) from exc
+
+    per_trade = _dec_field(
+        sim_context.get("per_trade_usd"),
+        field="per_trade_usd",
+        default="1000",
+    )
+    if per_trade <= 0:
+        raise ValidationError("sim_context: per_trade_usd debe ser > 0")
+
+    if capital_mode == "fixed":
+        ic_raw = sim_context.get("initial_capital")
+        if ic_raw is None or (isinstance(ic_raw, str) and not str(ic_raw).strip()):
+            # Compat: algunos handoffs guardan solo run_cash.
+            ic_raw = sim_context.get("run_cash")
+        initial_cash = _dec_field(ic_raw, field="initial_capital")
+    else:
+        run_raw = sim_context.get("run_cash")
+        if run_raw is not None and str(run_raw).strip() != "":
+            initial_cash = _dec_field(run_raw, field="run_cash")
+        else:
+            # Misma caja lab que research.sim.compare (sin monto).
+            initial_cash = max(per_trade * Decimal("50"), Decimal("10000"))
+
+    if initial_cash <= 0:
+        raise ValidationError("sim_context: capital de trabajo debe ser > 0")
+    return capital_mode, initial_cash, per_trade
+
+
 def _resolve_mc_from_sim_context(
     sim_context: Mapping[str, Any],
     *,
@@ -2282,20 +2334,17 @@ def _resolve_mc_from_sim_context(
     strategy_params = merge_default_params(sid, caller)
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
 
-    # Misma caja de trabajo que Comparar (unconstrained).
-    capital_mode = str(sim_context.get("capital_mode") or "fixed").strip().lower()
-    try:
-        if capital_mode == "fixed" and sim_context.get("initial_capital") is not None:
-            initial_cash = Decimal(str(sim_context["initial_capital"]))
-        else:
-            pt = Decimal(str(sim_context.get("per_trade_usd") or "1000"))
-            initial_cash = max(pt * Decimal("50"), Decimal("10000"))
-    except Exception as exc:
-        raise ValidationError(
-            f"sim_context capital inválido: {exc}"
-        ) from exc
-    if initial_cash <= 0:
-        raise ValidationError("sim_context: initial_capital debe ser > 0")
+    # Misma caja que Comparar: fixed → initial_capital; sin monto → run_cash lab.
+    capital_mode, initial_cash, per_trade_usd = _mc_cash_from_sim_context(
+        sim_context
+    )
+    # Congelar capital efectivo en el contexto (memo / UI / reopen).
+    sim_ctx_out = dict(sim_context)
+    sim_ctx_out["capital_mode"] = capital_mode
+    sim_ctx_out["per_trade_usd"] = str(per_trade_usd)
+    if capital_mode == "fixed":
+        sim_ctx_out["initial_capital"] = str(initial_cash)
+    sim_ctx_out["run_cash"] = str(initial_cash)
 
     fee_sched = get_fee_schedule(venue, market_type)
     fee_model = fee_model_from_schedule(fee_sched)
@@ -2307,6 +2356,8 @@ def _resolve_mc_from_sim_context(
         "strategy_id": sid,
         "strategy_params": strategy_params,
         "initial_cash": initial_cash,
+        "per_trade_usd": per_trade_usd,
+        "capital_mode": capital_mode,
         "equity_currency": "USDT",
         "fee_model": fee_model,
         "fee_dict": fee_dict,
@@ -2318,7 +2369,7 @@ def _resolve_mc_from_sim_context(
         "data_source": f"{venue}_{market_type}",
         "pairs_count": len(pairs_raw),
         "summary_line": str(sim_context.get("summary_line") or ""),
-        "sim_context": dict(sim_context),
+        "sim_context": sim_ctx_out,
         "horizon_warning": horizon_warning,
         "sim_bars_estimate": sim_bars_est,
         "n_bars_effective": len(run_bars),
@@ -2557,6 +2608,18 @@ def run_lab_montecarlo(
         ctx_dict["coin"] = sim_linked.get("underlying")
         ctx_dict["venue"] = sim_linked.get("venue")
         ctx_dict["market_type"] = sim_linked.get("market_type")
+        ctx_dict["capital_mode"] = sim_linked.get("capital_mode")
+        ctx_dict["per_trade_usd"] = (
+            str(sim_linked["per_trade_usd"])
+            if sim_linked.get("per_trade_usd") is not None
+            else None
+        )
+        ctx_dict["initial_capital"] = (
+            str(sim_linked["initial_cash"])
+            if sim_linked.get("capital_mode") == "fixed"
+            else None
+        )
+        ctx_dict["run_cash"] = str(sim_linked["initial_cash"])
         if sim_linked.get("horizon_warning"):
             ctx_dict["horizon_warning"] = sim_linked["horizon_warning"]
         if sim_linked.get("sim_bars_estimate") is not None:
@@ -2585,6 +2648,12 @@ def run_lab_montecarlo(
             result.metrics.median_equity if result.metrics else None
         ),
         "currency": equity_currency,
+        "capital_mode": (sim_linked or {}).get("capital_mode") if sim_linked else None,
+        "per_trade_usd": (
+            str(sim_linked["per_trade_usd"])
+            if sim_linked and sim_linked.get("per_trade_usd") is not None
+            else None
+        ),
         "min_final_equity": (
             min(result.final_equities) if result.final_equities else None
         ),
@@ -2722,6 +2791,18 @@ def run_lab_montecarlo(
         ctx_out["lab_mode"] = "sim_linked"
         ctx_out.pop("orphan_warning", None)
         ctx_out["orphan_technical_mode"] = False
+        ctx_out["capital_mode"] = sim_linked.get("capital_mode")
+        ctx_out["per_trade_usd"] = (
+            str(sim_linked["per_trade_usd"])
+            if sim_linked.get("per_trade_usd") is not None
+            else None
+        )
+        ctx_out["initial_capital"] = (
+            str(sim_linked["initial_cash"])
+            if sim_linked.get("capital_mode") == "fixed"
+            else None
+        )
+        ctx_out["run_cash"] = str(sim_linked["initial_cash"])
         if sim_linked.get("horizon_warning"):
             ctx_out["horizon_warning"] = sim_linked["horizon_warning"]
         if sim_linked.get("sim_bars_estimate") is not None:

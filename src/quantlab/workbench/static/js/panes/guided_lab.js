@@ -1333,6 +1333,7 @@
         kind: "guided_backtest",
         label: "Guided Lab",
         summary: strategy + " · " + nBars + " bars",
+        busyRoot: root,
       }).then(function (handle) {
         if (!handle) return;
         executeGlBacktest(handle);
@@ -1342,6 +1343,7 @@
       QLRunGate.bindStopButton(root.querySelector("#gl-stop"), {
         kinds: ["guided_backtest"],
       });
+      QLRunGate.bindBusyHost(root, { kinds: ["guided_backtest"] });
     }
 
     const demoStatus = root.querySelector("#gl-demo-status");
