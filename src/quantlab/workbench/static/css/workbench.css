@@ -2004,6 +2004,33 @@ html {
   font-size: 0.72em;
 }
 
+.mc-source-banner {
+  margin: 0.35rem 0 0.55rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border, #444);
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.22);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.mc-source-banner.mc-source-linked {
+  border-color: var(--amber-dim, #a67c3a);
+  background: rgba(212, 140, 50, 0.1);
+}
+
+.mc-source-banner.mc-source-orphan {
+  border-color: rgba(200, 80, 80, 0.45);
+  background: rgba(180, 40, 40, 0.12);
+}
+
+.mc-source-detail {
+  margin-top: 0.25rem;
+  font-size: 0.68rem;
+  white-space: normal;
+  word-break: break-word;
+}
+
 .pane-more {
   margin: 0.1rem 0 0.35rem;
   font-size: 0.72em;

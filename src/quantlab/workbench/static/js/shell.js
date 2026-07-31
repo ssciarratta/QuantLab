@@ -530,13 +530,17 @@
       window.QLNav.setFocus("montecarlo", {
         focusId: opts.focusId || null,
         prefill: opts.prefill || null,
-        message: opts.message || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
       });
     }
     if (wm.windows.has("montecarlo")) {
       wm.focus("montecarlo");
       const root = wm.windows.get("montecarlo").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createMonteCarloPane();
@@ -546,7 +550,11 @@
       pane,
       mergeOpts("montecarlo", { x: 140, y: 60, w: 800, h: 640 })
     );
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openFeatures() {

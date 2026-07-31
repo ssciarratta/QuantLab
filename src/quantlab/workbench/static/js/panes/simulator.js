@@ -219,6 +219,8 @@
     var selectedByVenue = {};
     /** Prefill desde Alpha Scanner (venue/underlying/strategy/TF). */
     var pendingPrefill = null;
+    /** Último handoff hacia Monte Carlo / memos (moneda + params). */
+    var lastSimHandoff = null;
     /** @type {Object.<string, boolean>} */
     var venueEnabled = {
       binance: true,
@@ -2010,17 +2012,122 @@
       };
     }
 
+    function strategyLabel(id) {
+      var s = findStrategy(id);
+      if (s) return (s.name || id) + " (" + id + ")";
+      return id || "—";
+    }
+
+    /** Snapshot para Monte Carlo / memorando: moneda + params de ESTA simulación. */
+    function buildSimHandoff(kind, pairs, extra) {
+      extra = extra || {};
+      var meta = collectRunMeta();
+      var sid =
+        extra.strategy_id ||
+        (root.querySelector("#sim-strat-hist") &&
+          root.querySelector("#sim-strat-hist").value) ||
+        "";
+      var pairList = (pairs || collectPairs()).map(function (p) {
+        return {
+          venue: p.venue,
+          underlying: p.underlying,
+          ticker: canonicalTicker(p.venue, p.underlying) || p.underlying,
+        };
+      });
+      var coins = [];
+      pairList.forEach(function (p) {
+        var t = p.ticker || p.underlying;
+        if (t && coins.indexOf(t) < 0) coins.push(t);
+      });
+      var venues = [];
+      pairList.forEach(function (p) {
+        if (p.venue && venues.indexOf(p.venue) < 0) venues.push(p.venue);
+      });
+      var handoff = {
+        source: "simulator",
+        kind: kind || "compare",
+        strategy_id: sid,
+        strategy_label: strategyLabel(sid),
+        coins: coins,
+        coin: coins.length === 1 ? coins[0] : coins.join(", "),
+        venues: venues,
+        pairs: pairList,
+        market_type: meta.market_type,
+        interval: meta.interval,
+        period_days: meta.period_days,
+        leverage: meta.leverage,
+        capital_mode: meta.capital_mode,
+        initial_capital: meta.initial_capital,
+        per_trade_usd: meta.per_trade_usd,
+        bench_pct: meta.bench_pct,
+        liq: meta.liq,
+        funding: meta.funding,
+        generated_at: meta.generated_at,
+        summary_line:
+          (kind === "rank" ? "Ranking" : "Comparar") +
+          " · " +
+          (coins.join(", ") || "sin moneda") +
+          " · " +
+          (venues.join(", ") || "sin mercado") +
+          " · " +
+          strategyLabel(sid) +
+          " · " +
+          meta.interval +
+          " · " +
+          meta.period_days +
+          "d · x" +
+          meta.leverage,
+      };
+      if (extra.coin) handoff.coin = extra.coin;
+      lastSimHandoff = handoff;
+      return handoff;
+    }
+
+    function formatHandoffBlock(h) {
+      if (!h) return [];
+      return [
+        "— IDENTIDAD DE ESTA CORRIDA —",
+        "Qué: " + (h.kind === "rank" ? "Ranking estrategias" : "Comparar mercados"),
+        "Moneda(s): " + (h.coin || (h.coins && h.coins.join(", ")) || "—"),
+        "Mercado(s): " + ((h.venues && h.venues.join(", ")) || "—"),
+        "Estrategia: " + (h.strategy_label || h.strategy_id || "—"),
+        "Tipo: " + (h.market_type || "—"),
+        "TF / período: " + (h.interval || "—") + " · " + (h.period_days != null ? h.period_days + " días" : "—"),
+        "Leverage: x" + (h.leverage != null ? h.leverage : "—"),
+        "Capital: " +
+          (h.capital_mode || "—") +
+          " · inicial=" +
+          (h.initial_capital != null ? h.initial_capital : "—") +
+          " · por trade=" +
+          (h.per_trade_usd != null ? h.per_trade_usd : "—"),
+        "Pares: " +
+          ((h.pairs || [])
+            .map(function (p) {
+              return (p.venue || "?") + "/" + (p.ticker || p.underlying || "?");
+            })
+            .join(", ") || "—"),
+        "",
+      ];
+    }
+
     function buildCompareMemo(data) {
       var common = data.common || {};
       var meta = collectRunMeta();
       var rows = data.rows || [];
+      var pairs = (rows || []).map(function (r) {
+        return { venue: r.venue, underlying: r.underlying || r.instrument_id };
+      });
+      var handoff = buildSimHandoff("compare", pairs.length ? pairs : null, {
+        strategy_id: (common && common.strategy_id) || "",
+      });
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Comparar)");
       lines.push("Generado: " + meta.generated_at);
       lines.push("LIVE_BLOCKED=true · research / sin order routing");
       lines.push("");
-      lines.push("— PARÁMETROS —");
-      lines.push("Estrategia: " + (common.strategy_id || meta.strategy_id || "—"));
+      lines = lines.concat(formatHandoffBlock(handoff));
+      lines.push("— PARÁMETROS DETALLE —");
+      lines.push("Estrategia: " + (common.strategy_id || handoff.strategy_id || "—"));
       lines.push("Modo: " + (common.market_type || meta.market_type));
       lines.push("Intervalo: " + (common.interval || meta.interval));
       lines.push("Período (días): " + (common.period_days != null ? common.period_days : meta.period_days));
@@ -2144,13 +2251,21 @@
       var common = data.common || {};
       var meta = collectRunMeta();
       var markets = data.markets || [];
+      var pairs = markets.map(function (m) {
+        return { venue: m.venue, underlying: m.underlying || data.coin };
+      });
+      var handoff = buildSimHandoff("rank", pairs, {
+        strategy_id: "",
+        coin: data.coin || "",
+      });
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Ranking estrategias)");
       lines.push("Generado: " + meta.generated_at);
       lines.push("LIVE_BLOCKED=true · research / sin order routing");
       lines.push("");
-      lines.push("— PARÁMETROS —");
-      lines.push("Moneda: " + (data.coin || "—"));
+      lines = lines.concat(formatHandoffBlock(handoff));
+      lines.push("— PARÁMETROS DETALLE —");
+      lines.push("Moneda: " + (data.coin || handoff.coin || "—"));
       lines.push("Modo: " + (common.market_type || meta.market_type));
       lines.push("Intervalo: " + (common.interval || meta.interval));
       lines.push("Velas: " + (common.kline_limit != null ? common.kline_limit : "—"));
@@ -2449,6 +2564,9 @@
                 pairs: pairs,
                 common: d.common || {},
                 meta: collectRunMeta(),
+                sim_context: lastSimHandoff || buildSimHandoff("compare", pairs, {
+                  strategy_id: (d.common && d.common.strategy_id) || "",
+                }),
               },
             });
           } catch (memoErr) {
@@ -2536,6 +2654,9 @@
                   }),
                   pairs: pairs,
                   meta: collectRunMeta(),
+                  sim_context: lastSimHandoff || buildSimHandoff("rank", pairs, {
+                    coin: d.coin || coins[0],
+                  }),
                 },
               });
             } catch (memoErr) {
@@ -2560,8 +2681,37 @@
       openStrategyGuide(root.querySelector("#sim-strat-hist").value);
     });
     root.querySelector("#sim-open-mc").addEventListener("click", function () {
-      if (global.QLShell && QLShell.open) QLShell.open("montecarlo");
+      var prep = preparePairsForRun();
+      var handoff =
+        lastSimHandoff ||
+        buildSimHandoff("compare", prep.pairs, {
+          strategy_id:
+            (root.querySelector("#sim-strat-hist") &&
+              root.querySelector("#sim-strat-hist").value) ||
+            "",
+        });
+      if (!handoff.pairs || !handoff.pairs.length) {
+        window.alert(
+          "Elegí al menos un mercado y una moneda en el Simulador antes de abrir Monte Carlo.\n" +
+            "Así el estrés queda ligado a esa simulación (no «al aire»)."
+        );
+        return;
+      }
+      if (global.QLShell && QLShell.open) {
+        QLShell.open("montecarlo", {
+          prefill: {
+            sim_context: handoff,
+            message:
+              "Estrés ligado a: " +
+              (handoff.summary_line || handoff.coin || "simulación"),
+          },
+        });
+      }
     });
+
+    root.getSimHandoff = function () {
+      return lastSimHandoff || buildSimHandoff("compare", collectPairs(), {});
+    };
     root.querySelector("#sim-open-gl").addEventListener("click", function () {
       if (global.QLShell && QLShell.open) QLShell.open("guided_lab");
     });

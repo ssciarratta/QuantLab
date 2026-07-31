@@ -1,26 +1,25 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · Chat IA mentor (mapa + MC/Sim)
+Versión: 1.01.0 · MC hereda contexto del Simulador
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Chat IA: system prompt con mapa completo del Workbench
-- Tools: explain_montecarlo / simulator / scanner / map
-- Puede abrir Simulador, MC, Estrategias, Mis simulaciones
-- UI: chips, loading, formato legible, repregunta
-- Probado: «params Monte Carlo» -> explicación útil (LLM + Fake)
+- Simulador → Monte Carlo: pasa moneda, estrategia, TF, leverage…
+- Banner origen en MC (ligado vs demo huérfano)
+- Memorandos Comparar/Ranking/MC: bloque IDENTIDAD arriba
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Reescritura del Chat: dejó de ser menú FakeProvider
-genérico. Conoce Scanner/Sim/MC/Guided/Mis sims.
+MC ya no «tira al aire»: desde el botón Monte Carlo del
+Simulador lleva el contexto de la simulación. Memo y UI
+muestran moneda + params con claridad.
 
 PRÓXIMO
 -------
-Ctrl+F5 · abrir Chat IA · chip «Monte Carlo» o preguntar
-Si el servidor no reinició: arrancar_workbench.py
+Ctrl+F5 · Simulador (moneda+mercados) → Monte Carlo
+Ver banner origen + memo con CONTEXTO ORIGEN
 
 INVARIANTES
 -----------
