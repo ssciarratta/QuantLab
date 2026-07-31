@@ -56,3 +56,29 @@ def test_commands_include_sim_registry() -> None:
     text = CMD.read_text(encoding="utf-8")
     assert "open.sim_registry" in text
     assert 'pane_id": "sim_registry"' in text
+
+
+def test_registry_reopen_button() -> None:
+    js = (STATIC / "js/sim_registry.js").read_text(encoding="utf-8")
+    assert "ql-sim-registry-reopen" in js
+    assert "function reopen" in js or "reopen:" in js
+    assert "buildSimulatorPrefill" in js
+    assert "QLShell.open" in js
+
+
+def test_brand_opens_start_menu() -> None:
+    js = (STATIC / "js/shell.js").read_text(encoding="utf-8")
+    assert "toggleStartMenu" in js
+    assert "openStartMenu" in js
+    assert "brand-menu-trigger" in js
+    assert 'FAV_DEFAULT = ["chat", "scanner", "simulator", "strategies"]' in js
+    assert "ql_menu_favorites_v2" in js
+    css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
+    assert "brand-menu-trigger" in css
+    assert "z-index: 12000" in css
+
+
+def test_simulator_restores_pairs_prefill() -> None:
+    js = (STATIC / "js/panes/simulator.js").read_text(encoding="utf-8")
+    assert "p.pairs && Array.isArray(p.pairs)" in js
+    assert "period_days" in js

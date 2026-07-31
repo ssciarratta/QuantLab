@@ -834,28 +834,83 @@
   });
 
   startBtn.addEventListener("click", function (ev) {
+    ev.preventDefault();
     ev.stopPropagation();
-    const open = startMenu.hasAttribute("hidden");
-    if (open) {
-      startMenu.removeAttribute("hidden");
-      startMenu.classList.remove("hidden");
-      startBtn.classList.add("active");
-      if (typeof refreshPresetsMenu === "function") {
-        refreshPresetsMenu();
-      }
-      if (typeof renderFavoritesMenu === "function") {
-        renderFavoritesMenu();
-      }
-    } else {
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
-    }
+    toggleStartMenu();
   });
 
+  function isStartMenuOpen() {
+    return !!(
+      startMenu &&
+      !startMenu.hasAttribute("hidden") &&
+      !startMenu.classList.contains("hidden")
+    );
+  }
+
+  function openStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.removeAttribute("hidden");
+    startMenu.classList.remove("hidden");
+    startBtn.classList.add("active");
+    startBtn.setAttribute("aria-expanded", "true");
+    try {
+      if (typeof refreshPresetsMenu === "function") refreshPresetsMenu();
+    } catch (e) {}
+    try {
+      if (typeof renderFavoritesMenu === "function") renderFavoritesMenu();
+    } catch (e) {}
+  }
+
+  function closeStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.setAttribute("hidden", "");
+    startMenu.classList.add("hidden");
+    startBtn.classList.remove("active");
+    startBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleStartMenu() {
+    if (isStartMenuOpen()) closeStartMenu();
+    else openStartMenu();
+  }
+
+  if (window.QLShell) {
+    window.QLShell.toggleStartMenu = toggleStartMenu;
+    window.QLShell.openStartMenu = openStartMenu;
+    window.QLShell.closeStartMenu = closeStartMenu;
+  }
+
+  /* QUANTLAB (banner) abre el mismo menú que el botón QL. */
+  var brandEl = document.querySelector(".top-banner .brand");
+  if (brandEl && !brandEl._qlStartBound) {
+    brandEl._qlStartBound = true;
+    brandEl.classList.add("brand-menu-trigger");
+    brandEl.setAttribute("role", "button");
+    brandEl.setAttribute("tabindex", "0");
+    brandEl.setAttribute(
+      "title",
+      "Abrir menú QL (igual que el botón QL abajo a la izquierda)"
+    );
+    brandEl.setAttribute("aria-label", "Abrir menú QuantLab");
+    brandEl.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggleStartMenu();
+    });
+    brandEl.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleStartMenu();
+      }
+    });
+  }
+
   // —— Favoritos del menú QL (orden custom, persistido) ——
-  var FAV_DEFAULT = ["scanner", "simulator", "strategies"];
+  var FAV_STORAGE_KEY = "ql_menu_favorites_v2";
+  var FAV_DEFAULT = ["chat", "scanner", "simulator", "strategies"];
   var FAV_META = {
+    chat: { label: "Chat IA", tip: "Asistente research." },
     scanner: {
       label: "Alpha Scanner",
       tip: "Ranking MD real multi-mercado.",
@@ -871,13 +926,30 @@
     guided_lab: { label: "Guided Lab", tip: "Wizard paper/demo." },
     montecarlo: { label: "Monte Carlo", tip: "Estrés estadístico." },
     backtest: { label: "Backtest", tip: "Velas sintéticas." },
-    chat: { label: "Chat IA", tip: "Asistente research." },
   };
 
   function loadFavorites() {
     try {
-      var raw = localStorage.getItem("ql_menu_favorites");
-      if (raw) {
+      var raw = localStorage.getItem(FAV_STORAGE_KEY);
+      if (!raw) {
+        /* migrar v1 si existía, anteponiendo Chat IA */
+        var legacy = localStorage.getItem("ql_menu_favorites");
+        if (legacy) {
+          var old = JSON.parse(legacy);
+          if (Array.isArray(old) && old.length) {
+            var merged = old.filter(function (id) {
+              return !!openers[id];
+            });
+            if (merged.indexOf("chat") < 0 && openers.chat) {
+              merged.unshift("chat");
+            }
+            if (merged.length) {
+              saveFavorites(merged);
+              return merged;
+            }
+          }
+        }
+      } else {
         var arr = JSON.parse(raw);
         if (Array.isArray(arr) && arr.length) {
           return arr.filter(function (id) {
@@ -891,7 +963,7 @@
 
   function saveFavorites(ids) {
     try {
-      localStorage.setItem("ql_menu_favorites", JSON.stringify(ids));
+      localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(ids));
     } catch (e) {}
   }
 
@@ -1027,12 +1099,6 @@
       ev.stopPropagation();
       openAbout();
     });
-  }
-
-  function closeStartMenu() {
-    startMenu.setAttribute("hidden", "");
-    startMenu.classList.add("hidden");
-    startBtn.classList.remove("active");
   }
 
   function applyWorkspacePreset(name) {
@@ -1189,7 +1255,12 @@
     });
   }
 
-  document.addEventListener("click", function () {
+  document.addEventListener("click", function (ev) {
+    if (!isStartMenuOpen()) return;
+    var t = ev.target;
+    if (startMenu && startMenu.contains(t)) return;
+    if (startBtn && (t === startBtn || startBtn.contains(t))) return;
+    if (brandEl && (t === brandEl || brandEl.contains(t))) return;
     closeStartMenu();
   });
 

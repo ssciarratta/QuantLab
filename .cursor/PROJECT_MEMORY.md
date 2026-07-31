@@ -1,15 +1,15 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-30  
+**Actualizado:** 2026-07-31  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Registro sims (panel der.) + memo MC + favoritos/estrategias  
+**Versión tip:** **1.01.0** · Scanner typeahead moneda + preview velas  
 **Simulador:** comparar · ranking · **memorando** · registro en «Mis simulaciones»  
 **Monte Carlo:** estrés N escenarios · **memo al terminar** · entra al mismo registro  
-**Registro UI:** ventana WM `sim_registry` (drag/resize/min/max/×) · localStorage historial · QL/Ctrl+K/Sims  
+**Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  
 **Estrategias:** panel propio · «Abrir en Simulador»  
-**Menú QL:** favoritos Scanner→Simulador→Estrategias  
+**Menú QL:** favoritos **Chat IA → Scanner → Simulador → Estrategias** · click **QUANTLAB**/QL · z-index fijo  
+**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` al cambiar horizonte (fix CSS hidden)  
 **Números UI:** `QLFmt` 2 decimales  
-**Alpha Scanner:** multi-mercado · chips → Simulador  
 **Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés (no predicción)  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  

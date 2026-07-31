@@ -862,12 +862,71 @@
     function tryApplyPrefill() {
       if (!pendingPrefill) return;
       var p = pendingPrefill;
+
       if (p.interval) {
         var iv = root.querySelector("#sim-interval");
         if (iv) {
           iv.value = p.interval;
           refreshNBars();
         }
+      }
+      if (p.period_days != null) {
+        var pd = root.querySelector("#sim-period");
+        if (pd) {
+          var want = String(p.period_days);
+          var hasPd = false;
+          for (var pi = 0; pi < pd.options.length; pi++) {
+            if (pd.options[pi].value === want) {
+              hasPd = true;
+              break;
+            }
+          }
+          if (hasPd) {
+            pd.value = want;
+            refreshNBars();
+          }
+        }
+      }
+      if (p.leverage != null && p.leverage !== "") {
+        var lev = root.querySelector("#sim-lev");
+        var levNum = root.querySelector("#sim-lev-num");
+        var lv = String(p.leverage);
+        if (lev) lev.value = lv;
+        if (levNum) levNum.value = lv;
+      }
+      if (p.capital_mode === "unconstrained") {
+        var free = root.querySelector("#sim-cap-free");
+        if (free) free.checked = true;
+        syncCapitalModeUI();
+      } else if (p.capital_mode === "fixed") {
+        var fixed = root.querySelector("#sim-cap-fixed");
+        if (fixed) fixed.checked = true;
+        syncCapitalModeUI();
+      }
+      if (p.initial_capital != null && p.initial_capital !== "") {
+        var capEl = root.querySelector("#sim-capital");
+        if (capEl) capEl.value = String(p.initial_capital);
+      }
+      if (p.per_trade_usd != null && p.per_trade_usd !== "") {
+        var pt = root.querySelector("#sim-per-trade");
+        if (pt) pt.value = String(p.per_trade_usd);
+      }
+      if (p.bench_pct != null && p.bench_pct !== "") {
+        var bench = root.querySelector("#sim-bench");
+        if (bench) bench.value = String(p.bench_pct);
+      } else if (p.annual_bench_rate != null && p.annual_bench_rate !== "") {
+        var benchR = root.querySelector("#sim-bench");
+        if (benchR) {
+          benchR.value = String(Number(p.annual_bench_rate) * 100);
+        }
+      }
+      if (p.liq != null) {
+        var liq = root.querySelector("#sim-liq");
+        if (liq) liq.checked = !!p.liq;
+      }
+      if (p.funding != null) {
+        var fund = root.querySelector("#sim-funding");
+        if (fund) fund.checked = !!p.funding;
       }
       if (p.strategy_id) {
         var sel = root.querySelector("#sim-strat-hist");
@@ -882,6 +941,33 @@
           if (has) sel.value = p.strategy_id;
         }
       }
+
+      if (p.pairs && Array.isArray(p.pairs) && p.pairs.length) {
+        var universeReady =
+          Object.keys(productsByVenue).length > 0 || coinsCache.length > 0;
+        if (!universeReady) {
+          /* Esperar a que loadUniverse termine (vuelve a llamar tryApplyPrefill). */
+          return;
+        }
+        VENUES.forEach(function (vid) {
+          selectedByVenue[vid] = [];
+          venueEnabled[vid] = false;
+        });
+        p.pairs.forEach(function (pair) {
+          if (!pair || !pair.venue || !pair.underlying) return;
+          var cid =
+            findProductIdByTicker(pair.venue, pair.underlying) ||
+            pair.underlying;
+          addProductToVenue(pair.venue, cid, false);
+        });
+        renderVenuePicks();
+        applyFeePreset();
+        refreshSizing();
+        syncRankButton();
+        pendingPrefill = null;
+        return;
+      }
+
       if (p.venue && p.underlying) {
         if (!productsByVenue[p.venue] || !productsByVenue[p.venue].length) {
           return;
@@ -894,6 +980,13 @@
         showTab("comparar");
         pendingPrefill = null;
       } else if (p.strategy_id && strategiesCache.length) {
+        pendingPrefill = null;
+      } else if (
+        !p.strategy_id &&
+        !p.venue &&
+        !(p.pairs && p.pairs.length)
+      ) {
+        /* Solo meta de form — ya aplicado. */
         pendingPrefill = null;
       }
     }

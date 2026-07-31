@@ -1,22 +1,23 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-30
-Versión: 1.01.0 · Sims = ventana WM
+Actualizado: 2026-07-31
+Versión: 1.01.0 · menú QL fix + IA en favoritos
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- «Mis simulaciones» = ventana Windows (drag/resize/min/max/×)
-- QL menú · Ctrl+K · botón Sims · abre al boot
+- Menú QL/QUANTLAB: fixed + z-index alto (no queda detrás)
+- Favoritos: Chat IA · Scanner · Simulador · Estrategias
+- Scanner typeahead moneda + preview velas
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Dejó de ser panel fijo. Usa WindowManager igual que
-Health/Blotter. Geometría se guarda en layout.
+Reparé apertura del menú (z-index detrás de ventanas).
+Chat IA arriba en Mis favoritos.
 
 PRÓXIMO
 -------
-Ctrl+F5 · ventana «Mis simulaciones» · bordes = tamaño
+Ctrl+F5 · click QL o QUANTLAB · ver Chat IA arriba
 
 INVARIANTES
 -----------

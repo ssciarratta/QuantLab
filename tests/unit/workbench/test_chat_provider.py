@@ -44,7 +44,8 @@ def test_fake_provider_backtest() -> None:
 def test_fake_provider_scanner() -> None:
     tools = ToolRegistry(WorkbenchState())
     turn = FakeProvider().complete(_req("qué hace el scanner alpha"), tools)
-    assert "list_capabilities" in turn.tools_used
+    assert "explain_scanner" in turn.tools_used or "instructor_guide" in turn.tools_used
+    assert "scanner" in turn.reply.lower() or "ranking" in turn.reply.lower()
 
 
 def test_fake_provider_live() -> None:

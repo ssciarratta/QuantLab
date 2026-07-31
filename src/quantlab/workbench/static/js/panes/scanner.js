@@ -23,6 +23,23 @@
     { id: "180", label: "6 meses", days: 180 },
     { id: "365", label: "1 año", days: 365 },
   ];
+  var INTERVAL_MINUTES = {
+    "1m": 1,
+    "3m": 3,
+    "5m": 5,
+    "15m": 15,
+    "30m": 30,
+    "1h": 60,
+    "2h": 120,
+    "4h": 240,
+    "6h": 360,
+    "8h": 480,
+    "12h": 720,
+    "1d": 1440,
+    "3d": 4320,
+    "1w": 10080,
+    "1M": 43200,
+  };
 
   function esc(s) {
     return String(s == null ? "" : s)
@@ -30,6 +47,13 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
+  }
+
+  function foldText(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
   }
 
   function optHtml(list, selected) {
@@ -103,8 +127,12 @@
       '<option value="custom">Moneda puntual…</option>' +
       "</select></label>" +
       '<label id="sc-coin-wrap" hidden>Moneda' +
-      '<input id="sc-coin" type="text" placeholder="ej. BTC o NEAR,SOL" ' +
-      'autocomplete="off" spellcheck="false" /></label>' +
+      '<div class="sc-coin-pick">' +
+      '<input id="sc-coin" type="search" placeholder="Buscar: BTC, ETH, NEAR…" ' +
+      'autocomplete="off" spellcheck="false" aria-autocomplete="list" ' +
+      'aria-controls="sc-coin-suggest" />' +
+      '<ul id="sc-coin-suggest" class="sc-coin-suggest" hidden role="listbox"></ul>' +
+      "</div></label>" +
       "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
       "<span class=\"muted\">Mercados</span>" +
@@ -141,6 +169,10 @@
     var compareLayout = "grouped";
     /** Underlyings expandidos en vista agrupada. */
     var compareExpanded = {};
+    /** Catálogo de monedas para typeahead (Moneda puntual). */
+    var coinsCache = [];
+    var coinSuggestIdx = -1;
+    var coinLoadToken = 0;
 
     function setStatus(ok, msg) {
       var el = root.querySelector("#sc-status");
@@ -173,8 +205,14 @@
       var wrap = root.querySelector("#sc-coin-wrap");
       if (wrap) wrap.hidden = !custom;
       if (custom) {
+        loadCoinCatalog();
         var inp = root.querySelector("#sc-coin");
-        if (inp && !inp.value) inp.focus();
+        if (inp) {
+          if (!inp.value) inp.focus();
+          openCoinSuggest();
+        }
+      } else {
+        closeCoinSuggest();
       }
     }
 
@@ -192,6 +230,173 @@
         .filter(function (x, i, arr) {
           return arr.indexOf(x) === i;
         });
+    }
+
+    function loadCoinCatalog() {
+      if (!QLApi.simUniverse) {
+        coinsCache = [
+          { id: "BTC", name: "Bitcoin", label: "Bitcoin (BTC)" },
+          { id: "ETH", name: "Ethereum", label: "Ethereum (ETH)" },
+          { id: "SOL", name: "Solana", label: "Solana (SOL)" },
+        ];
+        return;
+      }
+      var token = ++coinLoadToken;
+      var mt = root.querySelector("#sc-market").value || "spot";
+      QLApi.simUniverse({ market_type: mt, hl_live: true })
+        .then(function (d) {
+          if (token !== coinLoadToken) return;
+          var map = {};
+          (d.coins || []).forEach(function (c) {
+            if (!c || !c.id) return;
+            map[String(c.id).toUpperCase()] = {
+              id: String(c.id).toUpperCase(),
+              name: c.name || c.id,
+              label: c.label || c.name || c.id,
+            };
+          });
+          var pbv = d.products_by_venue || {};
+          Object.keys(pbv).forEach(function (vid) {
+            (pbv[vid] || []).forEach(function (p) {
+              var id = String(p.id || p.underlying || "")
+                .toUpperCase()
+                .replace(/[-/]/g, "")
+                .replace(/(USDT|USD|USDC|PERP)$/i, "");
+              if (!id || id.length > 12) return;
+              if (!map[id]) {
+                map[id] = {
+                  id: id,
+                  name: p.name || id,
+                  label: p.label || p.name || id,
+                };
+              }
+            });
+          });
+          coinsCache = Object.keys(map)
+            .sort()
+            .map(function (k) {
+              return map[k];
+            });
+          if (
+            root.querySelector("#sc-limit").value === "custom" &&
+            document.activeElement === root.querySelector("#sc-coin")
+          ) {
+            openCoinSuggest();
+          }
+        })
+        .catch(function () {
+          if (token !== coinLoadToken) return;
+          if (!coinsCache.length) {
+            coinsCache = [
+              { id: "BTC", name: "Bitcoin", label: "Bitcoin (BTC)" },
+              { id: "ETH", name: "Ethereum", label: "Ethereum (ETH)" },
+            ];
+          }
+        });
+    }
+
+    function currentCoinQuery() {
+      var raw = root.querySelector("#sc-coin").value || "";
+      var parts = raw.split(/[,;\s]+/);
+      return foldText(parts[parts.length - 1] || "");
+    }
+
+    function filteredCoins(q) {
+      var list = coinsCache.slice();
+      if (!q) {
+        var prefer = ["BTC", "ETH", "SOL", "BNB", "XRP", "DOGE", "ADA", "NEAR"];
+        list.sort(function (a, b) {
+          var ia = prefer.indexOf(a.id);
+          var ib = prefer.indexOf(b.id);
+          if (ia >= 0 || ib >= 0) {
+            if (ia < 0) return 1;
+            if (ib < 0) return -1;
+            return ia - ib;
+          }
+          return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+        });
+        return list.slice(0, 14);
+      }
+      return list
+        .filter(function (c) {
+          var hay = foldText([c.id, c.name, c.label].join(" "));
+          return hay.indexOf(q) >= 0;
+        })
+        .slice(0, 14);
+    }
+
+    function closeCoinSuggest() {
+      var box = root.querySelector("#sc-coin-suggest");
+      if (box) box.hidden = true;
+      coinSuggestIdx = -1;
+    }
+
+    function openCoinSuggest() {
+      var wrap = root.querySelector("#sc-coin-wrap");
+      if (!wrap || wrap.hidden) {
+        closeCoinSuggest();
+        return;
+      }
+      var box = root.querySelector("#sc-coin-suggest");
+      if (!box) return;
+      var q = currentCoinQuery();
+      var matches = filteredCoins(q);
+      coinSuggestIdx = -1;
+      if (!matches.length) {
+        box.innerHTML =
+          '<li class="sc-coin-empty muted">Sin coincidencias en el catálogo. ' +
+          "Podés escribir el ticker igual (ej. BTC).</li>";
+        box.hidden = false;
+        return;
+      }
+      box.innerHTML = matches
+        .map(function (c, i) {
+          return (
+            '<li role="option" data-idx="' +
+            i +
+            '"><button type="button" data-id="' +
+            esc(c.id) +
+            '"><span class="sc-coin-id">' +
+            esc(c.id) +
+            '</span><span class="sc-coin-name">' +
+            esc(c.name || c.label || "") +
+            "</span></button></li>"
+          );
+        })
+        .join("");
+      box.querySelectorAll("button").forEach(function (btn) {
+        btn.addEventListener("mousedown", function (ev) {
+          ev.preventDefault();
+          pickCoin(btn.getAttribute("data-id"));
+        });
+      });
+      box.hidden = false;
+    }
+
+    function pickCoin(id) {
+      if (!id) return;
+      var inp = root.querySelector("#sc-coin");
+      var raw = inp.value || "";
+      var endsWithSep = /[,;\s]$/.test(raw);
+      var parts = raw.trim()
+        ? raw
+            .trim()
+            .split(/[,;\s]+/)
+            .filter(Boolean)
+        : [];
+      if (parts.length && !endsWithSep) {
+        parts[parts.length - 1] = id;
+      } else {
+        parts.push(id);
+      }
+      var uniq = [];
+      parts.forEach(function (p) {
+        var u = String(p).toUpperCase();
+        if (u && uniq.indexOf(u) < 0) uniq.push(u);
+      });
+      inp.value = uniq.join(", ");
+      closeCoinSuggest();
+      inp.focus();
     }
 
     function syncSourceUI() {
@@ -214,31 +419,86 @@
       });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Tanda = monedas scoreadas. Universo «Moneda puntual» scorea vs anclas BTC/ETH/SOL (no listadas). Multi-venue = Comparar + ranking por mercado.";
+        : "Tanda = monedas scoreadas. Universo «Moneda puntual»: buscá en el catálogo (typeahead). Multi-venue = Comparar + ranking por mercado.";
       syncUniverseUI();
+    }
+
+    function estimateBarsLocal(days, interval) {
+      var mins = INTERVAL_MINUTES[interval] || 60;
+      var n = Math.floor((Number(days) * 1440) / mins);
+      return n < 1 ? 1 : n;
+    }
+
+    function periodLabel() {
+      var sel = root.querySelector("#sc-period");
+      if (!sel || sel.selectedIndex < 0) return String(sel && sel.value) || "—";
+      return sel.options[sel.selectedIndex].text || String(sel.value);
     }
 
     function refreshNBars() {
       var el = root.querySelector("#sc-nbars");
+      if (!el) return;
       if (windowMode() === "klines") {
-        var n = parseInt(root.querySelector("#sc-klines").value, 10) || 0;
-        el.textContent = "≈ " + n.toLocaleString("es-AR") + " velas";
+        var nK = parseInt(root.querySelector("#sc-klines").value, 10) || 0;
+        el.textContent =
+          "≈ " + nK.toLocaleString("es-AR") + " velas · N fijo";
+        el.title =
+          "Modo N velas: el scanner pide exactamente esas barras (TF elegido).";
         return;
       }
-      if (!QLApi.simPeriod) {
-        el.textContent = "≈ —";
-        return;
+      var days = parseInt(root.querySelector("#sc-period").value, 10) || 30;
+      var iv = root.querySelector("#sc-interval").value || "1h";
+      var n = estimateBarsLocal(days, iv);
+      var pl = periodLabel();
+      el.textContent =
+        "≈ " +
+        n.toLocaleString("es-AR") +
+        " velas · " +
+        pl +
+        " × " +
+        iv;
+      el.title =
+        "Horizonte «" +
+        pl +
+        "» con velas de " +
+        iv +
+        " → se pedirán ~" +
+        n.toLocaleString("es-AR") +
+        " barras por símbolo.";
+      /* Mantener el input N alineado por si el usuario cambia a modo velas. */
+      var klines = root.querySelector("#sc-klines");
+      if (klines) {
+        klines.value = String(Math.min(Math.max(n, 10), 525600));
       }
-      var days = root.querySelector("#sc-period").value;
-      var iv = root.querySelector("#sc-interval").value;
+      if (!QLApi.simPeriod) return;
       QLApi.simPeriod(days, iv)
         .then(function (d) {
-          el.textContent = d.n_bars_display || "≈ " + d.n_bars + " velas";
-          el.title = d.note || "";
+          if (windowMode() !== "period") return;
+          if (d.n_bars != null) {
+            el.textContent =
+              (d.n_bars_display ||
+                "≈ " + Number(d.n_bars).toLocaleString("es-AR") + " velas") +
+              " · " +
+              pl +
+              " × " +
+              iv;
+          }
+          el.title =
+            (d.note ? d.note + "\n" : "") +
+            "Horizonte «" +
+            pl +
+            "» × " +
+            iv +
+            " → ~" +
+            (d.n_bars != null ? d.n_bars : n) +
+            " barras.";
+          if (klines && d.n_bars != null) {
+            klines.value = String(
+              Math.min(Math.max(Number(d.n_bars) || n, 10), 525600)
+            );
+          }
         })
-        .catch(function () {
-          el.textContent = "≈ —";
-        });
+        .catch(function () {});
     }
 
     function openSim(prefill) {
@@ -1188,22 +1448,67 @@
     root.querySelector("#sc-source").addEventListener("change", syncSourceUI);
     root.querySelector("#sc-window-mode").addEventListener("change", syncWindowModeUI);
     root.querySelector("#sc-limit").addEventListener("change", syncUniverseUI);
-    root.querySelector("#sc-coin").addEventListener("keydown", function (ev) {
-      if (ev.key === "Enter") {
+    var coinInp = root.querySelector("#sc-coin");
+    coinInp.addEventListener("focus", function () {
+      loadCoinCatalog();
+      openCoinSuggest();
+    });
+    coinInp.addEventListener("input", function () {
+      openCoinSuggest();
+    });
+    coinInp.addEventListener("keydown", function (ev) {
+      var box = root.querySelector("#sc-coin-suggest");
+      var open = box && !box.hidden;
+      var items = open ? box.querySelectorAll("button[data-id]") : [];
+      if (ev.key === "ArrowDown" && open && items.length) {
         ev.preventDefault();
+        coinSuggestIdx = Math.min(coinSuggestIdx + 1, items.length - 1);
+        items[coinSuggestIdx].focus();
+        return;
+      }
+      if (ev.key === "ArrowUp" && open && items.length) {
+        ev.preventDefault();
+        coinSuggestIdx = Math.max(coinSuggestIdx - 1, 0);
+        items[coinSuggestIdx].focus();
+        return;
+      }
+      if (ev.key === "Escape") {
+        closeCoinSuggest();
+        return;
+      }
+      if (ev.key === "Enter") {
+        if (open && coinSuggestIdx >= 0 && items[coinSuggestIdx]) {
+          ev.preventDefault();
+          pickCoin(items[coinSuggestIdx].getAttribute("data-id"));
+          return;
+        }
+        if (open && items.length === 1) {
+          ev.preventDefault();
+          pickCoin(items[0].getAttribute("data-id"));
+          return;
+        }
+        ev.preventDefault();
+        closeCoinSuggest();
         root.querySelector("#sc-run").click();
       }
+    });
+    coinInp.addEventListener("blur", function () {
+      setTimeout(closeCoinSuggest, 140);
     });
     root.querySelector("#sc-period").addEventListener("change", refreshNBars);
     root.querySelector("#sc-interval").addEventListener("change", refreshNBars);
     root.querySelector("#sc-klines").addEventListener("input", refreshNBars);
     root.querySelector("#sc-market").addEventListener("change", function () {
+      if (root.querySelector("#sc-limit").value === "custom") {
+        loadCoinCatalog();
+      }
       if (root.querySelector("#sc-market").value === "spot") {
         var hl = root.querySelector('.sc-venue-cb[value="hyperliquid"]');
         if (hl && hl.checked) {
           /* HL solo futures: al elegir spot no desmarcamos; el backend fuerza futures */
         }
       }
+      refreshNBars();
     });
     root.querySelectorAll(".sc-venue-cb").forEach(function (cb) {
       cb.addEventListener("change", function () {
@@ -1213,11 +1518,13 @@
           root.querySelector("#sc-market").value === "spot"
         ) {
           root.querySelector("#sc-market").value = "futures";
+          loadCoinCatalog();
         }
       });
     });
     syncSourceUI();
     syncWindowModeUI();
+    loadCoinCatalog();
 
     if (QLApi.alphaProfiles) {
       QLApi.alphaProfiles()

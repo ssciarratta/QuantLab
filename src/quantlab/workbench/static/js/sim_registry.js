@@ -151,6 +151,72 @@
     }
   }
 
+  function findEntry(id) {
+    return load().find(function (x) {
+      return x.id === id;
+    });
+  }
+
+  /** Prefill limpio para Simulador a partir de params guardados en el registro. */
+  function buildSimulatorPrefill(params) {
+    params = params || {};
+    var meta = params.meta || {};
+    var common = params.common || {};
+    function pick() {
+      for (var i = 0; i < arguments.length; i++) {
+        if (arguments[i] != null && arguments[i] !== "") return arguments[i];
+      }
+      return null;
+    }
+    var prefill = {
+      kind: params.kind || "compare",
+      market_type: pick(meta.market_type, common.market_type, params.market_type),
+      interval: pick(meta.interval, common.interval, params.interval),
+      period_days: pick(meta.period_days, common.period_days, params.period_days),
+      leverage: pick(meta.leverage, common.leverage, params.leverage),
+      capital_mode: pick(meta.capital_mode, common.capital_mode, params.capital_mode),
+      initial_capital: pick(
+        meta.initial_capital,
+        common.initial_capital,
+        params.initial_capital
+      ),
+      per_trade_usd: pick(meta.per_trade_usd, common.per_trade_usd, params.per_trade_usd),
+      bench_pct: pick(meta.bench_pct, params.bench_pct),
+      annual_bench_rate: pick(common.annual_bench_rate, params.annual_bench_rate),
+      liq: pick(meta.liq, common.simulate_liquidation, params.liq),
+      funding: pick(meta.funding, common.apply_funding, params.funding),
+      strategy_id: pick(params.strategy_id, common.strategy_id),
+      pairs: Array.isArray(params.pairs) ? params.pairs.slice() : [],
+    };
+    if ((!prefill.pairs || !prefill.pairs.length) && params.venue && params.underlying) {
+      prefill.venue = params.venue;
+      prefill.underlying = params.underlying;
+    }
+    return prefill;
+  }
+
+  /**
+   * Reabre Simulador o Monte Carlo con los mismos parámetros de esa corrida.
+   * No re-ejecuta sola: deja el form listo para seguir trabajando.
+   */
+  function reopen(entry) {
+    if (!entry) return;
+    var params = entry.params || {};
+    var kind =
+      entry.kind || params.kind || (entry.memo && entry.memo.kind) || "run";
+    if (!global.QLShell || typeof global.QLShell.open !== "function") {
+      window.alert("Shell no listo — reintentá en un segundo.");
+      return;
+    }
+    if (kind === "montecarlo") {
+      global.QLShell.open("montecarlo", { prefill: params });
+      return;
+    }
+    global.QLShell.open("simulator", {
+      prefill: buildSimulatorPrefill(params),
+    });
+  }
+
   function renderList() {
     if (!contentEl) return;
     var listEl = contentEl.querySelector(".ql-sim-registry-list");
@@ -173,7 +239,7 @@
           ? new Date(e.created_at).toLocaleString("es-AR")
           : "—";
         return (
-          '<button type="button" class="ql-sim-registry-item" data-id="' +
+          '<div class="ql-sim-registry-item" data-id="' +
           esc(e.id) +
           '">' +
           '<span class="ql-sim-registry-kind">' +
@@ -188,16 +254,31 @@
           '<span class="ql-sim-registry-sum muted">' +
           esc(e.summary || "") +
           "</span>" +
-          "</button>"
+          '<div class="ql-sim-registry-actions">' +
+          '<button type="button" class="btn ql-sim-registry-reopen" data-id="' +
+          esc(e.id) +
+          '" title="Abrir Simulador/MC con los mismos parámetros">Reabrir</button> ' +
+          '<button type="button" class="btn secondary ql-sim-registry-memo" data-id="' +
+          esc(e.id) +
+          '" title="Ver memorando de esta corrida">Memo</button>' +
+          "</div>" +
+          "</div>"
         );
       })
       .join("");
-    listEl.querySelectorAll(".ql-sim-registry-item").forEach(function (btn) {
-      btn.addEventListener("click", function () {
-        var id = btn.getAttribute("data-id");
-        var hit = load().find(function (x) {
-          return x.id === id;
-        });
+    listEl.querySelectorAll(".ql-sim-registry-reopen").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var hit = findEntry(btn.getAttribute("data-id"));
+        if (hit) reopen(hit);
+      });
+    });
+    listEl.querySelectorAll(".ql-sim-registry-memo").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var hit = findEntry(btn.getAttribute("data-id"));
         if (hit && hit.memo) openMemo(hit.memo, hit.params);
       });
     });
@@ -209,7 +290,7 @@
     root.innerHTML =
       '<div class="ql-sim-registry-toolbar">' +
       '<span class="muted" style="font-size:0.72em;flex:1">' +
-      "Comparar · Ranking · Monte Carlo · click = memo" +
+      "Comparar · Ranking · Monte Carlo · Reabrir = params · Memo" +
       "</span>" +
       '<span class="mono muted ql-sim-registry-count">0</span> ' +
       '<button type="button" class="btn secondary ql-sim-registry-clear" title="Vaciar historial">Vaciar</button>' +
@@ -321,6 +402,7 @@
     init: init,
     add: add,
     openMemo: openMemo,
+    reopen: reopen,
     openWindow: openWindow,
     show: show,
     list: load,

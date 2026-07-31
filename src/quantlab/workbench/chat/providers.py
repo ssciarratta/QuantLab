@@ -143,8 +143,20 @@ class FakeProvider:
                 parts.append("Abrí Guided Lab. Decime qué querés correr (alpha / pipeline).")
         elif _is_open_action(lower):
             pane = _infer_pane(lower)
+            if pane == "explain_fallback":
+                pane = _OPEN_PANE_FALLBACK
             data = use("open_pane", {"pane": pane})
             parts.append(f"Abriendo panel «{data.get('pane')}».")
+            if pane == "simulator":
+                parts.append("Tip: elegí estrategia → mercados → monedas → Comparar.")
+            elif pane == "montecarlo":
+                parts.append("Tip: definí N escenarios y velas por escenario antes de Simular.")
+            elif pane == "scanner":
+                parts.append("Tip: período×TF o N velas · universo o moneda puntual.")
+            elif pane == "sim_registry":
+                parts.append("Tip: Reabrir carga params · Memo muestra el memorando.")
+            elif pane == "strategies":
+                parts.append("Tip: abrí una guía y usá «Abrir en Simulador».")
         # Intents (orden importa: live antes que modo; resumen antes que docs/cómo)
         elif _match(lower, ("live", "orden", "órdenes", "ordenes", "flip", "routing")):
             data = use("explain_live_policy")
@@ -256,10 +268,8 @@ class FakeProvider:
                 "guidedlab",
                 "wizard",
                 "paso a paso",
-                "cómo uso",
-                "como uso",
-                "cómo se usa",
-                "como se usa",
+                "cómo uso guided",
+                "como uso guided",
             ),
         ):
             data = use("explain_guided_lab")
@@ -267,9 +277,83 @@ class FakeProvider:
         elif _match(
             lower,
             (
+                "monte carlo",
+                "montecarlo",
+                "monte-carlo",
+                "n_scenarios",
+                "n escenarios",
+                "escenarios",
+                "noise_bps",
+                "estrés",
+                "estres",
+                "dispersión",
+                "dispersion",
+            ),
+        ):
+            data = use("explain_montecarlo")
+            parts.append(str(data.get("guide", "")))
+            if _is_open_action(lower) or _match(lower, ("abrí", "abrir", "mostrá", "mostra")):
+                use("open_pane", {"pane": "montecarlo"})
+                parts.append("Abriendo Monte Carlo.")
+        elif _match(
+            lower,
+            (
+                "simulador",
+                "simular mercados",
+                "comparar mercados",
+                "comparar exchange",
+                "mis simulaciones",
+                "sim_registry",
+                "memorando",
+            ),
+        ):
+            data = use("explain_simulator")
+            parts.append(str(data.get("guide", "")))
+            if _match(lower, ("mis simulaciones", "sim_registry", "historial")):
+                use("open_pane", {"pane": "sim_registry"})
+                parts.append("Abriendo Mis simulaciones.")
+            elif _is_open_action(lower) or _match(lower, ("abrí", "abrir", "mostrá", "mostra")):
+                use("open_pane", {"pane": "simulator"})
+                parts.append("Abriendo Simulador.")
+        elif _match(
+            lower,
+            (
+                "alpha scanner",
+                "qué hace el scanner",
+                "que hace el scanner",
+                "explicame el scanner",
+                "explicá el scanner",
+                "explica el scanner",
+                "moneda puntual",
+                "universo scanner",
+            ),
+        ) or (
+            _match(lower, ("scanner", "ranking alpha"))
+            and _match(lower, ("explic", "cómo", "como", "qué", "que", "para qué", "para que"))
+        ):
+            data = use("explain_scanner")
+            parts.append(str(data.get("guide", "")))
+        elif _match(
+            lower,
+            (
+                "mapa",
+                "qué paneles",
+                "que paneles",
+                "diferencia entre",
+                "para qué sirve cada",
+                "para que sirve cada",
+                "overview",
+                "tourlab qué es",
+                "quantlab que es",
+            ),
+        ):
+            data = use("explain_workbench_map")
+            parts.append(str(data.get("guide", "")))
+        elif _match(
+            lower,
+            (
                 "binance",
                 "usdt",
-                "ranking alpha",
                 "pipeline binance",
                 "scan binance",
                 "top 5",
@@ -278,9 +362,6 @@ class FakeProvider:
         ):
             data = use("explain_binance_lab")
             parts.append(str(data.get("guide", "")))
-            apis = data.get("apis") or []
-            if apis:
-                parts.append("APIs: " + ", ".join(str(a) for a in apis) + ".")
         elif _match(
             lower,
             (
@@ -295,14 +376,23 @@ class FakeProvider:
                 "no se usar",
             ),
         ):
-            goal = "estrategia" if _match(lower, ("estrategia", "backtest", "momentum")) else "aprender"  # noqa: E501
-            if _match(lower, ("binance", "usdt", "crypto")):
+            goal = "aprender"
+            if _match(lower, ("comparar", "simulador", "exchange")):
+                goal = "comparar"
+            elif _match(lower, ("estrés", "estres", "monte")):
+                goal = "estres"
+            elif _match(lower, ("estrategia", "backtest", "momentum")):
+                goal = "estrategia"
+            elif _match(lower, ("binance", "usdt", "crypto")):
                 goal = "binance"
             elif _match(lower, ("a3", "remarkets", "rofex")):
                 goal = "a3"
             data = use("suggest_workflow", {"goal": goal})
             parts.append(str(data.get("workflow", "")))
-            parts.append(f"Objetivos disponibles: {', '.join(data.get('available_goals') or [])}.")
+            parts.append(
+                "También puedo: explicar Scanner / Simulador / Monte Carlo, "
+                "o abrir el panel que necesites."
+            )
         elif _match(lower, ("salud", "health", "estado", "checks")):
             data = use("get_health")
             ok = data.get("ok")
@@ -319,7 +409,9 @@ class FakeProvider:
                 f"LIVE_BLOCKED={data.get('live_blocked')}. "
                 f"REAL alias → {data.get('real_alias')} (PAPER)."
             )
-        elif _match(lower, ("backtest", "back test", "estrategia", "momentum")):
+        elif _match(lower, ("backtest", "back test")) and not _match(
+            lower, ("monte", "simulador", "scanner")
+        ):
             data = use("explain_backtest")
             parts.append(str(data.get("guide", "")))
             if data.get("has_last"):
@@ -331,19 +423,13 @@ class FakeProvider:
                 )
             else:
                 parts.append("Aún no hay backtest en esta sesión.")
-        elif _match(lower, ("scanner", "alpha", "optimize", "montecarlo", "capacidad")):
+        elif _match(lower, ("scanner", "alpha", "optimize", "capacidad")):
             if _match(lower, ("binance", "usdt", "moneda", "crypto")):
                 data = use("instructor_guide", {"lesson": "alpha_binance"})
                 parts.append(format_instructor_reply(data))
             else:
-                data = use("list_capabilities")
-                feats = data.get("features") or []
-                ids = [str(f.get("id")) for f in feats if isinstance(f, dict)]
-                parts.append(
-                    "Capacidades del laboratorio: "
-                    + (", ".join(ids) if ids else "(vacío)")
-                    + ". Usá el menú Laboratorio o /api/lab/*."
-                )
+                data = use("explain_scanner")
+                parts.append(str(data.get("guide", "")))
         elif _match(lower, ("venue", "venues", "broker", "exchange")):
             data = use("list_venues")
             venues = data.get("venues") or []
@@ -355,37 +441,37 @@ class FakeProvider:
             parts.append(f"Experimentos en registry de sesión: {n}.")
         elif _match(lower, ("doc", "docs", "document", "ayuda", "help")) or (
             _match(lower, ("cómo", "como"))
-            and not _match(lower, ("binance", "alpha", "scanner", "guided", "mm", "market"))
+            and not _match(
+                lower,
+                (
+                    "binance",
+                    "alpha",
+                    "scanner",
+                    "guided",
+                    "mm",
+                    "market",
+                    "monte",
+                    "simul",
+                ),
+            )
         ):
-            # search_docs + capabilities para ayuda
             q = _extract_query(text) or "workbench LIVE"
             docs = use("search_docs", {"query": q})
-            caps = use("list_capabilities")
             matches = docs.get("matches") or []
             if matches:
                 first = matches[0]
                 parts.append(f"Docs: {first.get('file')} — {first.get('snippet', '')[:200]}")
             else:
-                parts.append("No encontré coincidencias fuertes en docs/*.md.")
-            feats = caps.get("features") or []
-            ids = [str(f.get("id")) for f in feats if isinstance(f, dict)]
-            parts.append(
-                "Ayuda rápida: soy el asistente research (safe-mode). "
-                "Preguntá por Guided Lab, Binance lab, salud, modo, resumen de sesión, "
-                "reportes, estrategias, backtest, scanner y política LIVE. "
-                f"Paneles: {', '.join(ids[:8])}. No envío órdenes."
-            )
-            policy = use("explain_live_policy")
-            parts.append(f"live_blocked={policy.get('live_blocked')} (siempre True aquí).")
+                parts.append("No encontré coincidencias fuertes en docs.")
+            map_data = use("explain_workbench_map")
+            parts.append(str(map_data.get("guide", "")))
         else:
-            policy = use("explain_live_policy")
-            caps = use("list_capabilities")
+            map_data = use("explain_workbench_map")
+            parts.append(str(map_data.get("guide", "")))
             parts.append(
-                "Asistente QuantLab (FakeProvider). Preguntá por Guided Lab, Binance, "
-                "cómo empiezo, salud, modo, resumen de sesión, reportes, estrategias, "
-                "backtest, scanner, venues, experimentos, docs o política LIVE. "
-                f"live_blocked={policy.get('live_blocked')}. "
-                f"features={len(caps.get('features') or [])}."
+                "No enganché un tema concreto. Probá: "
+                "«explicame Monte Carlo», «cómo uso el Simulador», "
+                "«abrí Scanner», «cómo empiezo» o «mapa de paneles»."
             )
 
         reply = "\n\n".join(p for p in parts if p).strip()
@@ -483,11 +569,16 @@ def _normalize_user_text(text: str) -> str:
         ("binanse", "binance"),
         ("maket making", "market making"),
         ("market makin", "market making"),
+        ("monte carlo", "montecarlo"),
+        ("monte-carlo", "montecarlo"),
+        ("estregia", "estrategia"),
+        ("estragia", "estrategia"),
+        ("simualdor", "simulador"),
+        ("parametros", "parámetros"),
     )
     lower = out.lower()
     for bad, good in replacements:
         if bad in lower:
-            # reemplazo case-insensitive simple
             idx = lower.find(bad)
             out = out[:idx] + good + out[idx + len(bad) :]
             lower = out.lower()
@@ -586,19 +677,27 @@ def _is_open_action(lower: str) -> bool:
 
 
 def _infer_pane(lower: str) -> str:
-    if _match(lower, ("guided", "lab", "alpha", "binance", "wizard")):
+    if _match(lower, ("mis simulaciones", "sim_registry", "historial de sim")):
+        return "sim_registry"
+    if _match(lower, ("simulador", "simular", "comparar")):
+        return "simulator"
+    if _match(lower, ("montecarlo", "monte carlo", "estrés", "estres")):
+        return "montecarlo"
+    if _match(lower, ("estrategias", "catálogo", "catalogo")):
+        return "strategies"
+    if _match(lower, ("scanner", "ranking", "alpha scanner")):
+        return "scanner"
+    if _match(lower, ("guided", "wizard")):
         return "guided_lab"
     if _match(lower, ("chat", "asistente", "ia")):
         return "chat"
     if _match(lower, ("backtest",)):
         return "backtest"
-    if _match(lower, ("scanner", "ranking")):
-        return "scanner"
     if _match(lower, ("setting", "ajuste", "preferenc", "letra", "fuente")):
         return "settings"
     if _match(lower, ("salud", "health", "modo")):
         return "health"
-    if _match(lower, ("docs", "ayuda", "help")):
+    if _match(lower, ("docs", "ayuda", "help", "manual")):
         return "docs"
     if _match(lower, ("report",)):
         return "reports"
@@ -606,7 +705,13 @@ def _infer_pane(lower: str) -> str:
         return "blotter"
     if _match(lower, ("journal",)):
         return "journal"
-    return "guided_lab"
+    if _match(lower, ("lab", "binance", "alpha")):
+        return "guided_lab"
+    return "explain_fallback"
+
+
+# open_pane no acepta explain_fallback — mapear a guided_lab en open
+_OPEN_PANE_FALLBACK = "guided_lab"
 
 
 def _extract_query(message: str) -> str:

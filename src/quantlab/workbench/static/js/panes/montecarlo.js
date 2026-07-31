@@ -1332,9 +1332,14 @@
         const p = focus.prefill;
         if (p.n_scenarios != null) setScenarios(p.n_scenarios);
         if (p.n_bars != null) root.querySelector("#mc-bars").value = p.n_bars;
+        if (p.noise_bps != null) root.querySelector("#mc-noise").value = p.noise_bps;
         if (p.seed != null) root.querySelector("#mc-seed").value = p.seed;
         if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
         if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        if (p.store_paths != null) {
+          var pathsEl = root.querySelector("#mc-paths");
+          if (pathsEl) pathsEl.checked = !!p.store_paths;
+        }
         updateBarsDurationHint(null);
       }
       if (focus.message) {
