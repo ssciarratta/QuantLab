@@ -1935,6 +1935,121 @@ def run_lab_optimize(
     return payload
 
 
+def _resolve_mc_from_sim_context(
+    sim_context: Mapping[str, Any],
+    *,
+    n_bars: int,
+    strategy_id_fallback: str,
+) -> dict[str, Any]:
+    """Resuelve velas + estrategia + capital desde el handoff del Simulador."""
+    from quantlab.brokers.md_router import fetch_bars_for_instrument
+    from quantlab.research.sim.fee_schedules import (
+        fee_model_from_schedule,
+        get_fee_schedule,
+        schedule_to_lab_fee_dict,
+    )
+    from quantlab.research.sim.period_bars import estimate_n_bars
+
+    pairs_raw = sim_context.get("pairs")
+    if not isinstance(pairs_raw, list) or not pairs_raw:
+        raise ValidationError(
+            "sim_context sin pairs: abrí Monte Carlo desde el Simulador "
+            "con moneda y mercado elegidos"
+        )
+    first = pairs_raw[0]
+    if not isinstance(first, dict):
+        raise ValidationError("sim_context.pairs[0] inválido")
+    venue = str(first.get("venue", "")).strip().lower()
+    underlying = str(
+        first.get("underlying") or first.get("ticker") or ""
+    ).strip()
+    if not venue or not underlying:
+        raise ValidationError(
+            "sim_context: cada pair requiere venue + underlying/ticker"
+        )
+
+    market_type = str(sim_context.get("market_type") or "futures").strip().lower()
+    if market_type not in ("spot", "futures"):
+        market_type = "futures"
+    interval = str(sim_context.get("interval") or "1h").strip()
+    period_days = sim_context.get("period_days")
+
+    kline_limit = max(n_bars, LAB_KLINE_LIMIT_MIN)
+    if period_days is not None:
+        try:
+            est = estimate_n_bars(period_days=period_days, interval=interval)
+            kline_limit = max(n_bars, int(est["n_bars"]))
+        except (ValidationError, KeyError, TypeError, ValueError):
+            pass
+    kline_limit = max(LAB_KLINE_LIMIT_MIN, min(kline_limit, LAB_KLINE_LIMIT_MAX))
+
+    resolved, bars = fetch_bars_for_instrument(
+        underlying,
+        venue=venue,
+        market_type=market_type,
+        interval=interval,
+        kline_limit=kline_limit,
+    )
+    if len(bars) < 4:
+        raise ValidationError(
+            f"sim_context: insuficientes velas para {venue}/{underlying} "
+            f"(got {len(bars)})"
+        )
+    run_bars = bars[-n_bars:] if len(bars) > n_bars else list(bars)
+
+    sid_raw = (
+        str(sim_context.get("strategy_id") or strategy_id_fallback or "momentum")
+        .strip()
+    )
+    sid = normalize_strategy_id(sid_raw)
+    caller_params = sim_context.get("strategy_params")
+    caller = dict(caller_params) if isinstance(caller_params, dict) else {}
+    if sid == "momentum" and "lookback" not in caller:
+        caller["lookback"] = 2
+    strategy_params = merge_default_params(sid, caller)
+    strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
+
+    capital_mode = str(sim_context.get("capital_mode") or "fixed").strip().lower()
+    try:
+        if capital_mode == "fixed" and sim_context.get("initial_capital") is not None:
+            initial_cash = Decimal(str(sim_context["initial_capital"]))
+        elif sim_context.get("per_trade_usd") is not None:
+            pt = Decimal(str(sim_context["per_trade_usd"]))
+            initial_cash = max(pt * Decimal("50"), Decimal("10000"))
+        else:
+            initial_cash = Decimal("50000")
+    except Exception as exc:
+        raise ValidationError(
+            f"sim_context capital inválido: {exc}"
+        ) from exc
+    if initial_cash <= 0:
+        raise ValidationError("sim_context: initial_capital debe ser > 0")
+
+    fee_sched = get_fee_schedule(venue, market_type)
+    fee_model = fee_model_from_schedule(fee_sched)
+    fee_dict = schedule_to_lab_fee_dict(fee_sched)
+
+    return {
+        "bars": run_bars,
+        "strategy": strategy,
+        "strategy_id": sid,
+        "strategy_params": strategy_params,
+        "initial_cash": initial_cash,
+        "equity_currency": "USDT",
+        "fee_model": fee_model,
+        "fee_dict": fee_dict,
+        "venue": venue,
+        "market_type": market_type,
+        "interval": interval,
+        "instrument_id": resolved.instrument_id,
+        "underlying": resolved.underlying,
+        "data_source": f"{venue}_{market_type}",
+        "pairs_count": len(pairs_raw),
+        "summary_line": str(sim_context.get("summary_line") or ""),
+        "sim_context": dict(sim_context),
+    }
+
+
 def run_lab_montecarlo(
     *,
     n_scenarios: int = 1000,
@@ -1954,13 +2069,15 @@ def run_lab_montecarlo(
     confirm_large: bool = False,
     cancellation: Any | None = None,
     on_progress: Any | None = None,
+    sim_context: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """MC lab: velas sintéticas 1m + estrategia (default BuyOnce), schema v2+.
+    """MC lab: sintético (demo) o ligado al Simulador via ``sim_context``.
 
-    ``n_bars`` = velas utilizadas **por escenario** (timeframe 1m), no #escenarios.
+    ``n_bars`` = velas utilizadas **por escenario**, no #escenarios.
     ``mode``:
       - ``technical_lab``: sintético permitido; contexto completo auto-rellenado.
-      - ``normal``: exige ``backtest_id`` (anti-huérfano).
+      - ``normal``: exige ``backtest_id`` (anti-huérfano) si no hay ``sim_context``.
+      - ``sim_linked``: forzado cuando hay ``sim_context`` válido (moneda real).
     """
     from quantlab.montecarlo.dataset import DatasetReference
     from quantlab.montecarlo.limits import (
@@ -1990,12 +2107,25 @@ def run_lab_montecarlo(
     if max_persisted_trajectories > DEFAULT_MAX_PERSISTED_TRAJECTORIES * 4:
         max_persisted_trajectories = DEFAULT_MAX_PERSISTED_TRAJECTORIES * 4
 
+    sim_linked: dict[str, Any] | None = None
+    if isinstance(sim_context, Mapping) and sim_context:
+        sim_linked = _resolve_mc_from_sim_context(
+            sim_context,
+            n_bars=n_bars,
+            strategy_id_fallback=strategy_id,
+        )
+
     mode_key = (mode or "technical_lab").strip().lower()
-    if mode_key not in ("technical_lab", "normal"):
-        raise ValidationError("mode debe ser 'technical_lab' o 'normal'")
-    if mode_key == "normal" and not backtest_id:
+    if sim_linked is not None:
+        mode_key = "sim_linked"
+    if mode_key not in ("technical_lab", "normal", "sim_linked"):
         raise ValidationError(
-            "modo normal: se requiere backtest_id (flujo Backtest → Monte Carlo)"
+            "mode debe ser 'technical_lab', 'normal' o 'sim_linked'"
+        )
+    if mode_key == "normal" and not backtest_id and sim_linked is None:
+        raise ValidationError(
+            "modo normal: se requiere backtest_id (flujo Backtest → Monte Carlo) "
+            "o sim_context del Simulador"
         )
     if n_scenarios >= CONFIRM_LARGE_THRESHOLD and not confirm_large:
         raise ValidationError(
@@ -2014,18 +2144,56 @@ def run_lab_montecarlo(
             "trayectorias limitadas a max_persisted_trajectories."
         )
 
-    bars = make_synthetic_bars(n_bars)
-    initial_cash = Decimal("50000")
-    equity_currency = "LAB"  # capital sintético de laboratorio (no USDT de exchange)
-    strategy_params = {"quantity": "1"}
-    sid = normalize_strategy_id(strategy_id) if strategy_id else "buy_once"
-    fee_schedule = resolve_binance_spot_fee_schedule()
-    fee_model = binance_spot_fee_model()
-    fee_dict = fee_schedule.to_dict()
-    ds_hash = hash_bars(bars)
-    dataset_ref = DatasetReference.from_synthetic_bars(
-        bars, dataset_hash=ds_hash, seed=seed
-    )
+    mc_strategy: Any
+    if sim_linked is not None:
+        bars = sim_linked["bars"]
+        n_bars = len(bars)
+        initial_cash = sim_linked["initial_cash"]
+        equity_currency = str(sim_linked["equity_currency"])
+        strategy_params = dict(sim_linked["strategy_params"])
+        sid = str(sim_linked["strategy_id"])
+        fee_model = sim_linked["fee_model"]
+        fee_dict = dict(sim_linked["fee_dict"])
+        mc_strategy = sim_linked["strategy"]
+        ds_hash = hash_bars(bars)
+        first_bar = bars[0]
+        last_bar = bars[-1]
+        dataset_ref = DatasetReference(
+            dataset_id=f"sim-{sim_linked['venue']}-{sim_linked['underlying']}",
+            source=str(sim_linked["data_source"]),
+            venue=str(sim_linked["venue"]),
+            network="public_md",
+            symbol=str(sim_linked["instrument_id"]),
+            normalized_instrument=str(sim_linked["instrument_id"]),
+            market_type=str(sim_linked["market_type"]),
+            timeframe=str(sim_linked["interval"]),
+            start_time=first_bar.timestamp_open,
+            end_time=last_bar.timestamp_close,
+            bars=len(bars),
+            hash=ds_hash,
+            storage_path=None,
+            synthetic=False,
+            generator_config={
+                "origin": "simulator_sim_context",
+                "summary_line": sim_linked.get("summary_line") or "",
+                "pairs_count": sim_linked.get("pairs_count"),
+            },
+            seed=seed,
+        )
+    else:
+        bars = make_synthetic_bars(n_bars)
+        initial_cash = Decimal("50000")
+        equity_currency = "LAB"  # capital sintético de laboratorio (no USDT de exchange)
+        strategy_params = {"quantity": "1"}
+        sid = normalize_strategy_id(strategy_id) if strategy_id else "buy_once"
+        fee_schedule = resolve_binance_spot_fee_schedule()
+        fee_model = binance_spot_fee_model()
+        fee_dict = fee_schedule.to_dict()
+        mc_strategy = BuyOnceStrategy(strategy_params)
+        ds_hash = hash_bars(bars)
+        dataset_ref = DatasetReference.from_synthetic_bars(
+            bars, dataset_hash=ds_hash, seed=seed
+        )
 
     fee_totals: list[float] = []
     fill_counts: list[int] = []
@@ -2035,7 +2203,7 @@ def run_lab_montecarlo(
             BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
             fee_model=fee_model,
         )
-        sim = bt.run(BuyOnceStrategy(strategy_params), noisy).simulation
+        sim = bt.run(mc_strategy, noisy).simulation
         n_f = len(sim.fills)
         fill_counts.append(n_f)
         fee_totals.append(sum(float(f.fee.amount) for f in sim.fills))
@@ -2070,16 +2238,28 @@ def run_lab_montecarlo(
         mean_total_fees / mean_fills if mean_fills > 0 else None
     )
 
-    orphan = mode_key == "technical_lab" and not backtest_id and not scan_id
+    orphan = (
+        mode_key == "technical_lab"
+        and not backtest_id
+        and not scan_id
+        and sim_linked is None
+    )
+    ctx_symbols: tuple[str, ...]
+    if sim_linked is not None:
+        ctx_symbols = (str(sim_linked["instrument_id"]),)
+        ds_source = str(sim_linked["data_source"])
+    else:
+        ctx_symbols = (dataset_ref.symbol,) if dataset_ref.symbol else ("WB:SYN",)
+        ds_source = "synthetic"
     ctx = build_lab_context(
         session_id=session_id,
         scan_id=scan_id,
         backtest_id=backtest_id,
         strategy_id=sid,
         strategy_params=strategy_params,
-        symbols=(dataset_ref.symbol,) if dataset_ref.symbol else ("WB:SYN",),
+        symbols=ctx_symbols,
         timeframe=dataset_ref.timeframe,
-        dataset_source="synthetic",
+        dataset_source=ds_source,
         dataset_id=dataset_ref.dataset_id,
         dataset_hash=ds_hash,
         initial_equity=float(initial_cash),
@@ -2090,6 +2270,13 @@ def run_lab_montecarlo(
     ctx_dict["strategy_name"] = ctx_dict.get("strategy_name") or sid
     ctx_dict["lab_mode"] = mode_key
     ctx_dict["equity_currency"] = equity_currency
+    if sim_linked is not None:
+        ctx_dict["sim_context"] = sim_linked["sim_context"]
+        ctx_dict["sim_linked"] = True
+        ctx_dict["sim_summary"] = sim_linked.get("summary_line") or ""
+        ctx_dict["coin"] = sim_linked.get("underlying")
+        ctx_dict["venue"] = sim_linked.get("venue")
+        ctx_dict["market_type"] = sim_linked.get("market_type")
     if mode_key == "technical_lab" and orphan:
         ctx_dict["orphan_warning"] = (
             "Modo laboratorio técnico: dataset sintético WB:SYN, estrategia BuyOnce, "
@@ -2230,6 +2417,26 @@ def run_lab_montecarlo(
         payload = persist_montecarlo_run(Path(montecarlo_root), payload)
     else:
         payload = normalize_montecarlo_payload(payload)
+    # normalize reconstruye context tipado; reinyectar identidad del Simulador
+    if sim_linked is not None:
+        ctx_out = dict(payload.get("context") or {})
+        ctx_out["sim_context"] = sim_linked["sim_context"]
+        ctx_out["sim_linked"] = True
+        ctx_out["sim_summary"] = sim_linked.get("summary_line") or ""
+        ctx_out["coin"] = sim_linked.get("underlying")
+        ctx_out["venue"] = sim_linked.get("venue")
+        ctx_out["market_type"] = sim_linked.get("market_type")
+        ctx_out["lab_mode"] = "sim_linked"
+        ctx_out.pop("orphan_warning", None)
+        ctx_out["orphan_technical_mode"] = False
+        payload["context"] = ctx_out
+        payload["mode"] = "sim_linked"
+        warnings = [
+            w
+            for w in (payload.get("warnings") or [])
+            if "sintético" not in str(w).lower() and "huérfano" not in str(w).lower()
+        ]
+        payload["warnings"] = warnings
     return payload
 
 

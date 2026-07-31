@@ -1,25 +1,32 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · MC hereda contexto del Simulador
+Versión: 1.01.0 · MC ligado de verdad al Simulador
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Simulador → Monte Carlo: pasa moneda, estrategia, TF, leverage…
-- Banner origen en MC (ligado vs demo huérfano)
-- Memorandos Comparar/Ranking/MC: bloque IDENTIDAD arriba
+- Monte Carlo: confirma moneda/estrategia/params antes de correr
+- Motor: con sim_context usa velas reales + strategy_id del Sim (no WB:SYN)
+- Memo: CONTEXTO ORIGEN arriba · mode=sim_linked
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-MC ya no «tira al aire»: desde el botón Monte Carlo del
-Simulador lleva el contexto de la simulación. Memo y UI
-muestran moneda + params con claridad.
+Antes el banner era cosmético y el POST seguía en demo sintético.
+Ahora: confirm dialog + POST con sim_context + runner real sobre el activo.
+
+CÓMO PROBAR
+-----------
+1. Ctrl+F5 / reiniciar Workbench
+2. Simulador: moneda + mercados + estrategia → Comparar (o Ranking)
+3. Botón «Monte Carlo» (no abrir MC suelto con backtest TRX viejo)
+4. Al Simular: diálogo con moneda/estrategia/params → Confirmar
+5. Memo debe decir CONTEXTO ORIGEN (SIMULADOR) y mode=sim_linked
+6. Contexto: símbolo real, no WB:SYN / BuyOnce
 
 PRÓXIMO
 -------
-Ctrl+F5 · Simulador (moneda+mercados) → Monte Carlo
-Ver banner origen + memo con CONTEXTO ORIGEN
+Si multi-par: hoy MC estresa el primer par del handoff (resto en contexto)
 
 INVARIANTES
 -----------

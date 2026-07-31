@@ -4,7 +4,8 @@
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
 **Simulador:** comparar · ranking · **memorando** · registro en «Mis simulaciones»  
-**Monte Carlo:** estrés N escenarios · **hereda moneda/params del Simulador** · banner origen · memo con CONTEXTO ORIGEN  
+**Monte Carlo:** estrés N escenarios · **ligado de verdad al Sim** (confirm + velas reales + strategy_id) · mode=`sim_linked` · memo CONTEXTO ORIGEN  
+**Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`  
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Chat IA → Scanner → Simulador → Estrategias** · click **QUANTLAB**/QL · z-index fijo  

@@ -3441,6 +3441,7 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
     confirm_large = body.get("confirm_large", False)
     async_job = body.get("async")
     estimate_only = body.get("estimate_only", False)
+    sim_context_raw = body.get("sim_context")
 
     if not isinstance(n_scenarios, int) or isinstance(n_scenarios, bool):
         raise ApiError(400, "n_scenarios debe ser int")
@@ -3468,6 +3469,21 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         raise ApiError(400, "mode debe ser string")
     if not isinstance(confirm_large, bool):
         raise ApiError(400, "confirm_large debe ser bool")
+    sim_context: dict[str, Any] | None = None
+    if sim_context_raw is not None:
+        if not isinstance(sim_context_raw, dict):
+            raise ApiError(400, "sim_context debe ser objeto")
+        sim_context = sim_context_raw
+        # Preferir strategy_id del Simulador si el body no lo sobreescribe explícitamente
+        sid_ctx = sim_context.get("strategy_id")
+        if (
+            isinstance(sid_ctx, str)
+            and sid_ctx.strip()
+            and body.get("strategy_id") is None
+        ):
+            strategy_id = sid_ctx
+        elif isinstance(sid_ctx, str) and sid_ctx.strip() and strategy_id == "buy_once":
+            strategy_id = sid_ctx
     persist = body.get("persist", True)
     if not isinstance(persist, bool):
         raise ApiError(400, "persist debe ser bool")
@@ -3494,6 +3510,11 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         if isinstance(backtest_id, str) and backtest_id.strip()
         else None
     )
+    # Con sim_context del Simulador, no arrastrar backtest_id huérfano de Guided Lab
+    if sim_context is not None:
+        bt_clean = None
+        if not mode or mode == "technical_lab":
+            mode = "sim_linked"
     use_async = async_job if isinstance(async_job, bool) else (n_scenarios >= ASYNC_JOB_THRESHOLD)
 
     try:
@@ -3514,6 +3535,7 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
             "batch_size": batch_size,
             "mode": mode.strip(),
             "confirm_large": confirm_large,
+            "sim_context": sim_context,
         }
         if use_async:
             store = get_job_store()

@@ -733,6 +733,17 @@
     },
     openers: openers,
     wm: wm,
+    /** Snapshot moneda/estrategia/params del Simulador abierto (si existe). */
+    getSimHandoff: function () {
+      if (!wm.windows.has("simulator")) return null;
+      try {
+        const root = wm.windows.get("simulator").body.firstElementChild;
+        if (root && typeof root.getSimHandoff === "function") {
+          return root.getSimHandoff();
+        }
+      } catch (e) {}
+      return null;
+    },
     setFontScale: function (s, persist) {
       applyFontScale(s, persist !== false);
     },

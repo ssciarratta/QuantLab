@@ -30,3 +30,13 @@ def test_montecarlo_banner_css() -> None:
     css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
     assert "mc-source-banner" in css
     assert "mc-source-linked" in css
+
+
+def test_montecarlo_confirms_identity_before_run() -> None:
+    js = (STATIC / "js/panes/montecarlo.js").read_text(encoding="utf-8")
+    assert "confirmRunIdentity" in js
+    assert "formatConfirmIdentity" in js
+    assert "Vas a estresar ESTA simulación" in js
+    assert 'body.sim_context = ctx' in js or "body.sim_context = ctx" in js
+    assert 'mode: ctx ? "sim_linked"' in js
+    assert "getSimHandoff" in (STATIC / "js/shell.js").read_text(encoding="utf-8")

@@ -118,13 +118,85 @@
     /** Contexto heredado del Simulador (moneda + params). */
     let simContext = null;
 
-    function setSimContext(ctx) {
+    function setSimContext(ctx, opts) {
+      opts = opts || {};
       if (!ctx || typeof ctx !== "object") {
         simContext = null;
       } else {
         simContext = ctx;
       }
+      // Al ligar desde Simulador, no arrastrar backtest_id de Guided Lab
+      if (simContext && opts.clearLabIds !== false) {
+        var scanEl = root.querySelector("#mc-scan");
+        var btEl = root.querySelector("#mc-bt");
+        if (scanEl) scanEl.value = "";
+        if (btEl) btEl.value = "";
+      }
       renderSourceBanner();
+    }
+
+    function pullSimHandoff() {
+      if (simContext && simContext.pairs && simContext.pairs.length) {
+        return simContext;
+      }
+      try {
+        if (global.QLShell && typeof global.QLShell.getSimHandoff === "function") {
+          var h = global.QLShell.getSimHandoff();
+          if (h && h.pairs && h.pairs.length) {
+            setSimContext(h);
+            return h;
+          }
+        }
+      } catch (e) {}
+      return simContext;
+    }
+
+    function formatConfirmIdentity(ctx) {
+      if (!ctx) return "";
+      var lines = [
+        "Vas a estresar ESTA simulación (no un activo al azar):",
+        "",
+        "Moneda: " + (ctx.coin || (ctx.coins && ctx.coins.join(", ")) || "—"),
+        "Mercado(s): " + ((ctx.venues && ctx.venues.join(", ")) || "—"),
+        "Estrategia: " + (ctx.strategy_label || ctx.strategy_id || "—"),
+        "Tipo: " + (ctx.market_type || "—"),
+        "TF / período: " +
+          (ctx.interval || "—") +
+          " · " +
+          (ctx.period_days != null ? ctx.period_days + " días" : "—"),
+        "Leverage: x" + (ctx.leverage != null ? ctx.leverage : "—"),
+        "Capital: " +
+          (ctx.capital_mode || "—") +
+          " · inicial=" +
+          (ctx.initial_capital != null ? ctx.initial_capital : "—") +
+          " · por trade=" +
+          (ctx.per_trade_usd != null ? ctx.per_trade_usd : "—"),
+        "Pares: " +
+          ((ctx.pairs || [])
+            .map(function (p) {
+              return (p.venue || "?") + "/" + (p.ticker || p.underlying || "?");
+            })
+            .join(", ") || "—"),
+        "",
+        "Monte Carlo usará la moneda y la estrategia de arriba (velas reales + ruido).",
+        "",
+        "¿Confirmás correr con estos parámetros?",
+      ];
+      return lines.join("\n");
+    }
+
+    function confirmRunIdentity() {
+      var ctx = pullSimHandoff();
+      if (ctx && ctx.pairs && ctx.pairs.length) {
+        return window.confirm(formatConfirmIdentity(ctx));
+      }
+      var goDemo = window.confirm(
+        "NO hay simulación ligada.\n\n" +
+          "Monte Carlo no sabe qué moneda ni qué estrategia estresar.\n\n" +
+          "OK = modo DEMO sintético (WB:SYN / BuyOnce) — NO es tu simulación\n" +
+          "Cancelar = volvé al Simulador, elegí moneda+estrategia y abrí Monte Carlo desde allí"
+      );
+      return goDemo;
     }
 
     function renderSourceBanner() {
@@ -873,7 +945,29 @@
 
     function buildMcMemo(data, formParams) {
       formParams = formParams || {};
-      var ctx = formParams.sim_context || simContext || null;
+      var ctx =
+        formParams.sim_context ||
+        simContext ||
+        (data && data.context && data.context.sim_context) ||
+        null;
+      if (
+        !ctx &&
+        data &&
+        data.context &&
+        data.context.sim_linked &&
+        data.context.coin
+      ) {
+        ctx = {
+          coin: data.context.coin,
+          strategy_id: data.context.strategy_id || data.context.strategy_name,
+          strategy_label: data.context.strategy_name,
+          venues: data.context.venue ? [data.context.venue] : [],
+          market_type: data.context.market_type,
+          interval: data.context.timeframe,
+          summary_line: data.context.sim_summary || "",
+          kind: "compare",
+        };
+      }
       var lines = [];
       var n = data && data.n_scenarios != null ? data.n_scenarios : formParams.n_scenarios;
       lines.push("QUANTLAB — MEMORANDO MONTE CARLO");
@@ -887,10 +981,10 @@
           "mirá media / desvío / IC95 de la media de equity final. " +
           "No es predicción del mercado ni garantía de PnL."
       );
-      if (ctx && ctx.coin) {
+      if (ctx && (ctx.coin || ctx.strategy_id)) {
         lines.push(
           "Esta corrida está identificada sobre: " +
-            ctx.coin +
+            (ctx.coin || "—") +
             " / " +
             (ctx.strategy_label || ctx.strategy_id || "estrategia") +
             " (contexto Simulador)."
@@ -909,9 +1003,31 @@
       );
       lines.push(
         "Ruido bps: " +
-          (formParams.noise_bps != null ? formParams.noise_bps : "—")
+          (formParams.noise_bps != null
+            ? formParams.noise_bps
+            : data && data.noise_bps != null
+              ? data.noise_bps
+              : "—")
       );
-      lines.push("Seed: " + (formParams.seed != null ? formParams.seed : "—"));
+      lines.push(
+        "Seed: " +
+          (formParams.seed != null
+            ? formParams.seed
+            : data && data.seed != null
+              ? data.seed
+              : "—")
+      );
+      lines.push(
+        "strategy_id: " +
+          ((ctx && (ctx.strategy_id || ctx.strategy_label)) ||
+            (data && data.context && (data.context.strategy_id || data.context.strategy_name)) ||
+            "—")
+      );
+      lines.push(
+        "símbolo/dataset: " +
+          ((data && data.dataset && (data.dataset.symbol || data.dataset.dataset_id)) ||
+            "—")
+      );
       lines.push("scan_id: " + (formParams.scan_id || "—"));
       lines.push("backtest_id: " + (formParams.backtest_id || "—"));
       lines.push(
@@ -919,27 +1035,45 @@
       );
       lines.push(
         "Modo: " +
-          (formParams.backtest_id ? "normal (ligado a BT)" : "technical_lab")
+          ((data && data.mode) ||
+            (data && data.context && data.context.lab_mode) ||
+            (ctx ? "sim_linked" : formParams.backtest_id ? "normal" : "technical_lab"))
       );
-      if (data && data.run_id) lines.push("run_id: " + data.run_id);
-      if (data && data.job_id) lines.push("job_id: " + data.job_id);
+      lines.push("run_id: " + ((data && data.run_id) || "—"));
       lines.push("");
       lines.push("— RESULTADOS —");
-      if (!data || data.ok === false) {
-        lines.push("Estado: FAIL · " + ((data && data.error) || "sin datos"));
-      } else {
-        lines.push("Media equity final: " + money(data.mean_equity));
-        lines.push("Std equity: " + money(data.std_equity));
+      lines.push(
+        "Media equity final: " +
+          (data && data.mean_equity != null
+            ? Number(data.mean_equity).toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "—")
+      );
+      lines.push(
+        "Std equity: " +
+          (data && data.std_equity != null
+            ? Number(data.std_equity).toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "—")
+      );
+      if (data && data.ci_low != null && data.ci_high != null) {
         lines.push(
           "CI95 media: [" +
-            money(data.ci_low) +
+            Number(data.ci_low).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }) +
             ", " +
-            money(data.ci_high) +
+            Number(data.ci_high).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }) +
             "]"
         );
-        if (data.warnings && data.warnings.length) {
-          lines.push("Avisos: " + data.warnings.join(" · "));
-        }
       }
       lines.push("");
       lines.push("— FIN MEMORANDO —");
@@ -1062,6 +1196,9 @@
         warnEl.textContent =
           (warnEl.textContent ? warnEl.textContent + " · " : "") +
           data.warnings.join(" · ");
+      }
+      if (data.context && data.context.sim_context) {
+        setSimContext(data.context.sim_context, { clearLabIds: true });
       }
       renderContext(data);
       renderExplain(data);
@@ -1256,24 +1393,34 @@
     }
 
     function buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, asyncFlag) {
+      var ctx = simContext || null;
+      var sid =
+        (ctx && ctx.strategy_id) ||
+        null;
       var body = {
         n_scenarios: n,
         n_bars: bars,
         noise_bps: isFinite(noise) ? noise : 10,
         seed: isFinite(seed) ? seed : 42,
-        scan_id: scan || null,
-        backtest_id: bt || null,
+        scan_id: ctx ? null : scan || null,
+        backtest_id: ctx ? null : bt || null,
         store_paths: storePaths,
         confirm_large: !!confirmLarge,
-        mode: bt ? "normal" : "technical_lab",
+        mode: ctx ? "sim_linked" : bt ? "normal" : "technical_lab",
         max_persisted_trajectories: MAX_TRAJECTORIES,
       };
+      if (sid) body.strategy_id = sid;
+      if (ctx) body.sim_context = ctx;
       if (asyncFlag) body.async = true;
       return body;
     }
 
     async function runSimulation() {
       if (runBusy) return;
+      if (!confirmRunIdentity()) {
+        QLLabUI.setStatus(status, false, "cancelado — confirmá moneda/estrategia");
+        return;
+      }
       var n = readScenarios();
       setScenarios(n);
       var bars = clampBars(parseInt(root.querySelector("#mc-bars").value, 10));
@@ -1283,6 +1430,13 @@
       var scan = (root.querySelector("#mc-scan").value || "").trim();
       var bt = (root.querySelector("#mc-bt").value || "").trim();
       var storePaths = root.querySelector("#mc-paths").checked;
+      // Con sim ligada, no mandar BT residual de Guided Lab
+      if (simContext) {
+        scan = "";
+        bt = "";
+        root.querySelector("#mc-scan").value = "";
+        root.querySelector("#mc-bt").value = "";
+      }
 
       var confirmLarge = false;
       if (n >= CONFIRM_LARGE_N) {
@@ -1294,7 +1448,16 @@
       }
 
       runBusy = true;
-      QLLabUI.setStatus(status, true, "ejecutando…");
+      QLLabUI.setStatus(
+        status,
+        true,
+        simContext
+          ? "ejecutando · " +
+              (simContext.coin || "sim") +
+              " · " +
+              (simContext.strategy_id || "?")
+          : "ejecutando (demo)…"
+      );
       status.className = "mono muted";
       warnEl.textContent = scenarioWarning(n);
       progressEl.innerHTML = "";
@@ -1500,13 +1663,15 @@
       if (!focus) return;
       if (focus.prefill) {
         const p = focus.prefill;
-        if (p.sim_context) setSimContext(p.sim_context);
+        if (p.sim_context) setSimContext(p.sim_context, { clearLabIds: true });
         if (p.n_scenarios != null) setScenarios(p.n_scenarios);
         if (p.n_bars != null) root.querySelector("#mc-bars").value = p.n_bars;
         if (p.noise_bps != null) root.querySelector("#mc-noise").value = p.noise_bps;
         if (p.seed != null) root.querySelector("#mc-seed").value = p.seed;
-        if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
-        if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        if (!p.sim_context) {
+          if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
+          if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        }
         if (p.store_paths != null) {
           var pathsEl = root.querySelector("#mc-paths");
           if (pathsEl) pathsEl.checked = !!p.store_paths;
@@ -1520,13 +1685,16 @@
     };
     root.applyPrefill = function (prefill) {
       if (!prefill || typeof prefill !== "object") return;
-      if (prefill.sim_context) setSimContext(prefill.sim_context);
+      if (prefill.sim_context) setSimContext(prefill.sim_context, { clearLabIds: true });
       if (prefill.n_scenarios != null) setScenarios(prefill.n_scenarios);
       if (prefill.n_bars != null) root.querySelector("#mc-bars").value = prefill.n_bars;
       if (prefill.noise_bps != null) root.querySelector("#mc-noise").value = prefill.noise_bps;
       if (prefill.seed != null) root.querySelector("#mc-seed").value = prefill.seed;
-      if (prefill.scan_id) root.querySelector("#mc-scan").value = prefill.scan_id;
-      if (prefill.backtest_id) root.querySelector("#mc-bt").value = prefill.backtest_id;
+      // Solo aplicar scan/bt si NO viene sim_context (evita residuo TRXUSDT de Guided Lab)
+      if (!prefill.sim_context) {
+        if (prefill.scan_id) root.querySelector("#mc-scan").value = prefill.scan_id;
+        if (prefill.backtest_id) root.querySelector("#mc-bt").value = prefill.backtest_id;
+      }
       updateBarsDurationHint(null);
       if (prefill.message && warnEl) warnEl.textContent = prefill.message;
     };

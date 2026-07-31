@@ -64,6 +64,12 @@
 - Slippage paper es **adverso** (BUY peor / SELL peor); default `0` = identidad.
 - Panel Riesgo es read-only de límites + sesión; no sustituye el gate LIVE.
 
+### 9. Monte Carlo «ligado» debe ser motor, no solo memo (2026-07-31)
+
+- Pasar `sim_context` solo al banner/memo engaña: el POST seguía BuyOnce + WB:SYN.
+- Regla: handoff Sim → POST `sim_context` + `strategy_id` + confirmación explícita moneda/estrategia/params; runner carga velas del par y la estrategia del Sim (`mode=sim_linked`).
+- Limpiar `backtest_id` residual de Guided Lab al abrir MC desde Simulador.
+
 ---
 
 ## Permanentes (pre-F19, siguen vigentes)
