@@ -51,6 +51,12 @@
           <button type="button" class="sb-font-btn" id="sb-font-up" aria-label="Agrandar letra" data-tip="Agrandar tamaño de letra en toda la UI.\nSe guarda en settings de sesión." data-i18n-tip="tip.font.up">A+</button>
         </span>
         <span class="sb-sep">·</span>
+        <span class="sb-sep">·</span>
+        <span class="sb-item">
+          <button type="button" class="sb-font-btn" id="sb-sim-registry"
+            title="Mostrar/ocultar historial de simulaciones (Comparar · Ranking · Monte Carlo)">Sims</button>
+        </span>
+        <span class="sb-sep">·</span>
         <span class="sb-item sb-clock" id="sb-clock" class="mono"></span>
       </div>
       <div class="taskbar" id="taskbar" role="toolbar" aria-label="Barra de tareas" data-i18n-aria="aria.taskbar">
@@ -104,6 +110,7 @@
         <button type="button" data-open="guided_lab" data-i18n="pane.guided_lab" data-tip="Wizard paso a paso en UN venue (Binance).\nDescubrí, backtesteá y practicá paper/demo.\nNo compara varios exchanges a la vez." data-i18n-tip="tip.pane.guided_lab">Guided Lab</button>
         <button type="button" data-open="backtest" data-i18n="pane.backtest" data-tip="Backtest técnico 5A sobre barras SINTÉTICAS del lab.\nPara debug de estrategia, no para ‘cómo operó el mercado real’." data-i18n-tip="tip.pane.backtest">Backtest</button>
         <button type="button" data-open="montecarlo" data-i18n="pane.montecarlo" data-tip="Estrés estadístico sobre un resultado ya corrido.\nNo reemplaza Guided ni Simulador." data-i18n-tip="tip.pane.montecarlo">Monte Carlo</button>
+        <button type="button" data-open="sim_registry" data-tip="Historial de Comparar / Ranking / Monte Carlo.\nVentana Windows: arrastrar, tamaño, minimizar, maximizar, cerrar.">Mis simulaciones</button>
         <button type="button" data-open="chat" data-i18n="pane.chat" data-tip="Asistente IA con memoria local.\nPuede abrir paneles (sin órdenes)." data-i18n-tip="tip.pane.chat">Chat IA</button>
       </div>
     </details>
@@ -192,6 +199,7 @@
   <script src="/static/js/wm.js"></script>
   <script src="/static/js/command_palette.js"></script>
   <script src="/static/js/panes/lab_common.js"></script>
+  <script src="/static/js/sim_registry.js"></script>
   <script src="/static/js/panes/health.js"></script>
   <script src="/static/js/panes/market.js"></script>
   <script src="/static/js/panes/universe.js"></script>

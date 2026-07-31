@@ -655,6 +655,76 @@ html {
   font-size: 0.7rem;
 }
 
+.sim-rank-dock-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  align-items: center;
+  margin: 0.15rem 0;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.sim-rank-dock-font {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.sim-rank-dock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.sim-rank-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem 0.35rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.sim-rank-panel-sum {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0;
+  font-size: 0.85rem;
+}
+
+.sim-rank-panel-sum::-webkit-details-marker {
+  display: none;
+}
+
+.sim-rank-panel-close {
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: inherit;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.05rem 0.4rem;
+}
+
+.sim-rank-panel-close:hover {
+  background: rgba(212, 84, 74, 0.25);
+  border-color: #d4544a;
+}
+
+.sim-rank-panel-body {
+  margin-top: 0.2rem;
+  overflow: auto;
+}
+
 .pane-sim-rank .sim-rank-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -680,6 +750,132 @@ html {
 .pane-sim-rank .sim-rank-body {
   overflow: auto;
   max-height: none;
+}
+
+/* Registro de simulaciones — contenido de ventana WM (no flotante fijo) */
+.pane-sim-registry {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0.35rem;
+}
+
+.pane-sim-registry .ql-sim-registry-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.pane-sim-registry .ql-sim-registry-list {
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 0.2rem;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.sb-sim-registry-hot {
+  color: var(--amber, #e8a84a);
+  font-weight: 600;
+}
+
+/* legacy class name kept for item buttons inside pane */
+.ql-sim-registry-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 0.05rem 0.4rem;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.4rem 0.45rem;
+  margin: 0 0 0.15rem;
+}
+
+.ql-sim-registry-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ql-sim-registry-kind {
+  grid-column: 1;
+  grid-row: 1;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.85;
+  align-self: center;
+  color: var(--amber, #e8a84a);
+}
+
+.ql-sim-registry-title {
+  grid-column: 2;
+  grid-row: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ql-sim-registry-when {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 0.65rem;
+}
+
+.ql-sim-registry-sum {
+  grid-column: 1 / -1;
+  font-size: 0.68rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pane-sim-memo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  min-height: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+.pane-sim-memo .sim-memo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.pane-sim-memo .sim-memo-toolbar .btn,
+.pane-sim-memo .sim-memo-toolbar a.btn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  text-decoration: none;
+}
+
+.pane-sim-memo .sim-memo-body {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0.45rem 0.55rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  max-height: none;
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .sim-venue-row {

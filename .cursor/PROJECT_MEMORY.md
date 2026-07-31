@@ -2,13 +2,15 @@
 
 **Actualizado:** 2026-07-30  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Menú favoritos + panel Estrategias + ranking ventanas WM  
-**Simulador:** comparar mercados · **sin guías embebidas** · ranking 1 moneda → ventanas WM por mercado (×/resize/letra) · `POST /api/lab/sim/rank-strategies` · labels «mercado»  
-**Estrategias:** panel propio desde menú QL (guías catálogo) · «Abrir en Simulador»  
-**Menú QL:** sección **Mis favoritos** (default Scanner→Simulador→Estrategias, ↑↓ persistido)  
-**Números UI:** `QLFmt` 2 decimales (sim + scanner scores)  
-**Alpha Scanner:** multi-mercado · puntual ancla BTC/ETH/SOL · perfil Auto · chips → Simulador  
-**Roles:** Guided=aprender · Sim=comparar mercados · Scanner=ranking MD · Estrategias=guías · Backtest=sintético · MC=estrés  
+**Versión tip:** **1.01.0** · Registro sims (panel der.) + memo MC + favoritos/estrategias  
+**Simulador:** comparar · ranking · **memorando** · registro en «Mis simulaciones»  
+**Monte Carlo:** estrés N escenarios · **memo al terminar** · entra al mismo registro  
+**Registro UI:** ventana WM `sim_registry` (drag/resize/min/max/×) · localStorage historial · QL/Ctrl+K/Sims  
+**Estrategias:** panel propio · «Abrir en Simulador»  
+**Menú QL:** favoritos Scanner→Simulador→Estrategias  
+**Números UI:** `QLFmt` 2 decimales  
+**Alpha Scanner:** multi-mercado · chips → Simulador  
+**Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés (no predicción)  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  

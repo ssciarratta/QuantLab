@@ -469,6 +469,15 @@
     );
   }
 
+  function openSimRegistry() {
+    if (!window.QLSimRegistry || typeof QLSimRegistry.openWindow !== "function") {
+      return;
+    }
+    QLSimRegistry.openWindow(
+      mergeOpts("sim_registry", { x: 12, y: 12, w: 360, h: 440 })
+    );
+  }
+
   function openMetrics() {
     const pane = QLPanes.createMetricsPane();
     wm.open("metrics", tr("pane.metrics", "Metrics / Último"), pane, mergeOpts("metrics", { x: 100, y: 80, w: 480, h: 400 }));
@@ -683,6 +692,7 @@
     guided_lab: openGuidedLab,
     simulator: openSimulator,
     strategies: openStrategies,
+    sim_registry: openSimRegistry,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
@@ -1348,6 +1358,7 @@
     openHealth();
     openMarket();
     openBlotter();
+    openSimRegistry();
 
     // F37: first-run wizard si meta.onboarding_done ausente
     if (

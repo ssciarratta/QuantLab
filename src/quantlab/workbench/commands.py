@@ -269,6 +269,22 @@ _PANE_COMMANDS: tuple[dict[str, Any], ...] = (
         ),
     },
     {
+        "id": "open.sim_registry",
+        "kind": "pane",
+        "label": "Abrir Mis simulaciones",
+        "pane_id": "sim_registry",
+        "keywords": (
+            "simulaciones",
+            "historial",
+            "registro",
+            "memo",
+            "comparar",
+            "ranking",
+            "montecarlo",
+            "sims",
+        ),
+    },
+    {
         "id": "open.backups",
         "kind": "pane",
         "label": "Abrir Backups",

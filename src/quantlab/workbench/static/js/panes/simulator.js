@@ -194,7 +194,7 @@
       '<span class="mono muted sim-run-status" id="sim-run-status">—</span>' +
       "</div>" +
       '<div class="mono" id="sim-out-hist">—</div>' +
-      '<p class="muted sim-meta">Mercados y monedas · agregá con «+» (no alcanza con buscar en la lista)</p>' +
+      '<p class="muted sim-meta">Mercados y monedas · agregá con «+» · al tildar otro mercado se copia la misma moneda</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
       '<div class="sim-actions sim-shortcuts">' +
       '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
@@ -501,6 +501,14 @@
       box.querySelectorAll(".sim-venue-on").forEach(function (c) {
         c.addEventListener("change", function () {
           venueEnabled[c.value] = !!c.checked;
+          if (c.checked) {
+            // Al tildar un mercado, copiá las monedas ya elegidas en otros
+            Object.keys(selectedByVenue).forEach(function (srcVid) {
+              (selectedByVenue[srcVid] || []).forEach(function (cid) {
+                autoAddSameTickerToChecked(srcVid, cid);
+              });
+            });
+          }
           renderVenuePicks();
           applyFeePreset();
         });
@@ -564,6 +572,33 @@
       });
     }
 
+    /** Propaga chips de monedas a todos los mercados tildados (crypto↔crypto). */
+    function syncCoinsToCheckedVenues() {
+      var added = [];
+      var sources = [];
+      Object.keys(selectedByVenue).forEach(function (vid) {
+        (selectedByVenue[vid] || []).forEach(function (cid) {
+          sources.push({ venue: vid, cid: cid });
+        });
+      });
+      sources.forEach(function (src) {
+        if (src.venue === "a3") return;
+        var ticker = canonicalTicker(src.venue, src.cid);
+        if (!ticker) return;
+        root.querySelectorAll(".sim-venue-on:checked").forEach(function (c) {
+          var vid = c.value;
+          if (vid === src.venue || vid === "a3") return;
+          venueEnabled[vid] = true;
+          var match = findProductIdByTicker(vid, ticker);
+          if (!match) return;
+          if (addProductToVenue(vid, match, false)) {
+            added.push(vid);
+          }
+        });
+      });
+      return added;
+    }
+
     function collectPairs() {
       var pairs = [];
       root.querySelectorAll(".sim-venue-on:checked").forEach(function (c) {
@@ -573,6 +608,28 @@
         });
       });
       return pairs;
+    }
+
+    /** Antes de correr: sincroniza chips y reporta mercados tildados sin moneda. */
+    function preparePairsForRun() {
+      var added = syncCoinsToCheckedVenues();
+      if (added.length) {
+        renderVenuePicks();
+        applyFeePreset();
+      }
+      var pairs = collectPairs();
+      var checked = [];
+      root.querySelectorAll(".sim-venue-on:checked").forEach(function (c) {
+        checked.push(c.value);
+      });
+      var inPairs = {};
+      pairs.forEach(function (p) {
+        inPairs[p.venue] = true;
+      });
+      var skipped = checked.filter(function (v) {
+        return !inPairs[v];
+      });
+      return { pairs: pairs, skipped: skipped, synced: added };
     }
 
     function uniqueCoinKeys() {
@@ -1220,8 +1277,8 @@
       }
     }
 
-    function runCompare(strategyId) {
-      var pairs = collectPairs();
+    function runCompare(strategyId, pairs) {
+      pairs = pairs || collectPairs();
       var mode = capitalMode();
       var payload = {
         pairs: pairs,
@@ -1250,7 +1307,7 @@
       return QLApi.simCompare(payload);
     }
 
-    function runRankStrategies() {
+    function runRankStrategies(pairs) {
       if (!QLApi.simRankStrategies) {
         return Promise.reject(
           new Error(
@@ -1258,7 +1315,7 @@
           )
         );
       }
-      var pairs = collectPairs();
+      pairs = pairs || collectPairs();
       var mode = capitalMode();
       var payload = {
         pairs: pairs,
@@ -1336,11 +1393,11 @@
         "En Sin monto: muestra el capital requerido (= margen pico).\n" +
         "Sirve para dimensionar la cuenta antes de arriesgar de verdad.",
       final:
-        "Capital al cerrar el período (neto de fees y gastos extra).\n" +
-        "Ya restó comisiones VIP0/override y los «gastos extra» del panel.\n" +
-        "Incluye resultados de trades y (si aplica) funding.\n" +
+        "Capital al cerrar el período, YA NETO de fees VIP0/override y gastos extra.\n" +
+        "Cada fill descuenta comisión del fee model del mercado.\n" +
+        "PnL = capital final − inicial (fees incluidos, no hay que restarlos de nuevo).\n" +
         "Con leverage refleja el overlay de esa x.\n" +
-        "Comparalo con el inicial: subió o bajó la caja.",
+        "La columna «Fees gastados» es el detalle; ya está dentro de este neto.",
       ops:
         "Número de operaciones ejecutadas (fills).\n" +
         "Cada fill es una compra/venta que tocó el precio histórico.\n" +
@@ -1360,7 +1417,7 @@
         "Si no hubo fills, muestra —.\n" +
         "No incluye gastos extra fijos del panel.",
       rentab:
-        "Rentabilidad del overlay (PnL %).\n" +
+        "Rentabilidad del overlay (PnL %), YA neta de fees.\n" +
         "Las filas se ordenan por moneda y luego por esta % (mayor primero).\n" +
         "Así comparás el mismo activo entre exchanges.\n" +
         "En modo sin monto el % usa la equity de corrida del lab.\n" +
@@ -1692,35 +1749,91 @@
       );
     }
 
-    function openRankMarketWindow(coin, m, common, index) {
-      var venue = m.venue || m.market_label || "market";
-      var winId = "sim_rank_" + String(venue).replace(/[^a-z0-9_]/gi, "_");
-      var pane = document.createElement("div");
-      pane.className = "pane-sim-rank";
-      pane.style.fontSize = "0.85rem";
-      pane.innerHTML =
-        '<div class="sim-rank-toolbar">' +
-        '<label>Letra <input type="range" class="sim-rank-font" min="70" max="160" value="100" step="5"> ' +
-        '<span class="sim-rank-font-val mono">100%</span></label>' +
-        '<span class="muted mono">×' +
-        esc(common.leverage || "1") +
-        " · " +
+    function formatRankResults(data) {
+      var markets = data.markets || [];
+      var coin = data.coin || "?";
+      var common = data.common || {};
+      if (!markets.length) return "sin mercados";
+      var head =
+        '<div class="sim-rank-dock-head">' +
+        '<span class="data-badge data-badge-real">RANK</span> ' +
         esc(coin) +
-        "</span>" +
+        " · universo " +
+        esc(common.n_strategies_universe || "—") +
+        " · top " +
+        esc(common.top_n || 10) +
+        " · x" +
+        esc(common.leverage || "1") +
+        ' <button type="button" class="btn secondary sim-rank-memo-btn" style="margin-left:0.4rem">Ver memorando</button>' +
+        '<label class="sim-rank-dock-font">Letra ' +
+        '<input type="range" class="sim-rank-dock-font-range" min="70" max="140" value="100" step="5">' +
+        "</label>" +
         "</div>" +
-        '<div class="sim-rank-body">' +
-        rankTableHtml(m) +
+        '<p class="muted" style="font-size:0.72em;margin:0.2rem 0 0.4rem">' +
+        "Resultados dentro del Simulador · × cierra cada mercado · click en fila = usar estrategia." +
+        "</p>";
+      var cols =
+        '<div class="sim-rank-dock" id="sim-rank-dock">' +
+        markets
+          .map(function (m, i) {
+            var venue = m.venue || m.market_label || "?";
+            return (
+              '<details class="sim-rank-panel" open data-venue="' +
+              esc(venue) +
+              '" data-i="' +
+              i +
+              '">' +
+              "<summary class=\"sim-rank-panel-sum\">" +
+              "<strong>" +
+              esc(venue) +
+              "</strong>" +
+              ' <span class="muted mono">' +
+              esc(m.underlying || coin) +
+              "</span>" +
+              (m.ok
+                ? ' <span class="muted">· ' +
+                  esc((m.ranked || []).length) +
+                  " estrategias</span>"
+                : ' <span class="status-bad">error</span>') +
+              ' <button type="button" class="sim-rank-panel-close" title="Cerrar este mercado" aria-label="Cerrar">×</button>' +
+              "</summary>" +
+              '<div class="sim-rank-panel-body">' +
+              rankTableHtml(m) +
+              "</div></details>"
+            );
+          })
+          .join("") +
         "</div>";
-      var fontRange = pane.querySelector(".sim-rank-font");
-      var fontVal = pane.querySelector(".sim-rank-font-val");
+      return head + cols;
+    }
+
+    function bindRankDockActions(container, data) {
+      if (!container) return;
+      var dock = container.querySelector("#sim-rank-dock") || container;
+      var fontRange = container.querySelector(".sim-rank-dock-font-range");
       if (fontRange) {
         fontRange.addEventListener("input", function () {
           var pct = Number(fontRange.value) || 100;
-          pane.style.fontSize = pct / 100 + "rem";
-          if (fontVal) fontVal.textContent = pct + "%";
+          dock.style.fontSize = pct / 100 + "rem";
         });
       }
-      pane.querySelectorAll("tr[data-strategy]").forEach(function (tr) {
+      container.querySelectorAll(".sim-rank-panel-close").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          var panel = btn.closest(".sim-rank-panel");
+          if (panel) panel.remove();
+        });
+      });
+      /* Evitar que el × dispare toggle del details vía summary */
+      container.querySelectorAll(".sim-rank-panel-sum").forEach(function (sum) {
+        sum.addEventListener("click", function (ev) {
+          if (ev.target && ev.target.closest && ev.target.closest(".sim-rank-panel-close")) {
+            ev.preventDefault();
+          }
+        });
+      });
+      container.querySelectorAll("tr[data-strategy]").forEach(function (tr) {
         tr.style.cursor = "pointer";
         tr.title = "Click: usar en Comparar";
         tr.addEventListener("click", function () {
@@ -1729,67 +1842,380 @@
           if (sel && sid) sel.value = sid;
         });
       });
-      var wm = global.QLShell && global.QLShell.wm;
-      if (wm && typeof wm.open === "function") {
-        if (wm.windows && wm.windows.has(winId)) {
-          wm.close(winId);
-        }
-        wm.open(winId, "Rank " + coin + " · " + venue, pane, {
-          x: 40 + index * 36,
-          y: 36 + index * 28,
-          w: 420,
-          h: 480,
+      var memoBtn = container.querySelector(".sim-rank-memo-btn");
+      if (memoBtn && data) {
+        memoBtn.addEventListener("click", function () {
+          openSimMemoPresentation(buildRankMemo(data));
         });
-        return true;
       }
-      return false;
     }
 
-    function formatRankResults(data) {
-      var markets = data.markets || [];
-      var coin = data.coin || "?";
-      var common = data.common || {};
-      if (!markets.length) return "sin mercados";
-      var opened = 0;
-      markets.forEach(function (m, i) {
-        if (openRankMarketWindow(coin, m, common, i)) opened += 1;
+    function closeFloatingRankWindows() {
+      var wm = global.QLShell && global.QLShell.wm;
+      if (!wm || !wm.windows) return;
+      var ids = [];
+      wm.windows.forEach(function (_rec, id) {
+        if (String(id).indexOf("sim_rank_") === 0) ids.push(id);
       });
-      var head =
-        '<p class="muted" style="font-size:0.78em;margin:0.2rem 0">' +
-        '<span class="data-badge data-badge-real">RANK</span> ' +
-        esc(coin) +
-        " · universo " +
-        esc(common.n_strategies_universe || "—") +
-        " · top " +
-        esc(common.top_n || 10) +
-        " por PnL % (≥1 familia) · x" +
-        esc(common.leverage || "1") +
-        "</p>";
-      if (opened) {
-        return (
-          head +
-          '<p>Se abrieron <strong>' +
-          opened +
-          "</strong> ventana(s) de mercado (cerrá con ×, redimensioná bordes, A± con el slider de letra).</p>"
-        );
+      ids.forEach(function (id) {
+        if (typeof wm.close === "function") wm.close(id);
+      });
+    }
+
+    function csvCell(v) {
+      var s = v == null ? "" : String(v);
+      if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+
+    function stampNow() {
+      var d = new Date();
+      function z(n) {
+        return n < 10 ? "0" + n : String(n);
       }
-      /* Fallback embebido si no hay WM */
       return (
-        head +
-        '<div class="sim-rank-cols">' +
-        markets
-          .map(function (m) {
-            return (
-              '<div class="sim-rank-col"><h5 class="sim-rank-h">' +
-              esc(m.venue) +
-              "</h5>" +
-              rankTableHtml(m) +
-              "</div>"
-            );
-          })
-          .join("") +
-        "</div>"
+        d.getFullYear() +
+        z(d.getMonth() + 1) +
+        z(d.getDate()) +
+        "_" +
+        z(d.getHours()) +
+        z(d.getMinutes()) +
+        z(d.getSeconds())
       );
+    }
+
+    function downloadBlob(filename, text, mime) {
+      var blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+      }, 60000);
+      return url;
+    }
+
+    function collectRunMeta() {
+      return {
+        generated_at: new Date().toISOString(),
+        market_type: root.querySelector("#sim-market").value,
+        interval: root.querySelector("#sim-interval").value,
+        period_days: periodDays(),
+        leverage: root.querySelector("#sim-lev").value,
+        capital_mode: capitalMode(),
+        initial_capital: root.querySelector("#sim-capital").value,
+        per_trade_usd: root.querySelector("#sim-per-trade").value,
+        bench_pct: root.querySelector("#sim-bench").value,
+        liq: !!root.querySelector("#sim-liq").checked,
+        funding: !!root.querySelector("#sim-funding").checked,
+        live_blocked: true,
+        tool: "QuantLab Simulador",
+      };
+    }
+
+    function buildCompareMemo(data) {
+      var common = data.common || {};
+      var meta = collectRunMeta();
+      var rows = data.rows || [];
+      var lines = [];
+      lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Comparar)");
+      lines.push("Generado: " + meta.generated_at);
+      lines.push("LIVE_BLOCKED=true · research / sin order routing");
+      lines.push("");
+      lines.push("— PARÁMETROS —");
+      lines.push("Estrategia: " + (common.strategy_id || meta.strategy_id || "—"));
+      lines.push("Modo: " + (common.market_type || meta.market_type));
+      lines.push("Intervalo: " + (common.interval || meta.interval));
+      lines.push("Período (días): " + (common.period_days != null ? common.period_days : meta.period_days));
+      lines.push("Velas (kline_limit): " + (common.kline_limit != null ? common.kline_limit : "—"));
+      lines.push("Capital mode: " + (common.capital_mode || meta.capital_mode));
+      lines.push("Capital inicial: " + (common.initial_capital != null ? common.initial_capital : meta.initial_capital));
+      lines.push("Por trade (USDT): " + (common.per_trade_usd || meta.per_trade_usd));
+      lines.push("Bench anual: " + (common.annual_bench_rate || meta.bench_pct + "%"));
+      lines.push("Liquidación sim: " + (common.simulate_liquidation != null ? common.simulate_liquidation : meta.liq));
+      lines.push("Funding: " + (common.apply_funding != null ? common.apply_funding : meta.funding));
+      lines.push("Fees: PnL y capital final YA NETOS (MakerTaker VIP0 por mercado).");
+      lines.push("Filas: " + rows.length);
+      lines.push("");
+      lines.push("— RESULTADOS POR MERCADO —");
+      var csvHeader = [
+        "mercado",
+        "modo",
+        "moneda",
+        "instrumento",
+        "leverage",
+        "strategy_id",
+        "ok",
+        "error",
+        "capital_inicial",
+        "capital_final_neto",
+        "pnl",
+        "pnl_pct",
+        "n_ops",
+        "fees_totales",
+        "fee_por_op",
+        "margen_trade",
+        "margen_pico",
+        "faltante",
+        "bench_period_return",
+        "dif_vs_bench",
+        "liquidated",
+        "fee_maker_bps",
+        "fee_taker_bps",
+        "session_id",
+      ];
+      var csvLines = [csvHeader.join(",")];
+      rows.forEach(function (r, i) {
+        var o = r.overlay || {};
+        var bt = r.backtest || {};
+        var mf = resolveMarginFields(bt, r);
+        var mr = mf.mr;
+        var b = bt.benchmark || {};
+        var fees = bt.total_fees;
+        var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
+        var feeOp =
+          bt.avg_fee_per_fill != null
+            ? bt.avg_fee_per_fill
+            : numOrNull(fees) != null && numOrNull(nOps) > 0
+              ? numOrNull(fees) / numOrNull(nOps)
+              : null;
+        var pnlN = numOrNull(o.pnl);
+        var benchN = numOrNull(b.period_return);
+        var dif = pnlN != null && benchN != null ? pnlN - benchN : null;
+        var feeSched = (bt.fee_schedule_venue || {});
+        lines.push("");
+        lines.push("#" + (i + 1) + " " + (r.venue || "?") + " · " + (r.underlying || "?") + " · x" + (r.leverage || "?"));
+        lines.push("  ok=" + !!r.ok + (r.error ? " error=" + r.error : ""));
+        lines.push("  instrumento=" + (r.instrument_id || "—"));
+        lines.push("  capital_final_neto=" + (o.final_equity != null ? o.final_equity : bt.final_equity));
+        lines.push("  pnl=" + (o.pnl != null ? o.pnl : "—") + " · pnl%=" + (o.pnl_pct != null ? o.pnl_pct : "—"));
+        lines.push("  ops=" + (nOps != null ? nOps : "—") + " · fees=" + (fees != null ? fees : "—") + " · fee/op=" + (feeOp != null ? feeOp : "—"));
+        lines.push("  margen/trade=" + (mf.marginTrade != null ? mf.marginTrade : "—") + " · pico=" + (mf.peak != null ? mf.peak : "—"));
+        lines.push("  dif_vs_bench=" + (dif != null ? dif : "—") + " · liq=" + !!o.liquidated);
+        lines.push(
+          "  fees_schedule=" +
+            (feeSched.maker_bps != null ? feeSched.maker_bps : "?") +
+            "/" +
+            (feeSched.taker_bps != null ? feeSched.taker_bps : "?") +
+            " bps maker/taker"
+        );
+        csvLines.push(
+          [
+            r.venue,
+            r.market_type,
+            r.underlying,
+            r.instrument_id,
+            r.leverage,
+            r.strategy_id,
+            r.ok,
+            r.error || "",
+            o.initial_equity != null ? o.initial_equity : bt.initial_equity,
+            o.final_equity != null ? o.final_equity : bt.final_equity,
+            o.pnl,
+            o.pnl_pct,
+            nOps,
+            fees,
+            feeOp,
+            mf.marginTrade,
+            mf.peak,
+            mr.capital_shortfall || "",
+            b.period_return,
+            dif,
+            o.liquidated,
+            feeSched.maker_bps,
+            feeSched.taker_bps,
+            data.session_id || "",
+          ]
+            .map(csvCell)
+            .join(",")
+        );
+      });
+      lines.push("");
+      lines.push("— FIN MEMORANDO —");
+      lines.push("Adjuntá el CSV para verificación fila a fila.");
+      return {
+        kind: "compare",
+        title: "Memorando · Comparar",
+        text: lines.join("\n"),
+        csv: csvLines.join("\n"),
+        filenameBase: "quantlab-sim-compare-" + stampNow(),
+        nRows: rows.length,
+      };
+    }
+
+    function buildRankMemo(data) {
+      var common = data.common || {};
+      var meta = collectRunMeta();
+      var markets = data.markets || [];
+      var lines = [];
+      lines.push("QUANTLAB — MEMORANDO DE SIMULACIÓN (Ranking estrategias)");
+      lines.push("Generado: " + meta.generated_at);
+      lines.push("LIVE_BLOCKED=true · research / sin order routing");
+      lines.push("");
+      lines.push("— PARÁMETROS —");
+      lines.push("Moneda: " + (data.coin || "—"));
+      lines.push("Modo: " + (common.market_type || meta.market_type));
+      lines.push("Intervalo: " + (common.interval || meta.interval));
+      lines.push("Velas: " + (common.kline_limit != null ? common.kline_limit : "—"));
+      lines.push("Leverage: x" + (common.leverage || meta.leverage));
+      lines.push("Capital mode: " + (common.capital_mode || meta.capital_mode));
+      lines.push("Por trade: " + (common.per_trade_usd || meta.per_trade_usd));
+      lines.push("Universo estrategias: " + (common.n_strategies_universe || "—"));
+      lines.push("Excluidas: " + ((common.excluded_strategy_ids || []).join(", ") || "—"));
+      lines.push("Top N: " + (common.top_n || 10) + " (≥1 por familia)");
+      lines.push("Fees: PnL % YA NETO de comisiones VIP0 por mercado.");
+      lines.push("Mercados: " + markets.length);
+      lines.push("");
+      var csvHeader = [
+        "mercado",
+        "moneda",
+        "rank",
+        "strategy_id",
+        "strategy_name",
+        "family",
+        "family_label",
+        "ok_market",
+        "market_error",
+        "pnl",
+        "pnl_pct",
+        "n_ops",
+        "fees",
+        "leverage",
+        "interval",
+        "kline_limit",
+        "session_id",
+      ];
+      var csvLines = [csvHeader.join(",")];
+      markets.forEach(function (m) {
+        lines.push("");
+        lines.push("### Mercado " + (m.venue || "?") + " · " + (m.underlying || data.coin || "?"));
+        lines.push(
+          "  ok=" +
+            !!m.ok +
+            (m.error ? " error=" + m.error : "") +
+            " · OK " +
+            (m.n_strategies_ok || 0) +
+            "/" +
+            (m.n_strategies_run || 0) +
+            " · familias " +
+            (m.n_families_covered || 0)
+        );
+        (m.ranked || []).forEach(function (r) {
+          var o = r.overlay || {};
+          var bt = r.backtest || {};
+          var nOps = bt.n_fills != null ? bt.n_fills : bt.n_orders;
+          lines.push(
+            "  #" +
+              r.rank +
+              " " +
+              (r.strategy_name || r.strategy_id) +
+              " [" +
+              (r.family_label_es || r.family || "?") +
+              "] pnl%=" +
+              (o.pnl_pct != null ? o.pnl_pct : "—") +
+              " pnl=" +
+              (o.pnl != null ? o.pnl : "—") +
+              " ops=" +
+              (nOps != null ? nOps : "—") +
+              " fees=" +
+              (bt.total_fees != null ? bt.total_fees : "—")
+          );
+          csvLines.push(
+            [
+              m.venue,
+              m.underlying || data.coin,
+              r.rank,
+              r.strategy_id,
+              r.strategy_name,
+              r.family,
+              r.family_label_es,
+              m.ok,
+              m.error || "",
+              o.pnl,
+              o.pnl_pct,
+              nOps,
+              bt.total_fees,
+              common.leverage || meta.leverage,
+              common.interval || meta.interval,
+              common.kline_limit,
+              data.session_id || "",
+            ]
+              .map(csvCell)
+              .join(",")
+          );
+        });
+        if (!m.ok && !(m.ranked || []).length) {
+          csvLines.push(
+            [
+              m.venue,
+              m.underlying || data.coin,
+              "",
+              "",
+              "",
+              "",
+              "",
+              false,
+              m.error || "",
+              "",
+              "",
+              "",
+              "",
+              common.leverage,
+              common.interval,
+              common.kline_limit,
+              data.session_id || "",
+            ]
+              .map(csvCell)
+              .join(",")
+          );
+        }
+      });
+      lines.push("");
+      lines.push("— FIN MEMORANDO —");
+      lines.push("Adjuntá el CSV para verificación fila a fila.");
+      return {
+        kind: "rank",
+        title: "Memorando · Ranking " + (data.coin || ""),
+        text: lines.join("\n"),
+        csv: csvLines.join("\n"),
+        filenameBase: "quantlab-sim-rank-" + (data.coin || "coin") + "-" + stampNow(),
+        nRows: csvLines.length - 1,
+      };
+    }
+
+    function registerSimRun(memo, summary, params) {
+      if (!memo || !global.QLSimRegistry || typeof global.QLSimRegistry.add !== "function") {
+        return;
+      }
+      try {
+        global.QLSimRegistry.add({
+          kind: memo.kind,
+          title: memo.title,
+          summary: summary || "",
+          params: params || {},
+          memo: memo,
+        });
+      } catch (e) {}
+    }
+
+    function openSimMemoPresentation(memo, opts) {
+      if (!memo) return;
+      opts = opts || {};
+      if (opts.register) {
+        registerSimRun(memo, opts.summary, opts.params);
+      }
+      if (global.QLSimRegistry && typeof global.QLSimRegistry.openMemo === "function") {
+        global.QLSimRegistry.openMemo(memo, opts.params);
+        setRunStatus(
+          "memorando listo · " + (memo.filenameBase || "memo") + ".csv"
+        );
+        return;
+      }
+      setRunStatus("memorando listo (sin panel registro)");
     }
 
     function syncLeverage(from) {
@@ -1862,7 +2288,8 @@
     });
     root.querySelector("#sim-run-hist").addEventListener("click", function () {
       var out = root.querySelector("#sim-out-hist");
-      var pairs = collectPairs();
+      var prep = preparePairsForRun();
+      var pairs = prep.pairs;
       if (!pairs.length) {
         var msg =
           "Elegí al menos un mercado activo y agregá una moneda con el botón «+».";
@@ -1870,14 +2297,73 @@
         setRunStatus(msg, true);
         return;
       }
-      out.textContent = "comparando " + pairs.length + " pares…";
-      setRunStatus("comparando " + pairs.length + " pares…");
-      runCompare(root.querySelector("#sim-strat-hist").value)
+      var markets = pairs
+        .map(function (p) {
+          return p.venue;
+        })
+        .filter(function (v, i, a) {
+          return a.indexOf(v) === i;
+        });
+      var note =
+        "comparando " +
+        pairs.length +
+        " par(es) en " +
+        markets.join(", ") +
+        "…";
+      if (prep.skipped.length) {
+        note +=
+          " · sin moneda en: " + prep.skipped.join(", ") + " (no se incluyen)";
+      }
+      out.textContent = note;
+      setRunStatus(note);
+      runCompare(root.querySelector("#sim-strat-hist").value, pairs)
         .then(function (d) {
+          var feeNote =
+            '<p class="muted" style="font-size:0.72em;margin:0.15rem 0">' +
+            "PnL y capital final ya son NETOS de fees (VIP0 por mercado). " +
+            "La columna «Fees gastados» es el detalle; no hay que restarlos otra vez. " +
+            '<button type="button" class="btn secondary sim-compare-memo-btn" style="margin-left:0.35rem">Ver memorando</button>' +
+            "</p>";
           out.innerHTML =
             '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
+            feeNote +
             formatRows(d);
-          setRunStatus("listo · " + (d.rows || []).length + " filas");
+          var memoBtn = out.querySelector(".sim-compare-memo-btn");
+          if (memoBtn) {
+            memoBtn.addEventListener("click", function () {
+              openSimMemoPresentation(buildCompareMemo(d));
+            });
+          }
+          setRunStatus(
+            "listo · " +
+              (d.rows || []).length +
+              " filas · mercados: " +
+              markets.join(", ") +
+              " · memorando abierto"
+          );
+          try {
+            var cmpMemo = buildCompareMemo(d);
+            openSimMemoPresentation(cmpMemo, {
+              register: true,
+              summary:
+                (d.rows || []).length +
+                " filas · " +
+                markets.join(", "),
+              params: {
+                kind: "compare",
+                strategy_id: (d.common && d.common.strategy_id) || "",
+                markets: markets,
+                pairs: pairs,
+                common: d.common || {},
+                meta: collectRunMeta(),
+              },
+            });
+          } catch (memoErr) {
+            setRunStatus(
+              "listo · memo error: " + (memoErr.message || memoErr),
+              true
+            );
+          }
         })
         .catch(function (e) {
           var err = e.message || String(e);
@@ -1889,6 +2375,8 @@
     if (rankBtn) {
       rankBtn.addEventListener("click", function () {
         var out = root.querySelector("#sim-out-hist");
+        var prep = preparePairsForRun();
+        var pairs = prep.pairs;
         var coins = uniqueCoinKeys();
         if (coins.length !== 1) {
           var need =
@@ -1900,7 +2388,6 @@
           syncRankButton();
           return;
         }
-        var pairs = collectPairs();
         if (!pairs.length) {
           var noPair = "Elegí al menos un mercado con esa moneda.";
           out.textContent = noPair;
@@ -1913,18 +2400,57 @@
           " · " +
           pairs.length +
           " mercado(s) · ~37 estrategias (puede tardar 1–3 min)…";
+        if (prep.skipped.length) {
+          busy += " · omitidos: " + prep.skipped.join(", ");
+        }
         out.textContent = busy;
         setRunStatus(busy);
         rankBtn.disabled = true;
-        runRankStrategies()
+        closeFloatingRankWindows();
+        runRankStrategies(pairs)
           .then(function (d) {
             out.innerHTML = formatRankResults(d);
+            bindRankDockActions(out, d);
+            out.scrollIntoView({ block: "nearest", behavior: "smooth" });
             var nOk = (d.markets || []).filter(function (m) {
               return m.ok;
             }).length;
             setRunStatus(
-              "listo · " + coins[0] + " · " + nOk + "/" + pairs.length + " mercados"
+              "listo · " +
+                coins[0] +
+                " · " +
+                nOk +
+                "/" +
+                pairs.length +
+                " mercados · paneles en Simulador"
             );
+            try {
+              var rankMemo = buildRankMemo(d);
+              openSimMemoPresentation(rankMemo, {
+                register: true,
+                summary:
+                  (d.coin || coins[0]) +
+                  " · " +
+                  nOk +
+                  "/" +
+                  pairs.length +
+                  " mercados",
+                params: {
+                  kind: "rank",
+                  coin: d.coin || coins[0],
+                  markets: pairs.map(function (p) {
+                    return p.venue;
+                  }),
+                  pairs: pairs,
+                  meta: collectRunMeta(),
+                },
+              });
+            } catch (memoErr) {
+              setRunStatus(
+                "listo · memo error: " + (memoErr.message || memoErr),
+                true
+              );
+            }
           })
           .catch(function (e) {
             var err = e.message || String(e);

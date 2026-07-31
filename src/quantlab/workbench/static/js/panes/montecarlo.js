@@ -44,6 +44,7 @@
       '<label class="muted" title="Guarda hasta 16 curvas. No limita escenarios.">' +
       '<input type="checkbox" id="mc-paths" /> trayectorias</label>' +
       '<button type="button" class="btn" id="mc-run">Simular</button>' +
+      '<button type="button" class="btn secondary" id="mc-memo" title="Reabrir memorando de la última corrida">Ver memorando</button> ' +
       '<button type="button" class="btn secondary" id="mc-refresh">Actualizar</button>' +
       '<button type="button" class="btn secondary" id="mc-copy-id">Copiar ID</button>' +
       '<button type="button" class="btn secondary" id="mc-cancel" disabled hidden>Cancelar</button>' +
@@ -732,6 +733,141 @@
         "</div>";
     }
 
+    function buildMcMemo(data, formParams) {
+      formParams = formParams || {};
+      var lines = [];
+      var n = data && data.n_scenarios != null ? data.n_scenarios : formParams.n_scenarios;
+      lines.push("QUANTLAB — MEMORANDO MONTE CARLO");
+      lines.push("Generado: " + new Date().toLocaleString("es-AR"));
+      lines.push("LIVE_BLOCKED=true · research / no predice precios");
+      lines.push("");
+      lines.push("— PARA QUÉ SIRVE —");
+      lines.push(
+        "Estrés de robustez: N escenarios con ruido en precios; " +
+          "mirá media / desvío / IC95 de la media de equity final. " +
+          "No es predicción del mercado ni garantía de PnL."
+      );
+      lines.push("");
+      lines.push("— PARÁMETROS —");
+      lines.push("Escenarios (N): " + (n != null ? n : "—"));
+      lines.push(
+        "Velas por escenario: " +
+          (formParams.n_bars != null
+            ? formParams.n_bars
+            : data && data.n_bars != null
+              ? data.n_bars
+              : "—")
+      );
+      lines.push(
+        "Ruido bps: " +
+          (formParams.noise_bps != null ? formParams.noise_bps : "—")
+      );
+      lines.push("Seed: " + (formParams.seed != null ? formParams.seed : "—"));
+      lines.push("scan_id: " + (formParams.scan_id || "—"));
+      lines.push("backtest_id: " + (formParams.backtest_id || "—"));
+      lines.push(
+        "Trayectorias guardadas: " + (formParams.store_paths ? "sí" : "no")
+      );
+      lines.push(
+        "Modo: " +
+          (formParams.backtest_id ? "normal (ligado a BT)" : "technical_lab")
+      );
+      if (data && data.run_id) lines.push("run_id: " + data.run_id);
+      if (data && data.job_id) lines.push("job_id: " + data.job_id);
+      lines.push("");
+      lines.push("— RESULTADOS —");
+      if (!data || data.ok === false) {
+        lines.push("Estado: FAIL · " + ((data && data.error) || "sin datos"));
+      } else {
+        lines.push("Media equity final: " + money(data.mean_equity));
+        lines.push("Std equity: " + money(data.std_equity));
+        lines.push(
+          "CI95 media: [" +
+            money(data.ci_low) +
+            ", " +
+            money(data.ci_high) +
+            "]"
+        );
+        if (data.warnings && data.warnings.length) {
+          lines.push("Avisos: " + data.warnings.join(" · "));
+        }
+      }
+      lines.push("");
+      lines.push("— FIN MEMORANDO —");
+      var csvLines = [
+        [
+          "n_scenarios",
+          "n_bars",
+          "noise_bps",
+          "seed",
+          "scan_id",
+          "backtest_id",
+          "mean_equity",
+          "std_equity",
+          "ci_low",
+          "ci_high",
+          "run_id",
+        ].join(","),
+        [
+          n != null ? n : "",
+          formParams.n_bars != null ? formParams.n_bars : "",
+          formParams.noise_bps != null ? formParams.noise_bps : "",
+          formParams.seed != null ? formParams.seed : "",
+          formParams.scan_id || "",
+          formParams.backtest_id || "",
+          data && data.mean_equity != null ? data.mean_equity : "",
+          data && data.std_equity != null ? data.std_equity : "",
+          data && data.ci_low != null ? data.ci_low : "",
+          data && data.ci_high != null ? data.ci_high : "",
+          (data && data.run_id) || "",
+        ].join(","),
+      ];
+      return {
+        kind: "montecarlo",
+        title: "Memorando · Monte Carlo N=" + (n != null ? n : "?"),
+        text: lines.join("\n"),
+        csv: csvLines.join("\n"),
+        filenameBase: "quantlab-mc-" + (n != null ? n : "run") + "-" + Date.now(),
+        nRows: 1,
+      };
+    }
+
+    function readMcFormParams() {
+      return {
+        n_scenarios: readScenarios(),
+        n_bars: clampBars(parseInt(root.querySelector("#mc-bars").value, 10)),
+        noise_bps: parseFloat(root.querySelector("#mc-noise").value),
+        seed: parseInt(root.querySelector("#mc-seed").value, 10),
+        scan_id: (root.querySelector("#mc-scan").value || "").trim(),
+        backtest_id: (root.querySelector("#mc-bt").value || "").trim(),
+        store_paths: root.querySelector("#mc-paths").checked,
+      };
+    }
+
+    function presentMcMemo(data, formParams, doRegister) {
+      if (!data) return;
+      var memo = buildMcMemo(data, formParams || readMcFormParams());
+      var params = formParams || readMcFormParams();
+      if (doRegister && global.QLSimRegistry && typeof global.QLSimRegistry.add === "function") {
+        try {
+          global.QLSimRegistry.add({
+            kind: "montecarlo",
+            title: memo.title,
+            summary:
+              "N=" +
+              (params.n_scenarios != null ? params.n_scenarios : "?") +
+              " · media=" +
+              money(data.mean_equity),
+            params: params,
+            memo: memo,
+          });
+        } catch (e) {}
+      }
+      if (global.QLSimRegistry && typeof global.QLSimRegistry.openMemo === "function") {
+        global.QLSimRegistry.openMemo(memo, params);
+      }
+    }
+
     function renderResult(data) {
       lastData = data;
       if (!data) {
@@ -924,6 +1060,7 @@
               var result = job.result;
               if (result) {
                 renderResult(result);
+                presentMcMemo(result, readMcFormParams(), true);
                 refresh().catch(function () {});
               } else {
                 QLLabUI.setStatus(
@@ -1025,6 +1162,7 @@
         runBusy = false;
         setCancelVisible(false);
         renderResult(data);
+        presentMcMemo(data, readMcFormParams(), true);
         refresh().catch(function () {});
       } catch (err) {
         runBusy = false;
@@ -1170,6 +1308,16 @@
     root.querySelector("#mc-run").addEventListener("click", function () {
       runSimulation();
     });
+    var memoBtn = root.querySelector("#mc-memo");
+    if (memoBtn) {
+      memoBtn.addEventListener("click", function () {
+        if (!lastData) {
+          QLLabUI.setStatus(status, false, "sin corrida aún — simulá primero");
+          return;
+        }
+        presentMcMemo(lastData, readMcFormParams(), false);
+      });
+    }
 
     setScenarios(1000);
     updateBarsDurationHint(null);

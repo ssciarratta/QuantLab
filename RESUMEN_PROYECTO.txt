@@ -1,23 +1,22 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-30
-Versión: 1.01.0 · Menú favoritos + Estrategias
+Versión: 1.01.0 · Sims = ventana WM
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Guías fuera del Sim → panel Estrategias (menú QL)
-- Favoritos: Scanner · Simulador · Estrategias (↑↓)
+- «Mis simulaciones» = ventana Windows (drag/resize/min/max/×)
+- QL menú · Ctrl+K · botón Sims · abre al boot
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Menú QL «Mis favoritos» customizable (localStorage).
-Ranking 1 moneda abre 1 ventana WM por mercado
-(cerrar ×, resize, slider letra). Números UI → 2 dec.
+Dejó de ser panel fijo. Usa WindowManager igual que
+Health/Blotter. Geometría se guarda en layout.
 
 PRÓXIMO
 -------
-Ctrl+F5 · menú QL · favoritos arriba · ranking ventanas
+Ctrl+F5 · ventana «Mis simulaciones» · bordes = tamaño
 
 INVARIANTES
 -----------

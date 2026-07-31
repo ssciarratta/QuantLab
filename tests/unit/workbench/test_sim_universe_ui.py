@@ -94,6 +94,8 @@ def test_simulator_js_has_per_venue_coin_menu() -> None:
     assert "uniqueCoinKeys" in js
     assert "sim-run-status" in js
     assert js.index("sim-out-hist") < js.index("sim-venue-picks")
+    assert "preparePairsForRun" in js
+    assert "syncCoinsToCheckedVenues" in js
     assert "sim-strat-section" not in js
     assert "sim-strat-modal" not in js
 
