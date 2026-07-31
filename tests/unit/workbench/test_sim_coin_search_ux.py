@@ -27,5 +27,7 @@ def test_simulator_mc_button_from_selection() -> None:
     js = (STATIC / "js/panes/simulator.js").read_text(encoding="utf-8")
     assert "sim-open-mc-sel" in js
     assert "Monte Carlo con esta selección" in js
+    assert "Monte Carlo con esta corrida" in js
+    assert "sim-compare-mc-btn" in js
     assert "openMonteCarloFromSelection" in js
     assert "syncMcSelHint" in js

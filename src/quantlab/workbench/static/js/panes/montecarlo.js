@@ -992,6 +992,24 @@
             " (contexto Simulador)."
         );
       }
+      if (data && data.warnings && data.warnings.length) {
+        lines.push("Avisos: " + data.warnings.join(" · "));
+      }
+      var nEff =
+        (data && data.context && data.context.n_bars_effective) ||
+        (data && data.n_bars) ||
+        formParams.n_bars;
+      var simEst =
+        data && data.context && data.context.sim_bars_estimate;
+      if (simEst && nEff && Number(simEst) > Number(nEff)) {
+        lines.push(
+          "IMPORTANTE: Comparar usó ≈" +
+            simEst +
+            " velas; MC solo estresa " +
+            nEff +
+            ". El % de HISTÓRICO no se replica en MC."
+        );
+      }
       lines.push("");
       lines.push("— PARÁMETROS MONTE CARLO —");
       lines.push("Escenarios (N): " + (n != null ? n : "—"));

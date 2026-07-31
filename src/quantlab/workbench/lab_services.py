@@ -1943,6 +1943,7 @@ def _resolve_mc_from_sim_context(
 ) -> dict[str, Any]:
     """Resuelve velas + estrategia + capital desde el handoff del Simulador."""
     from quantlab.brokers.md_router import fetch_bars_for_instrument
+    from quantlab.montecarlo.limits import DEFAULT_BARS, MAX_BARS, MIN_BARS
     from quantlab.research.sim.fee_schedules import (
         fee_model_from_schedule,
         get_fee_schedule,
@@ -1974,13 +1975,36 @@ def _resolve_mc_from_sim_context(
     interval = str(sim_context.get("interval") or "1h").strip()
     period_days = sim_context.get("period_days")
 
-    kline_limit = max(n_bars, LAB_KLINE_LIMIT_MIN)
+    # Horizonte: la Comparar puede ser 365d; MC tiene tope MAX_BARS.
+    # Si el form trae el default corto (60), ampliar a lo que permita el tope.
+    effective_n = max(MIN_BARS, min(int(n_bars), MAX_BARS))
+    sim_bars_est: int | None = None
+    horizon_warning: str | None = None
     if period_days is not None:
         try:
             est = estimate_n_bars(period_days=period_days, interval=interval)
-            kline_limit = max(n_bars, int(est["n_bars"]))
+            sim_bars_est = int(est["n_bars"])
+            if effective_n <= DEFAULT_BARS and sim_bars_est > effective_n:
+                bumped = min(MAX_BARS, sim_bars_est)
+                horizon_warning = (
+                    f"Horizonte MC ampliado {effective_n}→{bumped} velas "
+                    f"(tope MC={MAX_BARS}). La Comparar usó ≈{sim_bars_est} "
+                    f"velas ({period_days}d × {interval}); MC NO replica "
+                    f"todo el período — estresa solo esta ventana con ruido."
+                )
+                effective_n = bumped
+            elif sim_bars_est > effective_n:
+                horizon_warning = (
+                    f"MC usa {effective_n} velas/{interval}; la Comparar "
+                    f"cubrió ≈{sim_bars_est}. La rentabilidad de MC no es "
+                    f"comparable 1:1 con el % de la tabla HISTÓRICO."
+                )
         except (ValidationError, KeyError, TypeError, ValueError):
             pass
+
+    kline_limit = max(effective_n, LAB_KLINE_LIMIT_MIN)
+    if sim_bars_est is not None:
+        kline_limit = max(kline_limit, min(sim_bars_est, LAB_KLINE_LIMIT_MAX))
     kline_limit = max(LAB_KLINE_LIMIT_MIN, min(kline_limit, LAB_KLINE_LIMIT_MAX))
 
     resolved, bars = fetch_bars_for_instrument(
@@ -1995,7 +2019,7 @@ def _resolve_mc_from_sim_context(
             f"sim_context: insuficientes velas para {venue}/{underlying} "
             f"(got {len(bars)})"
         )
-    run_bars = bars[-n_bars:] if len(bars) > n_bars else list(bars)
+    run_bars = bars[-effective_n:] if len(bars) > effective_n else list(bars)
 
     sid_raw = (
         str(sim_context.get("strategy_id") or strategy_id_fallback or "momentum")
@@ -2009,15 +2033,14 @@ def _resolve_mc_from_sim_context(
     strategy_params = merge_default_params(sid, caller)
     strategy = maybe_wrap_for_bar_backtest(sid, _build_strategy(sid, strategy_params))
 
+    # Misma caja de trabajo que Comparar (unconstrained).
     capital_mode = str(sim_context.get("capital_mode") or "fixed").strip().lower()
     try:
         if capital_mode == "fixed" and sim_context.get("initial_capital") is not None:
             initial_cash = Decimal(str(sim_context["initial_capital"]))
-        elif sim_context.get("per_trade_usd") is not None:
-            pt = Decimal(str(sim_context["per_trade_usd"]))
-            initial_cash = max(pt * Decimal("50"), Decimal("10000"))
         else:
-            initial_cash = Decimal("50000")
+            pt = Decimal(str(sim_context.get("per_trade_usd") or "1000"))
+            initial_cash = max(pt * Decimal("50"), Decimal("10000"))
     except Exception as exc:
         raise ValidationError(
             f"sim_context capital inválido: {exc}"
@@ -2047,6 +2070,9 @@ def _resolve_mc_from_sim_context(
         "pairs_count": len(pairs_raw),
         "summary_line": str(sim_context.get("summary_line") or ""),
         "sim_context": dict(sim_context),
+        "horizon_warning": horizon_warning,
+        "sim_bars_estimate": sim_bars_est,
+        "n_bars_effective": len(run_bars),
     }
 
 
@@ -2199,6 +2225,11 @@ def run_lab_montecarlo(
     fill_counts: list[int] = []
 
     def runner(noisy: Any) -> SimulationResult:
+        if hasattr(mc_strategy, "reset"):
+            try:
+                mc_strategy.reset()
+            except Exception:
+                pass
         bt = BarBacktester(
             BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
             fee_model=fee_model,
@@ -2277,6 +2308,11 @@ def run_lab_montecarlo(
         ctx_dict["coin"] = sim_linked.get("underlying")
         ctx_dict["venue"] = sim_linked.get("venue")
         ctx_dict["market_type"] = sim_linked.get("market_type")
+        if sim_linked.get("horizon_warning"):
+            ctx_dict["horizon_warning"] = sim_linked["horizon_warning"]
+        if sim_linked.get("sim_bars_estimate") is not None:
+            ctx_dict["sim_bars_estimate"] = sim_linked["sim_bars_estimate"]
+        ctx_dict["n_bars_effective"] = sim_linked.get("n_bars_effective") or n_bars
     if mode_key == "technical_lab" and orphan:
         ctx_dict["orphan_warning"] = (
             "Modo laboratorio técnico: dataset sintético WB:SYN, estrategia BuyOnce, "
@@ -2400,7 +2436,15 @@ def run_lab_montecarlo(
             "code_commit": ctx.code_commit,
         },
         "mode": mode_key,
-        "warnings": [w for w in (size_warning, ctx_dict.get("orphan_warning")) if w],
+        "warnings": [
+            w
+            for w in (
+                size_warning,
+                ctx_dict.get("orphan_warning"),
+                (sim_linked or {}).get("horizon_warning") if sim_linked else None,
+            )
+            if w
+        ],
         "persisted": False,
         "run_id": None,
         "path": None,
@@ -2429,11 +2473,22 @@ def run_lab_montecarlo(
         ctx_out["lab_mode"] = "sim_linked"
         ctx_out.pop("orphan_warning", None)
         ctx_out["orphan_technical_mode"] = False
+        if sim_linked.get("horizon_warning"):
+            ctx_out["horizon_warning"] = sim_linked["horizon_warning"]
+        if sim_linked.get("sim_bars_estimate") is not None:
+            ctx_out["sim_bars_estimate"] = sim_linked["sim_bars_estimate"]
+        ctx_out["n_bars_effective"] = sim_linked.get("n_bars_effective") or len(
+            sim_linked.get("bars") or []
+        )
         payload["context"] = ctx_out
         payload["mode"] = "sim_linked"
+        warnings = list(payload.get("warnings") or [])
+        hw = sim_linked.get("horizon_warning")
+        if hw and hw not in warnings:
+            warnings.append(hw)
         warnings = [
             w
-            for w in (payload.get("warnings") or [])
+            for w in warnings
             if "sintético" not in str(w).lower() and "huérfano" not in str(w).lower()
         ]
         payload["warnings"] = warnings

@@ -951,7 +951,8 @@ html {
   display: none !important;
 }
 
-.sim-mc-from-sel {
+.sim-mc-from-sel,
+.sim-mc-after-table {
   margin: 0.55rem 0 0.35rem;
   align-items: center;
   gap: 0.65rem;

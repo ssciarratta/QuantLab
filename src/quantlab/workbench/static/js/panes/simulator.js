@@ -194,14 +194,14 @@
       '<span class="mono muted sim-run-status" id="sim-run-status">—</span>' +
       "</div>" +
       '<div class="mono" id="sim-out-hist">—</div>' +
+      '<div class="sim-actions sim-mc-from-sel" id="sim-mc-bar">' +
+      '<button type="button" class="btn" id="sim-open-mc-sel" ' +
+      'title="Abre Monte Carlo con el mercado, moneda y params de esta simulación">' +
+      "Monte Carlo con esta selección</button>" +
+      '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda · o corré Comparar</span>' +
+      "</div>" +
       '<p class="muted sim-meta">Mercados y monedas · escribí para buscar · Agregar · al tildar otro mercado se copia la misma moneda</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
-      '<div class="sim-actions sim-mc-from-sel">' +
-      '<button type="button" class="btn" id="sim-open-mc-sel" ' +
-      'title="Abre Monte Carlo con el mercado, moneda y params actuales del Simulador">' +
-      "Monte Carlo con esta selección</button>" +
-      '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda arriba</span>' +
-      "</div>" +
       '<div class="sim-actions sim-shortcuts">' +
       '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
       '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button>' +
@@ -578,13 +578,29 @@
         );
         return;
       }
+      // Prefill horizonte MC al tope (500): 60 velas default ≠ período Comparar.
+      var nbarsHint = 500;
+      var pd = Number(handoff.period_days);
+      var iv = String(handoff.interval || "1h");
+      if (isFinite(pd) && pd > 0) {
+        var mins = 60;
+        if (/^\d+m$/i.test(iv)) mins = parseInt(iv, 10);
+        else if (/^\d+h$/i.test(iv)) mins = parseInt(iv, 10) * 60;
+        else if (/^\d+d$/i.test(iv)) mins = parseInt(iv, 10) * 1440;
+        var est = Math.ceil((pd * 24 * 60) / mins);
+        if (isFinite(est) && est > 0) nbarsHint = Math.max(60, Math.min(500, est));
+      }
       if (global.QLShell && QLShell.open) {
         QLShell.open("montecarlo", {
           prefill: {
             sim_context: handoff,
+            n_bars: nbarsHint,
             message:
               "Estrés ligado a: " +
-              (handoff.summary_line || handoff.coin || "simulación"),
+              (handoff.summary_line || handoff.coin || "simulación") +
+              " · velas/esc≈" +
+              nbarsHint +
+              " (tope MC; no es todo el período Comparar)",
           },
         });
       }
@@ -2603,17 +2619,42 @@
             "PnL y capital final ya son NETOS de fees (VIP0 por mercado). " +
             "La columna «Fees gastados» es el detalle; no hay que restarlos otra vez. " +
             '<button type="button" class="btn secondary sim-compare-memo-btn" style="margin-left:0.35rem">Ver memorando</button>' +
+            '<button type="button" class="btn sim-compare-mc-btn" style="margin-left:0.35rem" ' +
+            'title="Estresar esta corrida en Monte Carlo">' +
+            "Monte Carlo</button>" +
             "</p>";
           out.innerHTML =
             '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
             feeNote +
-            formatRows(d);
+            formatRows(d) +
+            '<div class="sim-actions sim-mc-after-table" style="margin-top:0.55rem">' +
+            '<button type="button" class="btn sim-compare-mc-btn2">' +
+            "Monte Carlo con esta corrida</button>" +
+            '<span class="muted mono" style="margin-left:0.45rem">' +
+            esc(markets.join(", ")) +
+            " · " +
+            esc(
+              (pairs[0] && (pairs[0].underlying || pairs[0].ticker)) ||
+                "selección"
+            ) +
+            "</span></div>";
           var memoBtn = out.querySelector(".sim-compare-memo-btn");
           if (memoBtn) {
             memoBtn.addEventListener("click", function () {
               openSimMemoPresentation(buildCompareMemo(d));
             });
           }
+          function bindMcBtns() {
+            out.querySelectorAll(".sim-compare-mc-btn, .sim-compare-mc-btn2").forEach(
+              function (b) {
+                b.addEventListener("click", function () {
+                  openMonteCarloFromSelection();
+                });
+              }
+            );
+          }
+          bindMcBtns();
+          syncMcSelHint();
           setRunStatus(
             "listo · " +
               (d.rows || []).length +
