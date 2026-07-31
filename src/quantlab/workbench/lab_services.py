@@ -18,7 +18,11 @@ from quantlab.brokers.binance.fees import (
     binance_spot_fee_model,
     resolve_binance_spot_fee_schedule,
 )
-from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX, LAB_KLINE_LIMIT_MIN
+from quantlab.brokers.md_limits import (
+    LAB_KLINE_HEAVY_WARN,
+    LAB_KLINE_LIMIT_MAX,
+    LAB_KLINE_LIMIT_MIN,
+)
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.enums import ExperimentStatus
 from quantlab.core.types.manifests import ExecutionModelVersions, ExperimentManifest
@@ -482,6 +486,117 @@ def run_lab_backtest(
     if not isinstance(converted, dict):
         raise ValidationError("serialización backtest inválida")
     return converted
+
+
+def run_market_lab_backtest(
+    *,
+    strategy_id: str = "momentum",
+    params: dict[str, Any] | None = None,
+    venue: str,
+    underlying: str,
+    market_type: str = "futures",
+    interval: str = "1h",
+    period_days: int | float | str | None = None,
+    n_bars: int | None = None,
+    experiment_id: str = "wb-lab-backtest",
+    reports_dir: Path | None = None,
+    initial_cash: Decimal | None = None,
+) -> dict[str, Any]:
+    """Backtest sobre velas históricas públicas (misma MD que Sim / MC ligado).
+
+    Exige ``venue`` + ``underlying``. Resuelve N velas desde ``period_days``
+    (prioridad) o ``n_bars``. Fees = schedule VIP0 del mercado.
+    """
+    from quantlab.brokers.md_router import fetch_bars_for_instrument
+    from quantlab.research.sim.fee_schedules import (
+        fee_model_from_schedule,
+        get_fee_schedule,
+        schedule_to_lab_fee_dict,
+    )
+    from quantlab.research.sim.period_bars import estimate_n_bars
+
+    v = str(venue or "").strip().lower()
+    coin = str(underlying or "").strip().upper()
+    if not v or not coin:
+        raise ValidationError("backtest histórico: venue y moneda (underlying) requeridos")
+    mt = str(market_type or "futures").strip().lower()
+    if mt not in ("spot", "futures"):
+        raise ValidationError("market_type debe ser spot o futures")
+    iv = str(interval or "1h").strip()
+
+    period_meta: dict[str, Any] | None = None
+    if period_days is not None and str(period_days).strip() != "":
+        period_meta = estimate_n_bars(period_days=period_days, interval=iv)
+        kline_limit = int(period_meta["n_bars"])
+    elif n_bars is not None:
+        kline_limit = int(n_bars)
+    else:
+        period_meta = estimate_n_bars(period_days=30, interval=iv)
+        kline_limit = int(period_meta["n_bars"])
+
+    kline_limit = max(LAB_KLINE_LIMIT_MIN, min(kline_limit, LAB_KLINE_LIMIT_MAX))
+
+    resolved, bars = fetch_bars_for_instrument(
+        coin,
+        venue=v,
+        market_type=mt,
+        interval=iv,
+        kline_limit=kline_limit,
+    )
+    if len(bars) < 4:
+        raise ValidationError(
+            f"insuficientes velas para {v}/{coin} ({len(bars)}); "
+            "probá otro período/TF o mercado"
+        )
+    run_bars = bars[-kline_limit:] if len(bars) > kline_limit else list(bars)
+
+    fee_sched = get_fee_schedule(v, mt)
+    fee_model = fee_model_from_schedule(fee_sched)
+    fee_dict = schedule_to_lab_fee_dict(fee_sched)
+
+    cash = initial_cash if initial_cash is not None else Decimal("10000")
+    out = run_lab_backtest(
+        strategy_id=strategy_id,
+        params=params,
+        bars=run_bars,
+        instrument_id=resolved.instrument_id,
+        data_source=f"{v}_{mt}_klines",
+        experiment_id=experiment_id,
+        reports_dir=reports_dir,
+        initial_cash=cash,
+        fee_model=fee_model,
+        fee_schedule_meta=fee_dict,
+    )
+    # Contexto explícito para UI / memo (no cosmético: viene del fetch real).
+    out["mode"] = "historical"
+    out["venue"] = v
+    out["underlying"] = resolved.underlying
+    out["market_type"] = mt
+    out["interval"] = iv
+    out["period_days"] = (
+        period_meta.get("period_days") if period_meta else None
+    )
+    out["requested_n_bars"] = kline_limit
+    out["symbol"] = getattr(resolved, "symbol", None) or coin
+    out["context"] = {
+        "mode": "historical",
+        "venue": v,
+        "underlying": resolved.underlying,
+        "market_type": mt,
+        "interval": iv,
+        "period_days": out.get("period_days"),
+        "n_bars": out.get("n_bars"),
+        "data_source": out.get("data_source"),
+        "instrument_id": out.get("instrument_id"),
+        "symbol": out.get("symbol"),
+        "strategy_id": out.get("strategy_id"),
+        "bar_range": out.get("bar_range"),
+    }
+    if kline_limit >= LAB_KLINE_HEAVY_WARN:
+        out.setdefault("warnings", []).append(
+            f"Horizonte pesado (~{kline_limit} velas): puede tardar."
+        )
+    return out
 
 
 def run_lab_scanner(*, top_n: int = 3) -> dict[str, Any]:
@@ -1805,26 +1920,142 @@ def run_lab_optimize(
     n_bars: int = 20,
     persist: bool = False,
     optimizer_root: Path | None = None,
+    mode: str = "synthetic",
+    venue: str | None = None,
+    underlying: str | None = None,
+    market_type: str = "futures",
+    interval: str = "1h",
+    period_days: int | float | str | None = None,
+    initial_cash: Decimal | None = None,
 ) -> dict[str, Any]:
     """Grid mini: lookback × quantity → sharpe (+ Pareto sharpe/MDD) — F33.
 
+    ``mode=historical`` (o venue+moneda): velas MD público como Backtest/Sim.
+    ``mode=synthetic``: velas inventadas (debug; n_bars 8–60).
+
     Si ``persist`` y ``optimizer_root``: escribe summary en session ``optimizer/``.
     """
+    from quantlab.brokers.md_router import fetch_bars_for_instrument
+    from quantlab.research.sim.fee_schedules import (
+        fee_model_from_schedule,
+        get_fee_schedule,
+        schedule_to_lab_fee_dict,
+    )
+    from quantlab.research.sim.period_bars import estimate_n_bars
+
     if len(lookbacks) * len(quantities) > 12:
         raise ValidationError("grid demasiado grande (máx 12 trials)")
-    if n_bars < 8 or n_bars > 60:
-        raise ValidationError("n_bars debe estar entre 8 y 60")
-    bars = make_synthetic_bars(n_bars)
+
+    mode_norm = str(mode or "synthetic").strip().lower()
+    v_in = str(venue or "").strip().lower()
+    coin_in = str(underlying or "").strip().upper()
+    use_historical = mode_norm in ("historical", "market", "real") or (
+        bool(v_in)
+        and bool(coin_in)
+        and mode_norm not in ("synthetic", "synth", "lab")
+    )
+
+    fee_model: Any = binance_spot_fee_model()
+    fee_dict: dict[str, Any] | None = None
+    context: dict[str, Any]
+    cash = initial_cash if initial_cash is not None else Decimal("50000")
+    if cash <= 0:
+        raise ValidationError("initial_cash debe ser > 0")
+
+    if use_historical:
+        if not v_in or not coin_in:
+            raise ValidationError(
+                "optimize histórico: venue y moneda (underlying) requeridos"
+            )
+        mt = str(market_type or "futures").strip().lower()
+        if mt not in ("spot", "futures"):
+            raise ValidationError("market_type debe ser spot o futures")
+        iv = str(interval or "1h").strip()
+        period_meta: dict[str, Any] | None = None
+        if period_days is not None and str(period_days).strip() != "":
+            period_meta = estimate_n_bars(period_days=period_days, interval=iv)
+            kline_limit = int(period_meta["n_bars"])
+        else:
+            kline_limit = int(n_bars)
+        # Tope práctico para grid (trials × velas).
+        opt_bars_max = 5_000
+        kline_limit = max(
+            LAB_KLINE_LIMIT_MIN, min(kline_limit, LAB_KLINE_LIMIT_MAX, opt_bars_max)
+        )
+        resolved, bars_raw = fetch_bars_for_instrument(
+            coin_in,
+            venue=v_in,
+            market_type=mt,
+            interval=iv,
+            kline_limit=kline_limit,
+        )
+        if len(bars_raw) < 8:
+            raise ValidationError(
+                f"insuficientes velas para {v_in}/{coin_in} ({len(bars_raw)}); "
+                "probá otro período/TF"
+            )
+        bars = (
+            bars_raw[-kline_limit:]
+            if len(bars_raw) > kline_limit
+            else list(bars_raw)
+        )
+        n_used = len(bars)
+        fee_sched = get_fee_schedule(v_in, mt)
+        fee_model = fee_model_from_schedule(fee_sched)
+        fee_dict = schedule_to_lab_fee_dict(fee_sched)
+        if initial_cash is None:
+            cash = Decimal("10000")
+        bar_range = {
+            "start": bars[0].timestamp_open.isoformat(),
+            "end": bars[-1].timestamp_close.isoformat(),
+            "n_bars": n_used,
+            "interval": bars[0].timeframe,
+        }
+        context = {
+            "mode": "historical",
+            "venue": v_in,
+            "underlying": resolved.underlying,
+            "market_type": mt,
+            "interval": iv,
+            "period_days": period_meta.get("period_days") if period_meta else None,
+            "n_bars": n_used,
+            "data_source": f"{v_in}_{mt}_klines",
+            "instrument_id": resolved.instrument_id,
+            "symbol": getattr(resolved, "symbol", None) or coin_in,
+            "bar_range": bar_range,
+            "strategy_family": "momentum",
+        }
+        data_source = context["data_source"]
+    else:
+        if n_bars < 8 or n_bars > 60:
+            raise ValidationError("n_bars debe estar entre 8 y 60 (modo sintético)")
+        bars = make_synthetic_bars(n_bars)
+        n_used = n_bars
+        data_source = "synthetic"
+        context = {
+            "mode": "synthetic",
+            "data_source": "synthetic",
+            "n_bars": n_used,
+            "note": "Velas inventadas del lab — no es mercado real",
+            "strategy_family": "momentum",
+        }
+
     second_objective: list[float] = []
     trial_metrics: list[dict[str, float]] = []
 
     def objective(params: dict[str, Any]) -> float:
-        strategy = SimpleMomentumStrategy(
-            {"lookback": int(params["lookback"]), "quantity": str(params["quantity"])}
+        strategy = maybe_wrap_for_bar_backtest(
+            "momentum",
+            SimpleMomentumStrategy(
+                {
+                    "lookback": int(params["lookback"]),
+                    "quantity": str(params["quantity"]),
+                }
+            ),
         )
         bt = BarBacktester(
-            BarBacktestConfig(experiment_id="wb-opt", initial_cash=Decimal("50000")),
-            fee_model=binance_spot_fee_model(),
+            BarBacktestConfig(experiment_id="wb-opt", initial_cash=cash),
+            fee_model=fee_model,
         )
         result = bt.run(strategy, bars)
         m = result.metrics.metrics
@@ -1897,7 +2128,9 @@ def run_lab_optimize(
             raw_m = row.get("metrics") or {}
             if isinstance(raw_m, dict):
                 best_metrics = {
-                    str(k): float(v) for k, v in raw_m.items() if isinstance(v, (int, float))
+                    str(k): float(v)
+                    for k, v in raw_m.items()
+                    if isinstance(v, (int, float))
                 }
             break
 
@@ -1905,7 +2138,9 @@ def run_lab_optimize(
         "ok": True,
         "kind": "optimize",
         "method": result.method,
-        "n_bars": n_bars,
+        "mode": context["mode"],
+        "n_bars": n_used,
+        "data_source": data_source,
         "params": {
             "lookbacks": list(lookbacks),
             "quantities": list(quantities),
@@ -1919,18 +2154,32 @@ def run_lab_optimize(
         },
         "history": history,
         "pareto": pareto_payload,
+        "context": context,
+        "initial_cash": str(cash),
         "persisted": False,
         "run_id": None,
         "path": None,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
     }
+    if fee_dict is not None:
+        payload["fee_schedule"] = fee_dict
+    if use_historical:
+        payload["venue"] = context.get("venue")
+        payload["underlying"] = context.get("underlying")
+        payload["market_type"] = context.get("market_type")
+        payload["interval"] = context.get("interval")
+        payload["period_days"] = context.get("period_days")
+        payload["instrument_id"] = context.get("instrument_id")
+        payload["bar_range"] = context.get("bar_range")
 
     if persist:
         if optimizer_root is None:
             raise ValidationError("optimizer_root requerido para persist=True")
         if not LIVE_BLOCKED:
-            raise ValidationError("LIVE_BLOCKED debe ser True; abortando optimizer persist")
+            raise ValidationError(
+                "LIVE_BLOCKED debe ser True; abortando optimizer persist"
+            )
         payload = persist_optimizer_run(Path(optimizer_root), payload)
     return payload
 

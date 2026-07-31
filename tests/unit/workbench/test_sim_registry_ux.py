@@ -58,7 +58,17 @@ def test_commands_include_sim_registry() -> None:
     assert 'pane_id": "sim_registry"' in text
 
 
-def test_registry_reopen_button() -> None:
+def test_sim_registry_historico_table_layout() -> None:
+    js = (STATIC / "js/sim_registry.js").read_text(encoding="utf-8")
+    assert "sim-summary-table" in js
+    assert "renderCompareTable" in js
+    assert "Capital final (neto)" in js
+    assert "Rentab. %" in js
+    assert "ql-sim-reg-block" in js
+    css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
+    assert "ql-sim-reg-block" in css
+    assert "ql-sim-reg-table" in css
+
     js = (STATIC / "js/sim_registry.js").read_text(encoding="utf-8")
     assert "ql-sim-registry-reopen" in js
     assert "function reopen" in js or "reopen:" in js

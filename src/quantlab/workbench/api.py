@@ -3271,7 +3271,7 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
         else:
             raise ApiError(400, "params debe ser objeto JSON")
         n_bars = body.get("n_bars", 24)
-        if not isinstance(n_bars, int):
+        if n_bars is not None and not isinstance(n_bars, int):
             raise ApiError(400, "n_bars debe ser int")
         experiment_id = body.get("experiment_id", "wb-lab-backtest")
         if not isinstance(experiment_id, str) or not experiment_id.strip():
@@ -3284,16 +3284,68 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
                 initial_cash_arg = Decimal(str(body.get("initial_cash")))
             except (InvalidOperation, ValueError) as exc:
                 raise ApiError(400, "initial_cash inválido") from exc
+
+        mode_raw = body.get("mode") or body.get("data_mode") or ""
+        mode = str(mode_raw).strip().lower() if mode_raw else ""
+        venue = body.get("venue")
+        underlying = body.get("underlying") or body.get("coin") or body.get("ticker")
+        # Histórico si pide mode=historical o trae venue+moneda.
+        use_historical = mode in ("historical", "market", "real") or (
+            isinstance(venue, str)
+            and venue.strip()
+            and isinstance(underlying, str)
+            and underlying.strip()
+            and mode not in ("synthetic", "synth", "lab")
+        )
+
         try:
             experiment_id = lab_services.validate_experiment_id(experiment_id)
-            result = lab_services.run_lab_backtest(
-                strategy_id=strategy_id,
-                params=params_dict,
-                n_bars=n_bars,
-                experiment_id=experiment_id,
-                reports_dir=state.ensure_lab_reports_dir(),
-                initial_cash=initial_cash_arg,
-            )
+            if use_historical:
+                if not isinstance(venue, str) or not venue.strip():
+                    raise ApiError(400, "backtest histórico: venue requerido")
+                if not isinstance(underlying, str) or not underlying.strip():
+                    raise ApiError(400, "backtest histórico: moneda (underlying) requerida")
+                market_type = body.get("market_type", "futures")
+                if not isinstance(market_type, str):
+                    raise ApiError(400, "market_type inválido")
+                interval = body.get("interval", "1h")
+                if not isinstance(interval, str) or not interval.strip():
+                    raise ApiError(400, "interval inválido")
+                period_days = body.get("period_days")
+                result = lab_services.run_market_lab_backtest(
+                    strategy_id=strategy_id,
+                    params=params_dict,
+                    venue=venue.strip(),
+                    underlying=underlying.strip(),
+                    market_type=market_type.strip(),
+                    interval=interval.strip(),
+                    period_days=period_days,
+                    n_bars=n_bars if isinstance(n_bars, int) else None,
+                    experiment_id=experiment_id,
+                    reports_dir=state.ensure_lab_reports_dir(),
+                    initial_cash=initial_cash_arg,
+                )
+            else:
+                if not isinstance(n_bars, int):
+                    raise ApiError(400, "n_bars debe ser int")
+                result = lab_services.run_lab_backtest(
+                    strategy_id=strategy_id,
+                    params=params_dict,
+                    n_bars=n_bars,
+                    experiment_id=experiment_id,
+                    reports_dir=state.ensure_lab_reports_dir(),
+                    initial_cash=initial_cash_arg,
+                )
+                result = dict(result)
+                result["mode"] = "synthetic"
+                result["context"] = {
+                    "mode": "synthetic",
+                    "data_source": result.get("data_source") or "synthetic",
+                    "n_bars": result.get("n_bars"),
+                    "strategy_id": result.get("strategy_id"),
+                    "bar_range": result.get("bar_range"),
+                    "note": "Velas inventadas del lab — no es mercado real",
+                }
         except ValidationError as exc:
             raise _lab_validation_error(exc) from exc
         out = state.store_lab_result(result)
@@ -3301,11 +3353,21 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
             state,
             "backtest",
             ok=True,
-            message=f"backtest {strategy_id}",
+            message=(
+                f"backtest {strategy_id}"
+                + (
+                    f" · {venue}/{underlying}"
+                    if use_historical
+                    else " · synthetic"
+                )
+            ),
             detail={
                 "strategy_id": strategy_id,
-                "n_bars": n_bars,
+                "n_bars": result.get("n_bars", n_bars),
                 "experiment_id": experiment_id,
+                "mode": "historical" if use_historical else "synthetic",
+                "venue": venue if use_historical else None,
+                "underlying": underlying if use_historical else None,
             },
         )
         return out
@@ -3336,23 +3398,66 @@ def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dic
             raise ApiError(400, "lookbacks debe ser lista no vacía")
         if not isinstance(quantities_raw, list) or not quantities_raw:
             raise ApiError(400, "quantities debe ser lista no vacía")
-        if not isinstance(n_bars, int):
+        if n_bars is not None and not isinstance(n_bars, int):
             raise ApiError(400, "n_bars debe ser int")
         if not isinstance(persist, bool):
             raise ApiError(400, "persist debe ser bool")
         # Path-safe: solo sandbox de sesión.
         if "path" in body or "optimizer_root" in body or "target_path" in body:
             raise ApiError(400, "path externo no permitido; optimizer solo a sandbox de sesión")
+
+        mode_raw = body.get("mode") or body.get("data_mode") or ""
+        mode = str(mode_raw).strip().lower() if mode_raw else ""
+        venue = body.get("venue")
+        underlying = body.get("underlying") or body.get("coin") or body.get("ticker")
+        use_historical = mode in ("historical", "market", "real") or (
+            isinstance(venue, str)
+            and venue.strip()
+            and isinstance(underlying, str)
+            and underlying.strip()
+            and mode not in ("synthetic", "synth", "lab")
+        )
+
+        initial_cash_arg = None
+        if "initial_cash" in body and body.get("initial_cash") is not None:
+            from decimal import Decimal, InvalidOperation
+
+            try:
+                initial_cash_arg = Decimal(str(body.get("initial_cash")))
+            except (InvalidOperation, ValueError) as exc:
+                raise ApiError(400, "initial_cash inválido") from exc
+
         try:
             lookbacks = tuple(int(x) for x in lookbacks_raw)
             quantities = tuple(str(x) for x in quantities_raw)
-            result = lab_services.run_lab_optimize(
-                lookbacks=lookbacks,
-                quantities=quantities,
-                n_bars=n_bars,
-                persist=persist,
-                optimizer_root=state.ensure_lab_optimizer_dir() if persist else None,
-            )
+            kwargs: dict[str, Any] = {
+                "lookbacks": lookbacks,
+                "quantities": quantities,
+                "n_bars": int(n_bars) if isinstance(n_bars, int) else 20,
+                "persist": persist,
+                "optimizer_root": state.ensure_lab_optimizer_dir() if persist else None,
+                "initial_cash": initial_cash_arg,
+            }
+            if use_historical:
+                if not isinstance(venue, str) or not venue.strip():
+                    raise ApiError(400, "optimize histórico: venue requerido")
+                if not isinstance(underlying, str) or not underlying.strip():
+                    raise ApiError(400, "optimize histórico: moneda (underlying) requerida")
+                market_type = body.get("market_type", "futures")
+                if not isinstance(market_type, str):
+                    raise ApiError(400, "market_type inválido")
+                interval = body.get("interval", "1h")
+                if not isinstance(interval, str) or not interval.strip():
+                    raise ApiError(400, "interval inválido")
+                kwargs["mode"] = "historical"
+                kwargs["venue"] = venue.strip()
+                kwargs["underlying"] = underlying.strip()
+                kwargs["market_type"] = market_type.strip()
+                kwargs["interval"] = interval.strip()
+                kwargs["period_days"] = body.get("period_days")
+            else:
+                kwargs["mode"] = "synthetic"
+            result = lab_services.run_lab_optimize(**kwargs)
         except (ValidationError, TypeError, ValueError) as exc:
             raise ApiError(400, str(exc)) from exc
         result["session_id"] = state.ensure_session().session_id
@@ -3361,11 +3466,21 @@ def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dic
             state,
             "optimize",
             ok=True,
-            message="optimize grid",
+            message=(
+                "optimize grid"
+                + (
+                    f" · {venue}/{underlying}"
+                    if use_historical
+                    else " · synthetic"
+                )
+            ),
             detail={
-                "n_bars": n_bars,
+                "n_bars": result.get("n_bars", n_bars),
                 "n_lookbacks": len(lookbacks),
                 "persist": persist,
+                "mode": "historical" if use_historical else "synthetic",
+                "venue": venue if use_historical else None,
+                "underlying": underlying if use_historical else None,
             },
         )
         return out

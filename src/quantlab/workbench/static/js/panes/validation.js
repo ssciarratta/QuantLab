@@ -16,6 +16,7 @@
       "</div>" +
       '<div class="pane-actions">' +
       '<button type="button" class="btn" id="vl-run">Correr splits</button>' +
+      '<button type="button" class="btn secondary stop-run" id="vl-stop" hidden disabled title="Detener validación">Stop</button>' +
       '<button type="button" class="btn secondary" id="vl-refresh">Actualizar</button>' +
       '<span class="mono" id="vl-status">—</span>' +
       "</div>" +
@@ -239,21 +240,36 @@
       });
     });
 
-    QLLabUI.bindRun(root, "#vl-run", "#vl-status", "#vl-out", function () {
-      const nBars = parseInt(root.querySelector("#vl-bars").value, 10) || 40;
-      const trainSize = parseInt(root.querySelector("#vl-train").value, 10) || 10;
-      const testSize = parseInt(root.querySelector("#vl-test").value, 10) || 5;
-      return QLApi.labValidationRun({
-        n_bars: nBars,
-        train_size: trainSize,
-        test_size: testSize,
-        step: testSize,
-      }).then(function (data) {
-        renderResult(data);
-        refresh().catch(function () {});
-        return data;
-      });
-    });
+    QLLabUI.bindRun(
+      root,
+      "#vl-run",
+      "#vl-status",
+      "#vl-out",
+      function (signal) {
+        const nBars = parseInt(root.querySelector("#vl-bars").value, 10) || 40;
+        const trainSize = parseInt(root.querySelector("#vl-train").value, 10) || 10;
+        const testSize = parseInt(root.querySelector("#vl-test").value, 10) || 5;
+        return QLApi.labValidationRun(
+          {
+            n_bars: nBars,
+            train_size: trainSize,
+            test_size: testSize,
+            step: testSize,
+          },
+          signal ? { signal: signal } : undefined
+        ).then(function (data) {
+          renderResult(data);
+          refresh().catch(function () {});
+          return data;
+        });
+      },
+      {
+        kind: "validation",
+        label: "Validación",
+        stopSel: "#vl-stop",
+        renderJson: false,
+      }
+    );
 
     root.refresh = refresh;
     return root;

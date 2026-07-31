@@ -230,7 +230,7 @@ def build_lab_context(
         warning = (
             "Modo técnico huérfano: sin scan_id/backtest_id. "
             "La corrida no está vinculada al flujo Scan → Backtest → MC. "
-            "Si venís del Simulador, abrí Monte Carlo con «Monte Carlo con esta selección»."
+            "Si venís del Simulador, usá el botón «Monte Carlo» (misma selección)."
         )
     return MonteCarloExperimentContext(
         session_id=session_id,

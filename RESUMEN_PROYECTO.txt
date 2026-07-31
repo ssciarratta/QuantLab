@@ -1,18 +1,19 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-07-31
-Versión: 1.01.0 · Mis sims arriba + Reabrir al frente
+Versión: 1.01.0 · MC unificado + docs
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Menú QL: Mis simulaciones → Chat IA → …
-- Reabrir: restaura params y trae Sim/MC al frente
+- Sim: un solo botón «Monte Carlo» (antes había varios CTAs idénticos)
+- Backtest / Optimizer históricos + memos + Reabrir
+- Stop / gate de corridas · manuales 02/04/06/35 actualizados
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 · menú QL: Mis simulaciones primero
-Reabrir una corrida → Simulador/MC delante · status «reabierto»
+Ctrl+F5 · Sim → Comparar → un Monte Carlo
+Mis simulaciones · Backtest/Optimizer histórico
 
 INVARIANTES
 -----------

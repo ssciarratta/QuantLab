@@ -170,6 +170,7 @@
       "</div>" +
       '<div class="pane-row" style="margin-top:0.4rem">' +
       '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Backtest paper con barras SINTÉTICAS del lab.\nNo son klines de Binance; no envía órdenes." data-i18n-tip="tip.gl.run">Simular backtest (sintético)</button>' +
+      '<button type="button" class="btn secondary stop-run" id="gl-stop" hidden disabled title="Detener corrida">Stop</button>' +
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
@@ -1230,87 +1231,118 @@
       }
       if (nBars < 4) nBars = 4;
       if (nBars > 2000) nBars = 2000;
-      runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
-      resultEl.innerHTML = "";
-      QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars })
-        .then(function (data) {
-          runStatus.textContent = data.ok
-            ? t("guided_lab.status.simulation_ok", "simulación ok (sintético)")
-            : t("guided_lab.status.failed", "falló");
-          runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
-          const br = data.bar_range || {};
-          const daysApprox = approxDaysFromBars(data.n_bars, iv);
-          resultEl.innerHTML =
-            "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-synth\">SINTÉTICO lab</span> — no es Binance</dd>" +
-            "<dt>horizonte</dt><dd class=\"mono\">" +
-            esc(data.n_bars) +
-            " velas (~" +
-            esc(daysApprox) +
-            " días a intervalo UI " +
-            esc(iv) +
-            ")</dd>" +
-            (br.start
-              ? "<dt>rango sim</dt><dd class=\"mono\">" +
-                esc(formatRangeHuman(br.start, br.end)) +
-                "</dd>"
-              : "") +
-            "<dt>strategy</dt><dd class=\"mono\">" +
-            esc(data.strategy_id) +
-            "</dd>" +
-            "<dt>capital inicial</dt><dd class=\"mono num\">" +
-            esc(data.initial_equity != null ? data.initial_equity : "100000") +
-            "</dd>" +
-            "<dt>capital final</dt><dd class=\"mono num\">" +
-            esc(data.final_equity) +
-            "</dd>" +
-            "<dt>PnL</dt><dd class=\"mono num\">" +
-            esc(data.pnl != null ? data.pnl : "—") +
-            "</dd>" +
-            "<dt>fees totales</dt><dd class=\"mono num\">" +
-            esc(data.total_fees) +
-            "</dd>" +
-            "<dt>fee / operación (lado)</dt><dd class=\"mono\">" +
-            esc(
-              (data.fee_per_side && data.fee_per_side.taker_bps) ||
-                (data.fee_schedule && data.fee_schedule.taker_bps) ||
-                "10"
-            ) +
-            " bps (" +
-            esc(
-              (data.fee_per_side && data.fee_per_side.taker_pct) ||
-                (data.fee_schedule && data.fee_schedule.taker_pct) ||
-                "0.10"
-            ) +
-            "%) · as_of " +
-            esc(
-              (data.fee_per_side && data.fee_per_side.as_of) ||
-                (data.fee_schedule && data.fee_schedule.as_of) ||
-                "—"
-            ) +
-            "</dd>" +
-            "<dt>fee medio / fill</dt><dd class=\"mono num\">" +
-            esc(data.avg_fee_per_fill != null ? data.avg_fee_per_fill : "—") +
-            "</dd>" +
-            "<dt>fills (trades)</dt><dd class=\"mono num\">" +
-            esc(data.n_fills) +
-            " <span class=\"muted\">← los decide la estrategia, no el # de días</span></dd>" +
-            "<dt>veredicto</dt><dd>" +
-            esc(data.verdict_es || "—") +
-            "</dd>";
-          if (Array.isArray(data.fills) && data.fills.length) {
-            resultEl.innerHTML +=
-              "<dt>detalle</dt><dd>" +
-              formatBacktestRun(
-                { ok: true, symbol: "SYN", result: data },
-                data.strategy_id
+
+      function executeGlBacktest(handle) {
+        runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
+        resultEl.innerHTML = "";
+        var fetchOpts =
+          handle && handle.signal ? { signal: handle.signal } : undefined;
+        QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars }, fetchOpts)
+          .then(function (data) {
+            runStatus.textContent = data.ok
+              ? t("guided_lab.status.simulation_ok", "simulación ok (sintético)")
+              : t("guided_lab.status.failed", "falló");
+            runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
+            const br = data.bar_range || {};
+            const daysApprox = approxDaysFromBars(data.n_bars, iv);
+            resultEl.innerHTML =
+              "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-synth\">SINTÉTICO lab</span> — no es Binance</dd>" +
+              "<dt>horizonte</dt><dd class=\"mono\">" +
+              esc(data.n_bars) +
+              " velas (~" +
+              esc(daysApprox) +
+              " días a intervalo UI " +
+              esc(iv) +
+              ")</dd>" +
+              (br.start
+                ? "<dt>rango sim</dt><dd class=\"mono\">" +
+                  esc(formatRangeHuman(br.start, br.end)) +
+                  "</dd>"
+                : "") +
+              "<dt>strategy</dt><dd class=\"mono\">" +
+              esc(data.strategy_id) +
+              "</dd>" +
+              "<dt>capital inicial</dt><dd class=\"mono num\">" +
+              esc(data.initial_equity != null ? data.initial_equity : "100000") +
+              "</dd>" +
+              "<dt>capital final</dt><dd class=\"mono num\">" +
+              esc(data.final_equity) +
+              "</dd>" +
+              "<dt>PnL</dt><dd class=\"mono num\">" +
+              esc(data.pnl != null ? data.pnl : "—") +
+              "</dd>" +
+              "<dt>fees totales</dt><dd class=\"mono num\">" +
+              esc(data.total_fees) +
+              "</dd>" +
+              "<dt>fee / operación (lado)</dt><dd class=\"mono\">" +
+              esc(
+                (data.fee_per_side && data.fee_per_side.taker_bps) ||
+                  (data.fee_schedule && data.fee_schedule.taker_bps) ||
+                  "10"
               ) +
+              " bps (" +
+              esc(
+                (data.fee_per_side && data.fee_per_side.taker_pct) ||
+                  (data.fee_schedule && data.fee_schedule.taker_pct) ||
+                  "0.10"
+              ) +
+              "%) · as_of " +
+              esc(
+                (data.fee_per_side && data.fee_per_side.as_of) ||
+                  (data.fee_schedule && data.fee_schedule.as_of) ||
+                  "—"
+              ) +
+              "</dd>" +
+              "<dt>fee medio / fill</dt><dd class=\"mono num\">" +
+              esc(data.avg_fee_per_fill != null ? data.avg_fee_per_fill : "—") +
+              "</dd>" +
+              "<dt>fills (trades)</dt><dd class=\"mono num\">" +
+              esc(data.n_fills) +
+              " <span class=\"muted\">← los decide la estrategia, no el # de días</span></dd>" +
+              "<dt>veredicto</dt><dd>" +
+              esc(data.verdict_es || "—") +
               "</dd>";
-          }
-        })
-        .catch(function (err) {
-          statusErr(runStatus, err);
-        });
+            if (Array.isArray(data.fills) && data.fills.length) {
+              resultEl.innerHTML +=
+                "<dt>detalle</dt><dd>" +
+                formatBacktestRun(
+                  { ok: true, symbol: "SYN", result: data },
+                  data.strategy_id
+                ) +
+                "</dd>";
+            }
+          })
+          .catch(function (err) {
+            if (QLLabUI.isAbortError && QLLabUI.isAbortError(err)) {
+              runStatus.textContent = "detenido";
+              runStatus.className = "mono status-bad";
+            } else {
+              statusErr(runStatus, err);
+            }
+          })
+          .then(function () {
+            if (handle) handle.end();
+          });
+      }
+
+      if (!global.QLRunGate) {
+        executeGlBacktest(null);
+        return;
+      }
+      QLRunGate.begin({
+        kind: "guided_backtest",
+        label: "Guided Lab",
+        summary: strategy + " · " + nBars + " bars",
+      }).then(function (handle) {
+        if (!handle) return;
+        executeGlBacktest(handle);
+      });
     });
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(root.querySelector("#gl-stop"), {
+        kinds: ["guided_backtest"],
+      });
+    }
 
     const demoStatus = root.querySelector("#gl-demo-status");
     const demoOut = root.querySelector("#gl-demo-out");

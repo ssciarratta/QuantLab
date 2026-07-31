@@ -37,11 +37,14 @@
     }
   }
 
-  async function request(method, path, body) {
+  async function request(method, path, body, fetchOpts) {
     const opts = {
       method: method,
       headers: { Accept: "application/json" },
     };
+    if (fetchOpts && fetchOpts.signal) {
+      opts.signal = fetchOpts.signal;
+    }
     if (body !== undefined) {
       opts.headers["Content-Type"] = "application/json";
       opts.body = JSON.stringify(body);
@@ -278,20 +281,20 @@
     labValidation: function () {
       return request("GET", "/api/lab/validation");
     },
-    labValidationRun: function (body) {
-      return request("POST", "/api/lab/validation/run", body || {});
+    labValidationRun: function (body, fetchOpts) {
+      return request("POST", "/api/lab/validation/run", body || {}, fetchOpts);
     },
     labValidationGet: function (runId) {
       return request("GET", "/api/lab/validation/" + encodeURIComponent(runId));
     },
-    labBacktest: function (body) {
-      return request("POST", "/api/lab/backtest", body || {});
+    labBacktest: function (body, fetchOpts) {
+      return request("POST", "/api/lab/backtest", body || {}, fetchOpts);
     },
-    labScanner: function (body) {
-      return request("POST", "/api/lab/scanner", body || {});
+    labScanner: function (body, fetchOpts) {
+      return request("POST", "/api/lab/scanner", body || {}, fetchOpts);
     },
-    labOptimize: function (body) {
-      return request("POST", "/api/lab/optimize", body || {});
+    labOptimize: function (body, fetchOpts) {
+      return request("POST", "/api/lab/optimize", body || {}, fetchOpts);
     },
     labOptimizeHistory: function () {
       return request("GET", "/api/lab/optimize/history");
@@ -299,8 +302,8 @@
     labOptimizeGet: function (runId) {
       return request("GET", "/api/lab/optimize/history/" + encodeURIComponent(runId));
     },
-    labMonteCarlo: function (body) {
-      return request("POST", "/api/lab/montecarlo", body || {});
+    labMonteCarlo: function (body, fetchOpts) {
+      return request("POST", "/api/lab/montecarlo", body || {}, fetchOpts);
     },
     labMonteCarloHistory: function () {
       return request("GET", "/api/lab/montecarlo/history");
@@ -464,7 +467,7 @@
       if (o.underlyings && o.underlyings.length) {
         body.underlyings = o.underlyings;
       }
-      return request("POST", "/api/lab/venue/scanner", body);
+      return request("POST", "/api/lab/venue/scanner", body, o.fetchOpts);
     },
     alphaProfiles: function () {
       return request("GET", "/api/lab/alpha/profiles");
@@ -513,11 +516,16 @@
         encodeURIComponent(interval || "1h");
       return request("GET", "/api/lab/sim/period?" + q);
     },
-    simCompare: function (body) {
-      return request("POST", "/api/lab/sim/compare", body || {});
+    simCompare: function (body, fetchOpts) {
+      return request("POST", "/api/lab/sim/compare", body || {}, fetchOpts);
     },
-    simRankStrategies: function (body) {
-      return request("POST", "/api/lab/sim/rank-strategies", body || {});
+    simRankStrategies: function (body, fetchOpts) {
+      return request(
+        "POST",
+        "/api/lab/sim/rank-strategies",
+        body || {},
+        fetchOpts
+      );
     },
     simSizing: function (body) {
       return request("POST", "/api/lab/sim/sizing", body || {});

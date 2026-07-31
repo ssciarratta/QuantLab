@@ -427,15 +427,35 @@
 
   function openBacktest(opts) {
     opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("backtest", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
     if (wm.windows.has("backtest")) {
       wm.focus("backtest");
       const root = wm.windows.get("backtest").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createBacktestPane();
-    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 560, h: 480 }));
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    wm.open(
+      "backtest",
+      tr("pane.backtest", "Backtest"),
+      pane,
+      mergeOpts("backtest", { x: 48, y: 48, w: 720, h: 620 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openScanner(opts) {
@@ -474,7 +494,7 @@
       return;
     }
     QLSimRegistry.openWindow(
-      mergeOpts("sim_registry", { x: 12, y: 12, w: 360, h: 440 })
+      mergeOpts("sim_registry", { x: 20, y: 40, w: 980, h: 560 })
     );
   }
 
@@ -519,9 +539,37 @@
     pane.refresh().catch(function () {});
   }
 
-  function openOptimize() {
+  function openOptimize(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("optimize", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
+    if (wm.windows.has("optimize")) {
+      wm.focus("optimize");
+      const root = wm.windows.get("optimize").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
+      return;
+    }
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 620, h: 560 }));
+    wm.open(
+      "optimize",
+      tr("pane.optimize", "Optimizer"),
+      pane,
+      mergeOpts("optimize", { x: 140, y: 70, w: 720, h: 640 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openMonteCarlo(opts) {
@@ -764,6 +812,40 @@
       bumpFont(FONT_STEP);
     });
   }
+  (function bindRunGateStatus() {
+    var wrap = document.getElementById("sb-run-gate");
+    var sep = document.getElementById("sb-run-gate-sep");
+    var label = document.getElementById("sb-run-gate-label");
+    var stopBtn = document.getElementById("sb-run-gate-stop");
+    if (!wrap || !window.QLRunGate) return;
+    if (stopBtn) {
+      stopBtn.addEventListener("click", function () {
+        QLRunGate.stop();
+      });
+    }
+    QLRunGate.onChange(function (snap) {
+      if (!snap.busy) {
+        wrap.hidden = true;
+        if (sep) sep.hidden = true;
+        return;
+      }
+      wrap.hidden = false;
+      if (sep) sep.hidden = false;
+      var a = snap.active || {};
+      var txt =
+        (a.label || a.kind || "corrida") +
+        (a.summary ? " · " + a.summary : "");
+      if (snap.queued) {
+        txt +=
+          " → cola: " +
+          (snap.queued.label || snap.queued.kind || "siguiente");
+      }
+      if (label) {
+        label.textContent = txt.length > 72 ? txt.slice(0, 69) + "…" : txt;
+        label.title = txt;
+      }
+    });
+  })();
   try {
     const stored = localStorage.getItem("ql_ui_font_scale");
     if (stored) applyFontScale(stored, false);

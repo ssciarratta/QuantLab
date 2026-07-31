@@ -190,21 +190,20 @@
       '<button type="button" class="btn secondary" id="sim-run-rank" hidden ' +
       'data-tip="Solo con UNA moneda agregada (chip) en mercados tildados. Corre el universo runnable (sin dummy/buy_once) y muestra top por PnL %.">' +
       "Mejores estrategias (1 moneda)</button>" +
+      '<button type="button" class="btn secondary stop-run" id="sim-stop" hidden disabled ' +
+      'title="Detener la corrida activa de este panel">Stop</button>' +
       '<button type="button" class="btn secondary" id="sim-open-strategies">Estrategias</button>' +
       '<span class="mono muted sim-run-status" id="sim-run-status">—</span>' +
       "</div>" +
       '<div class="mono" id="sim-out-hist">—</div>' +
-      '<div class="sim-actions sim-mc-from-sel" id="sim-mc-bar">' +
-      '<button type="button" class="btn" id="sim-open-mc-sel" ' +
-      'title="Abre Monte Carlo con el mercado, moneda y params de esta simulación">' +
-      "Monte Carlo con esta selección</button>" +
-      '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda · o corré Comparar</span>' +
-      "</div>" +
       '<p class="muted sim-meta">Mercados y monedas · escribí para buscar · Agregar · al tildar otro mercado se copia la misma moneda</p>' +
       '<div id="sim-venue-picks" class="sim-venue-picks">cargando monedas…</div>' +
       '<div class="sim-actions sim-shortcuts">' +
       '<button type="button" class="btn secondary" id="sim-open-gl">Guided Lab</button>' +
-      '<button type="button" class="btn secondary" id="sim-open-mc">Monte Carlo</button>' +
+      '<button type="button" class="btn" id="sim-open-mc" ' +
+      'title="Estresa la selección actual (mercado + moneda + estrategia) en Monte Carlo">' +
+      "Monte Carlo</button>" +
+      '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda</span>' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
       "</div>" +
       "</div>" +
@@ -539,7 +538,7 @@
 
     function syncMcSelHint() {
       var hint = root.querySelector("#sim-mc-sel-hint");
-      var btn = root.querySelector("#sim-open-mc-sel");
+      var btn = root.querySelector("#sim-open-mc");
       var pairs = collectPairs();
       var label =
         pairs.length > 0
@@ -551,8 +550,8 @@
           : "";
       if (hint) {
         hint.textContent = label
-          ? "Listo · " + label
-          : "Elegí mercado + moneda arriba";
+          ? "→ " + label
+          : "Elegí mercado + moneda";
       }
       if (btn) {
         btn.disabled = pairs.length === 0;
@@ -1479,7 +1478,7 @@
       }
     }
 
-    function runCompare(strategyId, pairs) {
+    function runCompare(strategyId, pairs, fetchOpts) {
       pairs = pairs || collectPairs();
       var mode = capitalMode();
       var payload = {
@@ -1506,10 +1505,10 @@
         if (mk !== "") payload.maker_bps = mk;
         if (tk !== "") payload.taker_bps = tk;
       }
-      return QLApi.simCompare(payload);
+      return QLApi.simCompare(payload, fetchOpts);
     }
 
-    function runRankStrategies(pairs) {
+    function runRankStrategies(pairs, fetchOpts) {
       if (!QLApi.simRankStrategies) {
         return Promise.reject(
           new Error(
@@ -1542,7 +1541,46 @@
         if (mk !== "") payload.maker_bps = mk;
         if (tk !== "") payload.taker_bps = tk;
       }
-      return QLApi.simRankStrategies(payload);
+      return QLApi.simRankStrategies(payload, fetchOpts);
+    }
+
+    function runSummaryLine(kind, pairs) {
+      var coins = (pairs || [])
+        .map(function (p) {
+          return p.underlying || p.ticker || "?";
+        })
+        .filter(function (v, i, a) {
+          return a.indexOf(v) === i;
+        });
+      var markets = (pairs || [])
+        .map(function (p) {
+          return p.venue;
+        })
+        .filter(function (v, i, a) {
+          return a.indexOf(v) === i;
+        });
+      return (
+        coins.join(",") +
+        " · " +
+        markets.join(",") +
+        " · " +
+        (kind === "rank"
+          ? "ranking"
+          : root.querySelector("#sim-strat-hist").value || "?") +
+        " · " +
+        (root.querySelector("#sim-interval").value || "") +
+        " · " +
+        periodDays() +
+        "d"
+      );
+    }
+
+    function isAbortErr(e) {
+      return (
+        global.QLLabUI && QLLabUI.isAbortError
+          ? QLLabUI.isAbortError(e)
+          : e && (e.name === "AbortError" || /abort/i.test(String(e.message || e)))
+      );
     }
 
     var SUMMARY_TIPS = {
@@ -2629,90 +2667,114 @@
         note +=
           " · sin moneda en: " + prep.skipped.join(", ") + " (no se incluyen)";
       }
-      out.textContent = note;
-      setRunStatus(note);
-      runCompare(root.querySelector("#sim-strat-hist").value, pairs)
-        .then(function (d) {
-          var feeNote =
-            '<p class="muted" style="font-size:0.72em;margin:0.15rem 0">' +
-            "PnL y capital final ya son NETOS de fees (VIP0 por mercado). " +
-            "La columna «Fees gastados» es el detalle; no hay que restarlos otra vez. " +
-            '<button type="button" class="btn secondary sim-compare-memo-btn" style="margin-left:0.35rem">Ver memorando</button>' +
-            '<button type="button" class="btn sim-compare-mc-btn" style="margin-left:0.35rem" ' +
-            'title="Estresar esta corrida en Monte Carlo">' +
-            "Monte Carlo</button>" +
-            "</p>";
-          out.innerHTML =
-            '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
-            feeNote +
-            formatRows(d) +
-            '<div class="sim-actions sim-mc-after-table" style="margin-top:0.55rem">' +
-            '<button type="button" class="btn sim-compare-mc-btn2">' +
-            "Monte Carlo con esta corrida</button>" +
-            '<span class="muted mono" style="margin-left:0.45rem">' +
-            esc(markets.join(", ")) +
-            " · " +
-            esc(
-              (pairs[0] && (pairs[0].underlying || pairs[0].ticker)) ||
-                "selección"
-            ) +
-            "</span></div>";
-          var memoBtn = out.querySelector(".sim-compare-memo-btn");
-          if (memoBtn) {
-            memoBtn.addEventListener("click", function () {
-              openSimMemoPresentation(buildCompareMemo(d));
-            });
-          }
-          function bindMcBtns() {
-            out.querySelectorAll(".sim-compare-mc-btn, .sim-compare-mc-btn2").forEach(
-              function (b) {
-                b.addEventListener("click", function () {
-                  openMonteCarloFromSelection();
-                });
-              }
-            );
-          }
-          bindMcBtns();
-          syncMcSelHint();
-          setRunStatus(
-            "listo · " +
+      var stratId = root.querySelector("#sim-strat-hist").value;
+      var gateSpec = {
+        kind: "sim_compare",
+        label: "Comparar",
+        summary: runSummaryLine("compare", pairs),
+      };
+
+      function afterCompare(d) {
+        var feeNote =
+          '<p class="muted" style="font-size:0.72em;margin:0.15rem 0">' +
+          "PnL y capital final ya son NETOS de fees (VIP0 por mercado). " +
+          "La columna «Fees gastados» es el detalle; no hay que restarlos otra vez. " +
+          '<button type="button" class="btn secondary sim-compare-memo-btn" style="margin-left:0.35rem">Ver memorando</button>' +
+          "</p>";
+        out.innerHTML =
+          '<span class="data-badge data-badge-real">HISTÓRICO</span> ' +
+          feeNote +
+          formatRows(d) +
+          '<div class="sim-actions sim-mc-after-table" style="margin-top:0.55rem">' +
+          '<button type="button" class="btn sim-compare-mc-btn" ' +
+          'title="Estresa esta misma selección (mercado + moneda + estrategia) en Monte Carlo">' +
+          "Monte Carlo</button>" +
+          '<span class="muted mono" style="margin-left:0.45rem">' +
+          esc(markets.join(", ")) +
+          " · " +
+          esc(
+            (pairs[0] && (pairs[0].underlying || pairs[0].ticker)) ||
+              "selección"
+          ) +
+          "</span></div>";
+        var memoBtn = out.querySelector(".sim-compare-memo-btn");
+        if (memoBtn) {
+          memoBtn.addEventListener("click", function () {
+            openSimMemoPresentation(buildCompareMemo(d));
+          });
+        }
+        var mcBtn = out.querySelector(".sim-compare-mc-btn");
+        if (mcBtn) {
+          mcBtn.addEventListener("click", function () {
+            openMonteCarloFromSelection();
+          });
+        }
+        syncMcSelHint();
+        setRunStatus(
+          "listo · " +
+            (d.rows || []).length +
+            " filas · mercados: " +
+            markets.join(", ") +
+            " · memorando abierto"
+        );
+        try {
+          var cmpMemo = buildCompareMemo(d);
+          openSimMemoPresentation(cmpMemo, {
+            register: true,
+            summary:
               (d.rows || []).length +
-              " filas · mercados: " +
-              markets.join(", ") +
-              " · memorando abierto"
-          );
-          try {
-            var cmpMemo = buildCompareMemo(d);
-            openSimMemoPresentation(cmpMemo, {
-              register: true,
-              summary:
-                (d.rows || []).length +
-                " filas · " +
-                markets.join(", "),
-              params: {
-                kind: "compare",
+              " filas · " +
+              markets.join(", "),
+            params: {
+              kind: "compare",
+              strategy_id: (d.common && d.common.strategy_id) || "",
+              markets: markets,
+              pairs: pairs,
+              common: d.common || {},
+              meta: collectRunMeta(),
+              sim_context: lastSimHandoff || buildSimHandoff("compare", pairs, {
                 strategy_id: (d.common && d.common.strategy_id) || "",
-                markets: markets,
-                pairs: pairs,
-                common: d.common || {},
-                meta: collectRunMeta(),
-                sim_context: lastSimHandoff || buildSimHandoff("compare", pairs, {
-                  strategy_id: (d.common && d.common.strategy_id) || "",
-                }),
-              },
-            });
-          } catch (memoErr) {
-            setRunStatus(
-              "listo · memo error: " + (memoErr.message || memoErr),
-              true
-            );
-          }
-        })
-        .catch(function (e) {
-          var err = e.message || String(e);
-          out.textContent = err;
-          setRunStatus(err, true);
-        });
+              }),
+            },
+          });
+        } catch (memoErr) {
+          setRunStatus(
+            "listo · memo error: " + (memoErr.message || memoErr),
+            true
+          );
+        }
+      }
+
+      function startCompare(handle) {
+        out.textContent = note;
+        setRunStatus(note);
+        var fetchOpts =
+          handle && handle.signal ? { signal: handle.signal } : undefined;
+        runCompare(stratId, pairs, fetchOpts)
+          .then(afterCompare)
+          .catch(function (e) {
+            if (isAbortErr(e)) {
+              out.textContent = "detenido";
+              setRunStatus("detenido", true);
+              return;
+            }
+            var err = e.message || String(e);
+            out.textContent = err;
+            setRunStatus(err, true);
+          })
+          .then(function () {
+            if (handle) handle.end();
+          });
+      }
+
+      if (!global.QLRunGate) {
+        startCompare(null);
+        return;
+      }
+      QLRunGate.begin(gateSpec).then(function (handle) {
+        if (!handle) return;
+        startCompare(handle);
+      });
     });
     var rankBtn = root.querySelector("#sim-run-rank");
     if (rankBtn) {
@@ -2746,67 +2808,101 @@
         if (prep.skipped.length) {
           busy += " · omitidos: " + prep.skipped.join(", ");
         }
-        out.textContent = busy;
-        setRunStatus(busy);
-        rankBtn.disabled = true;
-        closeFloatingRankWindows();
-        runRankStrategies(pairs)
-          .then(function (d) {
-            out.innerHTML = formatRankResults(d);
-            bindRankDockActions(out, d);
-            out.scrollIntoView({ block: "nearest", behavior: "smooth" });
-            var nOk = (d.markets || []).filter(function (m) {
-              return m.ok;
-            }).length;
-            setRunStatus(
-              "listo · " +
-                coins[0] +
-                " · " +
-                nOk +
-                "/" +
-                pairs.length +
-                " mercados · paneles en Simulador"
-            );
-            try {
-              var rankMemo = buildRankMemo(d);
-              openSimMemoPresentation(rankMemo, {
-                register: true,
-                summary:
-                  (d.coin || coins[0]) +
+
+        function startRank(handle) {
+          out.textContent = busy;
+          setRunStatus(busy);
+          rankBtn.disabled = true;
+          closeFloatingRankWindows();
+          var fetchOpts =
+            handle && handle.signal ? { signal: handle.signal } : undefined;
+          runRankStrategies(pairs, fetchOpts)
+            .then(function (d) {
+              out.innerHTML = formatRankResults(d);
+              bindRankDockActions(out, d);
+              out.scrollIntoView({ block: "nearest", behavior: "smooth" });
+              var nOk = (d.markets || []).filter(function (m) {
+                return m.ok;
+              }).length;
+              setRunStatus(
+                "listo · " +
+                  coins[0] +
                   " · " +
                   nOk +
                   "/" +
                   pairs.length +
-                  " mercados",
-                params: {
-                  kind: "rank",
-                  coin: d.coin || coins[0],
-                  markets: pairs.map(function (p) {
-                    return p.venue;
-                  }),
-                  pairs: pairs,
-                  meta: collectRunMeta(),
-                  sim_context: lastSimHandoff || buildSimHandoff("rank", pairs, {
-                    coin: d.coin || coins[0],
-                  }),
-                },
-              });
-            } catch (memoErr) {
-              setRunStatus(
-                "listo · memo error: " + (memoErr.message || memoErr),
-                true
+                  " mercados · paneles en Simulador"
               );
-            }
-          })
-          .catch(function (e) {
-            var err = e.message || String(e);
-            out.textContent = err;
-            setRunStatus(err, true);
-          })
-          .then(function () {
-            rankBtn.disabled = false;
-            syncRankButton();
-          });
+              try {
+                var rankMemo = buildRankMemo(d);
+                openSimMemoPresentation(rankMemo, {
+                  register: true,
+                  summary:
+                    (d.coin || coins[0]) +
+                    " · " +
+                    nOk +
+                    "/" +
+                    pairs.length +
+                    " mercados",
+                  params: {
+                    kind: "rank",
+                    coin: d.coin || coins[0],
+                    markets: pairs.map(function (p) {
+                      return p.venue;
+                    }),
+                    pairs: pairs,
+                    meta: collectRunMeta(),
+                    sim_context: lastSimHandoff || buildSimHandoff("rank", pairs, {
+                      coin: d.coin || coins[0],
+                    }),
+                  },
+                });
+              } catch (memoErr) {
+                setRunStatus(
+                  "listo · memo error: " + (memoErr.message || memoErr),
+                  true
+                );
+              }
+            })
+            .catch(function (e) {
+              if (isAbortErr(e)) {
+                out.textContent = "detenido";
+                setRunStatus("detenido", true);
+                return;
+              }
+              var err = e.message || String(e);
+              out.textContent = err;
+              setRunStatus(err, true);
+            })
+            .then(function () {
+              if (handle) handle.end();
+              rankBtn.disabled = false;
+              syncRankButton();
+            });
+        }
+
+        if (!global.QLRunGate) {
+          startRank(null);
+          return;
+        }
+        QLRunGate.begin({
+          kind: "sim_rank",
+          label: "Ranking",
+          summary: runSummaryLine("rank", pairs),
+        }).then(function (handle) {
+          if (!handle) return;
+          startRank(handle);
+        });
+      });
+    }
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(root.querySelector("#sim-stop"), {
+        kinds: ["sim_compare", "sim_rank"],
+        onStop: function () {
+          setRunStatus("detenido", true);
+          var out = root.querySelector("#sim-out-hist");
+          if (out) out.textContent = "detenido";
+        },
       });
     }
     root.querySelector("#sim-strat-info").addEventListener("click", function () {
@@ -2819,7 +2915,6 @@
       });
     }
     bindOpenMc(root.querySelector("#sim-open-mc"));
-    bindOpenMc(root.querySelector("#sim-open-mc-sel"));
     syncMcSelHint();
 
     root.getSimHandoff = function () {

@@ -170,11 +170,11 @@ _TOOL_META: dict[str, dict[str, str]] = {
 
 _BACKTEST_GUIDE = (
     "Backtest en QuantLab Workbench: panel Backtest o POST /api/lab/backtest. "
-    "Estrategias: GET /api/lab/strategies (espectro por familia; "
-    "runnable=binance-ready para backtest/paper/demo post-unlock; stubs no ejecutan). "
-    "Parámetros típicos: strategy_id, n_bars, params "
-    "(lookback/quantity/half_spread/gamma). "
-    "Resultado queda en sesión (GET /api/lab/metrics). Nunca envía órdenes live."
+    "Modo HISTÓRICO (default UI): venue + moneda + market_type + interval + period_days "
+    "(mismas velas MD público que Sim/MC). "
+    "Modo sintético: solo n_bars (debug). "
+    "Estrategias: GET /api/lab/strategies. "
+    "Memo + Mis simulaciones (Reabrir). Nunca envía órdenes live."
 )
 
 _GUIDED_LAB_GUIDE = (

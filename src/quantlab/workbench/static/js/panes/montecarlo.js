@@ -51,7 +51,7 @@
       '<button type="button" class="btn secondary" id="mc-memo" title="Reabrir memorando de la última corrida">Ver memorando</button> ' +
       '<button type="button" class="btn secondary" id="mc-refresh">Actualizar</button>' +
       '<button type="button" class="btn secondary" id="mc-copy-id">Copiar ID</button>' +
-      '<button type="button" class="btn secondary" id="mc-cancel" disabled hidden>Cancelar</button>' +
+      '<button type="button" class="btn secondary stop-run" id="mc-cancel" disabled hidden>Stop</button>' +
       '<span class="mono muted" id="mc-bars-duration"></span>' +
       '<span class="mono" id="mc-status">—</span>' +
       "</div>" +
@@ -115,6 +115,7 @@
     let activeJobId = null;
     let pollTimer = null;
     let runBusy = false;
+    let gateHandle = null;
     /** Contexto heredado del Simulador (moneda + params). */
     let simContext = null;
 
@@ -1365,6 +1366,15 @@
       }
     }
 
+    function endGate() {
+      if (gateHandle) {
+        try {
+          gateHandle.end();
+        } catch (e) {}
+        gateHandle = null;
+      }
+    }
+
     function pollJob(jobId) {
       stopPoll();
       activeJobId = jobId;
@@ -1380,6 +1390,7 @@
               activeJobId = null;
               setCancelVisible(false);
               runBusy = false;
+              endGate();
               if (st === "failed") {
                 QLLabUI.setStatus(status, false, job.error || "job failed");
                 return;
@@ -1406,6 +1417,7 @@
             activeJobId = null;
             setCancelVisible(false);
             runBusy = false;
+            endGate();
             QLLabUI.setStatus(status, false, err.message || String(err));
           });
       }
@@ -1472,6 +1484,30 @@
         confirmLarge = true;
       }
 
+      var summaryParts = [
+        (simContext && simContext.coin) || "MC",
+        (simContext && simContext.strategy_id) || "demo",
+        formatIntEs(n) + " esc",
+        bars + " velas",
+      ];
+      if (global.QLRunGate) {
+        gateHandle = await QLRunGate.begin({
+          kind: "montecarlo",
+          label: "Monte Carlo",
+          summary: summaryParts.join(" · "),
+          onCancel: function () {
+            if (activeJobId) {
+              jobCancel(activeJobId).catch(function () {});
+            }
+            stopPoll();
+            runBusy = false;
+            setCancelVisible(false);
+            QLLabUI.setStatus(status, false, "detenido");
+          },
+        });
+        if (!gateHandle) return;
+      }
+
       runBusy = true;
       QLLabUI.setStatus(
         status,
@@ -1487,13 +1523,19 @@
       warnEl.textContent = scenarioWarning(n);
       progressEl.innerHTML = "";
 
+      var fetchOpts =
+        gateHandle && gateHandle.signal
+          ? { signal: gateHandle.signal }
+          : undefined;
+
       try {
         if (n >= ESTIMATE_N) {
           var estResp = await QLApi.labMonteCarlo(
             Object.assign(
               buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, false),
               { estimate_only: true }
-            )
+            ),
+            fetchOpts
           );
           renderCostEstimate(
             estResp && estResp.estimate,
@@ -1505,7 +1547,8 @@
 
         var useAsync = n >= ASYNC_N;
         var data = await QLApi.labMonteCarlo(
-          buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, useAsync)
+          buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, useAsync),
+          fetchOpts
         );
 
         if (data && data.kind === "montecarlo_job") {
@@ -1519,6 +1562,7 @@
 
         runBusy = false;
         setCancelVisible(false);
+        endGate();
         renderResult(data);
         presentMcMemo(data, readMcFormParams(), true);
         refresh().catch(function () {});
@@ -1526,7 +1570,12 @@
         runBusy = false;
         setCancelVisible(false);
         stopPoll();
-        QLLabUI.setStatus(status, false, err.message || String(err));
+        endGate();
+        if (QLLabUI.isAbortError && QLLabUI.isAbortError(err)) {
+          QLLabUI.setStatus(status, false, "detenido");
+        } else {
+          QLLabUI.setStatus(status, false, err.message || String(err));
+        }
         out.innerHTML = "";
       }
     }
@@ -1574,6 +1623,10 @@
     });
 
     cancelBtn.addEventListener("click", function () {
+      if (global.QLRunGate && QLRunGate.isBusy()) {
+        QLRunGate.stop();
+        return;
+      }
       if (!activeJobId) return;
       cancelBtn.disabled = true;
       jobCancel(activeJobId)
@@ -1586,6 +1639,9 @@
           QLLabUI.setStatus(status, false, err.message);
         });
     });
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(cancelBtn, { kinds: ["montecarlo"] });
+    }
 
     root.querySelector("#mc-open-bt").addEventListener("click", function () {
       const id =

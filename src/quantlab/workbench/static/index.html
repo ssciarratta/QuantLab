@@ -57,6 +57,12 @@
             title="Mostrar/ocultar historial de simulaciones (Comparar · Ranking · Monte Carlo)">Sims</button>
         </span>
         <span class="sb-sep">·</span>
+        <span class="sb-item sb-run-gate" id="sb-run-gate" hidden>
+          <span class="mono" id="sb-run-gate-label">corrida…</span>
+          <button type="button" class="sb-font-btn danger" id="sb-run-gate-stop"
+            title="Detener la corrida activa">Stop</button>
+        </span>
+        <span class="sb-sep sb-run-gate-sep" id="sb-run-gate-sep" hidden>·</span>
         <span class="sb-item sb-clock" id="sb-clock" class="mono"></span>
       </div>
       <div class="taskbar" id="taskbar" role="toolbar" aria-label="Barra de tareas" data-i18n-aria="aria.taskbar">
@@ -195,6 +201,7 @@
   <script src="/static/js/i18n.js"></script>
   <script src="/static/js/tips.js"></script>
   <script src="/static/js/api.js"></script>
+  <script src="/static/js/run_gate.js"></script>
   <script src="/static/js/toasts.js"></script>
   <script src="/static/js/wm.js"></script>
   <script src="/static/js/command_palette.js"></script>

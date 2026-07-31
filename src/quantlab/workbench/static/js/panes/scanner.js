@@ -145,6 +145,7 @@
       "</div>" +
       '<div class="sc-actions">' +
       '<button type="button" class="btn" id="sc-run">Escanear</button>' +
+      '<button type="button" class="btn secondary stop-run" id="sc-stop" hidden disabled title="Detener escaneo">Stop</button>' +
       '<button type="button" class="btn secondary" id="sc-export" title="Descarga JSON auditable de la última consulta">Exportar JSON</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
@@ -1580,85 +1581,134 @@
 
     root.querySelector("#sc-export").addEventListener("click", exportScanAudit);
 
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(root.querySelector("#sc-stop"), {
+        kinds: ["scanner"],
+        onStop: function () {
+          setStatus(false, "detenido");
+        },
+      });
+    }
+
     root.querySelector("#sc-run").addEventListener("click", function () {
       var topN = parseInt(root.querySelector("#sc-top").value, 10) || 5;
-      setStatus(null, "ejecutando…");
-      root.querySelector("#sc-out").textContent = "";
-      root.querySelector("#sc-detail").innerHTML = "";
-      root.querySelector("#sc-warn").innerHTML = "";
-      var promise;
-      if (root.querySelector("#sc-source").value === "synthetic") {
-        lastRequest = { source: "synthetic", top_n: topN };
-        promise = QLApi.labScanner({ top_n: topN }).then(function (d) {
-          renderScores(
-            Object.assign({}, d, {
-              venue: "lab",
-              market_type: "synthetic",
-              scores: (d.scores || []).map(function (s) {
-                return Object.assign({}, s, {
-                  underlying: s.instrument_id,
-                  recommendation: {
-                    text: "Demo sintético — pasá a MD real para familia/estrategias/TF.",
-                    strategies: [],
-                    timeframes: [],
-                    family_label_es: "—",
-                  },
-                });
-              }),
-            })
+      var venuesPreview = selectedVenues();
+      var summary =
+        (root.querySelector("#sc-source").value === "synthetic"
+          ? "sintético"
+          : venuesPreview.join(",") || "?") +
+        " · " +
+        (root.querySelector("#sc-interval").value || "") +
+        " · top " +
+        topN;
+
+      function startScan(handle) {
+        setStatus(null, "ejecutando…");
+        root.querySelector("#sc-out").textContent = "";
+        root.querySelector("#sc-detail").innerHTML = "";
+        root.querySelector("#sc-warn").innerHTML = "";
+        var fetchOpts =
+          handle && handle.signal ? { signal: handle.signal } : undefined;
+        var promise;
+        if (root.querySelector("#sc-source").value === "synthetic") {
+          lastRequest = { source: "synthetic", top_n: topN };
+          promise = QLApi.labScanner({ top_n: topN }, fetchOpts).then(
+            function (d) {
+              renderScores(
+                Object.assign({}, d, {
+                  venue: "lab",
+                  market_type: "synthetic",
+                  scores: (d.scores || []).map(function (s) {
+                    return Object.assign({}, s, {
+                      underlying: s.instrument_id,
+                      recommendation: {
+                        text: "Demo sintético — pasá a MD real para familia/estrategias/TF.",
+                        strategies: [],
+                        timeframes: [],
+                        family_label_es: "—",
+                      },
+                    });
+                  }),
+                })
+              );
+              return d;
+            }
           );
-          return d;
-        });
-      } else {
-        var venues = selectedVenues();
-        if (!venues.length) {
-          setStatus(false, "marcá al menos un venue");
-          return;
-        }
-        var limitRaw = root.querySelector("#sc-limit").value;
-        var customCoins = null;
-        if (limitRaw === "custom") {
-          customCoins = parseCustomCoins();
-          if (!customCoins.length) {
-            setStatus(false, "escribí al menos una moneda (ej. BTC)");
-            syncUniverseUI();
+        } else {
+          var venues = selectedVenues();
+          if (!venues.length) {
+            setStatus(false, "marcá al menos un venue");
+            if (handle) handle.end();
             return;
           }
-        }
-        var opts = {
-          venues: venues,
-          market_type: root.querySelector("#sc-market").value,
-          top_n: topN,
-          symbol_limit: customCoins
-            ? 0
-            : limitRaw === "0"
+          var limitRaw = root.querySelector("#sc-limit").value;
+          var customCoins = null;
+          if (limitRaw === "custom") {
+            customCoins = parseCustomCoins();
+            if (!customCoins.length) {
+              setStatus(false, "escribí al menos una moneda (ej. BTC)");
+              syncUniverseUI();
+              if (handle) handle.end();
+              return;
+            }
+          }
+          var opts = {
+            venues: venues,
+            market_type: root.querySelector("#sc-market").value,
+            top_n: topN,
+            symbol_limit: customCoins
               ? 0
-              : parseInt(limitRaw, 10) || 30,
-          interval: root.querySelector("#sc-interval").value,
-          profile: root.querySelector("#sc-profile").value,
-        };
-        if (customCoins) {
-          opts.underlyings = customCoins;
+              : limitRaw === "0"
+                ? 0
+                : parseInt(limitRaw, 10) || 30,
+            interval: root.querySelector("#sc-interval").value,
+            profile: root.querySelector("#sc-profile").value,
+            fetchOpts: fetchOpts,
+          };
+          if (customCoins) {
+            opts.underlyings = customCoins;
+          }
+          if (windowMode() === "period") {
+            opts.period_days =
+              parseInt(root.querySelector("#sc-period").value, 10) || 30;
+          } else {
+            opts.kline_limit =
+              parseInt(root.querySelector("#sc-klines").value, 10) || 720;
+          }
+          lastRequest = Object.assign({ source: "real" }, opts);
+          promise = QLApi.venueScanner(opts).then(function (d) {
+            renderScores(d);
+            return d;
+          });
         }
-        if (windowMode() === "period") {
-          opts.period_days = parseInt(root.querySelector("#sc-period").value, 10) || 30;
-        } else {
-          opts.kline_limit =
-            parseInt(root.querySelector("#sc-klines").value, 10) || 720;
-        }
-        lastRequest = Object.assign({ source: "real" }, opts);
-        promise = QLApi.venueScanner(opts).then(function (d) {
-          renderScores(d);
-          return d;
-        });
+        promise
+          .then(function () {
+            setStatus(true, "OK");
+          })
+          .catch(function (err) {
+            if (QLLabUI.isAbortError && QLLabUI.isAbortError(err)) {
+              setStatus(false, "detenido");
+            } else {
+              setStatus(false, err.message || String(err));
+            }
+          })
+          .then(function () {
+            if (handle) handle.end();
+          });
       }
-      promise
-        .then(function () {
-          setStatus(true, "OK");
-        })
-        .catch(function (err) {
-          setStatus(false, err.message || String(err));
-        });
+
+      if (!global.QLRunGate) {
+        startScan(null);
+        return;
+      }
+      QLRunGate.begin({
+        kind: "scanner",
+        label: "Scanner",
+        summary: summary,
+      }).then(function (handle) {
+        if (!handle) return;
+        startScan(handle);
+      });
     });
 
     root.refresh = async function () {

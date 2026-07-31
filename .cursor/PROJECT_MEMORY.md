@@ -3,16 +3,19 @@
 **Actualizado:** 2026-07-31  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
-**Simulador:** comparar · ranking · **sin monedas default** · búsqueda on-demand · botón **MC con esta selección** · memo · registro  
+**Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro  
 **Monte Carlo:** estrés N escenarios · **ligado de verdad al Sim** (confirm + velas reales + strategy_id) · mode=`sim_linked` · memo CONTEXTO ORIGEN  
+**Backtest:** modo **HISTÓRICO** (venue/moneda/período/TF) + sintético debug · memo + reopen en Mis simulaciones · `run_market_lab_backtest`  
+**Optimizer:** mismo patrón histórico (momentum grid lookback×qty) · memo + reopen · `run_lab_optimize(mode=historical)`  
+**Corridas UX:** `QLRunGate` — Stop en paneles + status bar · diálogo esperar/cortar/cancelar si hay otra corrida  
 **Lección:** banner/memo cosmético ≠ motor; `sim_context` debe ir en el POST y usarse en `run_lab_montecarlo`  
-**Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage  
+**Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage · kinds compare/rank/MC/backtest/**optimize**  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  
 **Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF`  
 **Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  
-**Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés (no predicción)  
+**Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés · Backtest=1 moneda×estrategia · Optimizer=grid params  
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  

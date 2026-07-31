@@ -25,9 +25,14 @@ def test_simulator_coin_list_hidden_until_search() -> None:
 
 def test_simulator_mc_button_from_selection() -> None:
     js = (STATIC / "js/panes/simulator.js").read_text(encoding="utf-8")
-    assert "sim-open-mc-sel" in js
-    assert "Monte Carlo con esta selección" in js
-    assert "Monte Carlo con esta corrida" in js
+    assert "sim-open-mc" in js
+    assert "openMonteCarloFromSelection" in js
     assert "sim-compare-mc-btn" in js
+    # Un solo CTA: no duplicar “con esta selección/corrida”
+    assert "Monte Carlo con esta selección" not in js
+    assert "Monte Carlo con esta corrida" not in js
+    assert js.count('id="sim-open-mc"') == 1
+    assert "sim-open-mc-sel" not in js
+    assert "sim-compare-mc-btn2" not in js
     assert "openMonteCarloFromSelection" in js
     assert "syncMcSelHint" in js

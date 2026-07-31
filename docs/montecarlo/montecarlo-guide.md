@@ -1,23 +1,23 @@
 # Guía Monte Carlo (QuantLab)
 
-**Actualizado:** 2026-07-27 · tip 1.01.0  
+**Actualizado:** 2026-07-31 · tip 1.01.0  
 **No predice el futuro.** Mide dispersión bajo shocks de precio en un dataset.
 
 Manual de panel: [`../manuales/04-montecarlo.md`](../manuales/04-montecarlo.md) · estado corrección: [`../progress/montecarlo-correction-status.md`](../progress/montecarlo-correction-status.md)
 
 ## Qué simula (lab actual)
 
-1. Dataset: sintético `n_bars` velas **1m** (`WB:SYN`) y/o referencia a BT/scan (`DatasetReference`).
-2. Por escenario: shock gaussiano OHLC (σ = `noise_bps/10000`) + re-run estrategia lab (BuyOnce demo en technical_lab).
-3. Agrega equities finales con batching (Welford / histograma / reservoir) → media, desvío, **IC de la media** (Wald).
-4. Jobs async cancelables para N grandes.
+1. Dataset: sintético, BT/scan, o **ligado al Simulador** (`sim_context` → velas reales + estrategia).
+2. Por escenario: shock gaussiano OHLC (σ = `noise_bps/10000`) + re-run estrategia.
+3. Agrega equities finales con batching → media, desvío, **IC de la media**.
+4. Jobs async cancelables para N grandes (**Stop** global en Workbench).
 
 ## Parámetros
 
 | Campo UI | Código | Significado |
 |----------|--------|-------------|
 | Escenarios | `n_scenarios` | **2 … 1_000_000** (default tip ~1000; presets 100 / 1k / 10k / 100k / 1M) |
-| Velas por escenario | `n_bars` | Velas 1m del sintético **por** escenario (horizonte) |
+| Velas por escenario | `n_bars` | Horizonte **por** escenario (≠ N escenarios; tope MC) |
 | Ruido bps | `noise_bps` | 10 bps = 0.10% |
 | Seed | `seed` | Reproducibilidad |
 | Confirmación grande | `confirm_large` | Obligatoria si N ≥ 100_000 |
@@ -27,10 +27,11 @@ Manual de panel: [`../manuales/04-montecarlo.md`](../manuales/04-montecarlo.md) 
 
 | Modo | Requisito | Uso |
 |------|-----------|-----|
+| `sim_linked` | `sim_context` del Sim | Preferido: moneda + estrategia reales |
 | `technical_lab` | — | Demo sintético |
 | `normal` | `backtest_id` | Ligado a un backtest de sesión |
 
-Deep-link: desde **Reports / Backtest / Guided Lab** → Monte Carlo (prefill ids). Desde MC → Reports / Guided Lab por id.
+Deep-link: **Simulador** (botón único «Monte Carlo») · Reports / Backtest / Guided Lab. Mis simulaciones → Reabrir.
 
 ## Capital y fees
 

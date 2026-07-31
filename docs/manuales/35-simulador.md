@@ -4,74 +4,53 @@ Panel para **comparar** markets (no reemplaza Guided Lab ni Monte Carlo).
 
 ## Cómo abrir
 
-1. Menú **QL** → **Simulador**
-2. Ctrl+K → `simulador`
-
-## Solapas
-
-| Solapa | Uso |
-|--------|-----|
-| **Comparar** | Multi-venue + monedas por exchange + leverage/fees |
-| **Estrategias** | Familias desplegables + popup “cómo opera” |
-
-## Mercados / productos
-
-| Venue | Productos |
-|-------|-----------|
-| Binance / OKX / Bybit | Crypto curados (spot o perpetuos) |
-| Hyperliquid | **Todos** los perps vía `metaAndAssetCtxs` (fallback curado si falla red) |
-| A3 / Matba | Soja, maíz, trigo, DLR (curado lab; con MD real Guided lista vigentes) |
-
-Al **Agregar** un futuro A3 aparece alerta de **margen + diferencias diarias**.  
-Al lado del chip: `perpetuo` o `vence MAYxx`. Link **TV** = TradingView (solo gráfico).
+1. Menú **QL** → **Simulador** (o favorito / Ctrl+K → `simulador`)
+2. **Mis simulaciones** (barra inferior · Sims) guarda memos y permite **Reabrir**
 
 ## Roles (no son lo mismo)
 
 | Panel | Para qué |
 |-------|----------|
-| **Guided Lab** | Aprender / practicar en un flujo (sobre todo Binance) |
+| **Guided Lab** | Aprender / practicar en un flujo |
 | **Simulador** | Comparar exchanges × monedas × leverage × fees |
-| **Backtest** | Motor 5A con velas **sintéticas** (debug técnico) |
-| **Monte Carlo** | Estrés sobre un resultado ya corrido |
+| **Backtest** | 1 moneda × 1 estrategia × período (histórico o sintético debug) |
+| **Optimizer** | Grid de params (lookback×qty) sobre la misma idea |
+| **Monte Carlo** | Estrés N escenarios sobre esa selección (no predicción) |
 
-## Flujo en Comparar
+## Flujo Comparar
 
-1. **Estrategia primero** (selector + «¿Cómo opera?» + Correr).
-2. **Mercados en fila** (uno al lado del otro): checkbox + menú moneda.
-3. «¿Cómo opera?» abre una **ventana del escritorio** (mover, resize, minimizar, ×).
+1. Modo (spot/futuros) · leverage · período · TF · capital / fees.
+2. Estrategia + **Correr y comparar** (o **Mejores estrategias** con 1 moneda).
+3. Revisá la tabla HISTÓRICO · **Ver memorando**.
+4. **Monte Carlo** (un solo botón): abre el panel ligado a la selección actual  
+   (mercado + moneda + estrategia + params). No hay un segundo botón distinto.
+
+### Botón Monte Carlo (único)
+
+Antes había varios textos («con esta corrida», «con esta selección»): **hacían lo mismo**.  
+Ahora hay **un** CTA «Monte Carlo» tras Comparar y otro atajo abajo; ambos pasan el mismo handoff `sim_context`.
+
+## Mercados / monedas
+
+- Sin monedas default: escribí para buscar · **+** · chips.
+- Al tildar otro mercado se puede copiar la misma moneda.
+- Venues: Binance / OKX / Bybit / Hyperliquid / A3.
 
 ## Fees y leverage
 
-- **Fees:** por defecto cada exchange usa su schedule VIP0 del lab (`GET /api/lab/sim/fees`).  
-  Si editás maker/taker a mano → override para todos. Botón **Fees del mercado** restaura.
-- **Leverage:** deslizador o número a mano (1–125).
+- Fees VIP0 por mercado (lab). Override manual → todos. **Fees mercado** restaura.
+- Leverage 1–125.
 
-## Elegir monedas (por exchange)
+## Stop / corridas concurrentes
 
-1. Activá el checkbox del exchange (Binance, OKX, Bybit, Hyperliquid).
-2. En el menú desplegable elegí **Nombre completo (TICKER)** — ej. `Bitcoin (BTC)`.
-3. **Agregar** — queda como chip; podés quitar con ×.
-4. Cada par exchange×moneda se corre por separado (`pairs` en la API).
-
-## Resumen tras correr
-
-Tabla con: capital inicial, capital final, nº operaciones (fills), fees gastados, diferencia vs bench, liquidación.
-
-Pasá el mouse sobre cada título (o celda) para ver una explicación corta.
-
-## Controles
-
-Spot/Futuros · leverage · período · capital · fees · liquidación/funding · gastos.
-
-Atajos: Guided Lab · Monte Carlo · Paper Blotter.
+Si hay otra corrida (Ranking, MC, Scanner…): diálogo **Esperar / Cortar / Cancelar**.  
+**Stop** en el panel o en la barra inferior.
 
 ## API
 
-- `GET /api/lab/sim/universe` — monedas (nombre + ticker)
-- `GET /api/lab/sim/fees|period`
-- `POST /api/lab/sim/compare` — body con `pairs: [{venue, underlying}]`
-- `POST /api/lab/sim/sizing`
+- `GET /api/lab/sim/universe` · `fees` · `period`
+- `POST /api/lab/sim/compare` · `rank-strategies` · `sizing`
 
 ## Invariantes
 
-`LIVE_BLOCKED=True` · research-safe
+`LIVE_BLOCKED=True` · research-safe · REAL=PAPER

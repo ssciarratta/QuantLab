@@ -40,6 +40,8 @@
     if (kind === "compare") return "Comparar";
     if (kind === "rank") return "Ranking";
     if (kind === "montecarlo") return "Monte Carlo";
+    if (kind === "backtest") return "Backtest";
+    if (kind === "optimize") return "Optimizer";
     return kind || "?";
   }
 
@@ -287,6 +289,50 @@
       focusPane("montecarlo");
       return;
     }
+    if (kind === "backtest") {
+      var btPrefill = {
+        mode: params.mode || "historical",
+        venue: params.venue,
+        underlying: params.underlying || params.coin,
+        coin: params.coin || params.underlying,
+        market_type: params.market_type,
+        interval: params.interval,
+        period_days: params.period_days,
+        n_bars: params.n_bars,
+        initial_cash: params.initial_cash,
+        strategy_id: params.strategy_id,
+        strategy_params: params.strategy_params || params.params,
+        pairs: params.pairs,
+        message:
+          "Reabierto desde Mis simulaciones · " +
+          (entry.title || "Backtest"),
+      };
+      global.QLShell.open("backtest", { prefill: btPrefill });
+      focusPane("backtest");
+      return;
+    }
+    if (kind === "optimize") {
+      var opPrefill = {
+        mode: params.mode || "historical",
+        venue: params.venue,
+        underlying: params.underlying || params.coin,
+        coin: params.coin || params.underlying,
+        market_type: params.market_type,
+        interval: params.interval,
+        period_days: params.period_days,
+        n_bars: params.n_bars,
+        initial_cash: params.initial_cash,
+        lookbacks: params.lookbacks,
+        quantities: params.quantities,
+        pairs: params.pairs,
+        message:
+          "Reabierto desde Mis simulaciones · " +
+          (entry.title || "Optimizer"),
+      };
+      global.QLShell.open("optimize", { prefill: opPrefill });
+      focusPane("optimize");
+      return;
+    }
     var prefill = buildSimulatorPrefill(params);
     if ((!prefill.pairs || !prefill.pairs.length) && !prefill.venue) {
       window.alert(
@@ -296,6 +342,405 @@
     }
     global.QLShell.open("simulator", { prefill: prefill });
     focusPane("simulator");
+  }
+
+  function parseCsv(text) {
+    if (!text || typeof text !== "string") return { headers: [], rows: [] };
+    var lines = text.replace(/^\ufeff/, "").split(/\r?\n/).filter(function (ln) {
+      return ln.trim().length > 0;
+    });
+    if (!lines.length) return { headers: [], rows: [] };
+    function splitLine(ln) {
+      var out = [];
+      var cur = "";
+      var inQ = false;
+      for (var i = 0; i < ln.length; i++) {
+        var ch = ln.charAt(i);
+        if (ch === '"') {
+          inQ = !inQ;
+          continue;
+        }
+        if (ch === "," && !inQ) {
+          out.push(cur);
+          cur = "";
+          continue;
+        }
+        cur += ch;
+      }
+      out.push(cur);
+      return out;
+    }
+    var headers = splitLine(lines[0]);
+    var rows = lines.slice(1).map(splitLine);
+    return { headers: headers, rows: rows };
+  }
+
+  function fmtNum(v, digits) {
+    if (v == null || v === "" || v === "undefined" || v === "null") return "—";
+    var n = Number(v);
+    if (!isFinite(n)) return String(v);
+    return n.toLocaleString("es-AR", {
+      minimumFractionDigits: digits != null ? digits : 2,
+      maximumFractionDigits: digits != null ? digits : 2,
+    });
+  }
+
+  function fmtPct(v) {
+    if (v == null || v === "" || v === "undefined") return "—";
+    var n = Number(v);
+    if (!isFinite(n)) return String(v);
+    return (
+      n.toLocaleString("es-AR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }) + "%"
+    );
+  }
+
+  function fmtDif(v) {
+    if (v == null || v === "" || v === "undefined") return "—";
+    var n = Number(v);
+    if (!isFinite(n)) return String(v);
+    var s = n.toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return (n > 0 ? "+" : "") + s;
+  }
+
+  function yesNo(v) {
+    if (v === true || v === "true" || v === "1" || v === "sí" || v === "si") {
+      return '<span class="status-bad">sí</span>';
+    }
+    if (v === false || v === "false" || v === "0" || v === "no" || v === "") {
+      return '<span class="status-ok">no</span>';
+    }
+    var n = Number(v);
+    if (isFinite(n) && n > 0) {
+      return '<span class="status-bad">req ' + fmtNum(n) + "</span>";
+    }
+    return esc(String(v));
+  }
+
+  function entryMetaBits(e) {
+    var p = e.params || {};
+    var ctx = p.sim_context || {};
+    var meta = p.meta || {};
+    var common = p.common || {};
+    return {
+      coin:
+        ctx.coin ||
+        (ctx.coins && ctx.coins.join(", ")) ||
+        p.coin ||
+        (p.pairs && p.pairs[0] && (p.pairs[0].underlying || p.pairs[0].ticker)) ||
+        "—",
+      venues:
+        (ctx.venues && ctx.venues.join(", ")) ||
+        (p.markets && p.markets.join(", ")) ||
+        p.venue ||
+        (p.pairs &&
+          p.pairs
+            .map(function (x) {
+              return x.venue;
+            })
+            .filter(Boolean)
+            .join(", ")) ||
+        "—",
+      strategy:
+        ctx.strategy_label ||
+        ctx.strategy_id ||
+        p.strategy_id ||
+        common.strategy_id ||
+        "—",
+      leverage: ctx.leverage || meta.leverage || common.leverage || "—",
+      interval: ctx.interval || meta.interval || common.interval || "—",
+      period: ctx.period_days || meta.period_days || common.period_days || "—",
+      capital_mode:
+        ctx.capital_mode || meta.capital_mode || common.capital_mode || "—",
+      initial:
+        ctx.initial_capital != null
+          ? ctx.initial_capital
+          : meta.initial_capital != null
+            ? meta.initial_capital
+            : "—",
+    };
+  }
+
+  function renderCompareTable(e) {
+    var parsed = parseCsv(e.memo && e.memo.csv);
+    var idx = {};
+    parsed.headers.forEach(function (h, i) {
+      idx[h] = i;
+    });
+    function cell(row, key) {
+      var i = idx[key];
+      return i == null ? "" : row[i];
+    }
+    if (!parsed.rows.length) {
+      var m = entryMetaBits(e);
+      return (
+        '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+        "<th>Mercado</th><th>Modo</th><th>Moneda</th><th>x</th>" +
+        "<th>Estrategia</th><th>TF</th><th>Período</th><th>Capital</th>" +
+        "<th>Resumen</th></tr></thead><tbody><tr>" +
+        "<td>" +
+        esc(m.venues) +
+        "</td><td>—</td><td>" +
+        esc(m.coin) +
+        "</td><td>" +
+        esc(String(m.leverage)) +
+        "</td><td>" +
+        esc(m.strategy) +
+        "</td><td>" +
+        esc(String(m.interval)) +
+        "</td><td>" +
+        esc(String(m.period)) +
+        "d</td><td>" +
+        esc(String(m.capital_mode)) +
+        "</td><td>" +
+        esc(e.summary || "—") +
+        "</td></tr></tbody></table>"
+      );
+    }
+    var body = parsed.rows
+      .map(function (row) {
+        var falt = cell(row, "faltante");
+        var liq = cell(row, "liquidated");
+        return (
+          "<tr>" +
+          "<td>" +
+          esc(cell(row, "venue") || "—") +
+          "</td>" +
+          "<td>" +
+          esc(cell(row, "market_type") || "—") +
+          "</td>" +
+          "<td>" +
+          esc(cell(row, "underlying") || "—") +
+          "</td>" +
+          "<td>" +
+          esc(cell(row, "leverage") || "—") +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "capital_inicial")) +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "margen_trade")) +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "margen_pico")) +
+          "</td>" +
+          "<td>" +
+          yesNo(falt) +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "capital_final_neto")) +
+          "</td>" +
+          "<td>" +
+          fmtPct(cell(row, "pnl_pct")) +
+          "</td>" +
+          "<td>" +
+          esc(cell(row, "n_ops") || "—") +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "fees_totales")) +
+          "</td>" +
+          "<td>" +
+          fmtNum(cell(row, "fee_por_op")) +
+          "</td>" +
+          "<td>" +
+          fmtDif(cell(row, "dif_vs_bench")) +
+          "</td>" +
+          "<td>" +
+          yesNo(liq) +
+          "</td>" +
+          "</tr>"
+        );
+      })
+      .join("");
+    return (
+      '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+      "<th>Mercado</th><th>Modo</th><th>Moneda</th><th>x</th>" +
+      "<th>Capital inicial</th><th>Margen/trade</th><th>Margen pico</th>" +
+      "<th>¿Faltó?</th><th>Capital final (neto)</th><th>Rentab. %</th>" +
+      "<th>Nº operaciones</th><th>Fees gastados</th><th>Fee/op</th>" +
+      "<th>Dif. vs bench</th><th>Liq.</th>" +
+      "</tr></thead><tbody>" +
+      body +
+      "</tbody></table>"
+    );
+  }
+
+  function renderMcTable(e) {
+    var p = e.params || {};
+    var ctx = p.sim_context || {};
+    var m = entryMetaBits(e);
+    var media = "—";
+    var sum = e.summary || "";
+    var mm = sum.match(/media=([0-9.,]+)/i);
+    if (mm) media = mm[1];
+    return (
+      '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+      "<th>Moneda</th><th>Mercado(s)</th><th>Estrategia</th><th>x</th>" +
+      "<th>N escenarios</th><th>Velas/esc.</th><th>Media equity</th>" +
+      "<th>Resumen</th></tr></thead><tbody><tr>" +
+      "<td>" +
+      esc(m.coin) +
+      "</td><td>" +
+      esc(m.venues) +
+      "</td><td>" +
+      esc(m.strategy) +
+      "</td><td>" +
+      esc(String(m.leverage)) +
+      "</td><td>" +
+      esc(String(p.n_scenarios != null ? p.n_scenarios : "—")) +
+      "</td><td>" +
+      esc(String(p.n_bars != null ? p.n_bars : "—")) +
+      "</td><td>" +
+      esc(media) +
+      "</td><td>" +
+      esc(sum || "—") +
+      "</td></tr></tbody></table>"
+    );
+  }
+
+  function renderBacktestTable(e) {
+    var p = e.params || {};
+    var m = entryMetaBits(e);
+    var mode = p.mode === "synthetic" ? "sintético" : "histórico";
+    return (
+      '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+      "<th>Modo</th><th>Moneda</th><th>Mercado</th><th>Tipo</th>" +
+      "<th>TF</th><th>Período</th><th>Estrategia</th><th>Resumen</th>" +
+      "</tr></thead><tbody><tr>" +
+      "<td>" +
+      esc(mode) +
+      "</td><td>" +
+      esc(m.coin) +
+      "</td><td>" +
+      esc(p.venue || m.venues || "—") +
+      "</td><td>" +
+      esc(p.market_type || "—") +
+      "</td><td>" +
+      esc(String(m.interval)) +
+      "</td><td>" +
+      esc(
+        p.period_days != null
+          ? p.period_days + "d"
+          : p.n_bars != null
+            ? p.n_bars + " velas"
+            : "—"
+      ) +
+      "</td><td>" +
+      esc(m.strategy) +
+      "</td><td>" +
+      esc(e.summary || "—") +
+      "</td></tr></tbody></table>"
+    );
+  }
+
+  function renderOptimizeTable(e) {
+    var p = e.params || {};
+    var m = entryMetaBits(e);
+    var mode = p.mode === "synthetic" ? "sintético" : "histórico";
+    return (
+      '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+      "<th>Modo</th><th>Moneda</th><th>Mercado</th><th>TF</th>" +
+      "<th>Período</th><th>lookbacks</th><th>qty</th><th>Resumen</th>" +
+      "</tr></thead><tbody><tr>" +
+      "<td>" +
+      esc(mode) +
+      "</td><td>" +
+      esc(m.coin) +
+      "</td><td>" +
+      esc(p.venue || m.venues || "—") +
+      "</td><td>" +
+      esc(String(m.interval)) +
+      "</td><td>" +
+      esc(
+        p.period_days != null
+          ? p.period_days + "d"
+          : p.n_bars != null
+            ? p.n_bars + " velas"
+            : "—"
+      ) +
+      "</td><td>" +
+      esc(
+        Array.isArray(p.lookbacks) ? p.lookbacks.join(",") : p.lookbacks || "—"
+      ) +
+      "</td><td>" +
+      esc(
+        Array.isArray(p.quantities)
+          ? p.quantities.join(",")
+          : p.quantities || "—"
+      ) +
+      "</td><td>" +
+      esc(e.summary || "—") +
+      "</td></tr></tbody></table>"
+    );
+  }
+
+  function renderRankTable(e) {
+    var m = entryMetaBits(e);
+    return (
+      '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
+      "<th>Moneda</th><th>Mercado(s)</th><th>x</th><th>TF</th>" +
+      "<th>Período</th><th>Resumen</th></tr></thead><tbody><tr>" +
+      "<td>" +
+      esc(m.coin) +
+      "</td><td>" +
+      esc(m.venues) +
+      "</td><td>" +
+      esc(String(m.leverage)) +
+      "</td><td>" +
+      esc(String(m.interval)) +
+      "</td><td>" +
+      esc(String(m.period)) +
+      "d</td><td>" +
+      esc(e.summary || "—") +
+      "</td></tr></tbody></table>"
+    );
+  }
+
+  function renderEntryBlock(e) {
+    var when = e.created_at
+      ? new Date(e.created_at).toLocaleString("es-AR")
+      : "—";
+    var kind = e.kind || "run";
+    var tableHtml =
+      kind === "montecarlo"
+        ? renderMcTable(e)
+        : kind === "rank"
+          ? renderRankTable(e)
+          : kind === "backtest"
+            ? renderBacktestTable(e)
+            : kind === "optimize"
+              ? renderOptimizeTable(e)
+              : renderCompareTable(e);
+    return (
+      '<section class="ql-sim-reg-block" data-id="' +
+      esc(e.id) +
+      '">' +
+      '<div class="ql-sim-reg-head">' +
+      '<span class="data-badge data-badge-real">' +
+      esc(kindLabel(kind).toUpperCase()) +
+      "</span> " +
+      '<span class="ql-sim-reg-title mono">' +
+      esc(e.title || e.summary || e.id) +
+      "</span> " +
+      '<span class="muted mono ql-sim-reg-when">' +
+      esc(when) +
+      "</span>" +
+      '<span class="ql-sim-reg-actions">' +
+      '<button type="button" class="btn ql-sim-registry-reopen" data-id="' +
+      esc(e.id) +
+      '" title="Abrir Simulador/MC con los mismos parámetros">Reabrir</button> ' +
+      '<button type="button" class="btn secondary ql-sim-registry-memo" data-id="' +
+      esc(e.id) +
+      '" title="Ver memorando">Memo</button>' +
+      "</span></div>" +
+      tableHtml +
+      "</section>"
+    );
   }
 
   function renderList() {
@@ -310,43 +755,12 @@
       listEl.innerHTML =
         '<p class="muted" style="font-size:0.78em;margin:0.5rem">' +
         "Todavía no hay corridas.<br/>Corré <strong>Comparar</strong>, " +
-        "<strong>Ranking</strong> o <strong>Monte Carlo</strong>." +
+        "<strong>Ranking</strong>, <strong>Backtest</strong>, " +
+        "<strong>Optimizer</strong> o <strong>Monte Carlo</strong>." +
         "</p>";
       return;
     }
-    listEl.innerHTML = list
-      .map(function (e) {
-        var when = e.created_at
-          ? new Date(e.created_at).toLocaleString("es-AR")
-          : "—";
-        return (
-          '<div class="ql-sim-registry-item" data-id="' +
-          esc(e.id) +
-          '">' +
-          '<span class="ql-sim-registry-kind">' +
-          esc(kindLabel(e.kind)) +
-          "</span>" +
-          '<span class="ql-sim-registry-title">' +
-          esc(e.title || e.summary || e.id) +
-          "</span>" +
-          '<span class="ql-sim-registry-when muted mono">' +
-          esc(when) +
-          "</span>" +
-          '<span class="ql-sim-registry-sum muted">' +
-          esc(e.summary || "") +
-          "</span>" +
-          '<div class="ql-sim-registry-actions">' +
-          '<button type="button" class="btn ql-sim-registry-reopen" data-id="' +
-          esc(e.id) +
-          '" title="Abrir Simulador/MC con los mismos parámetros">Reabrir</button> ' +
-          '<button type="button" class="btn secondary ql-sim-registry-memo" data-id="' +
-          esc(e.id) +
-          '" title="Ver memorando de esta corrida">Memo</button>' +
-          "</div>" +
-          "</div>"
-        );
-      })
-      .join("");
+    listEl.innerHTML = list.map(renderEntryBlock).join("");
     listEl.querySelectorAll(".ql-sim-registry-reopen").forEach(function (btn) {
       btn.addEventListener("click", function (ev) {
         ev.preventDefault();
@@ -371,7 +785,7 @@
     root.innerHTML =
       '<div class="ql-sim-registry-toolbar">' +
       '<span class="muted" style="font-size:0.72em;flex:1">' +
-      "Comparar · Ranking · Monte Carlo · Reabrir = params · Memo" +
+      "Mis simulaciones · vista tipo HISTÓRICO · Reabrir = params · Memo" +
       "</span>" +
       '<span class="mono muted ql-sim-registry-count">0</span> ' +
       '<button type="button" class="btn secondary ql-sim-registry-clear" title="Vaciar historial">Vaciar</button>' +
@@ -426,7 +840,7 @@
       return rec;
     }
     var pane = buildContent();
-    var defaults = { x: 12, y: 12, w: 360, h: 440 };
+    var defaults = { x: 20, y: 40, w: 980, h: 560 };
     var geo = {
       x: opts.x != null ? opts.x : defaults.x,
       y: opts.y != null ? opts.y : defaults.y,

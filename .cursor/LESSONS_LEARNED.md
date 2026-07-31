@@ -70,6 +70,12 @@
 - Regla: handoff Sim → POST `sim_context` + `strategy_id` + confirmación explícita moneda/estrategia/params; runner carga velas del par y la estrategia del Sim (`mode=sim_linked`).
 - Limpiar `backtest_id` residual de Guided Lab al abrir MC desde Simulador.
 
+### 10. Corridas concurrentes = UX + AbortSignal (2026-07-31)
+
+- Sin coordinador, Comparar/Ranking/MC/Scanner se pisan en silencio.
+- `QLRunGate`: una activa; si hay otra → Esperar / Cortar / Cancelar; Stop en panel y status bar.
+- `QLApi.request` debe aceptar `signal` (AbortController); jobs MC async se cancelan vía `onCancel` + API cancel.
+
 ---
 
 ## Permanentes (pre-F19, siguen vigentes)
