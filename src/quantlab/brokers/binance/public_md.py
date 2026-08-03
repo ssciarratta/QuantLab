@@ -24,6 +24,42 @@ DEFAULT_TIMEOUT_SECONDS = 10.0
 # Binance API: máx 1000 klines por request. Lab permite paginar hasta MAX_KLINES_TOTAL.
 MAX_KLINES_PER_REQUEST = 1000
 
+# Bases stablecoin: OHLC casi plano → “spread” inexistente e inflan MM/scoring.
+# Se excluyen del universo automático; pedido explícito (moneda puntual) sí se permite.
+STABLECOIN_BASE_ASSETS: frozenset[str] = frozenset(
+    {
+        "USDC",
+        "USDT",
+        "BUSD",
+        "TUSD",
+        "USDP",
+        "FDUSD",
+        "DAI",
+        "USDE",
+        "USD1",
+        "USDD",
+        "PYUSD",
+        "GUSD",
+        "PAX",
+        "EURC",
+        "AEUR",
+        "EUR",
+        "USTC",
+        "UST",
+    }
+)
+
+
+def is_stablecoin_base(base_or_symbol: str, *, quote: str = "USDT") -> bool:
+    """True si el base (o símbolo BASE+quote) es stablecoin."""
+    raw = (base_or_symbol or "").strip().upper().replace("/", "").replace("-", "")
+    if not raw:
+        return False
+    q = (quote or "").strip().upper()
+    if q and raw.endswith(q) and len(raw) > len(q):
+        raw = raw[: -len(q)]
+    return raw in STABLECOIN_BASE_ASSETS
+
 # Intervalos Spot públicos (sin ticks/L2). 1m = más fino disponible aquí.
 ALLOWED_KLINE_INTERVALS: frozenset[str] = frozenset(
     {
@@ -145,9 +181,16 @@ class BinancePublicMdClient:
                 continue
             if str(item.get("quoteAsset", "")).upper() != q:
                 continue
+            base = str(item.get("baseAsset", "")).upper()
+            if base and is_stablecoin_base(base, quote=q):
+                continue
             sym = str(item.get("symbol", "")).upper()
-            if sym:
-                out.append(sym)
+            if not sym:
+                continue
+            # Defensa si exchangeInfo omite baseAsset.
+            if is_stablecoin_base(sym, quote=q):
+                continue
+            out.append(sym)
             if len(out) >= limit:
                 break
         return out

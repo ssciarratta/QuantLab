@@ -1,16 +1,14 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-03
-Versión: 1.01.0 · Kronos-inside-Scanner
+Versión: 1.01.0 · Kronos-inside-Scanner + memo click
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha Scanner integra Kronos-small (extra opcional) dentro del ranking
-- Flujo externo intacto: Scanner → Sim/BT → MC (sin panel nuevo)
-- Scores: traditional_score + kronos_score + final_score
-- legacy_v1: peso Kronos 0 (compat) + popups; MM/AS/MR con pesos >0
-- Anti-leakage: Kronos solo ve tramo ranking del walk-forward
+- Kronos en Alpha Scanner: traditional/kronos/final + memo al click
+- Workbench reiniciado con backend Kronos (antes el proceso viejo ignoraba el checkbox)
+- OFF → kronos null; ON → applied + re-ranking (verificado API)
 
 INSTALACIÓN KRONOS
 ------------------

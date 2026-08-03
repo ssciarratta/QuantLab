@@ -93,6 +93,15 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    # Windows: consolas cp1252/ascii rompen logs y tqdm (█, ñ, —).
+    for stream in (sys.stdout, sys.stderr):
+        reconf = getattr(stream, "reconfigure", None)
+        if callable(reconf):
+            with contextlib.suppress(Exception):
+                reconf(encoding="utf-8", errors="replace")
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+    os.environ.setdefault("PYTHONUTF8", "1")
+
     args = build_parser().parse_args(list(argv) if argv is not None else None)
 
     if not LIVE_BLOCKED:

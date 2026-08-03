@@ -134,7 +134,7 @@
       '<ul id="sc-coin-suggest" class="sc-coin-suggest" hidden role="listbox"></ul>' +
       "</div></label>" +
       "</div>" +
-      '<div class="sc-venues" id="sc-kronos-row">' +
+      '<div class="sc-venues" id="sc-kronos-row" style="flex-wrap:wrap;gap:0.45rem 0.75rem;align-items:center">' +
       '<label title="Forecast de horizonte dentro del Scanner (no es panel aparte)">' +
       '<input type="checkbox" id="sc-kronos-enabled" checked> Kronos</label>' +
       '<label>Top Kronos<select id="sc-kronos-top">' +
@@ -147,7 +147,9 @@
       '<label>Muestras<input id="sc-kronos-samples" type="number" value="4" min="1" max="16" /></label>' +
       '<label title="Rompe compatibilidad histórica del score legacy">' +
       '<input type="checkbox" id="sc-kronos-legacy"> Kronos en legacy</label>' +
-      '<span class="muted" style="font-size:0.85em">score tradicional + Kronos → final · no garantiza PnL</span>' +
+      '<span class="muted" style="font-size:0.8em;margin-left:0.25rem">' +
+      "Trad. + Kronos → Final · no garantiza PnL · click en score = memo" +
+      "</span>" +
       "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
       "<span class=\"muted\">Mercados</span>" +
@@ -220,6 +222,32 @@
       var custom = root.querySelector("#sc-limit").value === "custom";
       var wrap = root.querySelector("#sc-coin-wrap");
       if (wrap) wrap.hidden = !custom;
+      var kroTop = root.querySelector("#sc-kronos-top");
+      if (kroTop) {
+        if (custom) {
+          var nCoins = parseCustomCoins().length || 1;
+          // Moneda puntual: Kronos solo sobre esa(s) moneda(s).
+          var want = String(Math.min(30, Math.max(1, nCoins)));
+          if (![].some.call(kroTop.options, function (o) { return o.value === want; })) {
+            var opt = document.createElement("option");
+            opt.value = want;
+            opt.textContent = want + " (puntual)";
+            kroTop.appendChild(opt);
+          }
+          kroTop.value = want;
+          kroTop.disabled = nCoins <= 1;
+          kroTop.title =
+            nCoins <= 1
+              ? "Moneda puntual: Kronos evalúa solo esa moneda"
+              : "Top Kronos acotado a las monedas puntuales pedidas";
+        } else {
+          kroTop.disabled = false;
+          kroTop.title = "Candidatos preliminares a los que se aplica Kronos";
+          if (kroTop.value === "1" || kroTop.selectedOptions[0] && /puntual/.test(kroTop.selectedOptions[0].textContent || "")) {
+            kroTop.value = "20";
+          }
+        }
+      }
       if (custom) {
         loadCoinCatalog();
         var inp = root.querySelector("#sc-coin");
@@ -541,8 +569,179 @@
         .toUpperCase();
     }
 
+    function fmtScore(v) {
+      if (v == null || v === "") return null;
+      var n = Number(v);
+      return isFinite(n) ? n : null;
+    }
+
+    function buildScannerMemo(row, block) {
+      var und =
+        (row && (row.underlying || row.symbol || row.instrument_id)) || "?";
+      var venue = (block && block.venue) || (lastScan && lastScan.venue) || "?";
+      var mt =
+        (block && block.market_type) ||
+        (lastScan && lastScan.market_type) ||
+        "?";
+      var profile =
+        (block && block.profile) || (lastScan && lastScan.profile) || "?";
+      var kroMeta =
+        (block && block.kronos) || (lastScan && lastScan.kronos) || {};
+      var trad = fmtScore(row.traditional_score);
+      if (trad == null) trad = fmtScore(row.composite);
+      var kro = fmtScore(row.kronos_score);
+      var fin = fmtScore(row.final_score);
+      if (fin == null) fin = fmtScore(row.composite);
+      var km = row.kronos_metrics || {};
+      var rec = row.recommendation || {};
+      var lines = [
+        "QUANTLAB — MEMORANDO ALPHA SCANNER + KRONOS",
+        "==========================================",
+        "Moneda: " + und,
+        "Venue: " + venue + "/" + mt,
+        "Perfil / rama: " + profile,
+        "Intervalo: " + ((block && block.interval) || "?"),
+        "",
+        "SCORES",
+        "------",
+        "Tradicional: " + (trad != null ? trad.toFixed(4) : "null"),
+        "Kronos:      " + (kro != null ? kro.toFixed(4) : "null (no aplicado)"),
+        "Final:       " + (fin != null ? fin.toFixed(4) : "null"),
+        "Peso Kronos: " + (row.kronos_weight != null ? row.kronos_weight : "—"),
+        "Aplicado:    " + (row.kronos_applied ? "sí" : "no"),
+        "Skip reason: " + (row.kronos_skip_reason || "—"),
+        "",
+        "MÉTRICAS KRONOS (forecast de contexto; NO rentabilidad)",
+        "------------------------------------------------------",
+        "Volatilidad futura: " +
+          (km.kronos_forecast_volatility != null
+            ? Number(km.kronos_forecast_volatility).toFixed(6)
+            : "null"),
+        "Dispersión:         " +
+          (km.kronos_forecast_dispersion != null
+            ? Number(km.kronos_forecast_dispersion).toFixed(6)
+            : "null"),
+        "Riesgo ruptura:     " +
+          (km.kronos_breakout_risk != null
+            ? Number(km.kronos_breakout_risk).toFixed(4)
+            : "null"),
+        "Riesgo tendencia:   " +
+          (km.kronos_trend_risk != null
+            ? Number(km.kronos_trend_risk).toFixed(4)
+            : "null"),
+        "Prob. rango:        " +
+          (km.kronos_range_probability != null
+            ? Number(km.kronos_range_probability).toFixed(4)
+            : "null"),
+        "Estabilidad:        " +
+          (km.kronos_regime_stability != null
+            ? Number(km.kronos_regime_stability).toFixed(4)
+            : "null"),
+        "Confianza (acuerdo):" +
+          (km.kronos_confidence != null
+            ? Number(km.kronos_confidence).toFixed(4)
+            : "null"),
+        "  ⚠ confianza ≠ probabilidad calibrada",
+        "MM score:           " +
+          (km.kronos_market_making_score != null
+            ? Number(km.kronos_market_making_score).toFixed(4)
+            : "null"),
+        "Horizonte (velas):  " + (row.kronos_horizon != null ? row.kronos_horizon : "—"),
+        "",
+        "META ESCANEADO KRONOS",
+        "---------------------",
+        "status: " + (kroMeta.status || "ausente"),
+        "model: " + (kroMeta.model || "—"),
+        "device: " + (kroMeta.device_resolved || kroMeta.device || "—"),
+        "lookback: " + (kroMeta.lookback != null ? kroMeta.lookback : "—"),
+        "pred_len: " + (kroMeta.pred_len != null ? kroMeta.pred_len : "—"),
+        "samples: " + (kroMeta.sample_count != null ? kroMeta.sample_count : "—"),
+        "applied_count: " +
+          (kroMeta.applied_count != null ? kroMeta.applied_count : "—"),
+        "failed_count: " +
+          (kroMeta.failed_count != null ? kroMeta.failed_count : "—"),
+        "inference_ms: " +
+          (kroMeta.inference_ms_total != null
+            ? Math.round(kroMeta.inference_ms_total)
+            : "—"),
+        "",
+        "EXPLICACIÓN",
+        "-----------",
+        row.kronos_explanation ||
+          rec.text ||
+          "Sin explicación Kronos (ranking tradicional).",
+        "",
+        "Estrategia compatible a probar: " +
+          (row.compatible_strategy ||
+            rec.family_label_es ||
+            rec.family ||
+            profile),
+        "",
+        "LIMITACIONES",
+        "------------",
+        "- Kronos no garantiza rentabilidad.",
+        "- No reemplaza backtest ni Monte Carlo.",
+        "- No conoce el libro de órdenes (solo OHLCV).",
+        "- Resultados = forecast de contexto, no certezas.",
+      ];
+      var csv =
+        "campo,valor\n" +
+        [
+          ["moneda", und],
+          ["venue", venue + "/" + mt],
+          ["perfil", profile],
+          ["traditional_score", trad],
+          ["kronos_score", kro],
+          ["final_score", fin],
+          ["kronos_breakout_risk", km.kronos_breakout_risk],
+          ["kronos_forecast_volatility", km.kronos_forecast_volatility],
+          ["kronos_regime_stability", km.kronos_regime_stability],
+          ["kronos_confidence", km.kronos_confidence],
+          ["kronos_status", kroMeta.status],
+        ]
+          .map(function (p) {
+            return p[0] + "," + (p[1] == null ? "" : String(p[1]));
+          })
+          .join("\n");
+      return {
+        kind: "scanner",
+        title: "Memorando · Scanner " + und,
+        text: lines.join("\n"),
+        csv: csv,
+        filenameBase:
+          "quantlab-scanner-" +
+          String(und).replace(/[^\w.-]+/g, "_") +
+          "-" +
+          Date.now().toString(36),
+        nRows: 11,
+      };
+    }
+
+    function openScannerMemoForRow(row) {
+      var block = activeScanBlock() || lastScan || {};
+      var memo = buildScannerMemo(row || {}, block);
+      if (global.QLSimRegistry && typeof global.QLSimRegistry.add === "function") {
+        global.QLSimRegistry.add({
+          kind: "scanner",
+          title: memo.title,
+          summary: (row && (row.underlying || row.symbol)) || "scan",
+          params: lastRequest || {},
+          memo: memo,
+        });
+      }
+      if (
+        global.QLSimRegistry &&
+        typeof global.QLSimRegistry.openMemo === "function"
+      ) {
+        global.QLSimRegistry.openMemo(memo, lastRequest || {});
+      } else {
+        window.alert(memo.text.slice(0, 1500));
+      }
+    }
+
     function scoreComposite(s) {
       if (!s) return null;
+      if (s.final_score != null) return Number(s.final_score);
       if (s.composite != null) return Number(s.composite);
       if (s.base_score != null) return Number(s.base_score);
       return null;
@@ -679,14 +878,24 @@
         })
         .join("");
       var band = (explained && explained.band) || {};
+      var tradD = fmtScore(row.traditional_score);
+      if (tradD == null) tradD = fmtScore(row.composite);
+      var kroD = fmtScore(row.kronos_score);
+      var finD = fmtScore(row.final_score);
+      if (finD == null) finD = comp;
+      var km = row.kronos_metrics || {};
       var scoreBlock =
         '<div class="sc-score-explain" style="margin:0 0 0.65rem;padding:0.55rem 0.65rem;' +
         "border-left:3px solid var(--amber-dim,#a67c3a);" +
         'background:rgba(212,140,50,0.07);border-radius:0 6px 6px 0">' +
-        '<p style="margin:0 0 0.35rem"><strong>Score ' +
-        esc(comp != null ? comp.toFixed(2) : "—") +
+        '<p style="margin:0 0 0.35rem"><strong>Final ' +
+        esc(finD != null ? finD.toFixed(2) : "—") +
         "</strong>" +
-        (comp != null ? " (" + esc((comp * 100).toFixed(1)) + " pts)" : "") +
+        (finD != null ? " (" + esc((finD * 100).toFixed(1)) + " pts)" : "") +
+        " · Trad " +
+        esc(tradD != null ? tradD.toFixed(2) : "—") +
+        " · Kronos " +
+        esc(kroD != null ? kroD.toFixed(2) : "—") +
         (band.title ? " · " + esc(band.title) : "") +
         " · " +
         esc(venue) +
@@ -694,8 +903,39 @@
         esc(mt) +
         "</p>" +
         '<p class="muted" style="margin:0 0 0.35rem;font-size:0.8em">' +
-        esc((explained && explained.headline) || rec.text || "") +
+        esc(
+          row.kronos_explanation ||
+            (explained && explained.headline) ||
+            rec.text ||
+            ""
+        ) +
         "</p>" +
+        '<p style="margin:0 0 0.35rem;font-size:0.8em">' +
+        "Ruptura " +
+        esc(
+          km.kronos_breakout_risk != null
+            ? Number(km.kronos_breakout_risk).toFixed(2)
+            : "—"
+        ) +
+        " · Vol futura " +
+        esc(
+          km.kronos_forecast_volatility != null
+            ? Number(km.kronos_forecast_volatility).toFixed(4)
+            : "—"
+        ) +
+        " · Estabilidad " +
+        esc(
+          km.kronos_regime_stability != null
+            ? Number(km.kronos_regime_stability).toFixed(2)
+            : "—"
+        ) +
+        " · Confianza " +
+        esc(
+          km.kronos_confidence != null
+            ? Number(km.kronos_confidence).toFixed(2)
+            : "—"
+        ) +
+        " <span class=\"muted\">(acuerdo, no calibrada)</span></p>" +
         '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>¿Qué es este número?</strong><br>' +
         esc(
           (explained && explained.what_is) ||
@@ -726,9 +966,11 @@
             nextLis +
             "</ol>"
           : "") +
-        '<p class="muted" style="margin:0;font-size:0.72em">' +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.72em">' +
         esc((explained && explained.note) || "Score ≠ rentabilidad. LIVE bloqueado.") +
-        "</p></div>";
+        "</p>" +
+        '<button type="button" class="btn secondary" id="sc-open-memo">Ver memorando Kronos</button>' +
+        "</div>";
 
       box.innerHTML =
         '<div class="pane-section" style="border:1px solid var(--border,#333);border-radius:8px;padding:0.55rem 0.7rem">' +
@@ -782,6 +1024,12 @@
           openSim(prefill);
         });
       }
+      var memoBtn = box.querySelector("#sc-open-memo");
+      if (memoBtn) {
+        memoBtn.addEventListener("click", function () {
+          openScannerMemoForRow(row);
+        });
+      }
     }
 
     function renderWarnings(data) {
@@ -796,6 +1044,46 @@
             kronosPop.push(p);
           });
         });
+      }
+      var wantKronos =
+        root.querySelector("#sc-kronos-enabled") &&
+        root.querySelector("#sc-kronos-enabled").checked;
+      var hasKronosMeta =
+        (data && data.kronos) ||
+        (data &&
+          data.by_venue &&
+          data.by_venue.some(function (b) {
+            return b && b.kronos;
+          }));
+      if (wantKronos && !hasKronosMeta) {
+        kronosPop.unshift({
+          id: "kronos_backend_stale",
+          level: "warn",
+          title: "Kronos no llegó del servidor",
+          body:
+            "La UI pidió Kronos pero la respuesta no trae bloque kronos. " +
+            "Reiniciá el Workbench (el proceso viejo no aplica forecast) y hard-refresh (Ctrl+F5).",
+        });
+      }
+      if (hasKronosMeta) {
+        var km =
+          (data && data.kronos) ||
+          (data.by_venue && data.by_venue[0] && data.by_venue[0].kronos) ||
+          {};
+        if (km.status && km.status !== "applied") {
+          kronosPop.unshift({
+            id: "kronos_status",
+            level: "info",
+            title: "Kronos: " + km.status,
+            body:
+              "applied=" +
+              (km.applied_count != null ? km.applied_count : "—") +
+              " · failed=" +
+              (km.failed_count != null ? km.failed_count : "—") +
+              (km.skip_reason ? " · " + km.skip_reason : "") +
+              ". Si Kronos=— en la tabla, no se mezcló al final.",
+          });
+        }
       }
       if (!warns.length && status === "ok" && !kronosPop.length) {
         box.innerHTML = "";
@@ -823,9 +1111,7 @@
           ? ' · <span class="mono">' + esc(status) + "</span>"
           : "") +
         (lis ? "<ul>" + lis + "</ul>" : "") +
-        (kLis
-          ? "<strong>Kronos</strong><ul>" + kLis + "</ul>"
-          : "") +
+        (kLis ? "<strong>Kronos</strong><ul>" + kLis + "</ul>" : "") +
         "</div>";
     }
 
@@ -869,17 +1155,12 @@
       var rowsHtml = block.scores
         .map(function (s, i) {
           var und = s.underlying || s.symbol || s.instrument_id;
-          var finalN =
-            s.final_score != null
-              ? Number(s.final_score)
-              : s.composite != null
-                ? Number(s.composite)
-                : s.base_score != null
-                  ? Number(s.base_score)
-                  : null;
-          var tradN =
-            s.traditional_score != null ? Number(s.traditional_score) : null;
-          var kroN = s.kronos_score != null ? Number(s.kronos_score) : null;
+          var finalN = fmtScore(s.final_score);
+          if (finalN == null) finalN = fmtScore(s.composite);
+          if (finalN == null) finalN = fmtScore(s.base_score);
+          var tradN = fmtScore(s.traditional_score);
+          if (tradN == null) tradN = fmtScore(s.composite);
+          var kroN = fmtScore(s.kronos_score);
           var comp = finalN != null ? finalN.toFixed(2) : "—";
           var pts = finalN != null ? (finalN * 100).toFixed(1) : "—";
           var tradTxt = tradN != null ? tradN.toFixed(2) : "—";
@@ -914,19 +1195,19 @@
             '<td class="mono">' +
             esc(und) +
             "</td>" +
-            '<td class="mono" title="Score tradicional">' +
+            '<td class="mono sc-memo-cell" data-memo="1" title="Click = memorando">' +
             esc(tradTxt) +
             "</td>" +
-            '<td class="mono" title="Score Kronos (— = no aplicado)">' +
+            '<td class="mono sc-memo-cell" data-memo="1" title="Click = memorando Kronos">' +
             esc(kroTxt) +
             "</td>" +
-            '<td class="mono sc-score-cell' +
+            '<td class="mono sc-score-cell sc-memo-cell' +
             (tied ? " sc-score-tied" : "") +
-            '" title="' +
+            '" data-memo="1" title="' +
             esc(
               tied
                 ? "Score empatado en 0 — ver avisos arriba"
-                : "Final = blend tradicional + Kronos"
+                : "Click = memorando Trad/Kronos/Final"
             ) +
             '" style="text-decoration:underline;text-underline-offset:2px;' +
             (tied
@@ -963,12 +1244,17 @@
         esc(block.interval || (lastScan && lastScan.interval) || "") +
         " · tanda=" +
         esc(
-          block.universe_mode === "all"
-            ? "todas"
-            : block.symbol_limit != null
-              ? block.symbol_limit
-              : ""
+          block.universe_mode === "puntual"
+            ? "puntual"
+            : block.universe_mode === "all"
+              ? "todas"
+              : block.symbol_limit != null
+                ? block.symbol_limit
+                : ""
         ) +
+        (block.requested_underlyings && block.requested_underlyings.length
+          ? " · pedido=" + esc(block.requested_underlyings.join(","))
+          : "") +
         (block.n_universe != null ? " (" + esc(block.n_universe) + ")" : "") +
         " · fetched=" +
         esc(block.n_symbols_fetched != null ? block.n_symbols_fetched : block.fetched) +
@@ -991,12 +1277,21 @@
         rowsHtml +
         "</tbody></table>";
       outEl.querySelectorAll(".sc-row").forEach(function (tr) {
-        tr.addEventListener("click", function () {
+        tr.addEventListener("click", function (ev) {
           outEl.querySelectorAll(".sc-row").forEach(function (r) {
             r.classList.remove("sc-row-sel");
           });
           tr.classList.add("sc-row-sel");
-          renderDetail(parseInt(tr.getAttribute("data-idx"), 10) || 0);
+          var idx = parseInt(tr.getAttribute("data-idx"), 10) || 0;
+          renderDetail(idx);
+          if (
+            ev.target &&
+            ev.target.closest &&
+            ev.target.closest(".sc-memo-cell")
+          ) {
+            var row = (block.scores || [])[idx];
+            if (row) openScannerMemoForRow(row);
+          }
         });
       });
     }
@@ -1521,6 +1816,9 @@
     });
     coinInp.addEventListener("input", function () {
       openCoinSuggest();
+      if (root.querySelector("#sc-limit").value === "custom") {
+        syncUniverseUI();
+      }
     });
     coinInp.addEventListener("keydown", function (ev) {
       var box = root.querySelector("#sc-coin-suggest");
@@ -1735,8 +2033,9 @@
                 root.querySelector("#sc-kronos-enabled") &&
                 root.querySelector("#sc-kronos-enabled").checked
               ),
-              kronos_top_n:
-                parseInt(root.querySelector("#sc-kronos-top").value, 10) || 20,
+              kronos_top_n: customCoins
+                ? Math.max(1, customCoins.length)
+                : parseInt(root.querySelector("#sc-kronos-top").value, 10) || 20,
               kronos_pred_len:
                 parseInt(root.querySelector("#sc-kronos-pred").value, 10) || 12,
               kronos_sample_count:

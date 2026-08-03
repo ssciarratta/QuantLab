@@ -166,6 +166,7 @@ class KronosTorchEngine:
                 T=request.temperature,
                 top_p=request.top_p,
                 sample_count=1,
+                verbose=False,  # evita barras █ → UnicodeEncodeError en consola ASCII/Win
             )
             opens.append(tuple(float(x) for x in pred["open"].tolist()))
             highs.append(tuple(float(x) for x in pred["high"].tolist()))

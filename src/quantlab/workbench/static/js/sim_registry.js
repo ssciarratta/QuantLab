@@ -42,6 +42,7 @@
     if (kind === "montecarlo") return "Monte Carlo";
     if (kind === "backtest") return "Backtest";
     if (kind === "optimize") return "Optimizer";
+    if (kind === "scanner") return "Scanner";
     return kind || "?";
   }
 

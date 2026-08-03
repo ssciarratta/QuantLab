@@ -626,9 +626,31 @@ def _apply_kronos_enrichment(
     persist_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Kronos-inside-Scanner: re-rankea con forecast del tramo de ranking."""
+    from dataclasses import replace
+
     from quantlab.research.alpha.kronos import apply_kronos_to_scan, kronos_config_from_mapping
 
     cfg = kronos_config_from_mapping(dict(kronos) if kronos else None)
+    # Timeout por símbolo escalado (CPU notebook: ~0.5–1.5 s por muestra).
+    per_symbol = max(30.0, float(cfg.sample_count) * 8.0)
+    if cfg.timeout_seconds < per_symbol:
+        cfg = replace(cfg, timeout_seconds=per_symbol)
+    # Cap pred_len al contexto del modelo.
+    pred = cfg.resolved_pred_len(interval)
+    if pred > cfg.max_context // 2:
+        cfg = replace(cfg, pred_len=min(pred, cfg.max_context // 2))
+    # Moneda puntual / pocas filas: no tiene sentido Top Kronos 20/30.
+    scores = out.get("scores")
+    n_scores = len(scores) if isinstance(scores, list) else 0
+    requested = out.get("requested_underlyings")
+    if isinstance(requested, list) and requested:
+        n_cap = max(1, len(requested))
+    elif n_scores > 0:
+        n_cap = n_scores
+    else:
+        n_cap = cfg.resolved_top_n()
+    if cfg.resolved_top_n() > n_cap:
+        cfg = replace(cfg, top_n=n_cap)
     cache_dir = (persist_dir / "kronos_cache") if persist_dir is not None else None
     return apply_kronos_to_scan(
         out,
@@ -1061,6 +1083,24 @@ def run_venue_lab_scanner(
             f"(fallos={len(fetch_failures)}; ej. {next(iter(fetch_failures.values()), '—')})"
         )
 
+    if requested_underlyings is not None:
+        got_und = {
+            str(symbol_to_underlying.get(s) or underlying_from_symbol(s)).strip().upper()
+            for s in symbols
+        }
+        missing_req = [u for u in requested_underlyings if u not in got_und]
+        if len(missing_req) == len(requested_underlyings):
+            detail = "; ".join(
+                f"{u}: {fetch_failures.get(u) or fetch_failures.get(u + 'USDT') or 'sin MD'}"
+                for u in missing_req
+            )
+            raise ValidationError(
+                f"no se encontró {v}/{mt} para "
+                f"{', '.join(missing_req)} ({detail}). "
+                "Revisá el ticker (ej. HOT = Holo en Binance spot HOTUSDT) "
+                "o probá otro venue/mercado."
+            )
+
     prefix = _VENUE_SCAN_PREFIX[v][mt]
     built = build_universe_from_symbol_bars(
         venue=v,
@@ -1162,7 +1202,8 @@ def run_venue_lab_scanner(
         row["symbol"] = sym
         row["underlying"] = symbol_to_underlying.get(sym) or underlying_from_symbol(sym)
 
-    if requested_underlyings is not None and score_anchors:
+    if requested_underlyings is not None:
+        # Siempre filtrar a lo pedido (anclas solo sirven para cross-section).
         want = {u.upper() for u in requested_underlyings}
         scores_out = [
             r
@@ -1182,6 +1223,23 @@ def run_venue_lab_scanner(
             in want
         ]
         selected_symbols = [symbol_map.get(iid, iid) for iid in selected]
+        if not scores_out:
+            raise ValidationError(
+                "moneda puntual sin score tras filtros: "
+                + ", ".join(requested_underlyings)
+                + (
+                    f" (fallos MD: {fetch_failures})"
+                    if fetch_failures
+                    else " (excluida por calidad o no elegible)"
+                )
+            )
+
+    if requested_underlyings is not None:
+        universe_mode = "puntual"
+    elif symbol_limit == SYMBOL_LIMIT_ALL:
+        universe_mode = "all"
+    else:
+        universe_mode = "batch"
 
     out: dict[str, Any] = {
         "ok": True,
@@ -1190,7 +1248,7 @@ def run_venue_lab_scanner(
         "market_type": mt,
         "top_n": top_n,
         "symbol_limit": symbol_limit,
-        "universe_mode": "all" if symbol_limit == SYMBOL_LIMIT_ALL else "batch",
+        "universe_mode": universe_mode,
         "n_universe": len(coins),
         "interval": interval,
         "kline_limit": kline_limit,
@@ -1512,6 +1570,7 @@ def run_multi_venue_lab_scanner(
         "selected_symbols": primary.get("selected_symbols"),
         "selected_underlyings": primary.get("selected_underlyings"),
         "recommendations": primary.get("recommendations"),
+        "kronos": primary.get("kronos"),
         "read_only": True,
         "live_routing": False,
         "note": (

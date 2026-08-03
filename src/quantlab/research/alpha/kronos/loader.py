@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -60,6 +61,10 @@ def get_forecast_engine(config: KronosConfig) -> ForecastEngine:
     global _ENGINE, _ENGINE_KEY
     if not config.enabled:
         return NullForecastEngine(KronosSkipReason.DISABLED)
+
+    # Evita UnicodeEncodeError de barras tqdm en consolas ASCII (Windows).
+    os.environ.setdefault("TQDM_DISABLE", "0")
+    os.environ["TQDM_ASCII"] = "1"
 
     vendor = Path(config.vendor_path) if config.vendor_path else default_vendor_path()
     key = f"{config.model}|{config.tokenizer}|{config.device}|{vendor}"
