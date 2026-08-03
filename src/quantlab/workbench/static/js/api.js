@@ -467,6 +467,20 @@
       if (o.underlyings && o.underlyings.length) {
         body.underlyings = o.underlyings;
       }
+      if (o.kronos && typeof o.kronos === "object") {
+        body.kronos = o.kronos;
+      } else {
+        const kronos = {};
+        if (o.kronos_enabled != null) kronos.kronos_enabled = o.kronos_enabled;
+        if (o.kronos_top_n != null) kronos.kronos_top_n = o.kronos_top_n;
+        if (o.kronos_pred_len != null) kronos.kronos_pred_len = o.kronos_pred_len;
+        if (o.kronos_sample_count != null)
+          kronos.kronos_sample_count = o.kronos_sample_count;
+        if (o.kronos_lookback != null) kronos.kronos_lookback = o.kronos_lookback;
+        if (o.kronos_legacy_override != null)
+          kronos.kronos_legacy_override = o.kronos_legacy_override;
+        if (Object.keys(kronos).length) body.kronos = kronos;
+      }
       return request("POST", "/api/lab/venue/scanner", body, o.fetchOpts);
     },
     alphaProfiles: function () {

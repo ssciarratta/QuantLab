@@ -12,7 +12,7 @@
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage · kinds compare/rank/MC/backtest/**optimize** · **add() silencioso** (no bringToFront; resultado queda en el panel)  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  
-**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF`  
+**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` · **Kronos-inside-Scanner** (extra `kronos`, Top20/30, traditional/kronos/final, anti-leakage rank window)  
 **Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  
 **Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés · Backtest=1 moneda×estrategia · Optimizer=grid params  

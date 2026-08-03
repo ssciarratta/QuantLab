@@ -1120,6 +1120,9 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit", 24)
     profile = body.get("profile", "legacy_v1")
+    kronos_body = body.get("kronos")
+    if kronos_body is not None and not isinstance(kronos_body, dict):
+        raise ApiError(400, "kronos debe ser object")
     if not isinstance(top_n, int):
         raise ApiError(400, "top_n debe ser int")
     if not isinstance(symbol_limit, int):
@@ -1140,11 +1143,8 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
             interval=interval.strip(),
             kline_limit=kline_limit,
             profile=profile.strip(),
-            persist_dir=(
-                persist_dir
-                if profile.strip().lower() not in ("legacy_v1", "legacy", "")
-                else None
-            ),
+            persist_dir=persist_dir,
+            kronos=kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body),
         )
         out = state.store_lab_result(result)
         _record_activity(
@@ -1157,6 +1157,32 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
         return out
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+
+
+def _kronos_flags_from_body(body: dict[str, Any]) -> dict[str, Any]:
+    """Extrae flags Kronos planos del body (compat UI)."""
+    keys = (
+        "kronos_enabled",
+        "kronos_model",
+        "kronos_tokenizer",
+        "kronos_device",
+        "kronos_top_n",
+        "kronos_lookback",
+        "kronos_pred_len",
+        "kronos_sample_count",
+        "kronos_temperature",
+        "kronos_top_p",
+        "kronos_weight",
+        "kronos_timeout_seconds",
+        "kronos_cache_enabled",
+        "kronos_legacy_override",
+        "kronos_seed",
+    )
+    out: dict[str, Any] = {}
+    for k in keys:
+        if k in body:
+            out[k] = body[k]
+    return out
 
 
 def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -1202,15 +1228,17 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
         ):
             raise ApiError(400, "underlyings debe ser lista de strings")
         und_list = [x.strip() for x in underlyings if x.strip()]
+    kronos_body = body.get("kronos")
+    if kronos_body is not None and not isinstance(kronos_body, dict):
+        raise ApiError(400, "kronos debe ser object")
+    kronos_arg = (
+        kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body)
+    )
     try:
         if state.session is None:
             raise ApiError(503, "sesión workbench no inicializada")
         persist_dir = state.session.experiments_dir / "alpha_scans"
-        persist_arg = (
-            persist_dir
-            if profile.strip().lower() not in ("legacy_v1", "legacy", "")
-            else None
-        )
+        persist_arg = persist_dir
         if len(venues_list) >= 2 or (len(venues_list) == 1 and not venue.strip()):
             result = lab_services.run_multi_venue_lab_scanner(
                 venues=venues_list or [venue.strip()],
@@ -1223,6 +1251,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 profile=profile.strip(),
                 underlyings=und_list,
                 persist_dir=persist_arg,
+                kronos=kronos_arg,
             )
         elif len(venues_list) == 1:
             result = lab_services.run_venue_lab_scanner(
@@ -1236,6 +1265,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 profile=profile.strip(),
                 underlyings=und_list,
                 persist_dir=persist_arg,
+                kronos=kronos_arg,
             )
         else:
             result = lab_services.run_venue_lab_scanner(
@@ -1249,6 +1279,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 profile=profile.strip(),
                 underlyings=und_list,
                 persist_dir=persist_arg,
+                kronos=kronos_arg,
             )
         out = state.store_lab_result(result)
         _record_activity(

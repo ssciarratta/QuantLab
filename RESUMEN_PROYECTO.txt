@@ -1,20 +1,27 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-03
-Versión: 1.01.0 · fix Simulador + Mis simulaciones
+Versión: 1.01.0 · Kronos-inside-Scanner
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Fix JS Simulador (} faltante) + apertura robusta Mis simulaciones
-- Cache-bust ?v=20260803b en scripts clave
-- Mis simulaciones ya NO se abre sola al boot
+- Alpha Scanner integra Kronos-small (extra opcional) dentro del ranking
+- Flujo externo intacto: Scanner → Sim/BT → MC (sin panel nuevo)
+- Scores: traditional_score + kronos_score + final_score
+- legacy_v1: peso Kronos 0 (compat) + popups; MM/AS/MR con pesos >0
+- Anti-leakage: Kronos solo ve tramo ranking del walk-forward
+
+INSTALACIÓN KRONOS
+------------------
+git clone --depth 1 https://github.com/shiyu-coder/Kronos.git third_party/kronos
+uv sync --extra kronos --extra dev
 
 CÓMO PROBAR
 -----------
-Reiniciar Workbench + Ctrl+F5 (o hard refresh)
-QL → Simulador / Mis simulaciones deben abrir al frente
+Workbench → Alpha Scanner → Kronos ON → rama Market making → Escanear
+Ver columnas Trad. / Kronos / Final
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER
+LIVE_BLOCKED=True · REAL=PAPER · Kronos ausente ≠ 0 fingido

@@ -616,6 +616,30 @@ def run_lab_scanner(*, top_n: int = 3) -> dict[str, Any]:
     }
 
 
+def _apply_kronos_enrichment(
+    out: dict[str, Any],
+    bars_by_instrument: Mapping[str, Sequence[Bar]],
+    *,
+    profile: str,
+    interval: str,
+    kronos: Mapping[str, Any] | None = None,
+    persist_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Kronos-inside-Scanner: re-rankea con forecast del tramo de ranking."""
+    from quantlab.research.alpha.kronos import apply_kronos_to_scan, kronos_config_from_mapping
+
+    cfg = kronos_config_from_mapping(dict(kronos) if kronos else None)
+    cache_dir = (persist_dir / "kronos_cache") if persist_dir is not None else None
+    return apply_kronos_to_scan(
+        out,
+        bars_by_instrument,
+        config=cfg,
+        profile=profile,
+        interval=interval,
+        cache_dir=cache_dir,
+    )
+
+
 def run_binance_lab_scanner(
     *,
     top_n: int = 5,
@@ -625,6 +649,7 @@ def run_binance_lab_scanner(
     base_url: str | None = None,
     profile: str = "legacy_v1",
     persist_dir: Path | None = None,
+    kronos: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """AlphaScanner / perfiles sobre klines Binance públicas (read-only)."""
     from quantlab.brokers.binance.public_md import (
@@ -810,6 +835,15 @@ def run_binance_lab_scanner(
             row["underlying"] = underlying_from_symbol(sym)
     out["profile"] = requested_profile
     attach_scan_quality(out, fetch_failures=fetch_failures)
+    scoring_profile = profile_key if profile_key else requested_profile
+    out = _apply_kronos_enrichment(
+        out,
+        universe,
+        profile=scoring_profile,
+        interval=interval,
+        kronos=kronos,
+        persist_dir=persist_dir,
+    )
     return attach_recommendations(out, profile=requested_profile, interval=interval)
 
 
@@ -867,6 +901,7 @@ def run_venue_lab_scanner(
     profile: str = "legacy_v1",
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
+    kronos: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Alpha ranking sobre MD público real (Binance/OKX/Bybit/HL).
 
@@ -938,6 +973,7 @@ def run_venue_lab_scanner(
             kline_limit=kline_limit,
             profile=profile,
             persist_dir=persist_dir,
+            kronos=kronos,
         )
         out_bn["market_type"] = "spot"
         if period_meta is not None:
@@ -1224,6 +1260,15 @@ def run_venue_lab_scanner(
     from quantlab.research.alpha.scan_quality import attach_scan_quality
 
     attach_scan_quality(out, fetch_failures=fetch_failures, md_meta=md_meta)
+    scoring_profile = profile_key if profile_key else requested_profile
+    out = _apply_kronos_enrichment(
+        out,
+        universe,
+        profile=scoring_profile,
+        interval=interval,
+        kronos=kronos,
+        persist_dir=persist_dir,
+    )
     return attach_recommendations(out, profile=requested_profile, interval=interval)
 
 
@@ -1378,6 +1423,7 @@ def run_multi_venue_lab_scanner(
     profile: str = "trend",
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
+    kronos: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Corre el scanner en cada venue y devuelve resultados separados + comparación."""
     raw = [(v or "").strip().lower() for v in venues]
@@ -1419,6 +1465,7 @@ def run_multi_venue_lab_scanner(
                 profile=profile,
                 underlyings=underlyings,
                 persist_dir=persist_dir,
+                kronos=kronos,
             )
             if note_extra:
                 block = dict(block)
@@ -1805,6 +1852,19 @@ def run_binance_lab_pipeline(
             "no rentabilidad garantizada."
         ),
     }
+    # Kronos SOLO con rank_universe (anti-leakage OOS).
+    scan_payload = _apply_kronos_enrichment(
+        scan_payload,
+        rank_universe,
+        profile=profile_key,
+        interval=interval,
+        kronos=None,
+        persist_dir=reports_dir,
+    )
+    selected_iids = [str(x) for x in (scan_payload.get("selected") or selected_iids)]
+    selected_symbols = [symbol_map.get(iid, iid) for iid in selected_iids]
+    scan_payload["selected"] = selected_iids
+    scan_payload["selected_symbols"] = selected_symbols
 
     if not selected_symbols:
         return {

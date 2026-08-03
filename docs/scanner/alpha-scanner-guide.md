@@ -1,9 +1,10 @@
 # Alpha Scanner — documentación final (FASE 10)
 
-**Fecha:** 2026-07-27  
+**Fecha:** 2026-07-27 · Kronos: 2026-08-03  
 **Versión tip:** 1.01.0  
-**Estado código:** FASE 0–10 + walk-forward pipeline · cierre formal de auditoría **pendiente**  
-**Manual de panel:** [`../manuales/03-alpha-scanner.md`](../manuales/03-alpha-scanner.md) · índice [`../manuales/00-INDICE.md`](../manuales/00-INDICE.md)
+**Estado código:** FASE 0–10 + walk-forward pipeline + Kronos-inside-Scanner · cierre formal de auditoría **pendiente**  
+**Manual de panel:** [`../manuales/03-alpha-scanner.md`](../manuales/03-alpha-scanner.md) · índice [`../manuales/00-INDICE.md`](../manuales/00-INDICE.md)  
+**Kronos:** [`kronos-inside-scanner.md`](kronos-inside-scanner.md)
 
 ---
 
@@ -11,6 +12,10 @@
 
 Herramienta de **investigación** para rankear mercados según un perfil.
 **No** afirma rentabilidad. `LIVE_BLOCKED` se mantiene.
+
+Con Kronos (extra opcional) el ranking también considera el horizonte futuro
+estimado (solo tramo de ranking; anti-leakage). Flujo externo intacto:
+Scanner → Sim/BT → MC.
 
 ## Fórmula default (`legacy_v1`)
 

@@ -134,6 +134,21 @@
       '<ul id="sc-coin-suggest" class="sc-coin-suggest" hidden role="listbox"></ul>' +
       "</div></label>" +
       "</div>" +
+      '<div class="sc-venues" id="sc-kronos-row">' +
+      '<label title="Forecast de horizonte dentro del Scanner (no es panel aparte)">' +
+      '<input type="checkbox" id="sc-kronos-enabled" checked> Kronos</label>' +
+      '<label>Top Kronos<select id="sc-kronos-top">' +
+      '<option value="20" selected>20</option>' +
+      '<option value="30">30</option>' +
+      '<option value="15">15</option>' +
+      "</select></label>" +
+      '<label>Horizonte<input id="sc-kronos-pred" type="number" value="12" min="4" max="128" ' +
+      'title="Velas futuras (default alineado al TF; editable)" /></label>' +
+      '<label>Muestras<input id="sc-kronos-samples" type="number" value="4" min="1" max="16" /></label>' +
+      '<label title="Rompe compatibilidad histórica del score legacy">' +
+      '<input type="checkbox" id="sc-kronos-legacy"> Kronos en legacy</label>' +
+      '<span class="muted" style="font-size:0.85em">score tradicional + Kronos → final · no garantiza PnL</span>' +
+      "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
       "<span class=\"muted\">Mercados</span>" +
       '<label><input type="checkbox" class="sc-venue-cb" value="binance" checked> Binance</label>' +
@@ -774,7 +789,15 @@
       if (!box) return;
       var warns = (data && data.warnings) || [];
       var status = (data && data.score_status) || "ok";
-      if (!warns.length && status === "ok") {
+      var kronosPop = ((data && data.kronos && data.kronos.popups) || []).slice();
+      if (data && data.by_venue) {
+        data.by_venue.forEach(function (b) {
+          ((b.kronos && b.kronos.popups) || []).forEach(function (p) {
+            kronosPop.push(p);
+          });
+        });
+      }
+      if (!warns.length && status === "ok" && !kronosPop.length) {
         box.innerHTML = "";
         return;
       }
@@ -783,12 +806,26 @@
           return "<li>" + esc(w) + "</li>";
         })
         .join("");
+      var kLis = kronosPop
+        .map(function (p) {
+          return (
+            "<li><strong>" +
+            esc(p.title || "Kronos") +
+            "</strong> — " +
+            esc(p.body || "") +
+            "</li>"
+          );
+        })
+        .join("");
       box.innerHTML =
         '<div class="sc-warn"><strong>Aviso ranking</strong>' +
         (status && status !== "ok"
           ? ' · <span class="mono">' + esc(status) + "</span>"
           : "") +
         (lis ? "<ul>" + lis + "</ul>" : "") +
+        (kLis
+          ? "<strong>Kronos</strong><ul>" + kLis + "</ul>"
+          : "") +
         "</div>";
     }
 
@@ -832,23 +869,38 @@
       var rowsHtml = block.scores
         .map(function (s, i) {
           var und = s.underlying || s.symbol || s.instrument_id;
-          var compN =
-            s.composite != null
-              ? Number(s.composite)
-              : s.base_score != null
-                ? Number(s.base_score)
-                : null;
-          var comp = compN != null ? compN.toFixed(2) : "—";
-          var pts = compN != null ? (compN * 100).toFixed(1) : "—";
+          var finalN =
+            s.final_score != null
+              ? Number(s.final_score)
+              : s.composite != null
+                ? Number(s.composite)
+                : s.base_score != null
+                  ? Number(s.base_score)
+                  : null;
+          var tradN =
+            s.traditional_score != null ? Number(s.traditional_score) : null;
+          var kroN = s.kronos_score != null ? Number(s.kronos_score) : null;
+          var comp = finalN != null ? finalN.toFixed(2) : "—";
+          var pts = finalN != null ? (finalN * 100).toFixed(1) : "—";
+          var tradTxt = tradN != null ? tradN.toFixed(2) : "—";
+          var kroTxt = kroN != null ? kroN.toFixed(2) : "—";
           var fam =
             (s.recommendation && s.recommendation.family_label_es) ||
             (s.recommendation && s.recommendation.family) ||
+            s.compatible_strategy ||
             "—";
-          var tied = s.score_status === "tied_zero" || (degraded && compN === 0);
+          var tied = s.score_status === "tied_zero" || (degraded && finalN === 0);
           var aviso = tied
             ? "empatado / sin discriminación"
-            : s.score_reason
-              ? String(s.score_reason)
+            : s.kronos_explanation
+              ? String(s.kronos_explanation)
+              : s.score_reason
+                ? String(s.score_reason)
+                : "—";
+          var km = s.kronos_metrics || {};
+          var riskTxt =
+            km.kronos_breakout_risk != null
+              ? Number(km.kronos_breakout_risk).toFixed(2)
               : "—";
           return (
             '<tr class="sc-row' +
@@ -862,13 +914,19 @@
             '<td class="mono">' +
             esc(und) +
             "</td>" +
+            '<td class="mono" title="Score tradicional">' +
+            esc(tradTxt) +
+            "</td>" +
+            '<td class="mono" title="Score Kronos (— = no aplicado)">' +
+            esc(kroTxt) +
+            "</td>" +
             '<td class="mono sc-score-cell' +
             (tied ? " sc-score-tied" : "") +
             '" title="' +
             esc(
               tied
                 ? "Score empatado en 0 — ver avisos arriba"
-                : "Click para ver qué significa este score"
+                : "Final = blend tradicional + Kronos"
             ) +
             '" style="text-decoration:underline;text-underline-offset:2px;' +
             (tied
@@ -881,6 +939,9 @@
             " pts)</span></td>" +
             "<td>" +
             esc(fam) +
+            "</td>" +
+            '<td class="mono muted" title="Riesgo de ruptura Kronos">' +
+            esc(riskTxt) +
             "</td>" +
             '<td class="muted" style="font-size:0.92em">' +
             esc(aviso) +
@@ -914,6 +975,9 @@
         (block.md_meta && block.md_meta.provider
           ? " · md=" + esc(block.md_meta.provider)
           : "") +
+        (block.kronos && block.kronos.status
+          ? " · kronos=" + esc(block.kronos.status)
+          : "") +
         (block.score_status && block.score_status !== "ok"
           ? " · <span class=\"sc-score-tied\">" +
             esc(block.score_status) +
@@ -921,7 +985,8 @@
           : "") +
         "</p>" +
         '<table class="mono" style="width:100%;border-collapse:collapse">' +
-        "<thead><tr><th>#</th><th>Moneda</th><th>Score (pts)</th><th>Familia</th><th>Aviso</th></tr></thead>" +
+        "<thead><tr><th>#</th><th>Moneda</th><th>Trad.</th><th>Kronos</th>" +
+        "<th>Final (pts)</th><th>Estrategia a probar</th><th>Ruptura</th><th>Nota</th></tr></thead>" +
         "<tbody>" +
         rowsHtml +
         "</tbody></table>";
@@ -1665,6 +1730,22 @@
             interval: root.querySelector("#sc-interval").value,
             profile: root.querySelector("#sc-profile").value,
             fetchOpts: fetchOpts,
+            kronos: {
+              kronos_enabled: !!(
+                root.querySelector("#sc-kronos-enabled") &&
+                root.querySelector("#sc-kronos-enabled").checked
+              ),
+              kronos_top_n:
+                parseInt(root.querySelector("#sc-kronos-top").value, 10) || 20,
+              kronos_pred_len:
+                parseInt(root.querySelector("#sc-kronos-pred").value, 10) || 12,
+              kronos_sample_count:
+                parseInt(root.querySelector("#sc-kronos-samples").value, 10) || 4,
+              kronos_legacy_override: !!(
+                root.querySelector("#sc-kronos-legacy") &&
+                root.querySelector("#sc-kronos-legacy").checked
+              ),
+            },
           };
           if (customCoins) {
             opts.underlyings = customCoins;
