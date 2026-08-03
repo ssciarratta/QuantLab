@@ -1,22 +1,19 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-31
-Versión: 1.01.0 · MC fidelidad Comparar
+Actualizado: 2026-08-03
+Versión: 1.01.0 · fix Simulador + Mis simulaciones
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Monte Carlo ligado al Sim (fidelidad de motor, NO calibra PnL):
-  · horizonte ≈ período Comparar (tope 5000 velas)
-  · ruido default 50 bps (estrés)
-  · mismo leverage + funding + liq que Comparar
-- Mis simulaciones queda detrás al terminar corridas
+- Fix JS Simulador (} faltante) + apertura robusta Mis simulaciones
+- Cache-bust ?v=20260803b en scripts clave
+- Mis simulaciones ya NO se abre sola al boot
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 · reiniciar Workbench
-Sim 100/2 → Comparar → Monte Carlo
-Confirmá: velas≈período · ruido 50 · media ya no “plana” por x1/500velas/10bps
+Reiniciar Workbench + Ctrl+F5 (o hard refresh)
+QL → Simulador / Mis simulaciones deben abrir al frente
 
 INVARIANTES
 -----------

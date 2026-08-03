@@ -638,6 +638,7 @@
           },
         });
       }
+    }
 
     function canonicalTicker(venue, id) {
       var p = productFor(venue, id);

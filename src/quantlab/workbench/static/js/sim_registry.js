@@ -814,13 +814,27 @@
   function openWindow(opts) {
     var wm = getWm();
     if (!wm || typeof wm.open !== "function") {
+      openWindow._retries = (openWindow._retries || 0) + 1;
+      if (openWindow._retries > 40) {
+        openWindow._retries = 0;
+        window.alert(
+          "Mis simulaciones: el shell aún no está listo.\nReintentá en un segundo."
+        );
+        return null;
+      }
       setTimeout(function () {
         openWindow(opts);
       }, 120);
       return null;
     }
+    openWindow._retries = 0;
     opts = opts || {};
     if (wm.windows && wm.windows.has(WIN_ID)) {
+      if (typeof wm.restore === "function") {
+        try {
+          wm.restore(WIN_ID);
+        } catch (e0) {}
+      }
       if (typeof wm.focus === "function") wm.focus(WIN_ID);
       var rec = wm.windows.get(WIN_ID);
       if (rec && rec.el && rec.el.classList.contains("minimized") && typeof wm.restore === "function") {
@@ -850,7 +864,13 @@
     if (opts.z != null) geo.z = opts.z;
     if (opts.minimized) geo.minimized = true;
     if (opts.maximized) geo.maximized = true;
-    return wm.open(WIN_ID, "Mis simulaciones", pane, geo);
+    var opened = wm.open(WIN_ID, "Mis simulaciones", pane, geo);
+    if (typeof wm.bringToFront === "function") {
+      try {
+        wm.bringToFront(WIN_ID);
+      } catch (e2) {}
+    }
+    return opened;
   }
 
   function show() {

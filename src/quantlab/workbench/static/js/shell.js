@@ -388,11 +388,31 @@
 
   function openSimulator(opts) {
     opts = opts || {};
+    if (
+      !window.QLPanes ||
+      typeof QLPanes.createSimulatorPane !== "function"
+    ) {
+      window.alert(
+        "Simulador no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
+      return;
+    }
     if (opts.prefill && window.QLNav) {
       window.QLNav.setFocus("simulator", { prefill: opts.prefill });
     }
     if (wm.windows.has("simulator")) {
+      if (typeof wm.restore === "function") {
+        try {
+          wm.restore("simulator");
+        } catch (e) {}
+      }
       wm.focus("simulator");
+      if (typeof wm.bringToFront === "function") {
+        try {
+          wm.bringToFront("simulator");
+        } catch (e2) {}
+      }
       const root = wm.windows.get("simulator").body.firstElementChild;
       if (root && typeof root.applyPrefill === "function" && opts.prefill) {
         root.applyPrefill(opts.prefill);
@@ -401,16 +421,24 @@
       }
       return;
     }
-    const pane = QLPanes.createSimulatorPane();
-    wm.open(
-      "simulator",
-      tr("pane.simulator", "Simulador"),
-      pane,
-      mergeOpts("simulator", { x: 40, y: 20, w: 980, h: 720 })
-    );
-    if (pane.refresh) pane.refresh();
-    if (opts.prefill && typeof pane.applyPrefill === "function") {
-      pane.applyPrefill(opts.prefill);
+    try {
+      const pane = QLPanes.createSimulatorPane();
+      wm.open(
+        "simulator",
+        tr("pane.simulator", "Simulador"),
+        pane,
+        mergeOpts("simulator", { x: 40, y: 20, w: 980, h: 720 })
+      );
+      if (pane.refresh) pane.refresh();
+      if (opts.prefill && typeof pane.applyPrefill === "function") {
+        pane.applyPrefill(opts.prefill);
+      }
+    } catch (err) {
+      window.alert(
+        "No pude abrir el Simulador: " +
+          (err && err.message ? err.message : String(err)) +
+          "\nCtrl+F5 y reintentá."
+      );
     }
   }
 
@@ -491,11 +519,22 @@
 
   function openSimRegistry() {
     if (!window.QLSimRegistry || typeof QLSimRegistry.openWindow !== "function") {
+      window.alert(
+        "Mis simulaciones no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
       return;
     }
-    QLSimRegistry.openWindow(
-      mergeOpts("sim_registry", { x: 20, y: 40, w: 980, h: 560 })
-    );
+    try {
+      QLSimRegistry.openWindow(
+        mergeOpts("sim_registry", { x: 20, y: 40, w: 980, h: 560 })
+      );
+    } catch (err) {
+      window.alert(
+        "No pude abrir Mis simulaciones: " +
+          (err && err.message ? err.message : String(err))
+      );
+    }
   }
 
   function openMetrics() {
@@ -1143,7 +1182,17 @@
         ev.preventDefault();
         ev.stopPropagation();
         var key = btn.getAttribute("data-open");
-        if (openers[key]) openers[key]();
+        try {
+          if (openers[key]) openers[key]();
+        } catch (err) {
+          window.alert(
+            "No pude abrir «" +
+              key +
+              "»: " +
+              (err && err.message ? err.message : String(err)) +
+              "\nCtrl+F5 si el error persiste."
+          );
+        }
       });
     });
     box.querySelectorAll(".ql-fav-up").forEach(function (btn) {
@@ -1201,7 +1250,17 @@
         openAbout();
         return;
       }
-      if (openers[key]) openers[key]();
+      try {
+        if (openers[key]) openers[key]();
+      } catch (err) {
+        window.alert(
+          "No pude abrir «" +
+            key +
+            "»: " +
+            (err && err.message ? err.message : String(err)) +
+            "\nCtrl+F5 si el error persiste."
+        );
+      }
       // Menú QL permanece abierto para seguir navegando.
     });
   });
@@ -1567,7 +1626,8 @@
     openHealth();
     openMarket();
     openBlotter();
-    openSimRegistry();
+    // No abrir Mis simulaciones al boot: el usuario la abre cuando quiere
+    // (queda detrás salvo que la ponga adelante).
 
     // F37: first-run wizard si meta.onboarding_done ausente
     if (

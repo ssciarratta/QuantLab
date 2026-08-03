@@ -179,8 +179,7 @@
             })
             .join(", ") || "—"),
         "",
-        "Monte Carlo re-ejecuta ESA estrategia (mismo capital, leverage, funding/liq) sobre velas reales + ruido.
-" +
+        "Monte Carlo re-ejecuta ESA estrategia (mismo capital, leverage, funding/liq) sobre velas reales + ruido.",
         "No calibra el resultado para igualar el % de Comparar.",
         "",
         "¿Confirmás correr con estos parámetros?",
