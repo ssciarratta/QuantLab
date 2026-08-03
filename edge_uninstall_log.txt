@@ -1,0 +1,6 @@
+[2026-08-03T14:23:32.5023903-03:00] === Edge uninstall start ===
+[2026-08-03T14:23:32.8275550-03:00] AllowUninstall=1 OK
+[2026-08-03T14:23:32.8525955-03:00] Using: C:\Program Files (x86)\Microsoft\Edge\Application\151.0.4129.59\Installer\setup.exe
+[2026-08-03T14:23:35.8364185-03:00] setup exit code: 93
+[2026-08-03T14:23:38.8533419-03:00] msedge.exe still present: True
+[2026-08-03T14:23:38.8565590-03:00] === done ===
