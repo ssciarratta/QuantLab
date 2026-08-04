@@ -1,24 +1,20 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-03
-Versión: 1.01.0 · Kronos-inside-Scanner + memo click
+Versión: 1.01.0 · Scanner anti-stablecoin + Kronos
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Kronos en Alpha Scanner: traditional/kronos/final + memo al click
-- Workbench reiniciado con backend Kronos (antes el proceso viejo ignoraba el checkbox)
-- OFF → kronos null; ON → applied + re-ranking (verificado API)
-
-INSTALACIÓN KRONOS
-------------------
-git clone --depth 1 https://github.com/shiyu-coder/Kronos.git third_party/kronos
-uv sync --extra kronos --extra dev
+- Alpha Scanner: Kronos-inside (Trad/Kronos/Final)
+- Fix: universo Binance auto excluye stablecoins (USDC/FDUSD/…)
+- Fix: moneda puntual estricta + error claro si no hay MD
+- Fix UX: barra status «scanner…» quedaba visible post-OK porque
+  `.sb-run-gate { display:inline-flex }` pisaba `[hidden]` (CSS)
 
 CÓMO PROBAR
 -----------
-Workbench → Alpha Scanner → Kronos ON → rama Market making → Escanear
-Ver columnas Trad. / Kronos / Final
+Ctrl+F5 → escanear → al OK la barra abajo a la derecha debe desaparecer
 
 INVARIANTES
 -----------

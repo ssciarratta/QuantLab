@@ -3464,6 +3464,13 @@ button.btn.danger.engaged {
   gap: 0.35rem;
   max-width: min(52vw, 420px);
 }
+/* display:inline-flex de .sb-item/.sb-run-gate pisa [hidden] sin !important */
+.sb-run-gate[hidden],
+#sb-run-gate[hidden],
+.sb-run-gate-sep[hidden],
+#sb-run-gate-sep[hidden] {
+  display: none !important;
+}
 .sb-run-gate .mono {
   overflow: hidden;
   text-overflow: ellipsis;

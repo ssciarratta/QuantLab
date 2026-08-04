@@ -1,8 +1,8 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-31  
+**Actualizado:** 2026-08-03  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
-**Versión tip:** **1.01.0** · Chat IA mentor (mapa + MC/Sim/Scanner)  
+**Versión tip:** **1.01.0** · Chat IA mentor + Kronos-inside-Scanner + anti-stablecoin  
 **Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro  
 **Monte Carlo:** estrés N escenarios · **ligado al Sim** · mode=`sim_linked` · hereda capital/per_trade · horizonte≈período (MAX_BARS=5000) · ruido estrés 50bps · **mismo leverage/funding/liq que Comparar** · NO calibra PnL histórico · memo CONTEXTO ORIGEN  
 **Backtest:** modo **HISTÓRICO** (venue/moneda/período/TF) + sintético debug · memo + reopen en Mis simulaciones · `run_market_lab_backtest`  
@@ -12,7 +12,8 @@
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage · kinds compare/rank/MC/backtest/**optimize** · **add() silencioso** (no bringToFront; resultado queda en el panel)  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  
-**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` · **Kronos-inside-Scanner** (extra `kronos`, Top20/30, traditional/kronos/final, anti-leakage rank window)  
+**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` · **Kronos-inside-Scanner** · **universo auto excluye stablecoins** (USDC/FDUSD/…) · puntual = filtro estricto + error claro si no hay MD  
+**Lección scanner:** tanda Binance (primeras N de exchangeInfo) metía USDCUSDT arriba por OHLC plano (“spread” falso) → MM engañoso; HOT = Holo HOTUSDT (sí existe en spot)  
 **Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  
 **Roles:** Guided=aprender · Sim=comparar · Scanner=ranking · MC=estrés · Backtest=1 moneda×estrategia · Optimizer=grid params  

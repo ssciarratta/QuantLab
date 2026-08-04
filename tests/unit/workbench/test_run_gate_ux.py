@@ -28,6 +28,10 @@ def test_run_gate_script_and_api_signal() -> None:
     assert "sb-run-gate-bar" in html
     assert "ql-hourglass" in html
 
+    css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
+    assert ".sb-run-gate[hidden]" in css
+    assert "display: none !important" in css
+
 
 def test_panes_have_stop_and_gate() -> None:
     sim = (STATIC / "js/panes/simulator.js").read_text(encoding="utf-8")

@@ -185,9 +185,10 @@ def test_symbol_limit_all_uses_full_curated_universe() -> None:
             kline_limit=12,
             profile="trend",
         )
-    assert out["universe_mode"] == "all"
+    assert out["universe_mode"] == "custom"
     assert out["n_universe"] == len(coins)
     assert out["symbol_limit"] == 0
+    assert out.get("requested_underlyings") == coins
 
 
 def test_multi_venue_scanner_comparison_mock() -> None:
@@ -312,6 +313,8 @@ def test_venue_scanner_accepts_single_underlying() -> None:
     assert out["ok"] is True
     assert out.get("score_mode") == "anchored_cross_section"
     assert out.get("score_anchors")
+    assert out.get("universe_mode") == "puntual"
+    assert out.get("requested_underlyings") == ["NEAR"]
     assert len(out["scores"]) == 1
     assert out["scores"][0].get("underlying") == "NEAR"
     comp = float(out["scores"][0].get("composite") or 0)
@@ -326,3 +329,28 @@ def test_venue_scanner_rejects_empty_underlyings() -> None:
             underlyings=[],
             kline_limit=12,
         )
+
+
+def test_venue_scanner_missing_requested_coin_clear_error() -> None:
+    def fake_fetch(
+        underlying: str,
+        *,
+        venue: str,
+        market_type: str,
+        interval: str,
+        kline_limit: int,
+    ) -> tuple[ResolvedInstrument, list[Bar]]:
+        raise ValidationError(f"símbolo inexistente: {underlying}")
+
+    with patch(
+        "quantlab.brokers.md_router.fetch_bars_for_instrument",
+        side_effect=fake_fetch,
+    ):
+        with pytest.raises(ValidationError, match="no se encontró"):
+            lab_services.run_venue_lab_scanner(
+                venue="binance",
+                market_type="futures",
+                underlyings=["ZZZNOPE"],
+                kline_limit=12,
+                profile="trend",
+            )

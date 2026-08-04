@@ -1078,6 +1078,17 @@ def run_venue_lab_scanner(
             symbols.append(sym)
 
     if not symbols:
+        # Moneda puntual: mensaje claro si lo pedido no tiene MD (aunque fallen anclas).
+        if requested_underlyings is not None:
+            detail = "; ".join(
+                f"{u}: {fetch_failures.get(u) or 'sin MD'}" for u in requested_underlyings
+            )
+            raise ValidationError(
+                f"no se encontró {v}/{mt} para "
+                f"{', '.join(requested_underlyings)} ({detail}). "
+                "Revisá el ticker (ej. HOT = Holo en Binance spot HOTUSDT) "
+                "o probá otro venue/mercado."
+            )
         raise ValidationError(
             f"sin klines en {v}/{mt} "
             f"(fallos={len(fetch_failures)}; ej. {next(iter(fetch_failures.values()), '—')})"
@@ -1089,10 +1100,12 @@ def run_venue_lab_scanner(
             for s in symbols
         }
         missing_req = [u for u in requested_underlyings if u not in got_und]
-        if len(missing_req) == len(requested_underlyings):
+        # 1 moneda o todas fallaron: error explícito (no listar solo anclas).
+        if missing_req and (
+            len(requested_underlyings) == 1 or len(missing_req) == len(requested_underlyings)
+        ):
             detail = "; ".join(
-                f"{u}: {fetch_failures.get(u) or fetch_failures.get(u + 'USDT') or 'sin MD'}"
-                for u in missing_req
+                f"{u}: {fetch_failures.get(u) or 'sin MD / no elegible'}" for u in missing_req
             )
             raise ValidationError(
                 f"no se encontró {v}/{mt} para "
@@ -1235,7 +1248,11 @@ def run_venue_lab_scanner(
             )
 
     if requested_underlyings is not None:
-        universe_mode = "puntual"
+        universe_mode = (
+            "puntual"
+            if len(requested_underlyings) < SCORE_CROSS_SECTION_MIN
+            else "custom"
+        )
     elif symbol_limit == SYMBOL_LIMIT_ALL:
         universe_mode = "all"
     else:

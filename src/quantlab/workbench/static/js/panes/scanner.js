@@ -1246,11 +1246,13 @@
         esc(
           block.universe_mode === "puntual"
             ? "puntual"
-            : block.universe_mode === "all"
-              ? "todas"
-              : block.symbol_limit != null
-                ? block.symbol_limit
-                : ""
+            : block.universe_mode === "custom"
+              ? "custom"
+              : block.universe_mode === "all"
+                ? "todas"
+                : block.symbol_limit != null
+                  ? block.symbol_limit
+                  : ""
         ) +
         (block.requested_underlyings && block.requested_underlyings.length
           ? " · pedido=" + esc(block.requested_underlyings.join(","))
@@ -2064,6 +2066,16 @@
         }
         promise
           .then(function () {
+            if (
+              handle &&
+              global.QLRunGate &&
+              typeof QLRunGate.current === "function"
+            ) {
+              var cur = QLRunGate.current();
+              if (cur && cur.id && handle.id && cur.id !== handle.id) {
+                return; /* corrida reemplazada: no tocar status */
+              }
+            }
             setStatus(true, "OK");
           })
           .catch(function (err) {
@@ -2073,9 +2085,14 @@
               setStatus(false, err.message || String(err));
             }
           })
-          .then(function () {
-            if (handle) handle.end();
-          });
+          .then(
+            function () {
+              if (handle) handle.end();
+            },
+            function () {
+              if (handle) handle.end();
+            }
+          );
       }
 
       if (!global.QLRunGate) {
