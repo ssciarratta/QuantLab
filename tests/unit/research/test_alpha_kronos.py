@@ -332,3 +332,72 @@ def test_no_leakage_only_rank_bars_passed() -> None:
 def test_legacy_override_allows_minimal_weight() -> None:
     cfg = KronosConfig(enabled=True, legacy_override=True)
     assert cfg.weight_for_profile("legacy_v1") == pytest.approx(0.05)
+
+
+def test_safe_stdio_absorbs_unicode_progress_bars() -> None:
+    """Regresión: ████ en consola ASCII no debe tumbar el Scanner."""
+    import sys
+
+    from quantlab.research.alpha.kronos.stdio_guard import safe_stdio
+
+    old_out, old_err = sys.stdout, sys.stderr
+    try:
+        sys.stdout.reconfigure(encoding="ascii", errors="strict")
+        sys.stderr.reconfigure(encoding="ascii", errors="strict")
+        # Sin guard: falla (documenta el bug).
+        with pytest.raises(UnicodeEncodeError):
+            sys.stdout.write("Fetching 5 files:  40%|████      | 2/5\n")
+        # Con guard: no levanta.
+        with safe_stdio():
+            n = sys.stdout.write("Fetching 5 files:  40%|████      | 2/5\n")
+            assert n > 0
+            sys.stdout.write("Un score alto indica adecuación\n")
+    finally:
+        sys.stdout = old_out
+        sys.stderr = old_err
+
+
+def test_forecast_catches_unicode_encode_error() -> None:
+    """UnicodeEncodeError en inferencia → fail-soft (no 500 HTTP)."""
+    import sys
+
+    from quantlab.research.alpha.kronos.errors import KronosSkipReason
+    from quantlab.research.alpha.kronos.forecast import KronosTorchEngine
+
+    eng = object.__new__(KronosTorchEngine)
+    eng.config = KronosConfig(enabled=True)
+    eng.vendor = Path(".")
+    eng.device = "cpu"
+    eng.model_revision = "test"
+
+    class RaiseAscii:
+        def predict(self, **kwargs: object) -> object:
+            raise UnicodeEncodeError("ascii", "████", 0, 4, "ordinal not in range(128)")
+
+    eng._predictor = RaiseAscii()
+    bars = _bars(16)
+    ns = tuple(int(b.timestamp_close.timestamp() * 1e9) for b in bars)
+    req = ForecastRequest(
+        instrument_id="BN:TESTUSDT",
+        lookback_opens=tuple(float(b.open) for b in bars),
+        lookback_highs=tuple(float(b.high) for b in bars),
+        lookback_lows=tuple(float(b.low) for b in bars),
+        lookback_closes=tuple(float(b.close) for b in bars),
+        lookback_volumes=tuple(float(b.volume) for b in bars),
+        lookback_amounts=tuple(float(b.volume) for b in bars),
+        timestamps_ns=ns,
+        pred_len=4,
+        sample_count=1,
+        temperature=1.0,
+        top_p=0.9,
+        seed=1,
+    )
+    old_out = sys.stdout
+    try:
+        sys.stdout.reconfigure(encoding="ascii", errors="strict")
+        result = eng.forecast(req)
+    finally:
+        sys.stdout = old_out
+    assert result.ok is False
+    assert result.reason == KronosSkipReason.INFERENCE_FAILED
+    assert result.detail and "stdio_ascii" in result.detail

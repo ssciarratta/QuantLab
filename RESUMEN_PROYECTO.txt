@@ -1,6 +1,6 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-03
+Actualizado: 2026-08-04
 Versión: 1.01.0 · Scanner anti-stablecoin + Kronos
 
 ESTADO
@@ -9,12 +9,26 @@ ESTADO
 - Alpha Scanner: Kronos-inside (Trad/Kronos/Final)
 - Fix: universo Binance auto excluye stablecoins (USDC/FDUSD/…)
 - Fix: moneda puntual estricta + error claro si no hay MD
-- Fix UX: barra status «scanner…» quedaba visible post-OK porque
-  `.sb-run-gate { display:inline-flex }` pisaba `[hidden]` (CSS)
+- Fix UX: barra status «scanner…» post-OK (CSS [hidden])
+- Fix 2026-08-04: UnicodeEncodeError ASCII (barras █ tqdm/HF)
+  tumba Scanner en Windows → stdio_guard + UTF-8 forzado al
+  arranque + verbose Kronos off + fail-soft
+
+ÚLTIMA IMPLEMENTACIÓN
+---------------------
+2026-08-04 — Blindaje stdio Kronos/Windows (safe_stdio,
+HF_HUB_DISABLE_PROGRESS_BARS, TQDM_ASCII, launch/arrancar
+fuerzan PYTHONUTF8). Tests regresión en test_alpha_kronos.
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 → escanear → al OK la barra abajo a la derecha debe desaparecer
+Reiniciar Workbench → Ctrl+F5 → Alpha Scanner con Kronos.
+No debe aparecer: ascii codec can't encode characters…
+
+PRÓXIMO PASO
+------------
+Usar Scanner en UI tras reinicio; si vuelve el 500, capturar
+payload de error completo.
 
 INVARIANTES
 -----------

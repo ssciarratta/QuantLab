@@ -76,6 +76,12 @@
 - `QLRunGate`: una activa; si hay otra → Esperar / Cortar / Cancelar; Stop en panel y status bar.
 - `QLApi.request` debe aceptar `signal` (AbortController); jobs MC async se cancelan vía `onCancel` + API cancel.
 
+### 11. Kronos + consola ASCII Windows (2026-08-04)
+
+- Barras tqdm/HuggingFace con `█` en stdout ASCII → `UnicodeEncodeError` (p.ej. positions 23–29) → el handler del Workbench devolvía **500** y tumba el Alpha Scanner.
+- `verbose=False` solo no alcanza si HF descarga/progress sigue imprimiendo.
+- Mitigación: `stdio_guard.safe_stdio` en load/inferencia + forzar `PYTHONUTF8`/`TQDM_ASCII`/`HF_HUB_DISABLE_PROGRESS_BARS` en launch (no `setdefault`) + fail-soft `UnicodeEncodeError`.
+
 ---
 
 ## Permanentes (pre-F19, siguen vigentes)

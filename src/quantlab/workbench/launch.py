@@ -94,13 +94,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     # Windows: consolas cp1252/ascii rompen logs y tqdm (█, ñ, —).
+    # Forzar (no setdefault): un .env / shell con PYTHONIOENCODING=ascii
+    # dejaba el Scanner en 500 al imprimir barras HuggingFace.
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONUTF8"] = "1"
+    os.environ["TQDM_ASCII"] = "1"
+    os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
     for stream in (sys.stdout, sys.stderr):
         reconf = getattr(stream, "reconfigure", None)
         if callable(reconf):
             with contextlib.suppress(Exception):
                 reconf(encoding="utf-8", errors="replace")
-    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
-    os.environ.setdefault("PYTHONUTF8", "1")
 
     args = build_parser().parse_args(list(argv) if argv is not None else None)
 

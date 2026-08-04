@@ -1,8 +1,9 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-08-03  
+**Actualizado:** 2026-08-04  
 **Branch trabajo:** `cursor/modo-real-workbench-aafd`  
 **Versión tip:** **1.01.0** · Chat IA mentor + Kronos-inside-Scanner + anti-stablecoin  
+**Lección scanner 2026-08-04:** consolas Windows ASCII + barras tqdm/HF (`█`) → `UnicodeEncodeError` → HTTP 500 en Alpha Scanner; mitigación `stdio_guard.safe_stdio` + `HF_HUB_DISABLE_PROGRESS_BARS` + UTF-8 forzado en `launch`/`arrancar_workbench` (no `setdefault`)  
 **Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro  
 **Monte Carlo:** estrés N escenarios · **ligado al Sim** · mode=`sim_linked` · hereda capital/per_trade · horizonte≈período (MAX_BARS=5000) · ruido estrés 50bps · **mismo leverage/funding/liq que Comparar** · NO calibra PnL histórico · memo CONTEXTO ORIGEN  
 **Backtest:** modo **HISTÓRICO** (venue/moneda/período/TF) + sintético debug · memo + reopen en Mis simulaciones · `run_market_lab_backtest`  

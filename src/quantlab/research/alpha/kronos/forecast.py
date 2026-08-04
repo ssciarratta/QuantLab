@@ -16,6 +16,7 @@ from quantlab.research.alpha.kronos.protocol import (
     ForecastResult,
     TrajectoryBatch,
 )
+from quantlab.research.alpha.kronos.stdio_guard import harden_progress_env, safe_stdio
 
 logger = logging.getLogger(__name__)
 
@@ -80,14 +81,28 @@ class KronosTorchEngine:
                 detail="predictor no cargado",
             )
         t0 = time.perf_counter()
+        harden_progress_env()
         try:
-            batch = self._predict_trajectories(request)
+            with safe_stdio():
+                batch = self._predict_trajectories(request)
         except KronosError as exc:
             return ForecastResult(
                 ok=False,
                 trajectories=None,
                 reason=exc.reason,
                 detail=str(exc),
+                inference_ms=(time.perf_counter() - t0) * 1000.0,
+                device=self.device,
+                model_revision=self.model_revision,
+            )
+        except UnicodeEncodeError as exc:
+            # Consola ASCII + barras █ de tqdm/HF: no tumbar el Alpha Scanner.
+            logger.warning("kronos_inference_ascii_stdio: %s", exc)
+            return ForecastResult(
+                ok=False,
+                trajectories=None,
+                reason=KronosSkipReason.INFERENCE_FAILED,
+                detail=f"stdio_ascii:{exc}",
                 inference_ms=(time.perf_counter() - t0) * 1000.0,
                 device=self.device,
                 model_revision=self.model_revision,

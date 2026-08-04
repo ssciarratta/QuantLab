@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -11,6 +10,7 @@ from typing import Any
 from quantlab.research.alpha.kronos.config import KronosConfig
 from quantlab.research.alpha.kronos.errors import KronosError, KronosSkipReason
 from quantlab.research.alpha.kronos.protocol import ForecastEngine, NullForecastEngine
+from quantlab.research.alpha.kronos.stdio_guard import harden_progress_env, safe_stdio
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +62,8 @@ def get_forecast_engine(config: KronosConfig) -> ForecastEngine:
     if not config.enabled:
         return NullForecastEngine(KronosSkipReason.DISABLED)
 
-    # Evita UnicodeEncodeError de barras tqdm en consolas ASCII (Windows).
-    os.environ.setdefault("TQDM_DISABLE", "0")
-    os.environ["TQDM_ASCII"] = "1"
+    # Evita UnicodeEncodeError de barras tqdm/HF (█) en consolas ASCII (Windows).
+    harden_progress_env()
 
     vendor = Path(config.vendor_path) if config.vendor_path else default_vendor_path()
     key = f"{config.model}|{config.tokenizer}|{config.device}|{vendor}"
@@ -80,12 +79,18 @@ def get_forecast_engine(config: KronosConfig) -> ForecastEngine:
     try:
         from quantlab.research.alpha.kronos.forecast import KronosTorchEngine
 
-        eng = KronosTorchEngine(config, vendor=vendor)
+        with safe_stdio():
+            eng = KronosTorchEngine(config, vendor=vendor)
         _ENGINE, _ENGINE_KEY = eng, key
         return eng
     except KronosError as exc:
         logger.warning("kronos_load_failed reason=%s detail=%s", exc.reason, exc)
         eng = NullForecastEngine(exc.reason)
+        _ENGINE, _ENGINE_KEY = eng, key
+        return eng
+    except UnicodeEncodeError as exc:
+        logger.warning("kronos_load_ascii_stdio: %s", exc)
+        eng = NullForecastEngine(KronosSkipReason.MODEL_LOAD_FAILED)
         _ENGINE, _ENGINE_KEY = eng, key
         return eng
     except Exception as exc:  # noqa: BLE001
