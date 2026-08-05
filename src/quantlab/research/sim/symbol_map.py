@@ -9,6 +9,24 @@ from quantlab.core.exceptions import ValidationError
 VENUES = frozenset({"binance", "okx", "bybit", "hyperliquid", "a3"})
 MARKET_TYPES = frozenset({"spot", "futures"})
 
+# USDT-M perps con multiplicador (Binance/Bybit). Spot suele ser BASEUSDT
+# (PEPEUSDT); futures lista 1000PEPEUSDT — sin alias → HTTP 400 Invalid symbol.
+USDT_M_MULTIPLIER_BASE: dict[str, str] = {
+    "PEPE": "1000PEPE",
+    "SHIB": "1000SHIB",
+    "FLOKI": "1000FLOKI",
+    "BONK": "1000BONK",
+    "LUNC": "1000LUNC",
+    "XEC": "1000XEC",
+    "SATS": "1000SATS",
+    "RATS": "1000RATS",
+    "CAT": "1000CAT",
+    "CHEEMS": "1000CHEEMS",
+    "BOB": "1000000BOB",
+    "MOG": "1000000MOG",
+    "BABYDOGE": "1MBABYDOGE",
+}
+
 
 @dataclass(frozen=True, slots=True)
 class ResolvedInstrument:
@@ -28,6 +46,16 @@ def _normalize_crypto_underlying(raw: str) -> str:
     if not text or not text.isalnum():
         raise ValidationError(f"underlying inválido: {raw!r}")
     return text
+
+
+def _futures_contract_base(base: str) -> str:
+    """PEPE → 1000PEPE; 1000PEPE queda igual (no doblar prefijo)."""
+    if base in USDT_M_MULTIPLIER_BASE:
+        return USDT_M_MULTIPLIER_BASE[base]
+    # Ya viene como id de contrato (p. ej. catálogo / handoff).
+    if base.startswith(("1000", "1M", "1000000")):
+        return base
+    return base
 
 
 def _normalize_hl_underlying(raw: str) -> str:
@@ -81,13 +109,16 @@ def resolve_instrument(
 
     base = _normalize_crypto_underlying(underlying)
     if v == "binance":
-        sym = f"{base}USDT"
+        contract = _futures_contract_base(base) if mt == "futures" else base
+        sym = f"{contract}USDT"
         prefix = "BNF" if mt == "futures" else "BN"
     elif v == "okx":
+        # OKX usa PEPE-USDT-SWAP (sin multiplicador 1000 en el id).
         sym = f"{base}-USDT-SWAP" if mt == "futures" else f"{base}-USDT"
         prefix = "OKX"
     elif v == "bybit":
-        sym = f"{base}USDT"
+        contract = _futures_contract_base(base) if mt == "futures" else base
+        sym = f"{contract}USDT"
         prefix = "BYB"
     else:
         raise ValidationError(f"venue no soportado: {venue!r}")

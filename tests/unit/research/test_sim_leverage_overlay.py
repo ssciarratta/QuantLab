@@ -22,6 +22,25 @@ def test_resolve_binance_futures() -> None:
     assert r.instrument_id == "BNF:BTCUSDT"
 
 
+def test_resolve_binance_futures_pepe_multiplier() -> None:
+    """Binance USDT-M no lista PEPEUSDT; el perp es 1000PEPEUSDT."""
+    r = resolve_instrument("PEPE", venue="binance", market_type="futures")
+    assert r.underlying == "PEPE"
+    assert r.symbol == "1000PEPEUSDT"
+    assert r.instrument_id == "BNF:1000PEPEUSDT"
+    # Spot sigue siendo PEPEUSDT.
+    spot = resolve_instrument("PEPE", venue="binance", market_type="spot")
+    assert spot.symbol == "PEPEUSDT"
+    # Id ya con prefijo no se duplica.
+    already = resolve_instrument("1000PEPE", venue="binance", market_type="futures")
+    assert already.symbol == "1000PEPEUSDT"
+
+
+def test_resolve_bybit_futures_pepe_multiplier() -> None:
+    r = resolve_instrument("PEPE", venue="bybit", market_type="futures")
+    assert r.symbol == "1000PEPEUSDT"
+
+
 def test_resolve_okx_futures() -> None:
     r = resolve_instrument("ETH", venue="okx", market_type="futures")
     assert r.symbol == "ETH-USDT-SWAP"

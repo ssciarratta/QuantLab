@@ -5,7 +5,7 @@
 **Versión tip:** **1.01.0** · Chat IA mentor + Kronos-inside-Scanner + anti-stablecoin  
 **Lección scanner 2026-08-05:** error `ascii codec … position 26-29` al escanear «Todas» NO era tqdm: Binance lista `币安人生USDT` (CJK) y `http.client` hace `request.encode('ascii')`. Fix: `is_http_safe_symbol` (A-Z0-9) en `list_spot_symbols` / klines.  
 **Lección scanner 2026-08-04:** consolas Windows ASCII + barras tqdm/HF (`█`) → mitigación `stdio_guard` (sigue válida, otra causa).  
-**Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro  
+**Simulador:** comparar · ranking · **un solo botón Monte Carlo** (mismo handoff) · sin monedas default · memo · registro · **futures multiplier** PEPE→1000PEPEUSDT (Binance/Bybit) via `symbol_map.USDT_M_MULTIPLIER_BASE`  
 **Monte Carlo:** estrés N escenarios · **ligado al Sim** · mode=`sim_linked` · hereda capital/per_trade · horizonte≈período (MAX_BARS=5000) · ruido estrés 50bps · **mismo leverage/funding/liq que Comparar** · NO calibra PnL histórico · memo CONTEXTO ORIGEN  
 **Backtest:** modo **HISTÓRICO** (venue/moneda/período/TF) + sintético debug · memo + reopen en Mis simulaciones · `run_market_lab_backtest`  
 **Optimizer:** mismo patrón histórico (momentum grid lookback×qty) · memo + reopen · `run_lab_optimize(mode=historical)`  

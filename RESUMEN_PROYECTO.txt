@@ -7,27 +7,24 @@ ESTADO
 ------
 - LIVE_BLOCKED=True
 - Alpha Scanner + Kronos OK
-- Cantidades libres en Scanner (Top / N / Kronos)
+- Fix PEPE futures MD 400
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-08-05 — Cantidad de monedas editable:
-- Universo: Cantidad (N 1–500) | Todas | puntual
-- Top ranking: 1–100
-- Top Kronos: 1–100 (siempre editable)
-- Backend: SYMBOL_LIMIT 1–500, TOP_N 1–100
-- Cache-bust scanner.js?v=20260805a
+2026-08-05 — Simulador PEPE futures:
+Binance/Bybit no tienen PEPEUSDT en USDT-M;
+el perp es 1000PEPEUSDT. Alias en
+symbol_map.USDT_M_MULTIPLIER_BASE
+(PEPE, SHIB, FLOKI, BONK, …).
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 → Alpha Scanner:
-- Universo «Cantidad» N=1 → Escanear
-- Moneda puntual BTC → Top Kronos=1
-- Top=3, N=10, Top Kronos=5
+Reiniciar Workbench → Simulador → Futuros
+→ PEPE → Comparar. No debe salir HTTP 400.
 
 PRÓXIMO PASO
 ------------
-Usar Scanner con la cantidad que elijas.
+Usar Simulador con memecoins multiplier.
 
 INVARIANTES
 -----------

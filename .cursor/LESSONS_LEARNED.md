@@ -88,6 +88,13 @@
 - `fetch_universe_bars` solo capturaba `ValidationError` → el UnicodeEncodeError tumbaba todo el scan.
 - Fix: `is_http_safe_symbol` (solo A-Z0-9) al listar; skip + ValidationError en klines; catch UnicodeEncodeError.
 
+### 13. PEPE futures ≠ PEPEUSDT (2026-08-05)
+
+- Simulador PEPE + Binance futures → `binance MD HTTP 400: Bad Request`.
+- Causa: `resolve_instrument` armaba `PEPEUSDT`; USDT-M solo lista `1000PEPEUSDT` (igual Bybit).
+- Spot `PEPEUSDT` sí existe; el bug es solo futures/multiplier.
+- Fix: `USDT_M_MULTIPLIER_BASE` en `symbol_map.py` (PEPE→1000PEPE, SHIB, FLOKI, …).
+
 ---
 
 ## Permanentes (pre-F19, siguen vigentes)
