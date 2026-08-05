@@ -78,9 +78,15 @@
 
 ### 11. Kronos + consola ASCII Windows (2026-08-04)
 
-- Barras tqdm/HuggingFace con `█` en stdout ASCII → `UnicodeEncodeError` (p.ej. positions 23–29) → el handler del Workbench devolvía **500** y tumba el Alpha Scanner.
-- `verbose=False` solo no alcanza si HF descarga/progress sigue imprimiendo.
-- Mitigación: `stdio_guard.safe_stdio` en load/inferencia + forzar `PYTHONUTF8`/`TQDM_ASCII`/`HF_HUB_DISABLE_PROGRESS_BARS` en launch (no `setdefault`) + fail-soft `UnicodeEncodeError`.
+- Barras tqdm/HuggingFace con `█` en stdout ASCII → `UnicodeEncodeError` → HTTP 500.
+- Mitigación: `stdio_guard.safe_stdio` + forzar UTF-8/`TQDM_ASCII`/`HF_HUB_DISABLE_PROGRESS_BARS`.
+
+### 12. Binance CJK en universo «Todas» (2026-08-05)
+
+- Mismo mensaje `ascii codec … position 26-29`, pero causa distinta: `http.client` encode del request line.
+- Prefijo `GET /api/v3/klines?symbol=` tiene len 25 → chars 26-29 = `币安人生` del par `币安人生USDT`.
+- `fetch_universe_bars` solo capturaba `ValidationError` → el UnicodeEncodeError tumbaba todo el scan.
+- Fix: `is_http_safe_symbol` (solo A-Z0-9) al listar; skip + ValidationError en klines; catch UnicodeEncodeError.
 
 ---
 

@@ -7,7 +7,9 @@ Para demo/testnet de trading se usará otro módulo + unlock LIVE.
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -17,6 +19,10 @@ from typing import Any
 from quantlab.brokers.md_limits import MAX_KLINES_TOTAL, MIN_KLINES
 from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
+
+# HTTP/1.1 request-line es ASCII estricto (http.client encode('ascii')).
+# Binance listó pares con CJK (p.ej. 币安人生USDT) → tumba Alpha Scanner «Todas».
+_SYMBOL_HTTP_SAFE = re.compile(r"^[A-Z0-9]+$")
 
 DEFAULT_BASE_URL = "https://api.binance.com"
 DEFAULT_TIMEOUT_SECONDS = 10.0
@@ -59,6 +65,12 @@ def is_stablecoin_base(base_or_symbol: str, *, quote: str = "USDT") -> bool:
     if q and raw.endswith(q) and len(raw) > len(q):
         raw = raw[: -len(q)]
     return raw in STABLECOIN_BASE_ASSETS
+
+
+def is_http_safe_symbol(symbol: str) -> bool:
+    """True si el símbolo es usable en URL Binance vía urllib (solo A-Z0-9)."""
+    sym = (symbol or "").strip().upper()
+    return bool(sym) and _SYMBOL_HTTP_SAFE.fullmatch(sym) is not None
 
 # Intervalos Spot públicos (sin ticks/L2). 1m = más fino disponible aquí.
 ALLOWED_KLINE_INTERVALS: frozenset[str] = frozenset(
@@ -141,6 +153,9 @@ class BinancePublicMdClient:
         self._timeout = timeout_seconds
 
     def _get_json(self, path: str) -> Any:
+        # Defensa: path/query deben ser ASCII (http.client).
+        if not path.isascii():
+            raise ValidationError("binance MD path no-ASCII (símbolo inválido)")
         url = f"{self._base}{path}"
         req = urllib.request.Request(
             url,
@@ -150,6 +165,8 @@ class BinancePublicMdClient:
         try:
             with urllib.request.urlopen(req, timeout=self._timeout) as resp:
                 raw = resp.read().decode("utf-8")
+        except UnicodeEncodeError as exc:
+            raise ValidationError(f"binance MD URL no-ASCII: {exc}") from exc
         except urllib.error.HTTPError as exc:
             raise ValidationError(f"binance MD HTTP {exc.code}: {exc.reason}") from exc
         except urllib.error.URLError as exc:
@@ -187,6 +204,9 @@ class BinancePublicMdClient:
             sym = str(item.get("symbol", "")).upper()
             if not sym:
                 continue
+            # CJK / unicode en symbol → urllib ASCII crash (Scanner «Todas»).
+            if not is_http_safe_symbol(sym):
+                continue
             # Defensa si exchangeInfo omite baseAsset.
             if is_stablecoin_base(sym, quote=q):
                 continue
@@ -199,7 +219,10 @@ class BinancePublicMdClient:
         sym = symbol.strip().upper()
         if not sym:
             raise ValidationError("symbol vacío")
-        payload = self._get_json(f"/api/v3/ticker/bookTicker?symbol={sym}")
+        if not is_http_safe_symbol(sym):
+            raise ValidationError(f"symbol no-ASCII no soportado: {sym!r}")
+        q = urllib.parse.urlencode({"symbol": sym})
+        payload = self._get_json(f"/api/v3/ticker/bookTicker?{q}")
         if not isinstance(payload, dict):
             raise ValidationError("bookTicker inválido")
 
@@ -269,6 +292,8 @@ class BinancePublicMdClient:
         sym = symbol.strip().upper()
         if not sym:
             raise ValidationError("symbol vacío")
+        if not is_http_safe_symbol(sym):
+            raise ValidationError(f"symbol no-ASCII no soportado: {sym!r}")
         if limit < MIN_KLINES or limit > MAX_KLINES_TOTAL:
             raise ValidationError(
                 f"klines limit debe estar entre {MIN_KLINES} y {MAX_KLINES_TOTAL}"
@@ -284,9 +309,14 @@ class BinancePublicMdClient:
             if remaining <= 0:
                 break
             batch = min(MAX_KLINES_PER_REQUEST, remaining)
-            path = f"/api/v3/klines?symbol={sym}&interval={iv}&limit={batch}"
+            params: dict[str, str | int] = {
+                "symbol": sym,
+                "interval": iv,
+                "limit": batch,
+            }
             if end_ms is not None:
-                path += f"&endTime={end_ms}"
+                params["endTime"] = end_ms
+            path = "/api/v3/klines?" + urllib.parse.urlencode(params)
             payload = self._get_json(path)
             chunk = self._parse_kline_rows(sym, iv, payload)
             if not chunk:
@@ -318,9 +348,11 @@ def fetch_universe_bars(
     client = BinancePublicMdClient(base_url=base_url)
     out: dict[str, list[Bar]] = {}
     for sym in symbols:
+        if not is_http_safe_symbol(sym):
+            continue
         try:
             out[sym] = client.klines(sym, interval=interval, limit=kline_limit)
-        except ValidationError:
+        except (ValidationError, UnicodeEncodeError):
             continue
     return out
 

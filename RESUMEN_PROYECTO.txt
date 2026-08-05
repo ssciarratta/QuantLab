@@ -1,34 +1,32 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-04
-Versión: 1.01.0 · Scanner anti-stablecoin + Kronos
+Actualizado: 2026-08-05
+Versión: 1.01.0
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
-- Alpha Scanner: Kronos-inside (Trad/Kronos/Final)
-- Fix: universo Binance auto excluye stablecoins (USDC/FDUSD/…)
-- Fix: moneda puntual estricta + error claro si no hay MD
-- Fix UX: barra status «scanner…» post-OK (CSS [hidden])
-- Fix 2026-08-04: UnicodeEncodeError ASCII (barras █ tqdm/HF)
-  tumba Scanner en Windows → stdio_guard + UTF-8 forzado al
-  arranque + verbose Kronos off + fail-soft
+- Alpha Scanner + Kronos OK
+- Fix 2026-08-05: Scanner «Todas» caía con
+  ascii codec position 26-29 — causa real:
+  par Binance CJK `币安人生USDT` en URL urllib.
+  Filtro `is_http_safe_symbol` (solo A-Z0-9).
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-08-04 — Blindaje stdio Kronos/Windows (safe_stdio,
-HF_HUB_DISABLE_PROGRESS_BARS, TQDM_ASCII, launch/arrancar
-fuerzan PYTHONUTF8). Tests regresión en test_alpha_kronos.
+2026-08-05 — Filtrar símbolos no-ASCII en
+Binance public MD (spot+futures). Tests en
+test_binance_stablecoin_filter.py. Workbench
+reiniciado; scan Todas → HTTP 200.
 
 CÓMO PROBAR
 -----------
-Reiniciar Workbench → Ctrl+F5 → Alpha Scanner con Kronos.
-No debe aparecer: ascii codec can't encode characters…
+Ctrl+F5 → Alpha Scanner → Universo Todas → Escanear
+No debe aparecer el error ascii codec.
 
 PRÓXIMO PASO
 ------------
-Usar Scanner en UI tras reinicio; si vuelve el 500, capturar
-payload de error completo.
+Usar Scanner en UI.
 
 INVARIANTES
 -----------

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import urllib.parse
 from datetime import datetime
 
 from quantlab.brokers.binance.public_md import (
     ALLOWED_KLINE_INTERVALS,
     BinancePublicMdClient,
+    is_http_safe_symbol,
     validate_kline_interval,
 )
 from quantlab.brokers.md_limits import MAX_KLINES_TOTAL, MIN_KLINES
@@ -44,6 +46,8 @@ class BinanceFuturesPublicMdClient(BinancePublicMdClient):
         sym = symbol.strip().upper()
         if not sym:
             raise ValidationError("symbol vacío")
+        if not is_http_safe_symbol(sym):
+            raise ValidationError(f"symbol no-ASCII no soportado: {sym!r}")
         if limit < MIN_KLINES or limit > MAX_KLINES_TOTAL:
             raise ValidationError(
                 f"klines limit debe estar entre {MIN_KLINES} y {MAX_KLINES_TOTAL}"
@@ -58,9 +62,14 @@ class BinanceFuturesPublicMdClient(BinancePublicMdClient):
             if remaining <= 0:
                 break
             batch = min(MAX_KLINES_PER_REQUEST, remaining)
-            path = f"/fapi/v1/klines?symbol={sym}&interval={iv}&limit={batch}"
+            params: dict[str, str | int] = {
+                "symbol": sym,
+                "interval": iv,
+                "limit": batch,
+            }
             if end_ms is not None:
-                path += f"&endTime={end_ms}"
+                params["endTime"] = end_ms
+            path = "/fapi/v1/klines?" + urllib.parse.urlencode(params)
             payload = self._get_json(path)
             chunk = self._parse_kline_rows(sym, iv, payload)
             for i, bar in enumerate(chunk):
@@ -100,8 +109,12 @@ class BinanceFuturesPublicMdClient(BinancePublicMdClient):
     ) -> list[dict[str, str]]:
         """Historial funding (para overlay opcional)."""
         sym = symbol.strip().upper()
+        if not is_http_safe_symbol(sym):
+            raise ValidationError(f"symbol no-ASCII no soportado: {sym!r}")
         lim = max(1, min(int(limit), 1000))
-        path = f"/fapi/v1/fundingRate?symbol={sym}&limit={lim}"
+        path = "/fapi/v1/fundingRate?" + urllib.parse.urlencode(
+            {"symbol": sym, "limit": lim}
+        )
         payload = self._get_json(path)
         if not isinstance(payload, list):
             raise ValidationError("fundingRate inválido")
@@ -127,9 +140,11 @@ def fetch_futures_bars(
     client = BinanceFuturesPublicMdClient(base_url=base_url)
     out: dict[str, list[Bar]] = {}
     for sym in symbols:
+        if not is_http_safe_symbol(sym):
+            continue
         try:
             out[sym] = client.klines(sym, interval=interval, limit=kline_limit)
-        except ValidationError:
+        except (ValidationError, UnicodeEncodeError):
             continue
     return out
 
