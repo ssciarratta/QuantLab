@@ -16,6 +16,18 @@ def test_scanner_has_coin_typeahead() -> None:
     assert "simUniverse" in js
 
 
+def test_scanner_free_quantity_controls() -> None:
+    """Top / N monedas / Top Kronos son inputs numéricos editables."""
+    js = (STATIC / "js/panes/scanner.js").read_text(encoding="utf-8")
+    assert 'id="sc-limit-mode"' in js
+    assert 'id="sc-limit-n"' in js
+    assert 'id="sc-kronos-top" type="number"' in js
+    assert 'id="sc-top" type="number"' in js
+    assert "universeMode()" in js
+    assert 'max="100"' in js
+    assert 'max="500"' in js
+
+
 def test_scanner_instant_nbars_preview() -> None:
     js = (STATIC / "js/panes/scanner.js").read_text(encoding="utf-8")
     assert "estimateBarsLocal" in js

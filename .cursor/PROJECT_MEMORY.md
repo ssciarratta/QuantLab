@@ -14,7 +14,7 @@
 **Registro UI:** ventana WM `sim_registry` · **Reabrir** restaura params · Memo · localStorage · kinds compare/rank/MC/backtest/**optimize** · **add() silencioso** (no bringToFront; resultado queda en el panel)  
 **Estrategias:** panel propio · «Abrir en Simulador»  
 **Menú QL:** favoritos **Mis simulaciones → Chat IA → Scanner → Simulador → Estrategias** · Reabrir trae panel al frente  
-**Alpha Scanner:** multi-mercado · **Moneda puntual = typeahead catálogo** · preview `≈ N velas · período × TF` · **Kronos-inside-Scanner** · **universo auto excluye stablecoins** (USDC/FDUSD/…) · puntual = filtro estricto + error claro si no hay MD  
+**Alpha Scanner:** multi-mercado · **cantidades libres** (Top 1–100, N monedas 1–500, Top Kronos 1–100 siempre editable) · Universo=Cantidad|Todas|puntual · typeahead catálogo · preview `≈ N velas` · **Kronos-inside-Scanner** · universo auto excluye stablecoins · puntual = filtro estricto  
 **Lección scanner:** tanda Binance (primeras N de exchangeInfo) metía USDCUSDT arriba por OHLC plano (“spread” falso) → MM engañoso; HOT = Holo HOTUSDT (sí existe en spot)  
 **Chat IA:** system prompt mapa paneles · tools `explain_*` · open simulator/MC/strategies/sim_registry · chips UI · FakeProvider entiende «monte carlo»  
 **Números UI:** `QLFmt` 2 decimales  

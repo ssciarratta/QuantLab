@@ -600,8 +600,7 @@ def run_market_lab_backtest(
 
 
 def run_lab_scanner(*, top_n: int = 3) -> dict[str, Any]:
-    if top_n < 1 or top_n > 10:
-        raise ValidationError("top_n debe estar entre 1 y 10")
+    _validate_top_n(top_n)
     universe = make_scanner_universe()
     result = AlphaScanner().scan(universe, top_n=top_n, min_bars=3)
     return {
@@ -681,8 +680,7 @@ def run_binance_lab_scanner(
         validate_kline_interval,
     )
 
-    if top_n < 1 or top_n > 10:
-        raise ValidationError("top_n debe estar entre 1 y 10")
+    _validate_top_n(top_n)
     _validate_symbol_limit(symbol_limit)
     if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
         raise ValidationError(
@@ -877,16 +875,26 @@ _VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
     "a3": {"spot": "A3:", "futures": "A3:"},
 }
 
-# Tandas de universo (UI). 0 = todas las disponibles del venue.
-SCANNER_SYMBOL_BATCHES: tuple[int, ...] = (20, 30, 40, 50)
+# Universo: cantidad libre (1..MAX) o 0 = todas las disponibles del venue.
+SCANNER_SYMBOL_BATCHES: tuple[int, ...] = (20, 30, 40, 50)  # presets UI (hints)
 SYMBOL_LIMIT_ALL = 0
-SYMBOL_LIMIT_MIN = 5
-SYMBOL_LIMIT_MAX = 50
+SYMBOL_LIMIT_MIN = 1
+SYMBOL_LIMIT_MAX = 500
+# Ranking «Top» y Top Kronos: cantidad libre.
+SCANNER_TOP_N_MIN = 1
+SCANNER_TOP_N_MAX = 100
 # Tope práctico al pedir «todas» en Binance spot (USDT TRADING).
 SYMBOL_LIMIT_ALL_BINANCE_SPOT = 2000
 # Anclas para min-max cuando el usuario pide 1–2 monedas (puntual).
 SCORE_ANCHOR_UNDERLYINGS: tuple[str, ...] = ("BTC", "ETH", "SOL")
 SCORE_CROSS_SECTION_MIN = 3
+
+
+def _validate_top_n(top_n: int) -> None:
+    if top_n < SCANNER_TOP_N_MIN or top_n > SCANNER_TOP_N_MAX:
+        raise ValidationError(
+            f"top_n debe estar entre {SCANNER_TOP_N_MIN} y {SCANNER_TOP_N_MAX}"
+        )
 
 
 def _validate_symbol_limit(symbol_limit: int) -> None:
@@ -895,8 +903,7 @@ def _validate_symbol_limit(symbol_limit: int) -> None:
     if symbol_limit < SYMBOL_LIMIT_MIN or symbol_limit > SYMBOL_LIMIT_MAX:
         raise ValidationError(
             f"symbol_limit debe ser {SYMBOL_LIMIT_ALL} (todas) o entre "
-            f"{SYMBOL_LIMIT_MIN} y {SYMBOL_LIMIT_MAX} "
-            f"(tandas: {', '.join(str(x) for x in SCANNER_SYMBOL_BATCHES)})"
+            f"{SYMBOL_LIMIT_MIN} y {SYMBOL_LIMIT_MAX}"
         )
 
 
@@ -962,8 +969,7 @@ def run_venue_lab_scanner(
         raise ValidationError("hyperliquid en lab: usar market_type=futures (perps)")
     if v == "a3" and mt == "spot":
         raise ValidationError("a3 en lab: usar market_type=futures (contratos con vencimiento)")
-    if top_n < 1 or top_n > 10:
-        raise ValidationError("top_n debe estar entre 1 y 10")
+    _validate_top_n(top_n)
     _validate_symbol_limit(symbol_limit)
 
     requested_profile, profile_key, _auto = resolve_scoring_profile(profile)
@@ -1675,13 +1681,19 @@ def list_alpha_profiles() -> dict[str, Any]:
         "venues": [c.to_dict() for c in list_venue_capabilities()],
         "symbol_batches": list(SCANNER_SYMBOL_BATCHES),
         "symbol_limit_all": SYMBOL_LIMIT_ALL,
+        "symbol_limit_min": SYMBOL_LIMIT_MIN,
+        "symbol_limit_max": SYMBOL_LIMIT_MAX,
+        "top_n_min": SCANNER_TOP_N_MIN,
+        "top_n_max": SCANNER_TOP_N_MAX,
         "default_profile": "auto",
         "default_symbol_limit": 30,
         "note": (
             "Elegí Auto para que el scanner proponga familia/estrategias/TF, "
             "o una rama fija del Simulador. "
-            f"Tandas: {', '.join(str(x) for x in SCANNER_SYMBOL_BATCHES)} "
-            f"o {SYMBOL_LIMIT_ALL}=todas. Score ≠ rentabilidad."
+            f"Cantidad de monedas libre ({SYMBOL_LIMIT_MIN}–{SYMBOL_LIMIT_MAX}), "
+            f"{SYMBOL_LIMIT_ALL}=todas, o lista puntual. "
+            f"Top ranking {SCANNER_TOP_N_MIN}–{SCANNER_TOP_N_MAX}. "
+            "Score ≠ rentabilidad."
         ),
     }
 
@@ -1796,8 +1808,7 @@ def run_binance_lab_pipeline(
         exclusion_reason_counts,
     )
 
-    if top_n < 1 or top_n > 10:
-        raise ValidationError("top_n debe estar entre 1 y 10")
+    _validate_top_n(top_n)
     _validate_symbol_limit(symbol_limit)
     if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
         raise ValidationError(

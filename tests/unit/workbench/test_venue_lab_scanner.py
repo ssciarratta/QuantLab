@@ -144,10 +144,23 @@ def test_venue_scanner_a3_spot_rejected() -> None:
 
 def test_symbol_limit_batches_allowed() -> None:
     assert lab_services.SCANNER_SYMBOL_BATCHES == (20, 30, 40, 50)
+    lab_services._validate_symbol_limit(1)
     lab_services._validate_symbol_limit(50)
+    lab_services._validate_symbol_limit(500)
     lab_services._validate_symbol_limit(lab_services.SYMBOL_LIMIT_ALL)
     with pytest.raises(ValidationError, match="symbol_limit"):
-        lab_services._validate_symbol_limit(51)
+        lab_services._validate_symbol_limit(501)
+    with pytest.raises(ValidationError, match="symbol_limit"):
+        lab_services._validate_symbol_limit(-1)
+
+
+def test_top_n_free_range() -> None:
+    lab_services._validate_top_n(1)
+    lab_services._validate_top_n(100)
+    with pytest.raises(ValidationError, match="top_n"):
+        lab_services._validate_top_n(0)
+    with pytest.raises(ValidationError, match="top_n"):
+        lab_services._validate_top_n(101)
 
 
 def test_symbol_limit_all_uses_full_curated_universe() -> None:

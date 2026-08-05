@@ -117,15 +117,16 @@
       '<option value="arbitrage">Arbitraje</option>' +
       '<option value="options">Opciones</option>' +
       "</select></label>" +
-      '<label>Top<input id="sc-top" type="number" value="5" min="1" max="10" /></label>' +
-      '<label>Universo<select id="sc-limit">' +
-      '<option value="20">20</option>' +
-      '<option value="30" selected>30</option>' +
-      '<option value="40">40</option>' +
-      '<option value="50">50</option>' +
+      '<label>Top<input id="sc-top" type="number" value="5" min="1" max="100" ' +
+      'title="Cuántas monedas mostrar en el ranking (1–100)" /></label>' +
+      '<label>Universo<select id="sc-limit-mode">' +
+      '<option value="n" selected>Cantidad</option>' +
       '<option value="0">Todas</option>' +
       '<option value="custom">Moneda puntual…</option>' +
       "</select></label>" +
+      '<label id="sc-limit-n-wrap">N monedas' +
+      '<input id="sc-limit-n" type="number" value="30" min="1" max="500" ' +
+      'title="Cantidad de monedas del universo a scorear (1–500)" /></label>' +
       '<label id="sc-coin-wrap" hidden>Moneda' +
       '<div class="sc-coin-pick">' +
       '<input id="sc-coin" type="search" placeholder="Buscar: BTC, ETH, NEAR…" ' +
@@ -137,11 +138,8 @@
       '<div class="sc-venues" id="sc-kronos-row" style="flex-wrap:wrap;gap:0.45rem 0.75rem;align-items:center">' +
       '<label title="Forecast de horizonte dentro del Scanner (no es panel aparte)">' +
       '<input type="checkbox" id="sc-kronos-enabled" checked> Kronos</label>' +
-      '<label>Top Kronos<select id="sc-kronos-top">' +
-      '<option value="20" selected>20</option>' +
-      '<option value="30">30</option>' +
-      '<option value="15">15</option>' +
-      "</select></label>" +
+      '<label>Top Kronos<input id="sc-kronos-top" type="number" value="20" min="1" max="100" ' +
+      'title="A cuántas monedas del ranking aplicar Kronos (1–100)" /></label>' +
       '<label>Horizonte<input id="sc-kronos-pred" type="number" value="12" min="4" max="128" ' +
       'title="Velas futuras (default alineado al TF; editable)" /></label>' +
       '<label>Muestras<input id="sc-kronos-samples" type="number" value="4" min="1" max="16" /></label>' +
@@ -168,7 +166,7 @@
       "</div>" +
       '<details class="sc-more muted"><summary>Ayuda · tandas y multi-mercado</summary>' +
       '<p id="sc-hint" style="margin:0.35rem 0 0">' +
-      "Tanda = monedas scoreadas. Multi-mercado = pestaña Comparar (misma moneda, scores por mercado) + ranking por mercado. " +
+      "Cantidad / Todas / puntual = monedas scoreadas. Top y Top Kronos editables (incluso 1). Multi-mercado = Comparar + ranking por mercado. " +
       "A3/HL = futuros. Exportá el JSON para auditoría de terceros." +
       "</p></details>" +
       '<div id="sc-warn"></div>' +
@@ -218,34 +216,34 @@
       refreshNBars();
     }
 
+    function universeMode() {
+      var el = root.querySelector("#sc-limit-mode");
+      return el ? el.value : "n";
+    }
+
     function syncUniverseUI() {
-      var custom = root.querySelector("#sc-limit").value === "custom";
+      var mode = universeMode();
+      var custom = mode === "custom";
+      var byCount = mode === "n";
       var wrap = root.querySelector("#sc-coin-wrap");
       if (wrap) wrap.hidden = !custom;
+      var nWrap = root.querySelector("#sc-limit-n-wrap");
+      if (nWrap) nWrap.hidden = !byCount;
       var kroTop = root.querySelector("#sc-kronos-top");
       if (kroTop) {
+        kroTop.disabled = false;
         if (custom) {
           var nCoins = parseCustomCoins().length || 1;
-          // Moneda puntual: Kronos solo sobre esa(s) moneda(s).
-          var want = String(Math.min(30, Math.max(1, nCoins)));
-          if (![].some.call(kroTop.options, function (o) { return o.value === want; })) {
-            var opt = document.createElement("option");
-            opt.value = want;
-            opt.textContent = want + " (puntual)";
-            kroTop.appendChild(opt);
+          // Sugerir Top Kronos = monedas pedidas, pero editable.
+          if (!kroTop.dataset.userEdited) {
+            kroTop.value = String(Math.max(1, nCoins));
           }
-          kroTop.value = want;
-          kroTop.disabled = nCoins <= 1;
           kroTop.title =
-            nCoins <= 1
-              ? "Moneda puntual: Kronos evalúa solo esa moneda"
-              : "Top Kronos acotado a las monedas puntuales pedidas";
+            "Kronos sobre las monedas puntuales (editable; sugerido = " +
+            nCoins +
+            ")";
         } else {
-          kroTop.disabled = false;
-          kroTop.title = "Candidatos preliminares a los que se aplica Kronos";
-          if (kroTop.value === "1" || kroTop.selectedOptions[0] && /puntual/.test(kroTop.selectedOptions[0].textContent || "")) {
-            kroTop.value = "20";
-          }
+          kroTop.title = "A cuántas monedas del ranking aplicar Kronos (1–100)";
         }
       }
       if (custom) {
@@ -259,6 +257,7 @@
         closeCoinSuggest();
       }
     }
+
 
     function parseCustomCoins() {
       var raw = (root.querySelector("#sc-coin").value || "").trim();
@@ -322,7 +321,7 @@
               return map[k];
             });
           if (
-            root.querySelector("#sc-limit").value === "custom" &&
+            universeMode() === "custom" &&
             document.activeElement === root.querySelector("#sc-coin")
           ) {
             openCoinSuggest();
@@ -449,7 +448,10 @@
         "#sc-market",
         "#sc-interval",
         "#sc-profile",
-        "#sc-limit",
+        "#sc-limit-mode",
+        "#sc-limit-n",
+        "#sc-top",
+        "#sc-kronos-top",
         "#sc-klines",
         "#sc-period",
         "#sc-window-mode",
@@ -463,7 +465,7 @@
       });
       root.querySelector("#sc-hint").textContent = synth
         ? "Demo local WB:A/B/C (sin red). Para mercados reales elegí «MD real»."
-        : "Tanda = monedas scoreadas. Universo «Moneda puntual»: buscá en el catálogo (typeahead). Multi-venue = Comparar + ranking por mercado.";
+        : "Cantidad libre de monedas (N), Todas, o puntual. Top y Top Kronos también editables (podés poner 1).";
       syncUniverseUI();
     }
 
@@ -1810,7 +1812,15 @@
 
     root.querySelector("#sc-source").addEventListener("change", syncSourceUI);
     root.querySelector("#sc-window-mode").addEventListener("change", syncWindowModeUI);
-    root.querySelector("#sc-limit").addEventListener("change", syncUniverseUI);
+    root.querySelector("#sc-limit-mode").addEventListener("change", syncUniverseUI);
+    var limN = root.querySelector("#sc-limit-n");
+    if (limN) limN.addEventListener("change", syncUniverseUI);
+    var kroTopInp = root.querySelector("#sc-kronos-top");
+    if (kroTopInp) {
+      kroTopInp.addEventListener("input", function () {
+        kroTopInp.dataset.userEdited = "1";
+      });
+    }
     var coinInp = root.querySelector("#sc-coin");
     coinInp.addEventListener("focus", function () {
       loadCoinCatalog();
@@ -1818,7 +1828,7 @@
     });
     coinInp.addEventListener("input", function () {
       openCoinSuggest();
-      if (root.querySelector("#sc-limit").value === "custom") {
+      if (universeMode() === "custom") {
         syncUniverseUI();
       }
     });
@@ -1865,7 +1875,7 @@
     root.querySelector("#sc-interval").addEventListener("change", refreshNBars);
     root.querySelector("#sc-klines").addEventListener("input", refreshNBars);
     root.querySelector("#sc-market").addEventListener("change", function () {
-      if (root.querySelector("#sc-limit").value === "custom") {
+      if (universeMode() === "custom") {
         loadCoinCatalog();
       }
       if (root.querySelector("#sc-market").value === "spot") {
@@ -1909,37 +1919,24 @@
             .join("");
           sel.value = d.default_profile || "auto";
           if (!sel.value) sel.value = "auto";
-          if (d.symbol_batches && d.symbol_batches.length) {
-            var lim = root.querySelector("#sc-limit");
-            var cur = lim.value;
-            var optsHtml = d.symbol_batches
-              .map(function (n) {
-                return (
-                  '<option value="' +
-                  esc(n) +
-                  '">' +
-                  esc(n) +
-                  " monedas</option>"
-                );
-              })
-              .join("");
-            optsHtml +=
-              '<option value="0">Todas (universo disponible)</option>';
-            optsHtml +=
-              '<option value="custom">Moneda puntual…</option>';
-            lim.innerHTML = optsHtml;
-            if (cur === "custom") {
-              lim.value = "custom";
-            } else {
-              lim.value = String(
-                cur === "0" ? 0 : d.default_symbol_limit || cur || 30
-              );
-              if (!lim.value && lim.value !== "0") {
-                lim.value = String(d.symbol_batches[1] || d.symbol_batches[0]);
-              }
-            }
-            syncUniverseUI();
+          var topEl = root.querySelector("#sc-top");
+          if (topEl && d.top_n_max) {
+            topEl.max = String(d.top_n_max);
+            topEl.min = String(d.top_n_min || 1);
           }
+          var limN2 = root.querySelector("#sc-limit-n");
+          if (limN2) {
+            if (d.symbol_limit_max) limN2.max = String(d.symbol_limit_max);
+            if (d.symbol_limit_min) limN2.min = String(d.symbol_limit_min);
+            if (!limN2.value) {
+              limN2.value = String(d.default_symbol_limit || 30);
+            }
+          }
+          var kroTop2 = root.querySelector("#sc-kronos-top");
+          if (kroTop2 && d.top_n_max) {
+            kroTop2.max = String(d.top_n_max);
+          }
+          syncUniverseUI();
         })
         .catch(function () {});
     }
@@ -2007,9 +2004,9 @@
             if (handle) handle.end();
             return;
           }
-          var limitRaw = root.querySelector("#sc-limit").value;
+          var mode = universeMode();
           var customCoins = null;
-          if (limitRaw === "custom") {
+          if (mode === "custom") {
             customCoins = parseCustomCoins();
             if (!customCoins.length) {
               setStatus(false, "escribí al menos una moneda (ej. BTC)");
@@ -2018,15 +2015,15 @@
               return;
             }
           }
+          var nLimit = parseInt(root.querySelector("#sc-limit-n").value, 10) || 30;
+          if (nLimit < 1) nLimit = 1;
+          var kroN = parseInt(root.querySelector("#sc-kronos-top").value, 10) || 1;
+          if (kroN < 1) kroN = 1;
           var opts = {
             venues: venues,
             market_type: root.querySelector("#sc-market").value,
             top_n: topN,
-            symbol_limit: customCoins
-              ? 0
-              : limitRaw === "0"
-                ? 0
-                : parseInt(limitRaw, 10) || 30,
+            symbol_limit: customCoins ? 0 : mode === "0" ? 0 : nLimit,
             interval: root.querySelector("#sc-interval").value,
             profile: root.querySelector("#sc-profile").value,
             fetchOpts: fetchOpts,
@@ -2036,8 +2033,8 @@
                 root.querySelector("#sc-kronos-enabled").checked
               ),
               kronos_top_n: customCoins
-                ? Math.max(1, customCoins.length)
-                : parseInt(root.querySelector("#sc-kronos-top").value, 10) || 20,
+                ? Math.max(1, Math.min(kroN, customCoins.length))
+                : kroN,
               kronos_pred_len:
                 parseInt(root.querySelector("#sc-kronos-pred").value, 10) || 12,
               kronos_sample_count:

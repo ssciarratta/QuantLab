@@ -7,26 +7,27 @@ ESTADO
 ------
 - LIVE_BLOCKED=True
 - Alpha Scanner + Kronos OK
-- Fix 2026-08-05: Scanner «Todas» caía con
-  ascii codec position 26-29 — causa real:
-  par Binance CJK `币安人生USDT` en URL urllib.
-  Filtro `is_http_safe_symbol` (solo A-Z0-9).
+- Cantidades libres en Scanner (Top / N / Kronos)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-08-05 — Filtrar símbolos no-ASCII en
-Binance public MD (spot+futures). Tests en
-test_binance_stablecoin_filter.py. Workbench
-reiniciado; scan Todas → HTTP 200.
+2026-08-05 — Cantidad de monedas editable:
+- Universo: Cantidad (N 1–500) | Todas | puntual
+- Top ranking: 1–100
+- Top Kronos: 1–100 (siempre editable)
+- Backend: SYMBOL_LIMIT 1–500, TOP_N 1–100
+- Cache-bust scanner.js?v=20260805a
 
 CÓMO PROBAR
 -----------
-Ctrl+F5 → Alpha Scanner → Universo Todas → Escanear
-No debe aparecer el error ascii codec.
+Ctrl+F5 → Alpha Scanner:
+- Universo «Cantidad» N=1 → Escanear
+- Moneda puntual BTC → Top Kronos=1
+- Top=3, N=10, Top Kronos=5
 
 PRÓXIMO PASO
 ------------
-Usar Scanner en UI.
+Usar Scanner con la cantidad que elijas.
 
 INVARIANTES
 -----------
