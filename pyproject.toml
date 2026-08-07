@@ -30,6 +30,7 @@ quantlab-a3 = "quantlab.data.exchanges.a3.cli:main"
 quantlab-fase4-slice = "quantlab.vertical_slice.fase4:main"
 quantlab-health = "quantlab.infra.health:main"
 quantlab-workbench = "quantlab.workbench.launch:main"
+quantlab-testnet = "quantlab.brokers.binance.cli:main"
 
 [build-system]
 requires = ["hatchling"]
