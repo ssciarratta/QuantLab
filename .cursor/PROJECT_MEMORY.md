@@ -1,7 +1,7 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-07-27  
-**Branch trabajo:** `cursor/modo-real-workbench-aafd`  
+**Actualizado:** 2026-08-07  
+**Branch trabajo:** `cursor/binance-testnet-hummingbot-prep-2828`  
 **Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot; UI resize bordes + tooltips)  
 **Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
 **Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
@@ -186,12 +186,8 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 
 ## Próximo
 
-- Monte Carlo corrección: UI workbench actualizada (`montecarlo.js` presets 1e6, jobs async,
-  cost estimate, Abrir dataset, `labMontecarloJob`/`Cancel`); backend FASE 1+ en curso
-  · status: `docs/progress/montecarlo-correction-status.md`
-- Deep-link por id dentro de paneles Scan/BT (si aparece API de foco)
-- Selector fecha start/end opcional (hoy: últimas N hasta ahora)
-- Certificados externos F19+ (Meta-Auditor)
+- Operador: ejecutar `tools/windows/01..07` con credenciales testnet.binance.vision
+- Validar `quantlab-testnet diagnostic` → TESTNET READY: YES en PC local
 
 ## Checkpoint
 

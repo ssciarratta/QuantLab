@@ -15,3 +15,5 @@ Sin el flag, sigue el simulador local (F101). Nunca producción.
 - [x] Router elige transport según flag+keys
 - [x] Tests mockeados (sin red real)
 - [x] Sin `FASE_102_APPROVED.md`; secrets no en repo
+- [x] `get_account` / `get_balances` / `auth_check` / `connectivity_check`
+- [x] CLI `quantlab-testnet diagnostic` + scripts Windows `tools/windows/`
