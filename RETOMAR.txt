@@ -1,12 +1,22 @@
 QUANTLAB — CHECKPOINT
 =====================
-2026-07-27 · branch cursor/modo-real-workbench-aafd · v1.01.0 F115
+2026-08-08 · branch cursor/binance-testnet-hummingbot-prep-2828 · v1.01.0
 
-✅ 50 estrategias · 39 runnable · 11 stubs
-✅ Proxies stats/ML/micro/vol promovidos
-✅ UI API por familia · skill strategy-expander
+✅ BinanceTestnetClient extendido (account/balances/auth)
+✅ CLI quantlab-testnet diagnostic
+✅ tools/windows/01..08 (.bat)
+✅ Docs ops testnet + hummingbot
+✅ PR #4 abierto
 
-Arranque: arrancar_quantlab.bat → http://127.0.0.1:8765 → F5
+PENDIENTE EN PC ESCRITORIO
+--------------------------
+- git fetch + checkout rama PR (ver SYNC_PC.txt)
+- Ejecutar .bat 01 → 02 → 03 → 07
+- Keys: https://testnet.binance.vision
+- Objetivo: TESTNET READY: YES
 
-Stubs pendientes: sector_rotation, risk_parity, asset_allocation,
-queue_position, triangular/cross/funding/basis arb, delta/gamma/covered
+Arranque Workbench: tools\windows\08_start_quantlab_testnet.bat
+                  o uv run quantlab-workbench → http://127.0.0.1:8765
+
+Prompt Cursor Desktop:
+  "Seguí testnet Binance. Ejecuté 01-07. Resultado: TESTNET READY: ..."

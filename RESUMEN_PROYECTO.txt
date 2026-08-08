@@ -1,26 +1,43 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-07-27
-Versión: 1.01.0 · Banner versión GitHub + singleton al arrancar
+Actualizado: 2026-08-08
+Versión: 1.01.0 · Binance Spot Testnet prep (PR #4)
 
 ESTADO
 ------
-- LIVE_BLOCKED=True
-- Arranque: mata instancia previa (PID lock + puerto 8765) → sesión nueva
-- Banner: v local · GH tip · botón Actualizar/Sincronizar · hora última mod
-- API: GET /api/update/status · POST /api/update/apply (git pull --ff-only)
+- LIVE_BLOCKED=True (sin cambios)
+- Binance Spot Testnet: cliente extendido + CLI diagnóstico
+- Hummingbot: export research-safe + probe externo (sin runtime embebido)
+- Producción Binance: bloqueada por diseño (api.binance.com rechazado)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Singleton Workbench + banner de versión:
-- `instance_lock.py` claim al launch
-- `git_update.py` tip GitHub (pyproject + commit date)
-- UI top-banner versión / sync / mod
+Preparación Binance Spot Testnet + scripts Windows:
+- BinanceTestnetClient: get_account, get_balances, auth_check, connectivity_check
+- CLI: quantlab-testnet diagnostic → TESTNET READY: YES/NO
+- Scripts: tools/windows/01..08 (.bat setup, credenciales, tests, arranque)
+- Docs: docs/ops/BINANCE_TESTNET_SETUP.md, HUMMINGBOT_TESTNET.md
+- Tests: 23 nuevos (account, diagnostic, hummingbot probe)
 
-PRÓXIMO
--------
-Validar F5: abrir QuantLab dos veces → solo una; banner muestra GH version
+BRANCH / PR
+-----------
+- Branch: cursor/binance-testnet-hummingbot-prep-2828
+- PR: https://github.com/ssciarratta/QuantLab/pull/4
+
+PIPELINE PRODUCTO
+-----------------
+Research → Backtest → MC → Paper → Binance Testnet → Live
+   ✅         ✅       ✅     ✅          🟡 opt-in        🔒 bloqueado
+
+PRÓXIMO (OPERADOR — PC ESCRITORIO)
+----------------------------------
+1. git pull (ver SYNC_PC.txt)
+2. tools\windows\01_setup_testnet_environment.bat
+3. tools\windows\02_configure_testnet_credentials.bat (keys testnet.binance.vision)
+4. tools\windows\07_full_testnet_diagnostic.bat → TESTNET READY: YES
+5. tools\windows\08_start_quantlab_testnet.bat
 
 INVARIANTES
 -----------
 LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL inventados
+Testnet remoto: QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_* + unlock LIVE
