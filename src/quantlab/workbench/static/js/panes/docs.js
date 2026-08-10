@@ -8,10 +8,10 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Help / Docs</h3>" +
-      '<p class="muted" style="margin-top:0">Markdown local bajo <span class="mono">docs/</span> y <span class="mono">docs/ops/</span>. Solo lectura · sin LIVE.</p>' +
-      '<div class="pane-row">' +
-      '<input type="search" id="docs-q" class="docs-search" placeholder="Buscar título / path…" autocomplete="off" />' +
+      '<div class="pane-head"><h3>Help / Docs</h3>' +
+      '<p class="muted pane-sub">Markdown local · solo lectura</p></div>' +
+      '<div class="pane-actions">' +
+      '<input type="search" id="docs-q" class="docs-search" placeholder="Buscar título / path…" autocomplete="off" style="flex:1;min-width:8rem" />' +
       '<button type="button" class="btn secondary" id="docs-refresh">Actualizar</button>' +
       '<span class="mono muted" id="docs-count">—</span>' +
       "</div>" +
@@ -20,7 +20,7 @@
       '<div id="docs-list"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<span class="mono" id="docs-sel">sin selección</span>' +
       '<button type="button" class="btn secondary" id="docs-mode-html" disabled>HTML</button>' +
       '<button type="button" class="btn secondary" id="docs-mode-pre" disabled>Texto</button>' +

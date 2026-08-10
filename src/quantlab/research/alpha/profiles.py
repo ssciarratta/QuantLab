@@ -27,10 +27,40 @@ PROFILE_MARKET_MAKING = "market_making"
 PROFILE_AVELLANEDA_STOIKOV = "avellaneda_stoikov"
 PROFILE_FUNDING = "funding"
 PROFILE_BALANCED = "balanced"
+PROFILE_TREND = "trend"
+PROFILE_OPTIONS = "options"
 
 PROFILE_VERSION = "profiles-v1"
 
-# Labels cortos ES para selector Guided Lab / GET profiles.
+# Ramas del Simulador (sin Demo) — selector Alpha Scanner.
+SCANNER_FAMILY_ORDER: tuple[str, ...] = (
+    "trend",
+    "momentum",
+    "mean_reversion",
+    "market_making",
+    "stats",
+    "ml",
+    "multi_asset",
+    "microstructure",
+    "arbitrage",
+    "options",
+)
+
+# Familia UI → perfil de scoring interno (factores).
+FAMILY_SCORING_ALIAS: dict[str, str] = {
+    "trend": PROFILE_TREND,
+    "momentum": PROFILE_MOMENTUM,
+    "mean_reversion": PROFILE_MEAN_REVERSION,
+    "market_making": PROFILE_MARKET_MAKING,
+    "stats": PROFILE_FUNDING,
+    "ml": PROFILE_BALANCED,
+    "multi_asset": PROFILE_BALANCED,
+    "microstructure": PROFILE_MARKET_MAKING,
+    "arbitrage": PROFILE_FUNDING,
+    "options": PROFILE_OPTIONS,
+}
+
+# Labels cortos ES para selector Guided Lab / GET profiles (técnicos).
 PROFILE_LABELS_ES: dict[str, str] = {
     PROFILE_LEGACY_V1: "legacy_v1 (default lab)",
     PROFILE_MOMENTUM: "momentum (tendencia)",
@@ -39,6 +69,8 @@ PROFILE_LABELS_ES: dict[str, str] = {
     PROFILE_AVELLANEDA_STOIKOV: "avellaneda_stoikov (AS)",
     PROFILE_FUNDING: "funding (funding/OI)",
     PROFILE_BALANCED: "balanced (equilibrado)",
+    PROFILE_TREND: "trend (tendencial)",
+    PROFILE_OPTIONS: "options (vol)",
 }
 
 
@@ -102,6 +134,9 @@ def _f(
 
 def build_profile(name: str) -> ScoringProfile:
     key = name.strip().lower()
+    # Alias familia Simulador → scoring interno (p.ej. ml → balanced).
+    if key in FAMILY_SCORING_ALIAS and FAMILY_SCORING_ALIAS[key] != key:
+        key = FAMILY_SCORING_ALIAS[key]
     if key in (PROFILE_LEGACY_V1, "legacy"):
         return ScoringProfile(
             name=PROFILE_LEGACY_V1,
@@ -109,6 +144,18 @@ def build_profile(name: str) -> ScoringProfile:
             description="Volatilidad + volumen + liquidez OHLC (fórmula F4/F111).",
             factors=legacy_factor_specs(),
             missing_policy=MissingFactorPolicy.RENORMALIZE_AVAILABLE,
+        )
+    if key == PROFILE_TREND:
+        return ScoringProfile(
+            name=PROFILE_TREND,
+            version=PROFILE_VERSION,
+            description="Tendenciales: calidad de tendencia + momentum + vol relativa.",
+            factors=(
+                _f("trend_quality", 0.40),
+                _f("momentum", 0.25),
+                _f("volatility", 0.20),
+                _f("volume", 0.15),
+            ),
         )
     if key == PROFILE_MOMENTUM:
         return ScoringProfile(
@@ -188,18 +235,33 @@ def build_profile(name: str) -> ScoringProfile:
             normalization=NormalizationMethod.ROBUST_CROSS_SECTIONAL,
             apply_quality_penalties=True,
         )
+    if key == PROFILE_OPTIONS:
+        return ScoringProfile(
+            name=PROFILE_OPTIONS,
+            version=PROFILE_VERSION,
+            description="Opciones/vol: volatilidad + liquidez + volumen (proxy OHLC).",
+            factors=(
+                _f("volatility", 0.40),
+                _f("liquidity", 0.25),
+                _f("volume", 0.20),
+                _f("momentum", 0.15),
+            ),
+        )
     raise ValueError(f"perfil desconocido: {name!r}")
 
 
 def list_profiles() -> tuple[str, ...]:
+    """Perfiles técnicos de scoring (compat FASE 5 + trend/options)."""
     return (
         PROFILE_LEGACY_V1,
+        PROFILE_TREND,
         PROFILE_MOMENTUM,
         PROFILE_MEAN_REVERSION,
         PROFILE_MARKET_MAKING,
         PROFILE_AVELLANEDA_STOIKOV,
         PROFILE_FUNDING,
         PROFILE_BALANCED,
+        PROFILE_OPTIONS,
     )
 
 
@@ -227,10 +289,51 @@ def score_with_profile(
 
 
 def profile_catalog() -> list[dict[str, Any]]:
+    """Catálogo técnico (compat Guided Lab / tests FASE 5)."""
     return [build_profile(n).to_dict() for n in list_profiles()]
 
 
+def scanner_family_catalog() -> list[dict[str, Any]]:
+    """Catálogo UI Alpha Scanner = familias del Simulador (sin Demo)."""
+    from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES
+
+    out: list[dict[str, Any]] = []
+    for fam in SCANNER_FAMILY_ORDER:
+        scoring_key = FAMILY_SCORING_ALIAS.get(fam, fam)
+        try:
+            scoring = build_profile(scoring_key)
+        except ValueError:
+            scoring = build_profile(PROFILE_BALANCED)
+        label = FAMILY_LABELS_ES.get(fam, fam)
+        out.append(
+            {
+                "name": fam,
+                "family": fam,
+                "version": PROFILE_VERSION,
+                "label_es": label,
+                "description": (
+                    f"Rama «{label}»: rankea monedas para estrategias de esa familia. "
+                    f"Scoring interno: {scoring.name}."
+                ),
+                "scoring_profile": scoring.name,
+                "factors": [
+                    {
+                        "name": f.name,
+                        "weight": f.weight,
+                        "higher_is_better": f.higher_is_better,
+                    }
+                    for f in scoring.factors
+                ],
+                "normalization": scoring.normalization.value,
+                "missing_policy": scoring.missing_policy.value,
+                "apply_quality_penalties": scoring.apply_quality_penalties,
+            }
+        )
+    return out
+
+
 __all__ = [
+    "FAMILY_SCORING_ALIAS",
     "PROFILE_AVELLANEDA_STOIKOV",
     "PROFILE_BALANCED",
     "PROFILE_FUNDING",
@@ -239,10 +342,14 @@ __all__ = [
     "PROFILE_MARKET_MAKING",
     "PROFILE_MEAN_REVERSION",
     "PROFILE_MOMENTUM",
+    "PROFILE_OPTIONS",
+    "PROFILE_TREND",
     "PROFILE_VERSION",
+    "SCANNER_FAMILY_ORDER",
     "ScoringProfile",
     "build_profile",
     "list_profiles",
     "profile_catalog",
+    "scanner_family_catalog",
     "score_with_profile",
 ]

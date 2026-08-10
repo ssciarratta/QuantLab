@@ -214,11 +214,23 @@ def build_lab_context(
 ) -> MonteCarloExperimentContext:
     params = dict(strategy_params or {"quantity": "1"})
     warning = None
-    if orphan or (scan_id is None and backtest_id is None):
-        orphan = True
+    src = (dataset_source or "").strip().lower()
+    synthetic_demo = src in {"synthetic", "synthetic_lab"} or (
+        (dataset_id or "") == "wb-synthetic"
+    )
+    # Huérfano = demo técnico sin Scan/Backtest.
+    # NO forzar huérfano si el caller ya dijo orphan=False (p.ej. Simulador → MC).
+    if orphan:
         warning = (
             "Modo técnico huérfano: sin scan_id/backtest_id. "
             "La corrida no está vinculada al flujo Scan → Backtest → MC."
+        )
+    elif scan_id is None and backtest_id is None and synthetic_demo:
+        orphan = True
+        warning = (
+            "Modo técnico huérfano: sin scan_id/backtest_id. "
+            "La corrida no está vinculada al flujo Scan → Backtest → MC. "
+            "Si venís del Simulador, usá el botón «Monte Carlo» (misma selección)."
         )
     return MonteCarloExperimentContext(
         session_id=session_id,

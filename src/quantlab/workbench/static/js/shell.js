@@ -48,7 +48,8 @@
       y: g.y != null ? g.y : defaults.y,
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
-      minimized: !!g.minimized,
+      // Nunca reabrir minimizado desde el menú (parecía que «se cerraba»).
+      minimized: false,
       maximized: !!g.maximized,
     };
     if (g.z != null) out.z = g.z;
@@ -175,8 +176,14 @@
           bannerUpdated.textContent =
             "mod " + (data.last_modified_display || "—");
           if (data.last_modified_at) {
+            var src = data.last_modified_source
+              ? " [" + data.last_modified_source + "]"
+              : "";
             bannerUpdated.title =
-              "Última modificación: " + data.last_modified_at;
+              "Última modificación: " +
+              data.last_modified_at +
+              src +
+              " (archivos locales / git)";
           }
         }
         document.title = "QuantLab Workbench v" + localV;
@@ -373,10 +380,66 @@
       "guided_lab",
       tr("pane.guided_lab", "Guided Lab"),
       pane,
-      mergeOpts("guided_lab", { x: 200, y: 60, w: 520, h: 560 })
+      mergeOpts("guided_lab", { x: 160, y: 40, w: 680, h: 640 })
     );
     if (pane.refresh) pane.refresh();
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+  }
+
+  function openSimulator(opts) {
+    opts = opts || {};
+    if (
+      !window.QLPanes ||
+      typeof QLPanes.createSimulatorPane !== "function"
+    ) {
+      window.alert(
+        "Simulador no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
+      return;
+    }
+    if (opts.prefill && window.QLNav) {
+      window.QLNav.setFocus("simulator", { prefill: opts.prefill });
+    }
+    if (wm.windows.has("simulator")) {
+      if (typeof wm.restore === "function") {
+        try {
+          wm.restore("simulator");
+        } catch (e) {}
+      }
+      wm.focus("simulator");
+      if (typeof wm.bringToFront === "function") {
+        try {
+          wm.bringToFront("simulator");
+        } catch (e2) {}
+      }
+      const root = wm.windows.get("simulator").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
+      return;
+    }
+    try {
+      const pane = QLPanes.createSimulatorPane();
+      wm.open(
+        "simulator",
+        tr("pane.simulator", "Simulador"),
+        pane,
+        mergeOpts("simulator", { x: 40, y: 20, w: 980, h: 720 })
+      );
+      if (pane.refresh) pane.refresh();
+      if (opts.prefill && typeof pane.applyPrefill === "function") {
+        pane.applyPrefill(opts.prefill);
+      }
+    } catch (err) {
+      window.alert(
+        "No pude abrir el Simulador: " +
+          (err && err.message ? err.message : String(err)) +
+          "\nCtrl+F5 y reintentá."
+      );
+    }
   }
 
   function openDiagnostics() {
@@ -392,15 +455,35 @@
 
   function openBacktest(opts) {
     opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("backtest", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
     if (wm.windows.has("backtest")) {
       wm.focus("backtest");
       const root = wm.windows.get("backtest").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createBacktestPane();
-    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    wm.open(
+      "backtest",
+      tr("pane.backtest", "Backtest"),
+      pane,
+      mergeOpts("backtest", { x: 48, y: 48, w: 720, h: 620 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openScanner(opts) {
@@ -410,7 +493,48 @@
       return;
     }
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 }));
+  }
+
+  function openStrategies(opts) {
+    opts = opts || {};
+    if (wm.windows.has("strategies")) {
+      wm.focus("strategies");
+      const root = wm.windows.get("strategies").body.firstElementChild;
+      if (root && opts.focusId && typeof root.focusStrategy === "function") {
+        root.focusStrategy(opts.focusId);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
+      return;
+    }
+    const pane = QLPanes.createStrategiesPane({ focusId: opts.focusId });
+    wm.open(
+      "strategies",
+      tr("pane.strategies", "Estrategias"),
+      pane,
+      mergeOpts("strategies", { x: 60, y: 30, w: 640, h: 700 })
+    );
+  }
+
+  function openSimRegistry() {
+    if (!window.QLSimRegistry || typeof QLSimRegistry.openWindow !== "function") {
+      window.alert(
+        "Mis simulaciones no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
+      return;
+    }
+    try {
+      QLSimRegistry.openWindow(
+        mergeOpts("sim_registry", { x: 20, y: 40, w: 980, h: 560 })
+      );
+    } catch (err) {
+      window.alert(
+        "No pude abrir Mis simulaciones: " +
+          (err && err.message ? err.message : String(err))
+      );
+    }
   }
 
   function openMetrics() {
@@ -435,7 +559,7 @@
       return;
     }
     const pane = QLPanes.createReportsPane();
-    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
+    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 620, h: 520 }));
     pane.refresh()
       .then(function () {
         if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
@@ -454,9 +578,37 @@
     pane.refresh().catch(function () {});
   }
 
-  function openOptimize() {
+  function openOptimize(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("optimize", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
+    if (wm.windows.has("optimize")) {
+      wm.focus("optimize");
+      const root = wm.windows.get("optimize").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
+      return;
+    }
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
+    wm.open(
+      "optimize",
+      tr("pane.optimize", "Optimizer"),
+      pane,
+      mergeOpts("optimize", { x: 140, y: 70, w: 720, h: 640 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openMonteCarlo(opts) {
@@ -465,13 +617,17 @@
       window.QLNav.setFocus("montecarlo", {
         focusId: opts.focusId || null,
         prefill: opts.prefill || null,
-        message: opts.message || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
       });
     }
     if (wm.windows.has("montecarlo")) {
       wm.focus("montecarlo");
       const root = wm.windows.get("montecarlo").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createMonteCarloPane();
@@ -479,9 +635,13 @@
       "montecarlo",
       tr("pane.montecarlo", "Monte Carlo"),
       pane,
-      mergeOpts("montecarlo", { x: 160, y: 100, w: 720, h: 560 })
+      mergeOpts("montecarlo", { x: 140, y: 60, w: 800, h: 640 })
     );
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openFeatures() {
@@ -610,6 +770,26 @@
     pane.refresh().catch(function () {});
   }
 
+  function openBinanceSpot() {
+    const pane = QLPanes.createBinanceSpotPane();
+    wm.open(
+      "binance_spot",
+      tr("pane.binance_spot", "Binance Spot Testnet"),
+      pane,
+      mergeOpts("binance_spot", { x: 80, y: 40, w: 560, h: 640 })
+    );
+  }
+
+  function openBinanceFutures() {
+    const pane = QLPanes.createBinanceFuturesPane();
+    wm.open(
+      "binance_futures",
+      tr("pane.binance_futures", "Binance Futures Testnet"),
+      pane,
+      mergeOpts("binance_futures", { x: 120, y: 60, w: 560, h: 640 })
+    );
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -625,6 +805,9 @@
     api_explorer: openApiExplorer,
     diagnostics: openDiagnostics,
     guided_lab: openGuidedLab,
+    simulator: openSimulator,
+    strategies: openStrategies,
+    sim_registry: openSimRegistry,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
@@ -644,6 +827,8 @@
     features: openFeatures,
     export_hb: openExportHb,
     validation: openValidation,
+    binance_spot: openBinanceSpot,
+    binance_futures: openBinanceFutures,
   };
 
   window.QLShell = {
@@ -656,6 +841,18 @@
       return false;
     },
     openers: openers,
+    wm: wm,
+    /** Snapshot moneda/estrategia/params del Simulador abierto (si existe). */
+    getSimHandoff: function () {
+      if (!wm.windows.has("simulator")) return null;
+      try {
+        const root = wm.windows.get("simulator").body.firstElementChild;
+        if (root && typeof root.getSimHandoff === "function") {
+          return root.getSimHandoff();
+        }
+      } catch (e) {}
+      return null;
+    },
     setFontScale: function (s, persist) {
       applyFontScale(s, persist !== false);
     },
@@ -676,6 +873,56 @@
       bumpFont(FONT_STEP);
     });
   }
+  (function bindRunGateStatus() {
+    var wrap = document.getElementById("sb-run-gate");
+    var sep = document.getElementById("sb-run-gate-sep");
+    var label = document.getElementById("sb-run-gate-label");
+    var stopBtn = document.getElementById("sb-run-gate-stop");
+    if (!wrap || !window.QLRunGate) return;
+    if (stopBtn) {
+      stopBtn.addEventListener("click", function () {
+        QLRunGate.stop();
+      });
+    }
+    QLRunGate.onChange(function (snap) {
+      if (!snap.busy) {
+        wrap.hidden = true;
+        if (sep) sep.hidden = true;
+        return;
+      }
+      wrap.hidden = false;
+      if (sep) sep.hidden = false;
+      var a = snap.active || {};
+      var txt =
+        (a.label || a.kind || "corrida") +
+        (a.summary ? " · " + a.summary : "");
+      if (snap.queued) {
+        txt +=
+          " → cola: " +
+          (snap.queued.label || snap.queued.kind || "siguiente");
+      }
+      if (label) {
+        label.textContent = txt.length > 56 ? txt.slice(0, 53) + "…" : txt;
+        label.title = txt;
+      }
+      var elapsed = document.getElementById("sb-run-gate-elapsed");
+      if (elapsed) {
+        var ms = snap.elapsed_ms || 0;
+        var s = Math.floor(ms / 1000);
+        var m = Math.floor(s / 60);
+        s = s % 60;
+        elapsed.textContent =
+          m > 0 ? m + ":" + (s < 10 ? "0" : "") + s : s + "s";
+      }
+      var bar = document.getElementById("sb-run-gate-bar");
+      if (bar) {
+        var det = snap.progress != null && isFinite(snap.progress);
+        bar.classList.toggle("indeterminate", !det);
+        if (det) bar.style.width = snap.progress + "%";
+        else bar.style.width = "";
+      }
+    });
+  })();
   try {
     const stored = localStorage.getItem("ql_ui_font_scale");
     if (stored) applyFontScale(stored, false);
@@ -731,6 +978,11 @@
         QLAbout.close();
         return;
       }
+      if (startMenu && !startMenu.hasAttribute("hidden")) {
+        ev.preventDefault();
+        closeStartMenu();
+        return;
+      }
     }
 
     if (ctrl && (key === "k" || key === "K")) {
@@ -746,12 +998,7 @@
 
     if (palette.isOpen()) return;
 
-    if (ctrl && (key === "w" || key === "W")) {
-      if (isTypingTarget(ev.target) && !ev.target.closest(".win")) return;
-      ev.preventDefault();
-      wm.closeFocused();
-      return;
-    }
+    // Ctrl+W ya no cierra paneles (solo el botón ×). Evita cierres accidentales.
 
     if (ctrl && !ev.altKey && !ev.shiftKey && key >= "1" && key <= "9") {
       if (isTypingTarget(ev.target) && !ev.target.closest(".command-palette")) return;
@@ -765,34 +1012,316 @@
   });
 
   startBtn.addEventListener("click", function (ev) {
+    ev.preventDefault();
     ev.stopPropagation();
-    const open = startMenu.hasAttribute("hidden");
-    if (open) {
-      startMenu.removeAttribute("hidden");
-      startMenu.classList.remove("hidden");
-      startBtn.classList.add("active");
-      if (typeof refreshPresetsMenu === "function") {
-        refreshPresetsMenu();
+    toggleStartMenu();
+  });
+
+  function isStartMenuOpen() {
+    return !!(
+      startMenu &&
+      !startMenu.hasAttribute("hidden") &&
+      !startMenu.classList.contains("hidden")
+    );
+  }
+
+  function openStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.removeAttribute("hidden");
+    startMenu.classList.remove("hidden");
+    startBtn.classList.add("active");
+    startBtn.setAttribute("aria-expanded", "true");
+    try {
+      if (typeof refreshPresetsMenu === "function") refreshPresetsMenu();
+    } catch (e) {}
+    try {
+      if (typeof renderFavoritesMenu === "function") renderFavoritesMenu();
+    } catch (e) {}
+  }
+
+  function closeStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.setAttribute("hidden", "");
+    startMenu.classList.add("hidden");
+    startBtn.classList.remove("active");
+    startBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleStartMenu() {
+    if (isStartMenuOpen()) closeStartMenu();
+    else openStartMenu();
+  }
+
+  if (window.QLShell) {
+    window.QLShell.toggleStartMenu = toggleStartMenu;
+    window.QLShell.openStartMenu = openStartMenu;
+    window.QLShell.closeStartMenu = closeStartMenu;
+  }
+
+  /* QUANTLAB (banner) abre el mismo menú que el botón QL. */
+  var brandEl = document.querySelector(".top-banner .brand");
+  if (brandEl && !brandEl._qlStartBound) {
+    brandEl._qlStartBound = true;
+    brandEl.classList.add("brand-menu-trigger");
+    brandEl.setAttribute("role", "button");
+    brandEl.setAttribute("tabindex", "0");
+    brandEl.setAttribute(
+      "title",
+      "Abrir menú QL (igual que el botón QL abajo a la izquierda)"
+    );
+    brandEl.setAttribute("aria-label", "Abrir menú QuantLab");
+    brandEl.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggleStartMenu();
+    });
+    brandEl.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleStartMenu();
       }
-    } else {
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
-    }
+    });
+  }
+
+  // —— Favoritos del menú QL (orden custom, persistido) ——
+  var FAV_STORAGE_KEY = "ql_menu_favorites_v4";
+  var FAV_DEFAULT = [
+    "chat",
+    "scanner",
+    "simulator",
+    "montecarlo",
+    "binance_spot",
+    "binance_futures",
+  ];
+  var FAV_META = {
+    sim_registry: {
+      label: "Mis simulaciones",
+      tip: "Historial Comparar / Ranking / Monte Carlo.",
+    },
+    chat: { label: "Chat IA", tip: "Asistente research." },
+    scanner: {
+      label: "Alpha Scanner",
+      tip: "Ranking MD real multi-mercado.",
+    },
+    simulator: {
+      label: "Simulador",
+      tip: "Comparar mercados × monedas × leverage.",
+    },
+    strategies: {
+      label: "Estrategias",
+      tip: "Guías del catálogo.",
+    },
+    guided_lab: { label: "Guided Lab", tip: "Wizard paper/demo (avanzado)." },
+    montecarlo: { label: "Monte Carlo", tip: "Estrés estadístico." },
+    backtest: { label: "Backtest", tip: "Debug sintético / histórico." },
+    binance_spot: {
+      label: "Spot Testnet",
+      tip: "Binance Spot Testnet · unlock + demo.",
+    },
+    binance_futures: {
+      label: "Futures Testnet",
+      tip: "Binance Futures Testnet · unlock + demo.",
+    },
+  };
+
+  function loadFavorites() {
+    try {
+      var raw = localStorage.getItem(FAV_STORAGE_KEY);
+      if (!raw) {
+        var legacy =
+          localStorage.getItem("ql_menu_favorites_v3") ||
+          localStorage.getItem("ql_menu_favorites_v2") ||
+          localStorage.getItem("ql_menu_favorites");
+        if (legacy) {
+          var old = JSON.parse(legacy);
+          if (Array.isArray(old) && old.length) {
+            var merged = old.filter(function (id) {
+              return !!openers[id];
+            });
+            /* Completar con defaults nuevos (Spot/Futures/MC) si faltan */
+            FAV_DEFAULT.forEach(function (id) {
+              if (merged.indexOf(id) < 0 && openers[id]) merged.push(id);
+            });
+            if (merged.length) {
+              saveFavorites(merged);
+              return merged;
+            }
+          }
+        }
+      } else {
+        var arr = JSON.parse(raw);
+        if (Array.isArray(arr) && arr.length) {
+          return arr.filter(function (id) {
+            return !!openers[id];
+          });
+        }
+      }
+    } catch (e) {}
+    return FAV_DEFAULT.slice();
+  }
+
+  function saveFavorites(ids) {
+    try {
+      localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(ids));
+    } catch (e) {}
+  }
+
+  function renderTaskbarQuick() {
+    var bar = document.getElementById("taskbar-quick");
+    if (!bar) return;
+    var ids = loadFavorites();
+    bar.innerHTML = ids
+      .map(function (id) {
+        var meta = FAV_META[id] || { label: id, tip: id };
+        return (
+          '<button type="button" class="tb-quick-btn" data-open="' +
+          id +
+          '" data-tip="' +
+          meta.tip +
+          '" title="' +
+          meta.label +
+          '">' +
+          meta.label +
+          "</button>"
+        );
+      })
+      .join("");
+    bar.querySelectorAll("[data-open]").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        var key = btn.getAttribute("data-open");
+        if (openers[key]) openers[key]();
+      });
+    });
+  }
+
+  function renderFavoritesMenu() {
+    var box = document.getElementById("ql-fav-list");
+    renderTaskbarQuick();
+    if (!box) return;
+    var ids = loadFavorites();
+    box.innerHTML = ids
+      .map(function (id, idx) {
+        var meta = FAV_META[id] || { label: id, tip: id };
+        return (
+          '<div class="ql-fav-row" data-fav="' +
+          id +
+          '">' +
+          '<button type="button" class="ql-fav-open" data-open="' +
+          id +
+          '" data-tip="' +
+          meta.tip +
+          '">' +
+          meta.label +
+          "</button>" +
+          '<span class="ql-fav-moves">' +
+          '<button type="button" class="ql-fav-up" data-i="' +
+          idx +
+          '" title="Subir"' +
+          (idx === 0 ? " disabled" : "") +
+          ">↑</button>" +
+          '<button type="button" class="ql-fav-down" data-i="' +
+          idx +
+          '" title="Bajar"' +
+          (idx === ids.length - 1 ? " disabled" : "") +
+          ">↓</button>" +
+          "</span></div>"
+        );
+      })
+      .join("");
+    box.querySelectorAll(".ql-fav-open").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var key = btn.getAttribute("data-open");
+        try {
+          if (openers[key]) openers[key]();
+        } catch (err) {
+          window.alert(
+            "No pude abrir «" +
+              key +
+              "»: " +
+              (err && err.message ? err.message : String(err)) +
+              "\nCtrl+F5 si el error persiste."
+          );
+        }
+      });
+    });
+    box.querySelectorAll(".ql-fav-up").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var i = Number(btn.getAttribute("data-i"));
+        if (i <= 0) return;
+        var cur = loadFavorites();
+        var t = cur[i - 1];
+        cur[i - 1] = cur[i];
+        cur[i] = t;
+        saveFavorites(cur);
+        renderFavoritesMenu();
+      });
+    });
+    box.querySelectorAll(".ql-fav-down").forEach(function (btn) {
+      btn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var i = Number(btn.getAttribute("data-i"));
+        var cur = loadFavorites();
+        if (i >= cur.length - 1) return;
+        var t = cur[i + 1];
+        cur[i + 1] = cur[i];
+        cur[i] = t;
+        saveFavorites(cur);
+        renderFavoritesMenu();
+      });
+    });
+  }
+
+  var favReset = document.getElementById("ql-fav-reset");
+  if (favReset) {
+    favReset.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      saveFavorites(FAV_DEFAULT.slice());
+      renderFavoritesMenu();
+    });
+  }
+  renderFavoritesMenu();
+
+  // Clicks dentro del menú no deben cerrarlo (seguir abriendo paneles).
+  startMenu.addEventListener("click", function (ev) {
+    ev.stopPropagation();
   });
 
   startMenu.querySelectorAll("[data-open]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const key = btn.getAttribute("data-open");
-      if (openers[key]) openers[key]();
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+      if (key === "about") {
+        openAbout();
+        return;
+      }
+      try {
+        if (openers[key]) openers[key]();
+      } catch (err) {
+        window.alert(
+          "No pude abrir «" +
+            key +
+            "»: " +
+            (err && err.message ? err.message : String(err)) +
+            "\nCtrl+F5 si el error persiste."
+        );
+      }
+      // Menú QL permanece abierto para seguir navegando.
     });
   });
 
   startMenu.querySelectorAll("[data-wm-action]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const action = btn.getAttribute("data-wm-action");
       if (action === "minimize_all" && wm.minimizeAll) {
         wm.minimizeAll();
@@ -811,9 +1340,7 @@
       } else if (action === "restore_from_maximize" && wm.restoreFromMaximize) {
         wm.restoreFromMaximize();
       }
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+      // Acciones de ventanas: menú sigue abierto.
     });
   });
 
@@ -824,22 +1351,16 @@
     });
   }
 
-  function closeStartMenu() {
-    startMenu.setAttribute("hidden", "");
-    startMenu.classList.add("hidden");
-    startBtn.classList.remove("active");
-  }
-
   function applyWorkspacePreset(name) {
     if (!QLApi || !QLApi.applyPreset || !name) return;
     QLApi.applyPreset(name)
       .then(function (payload) {
         if (!payload || !payload.ok || !payload.layout) return;
         const windows = payload.layout.windows || {};
-        savedGeom = windows;
-        if (wm.closeAll) {
-          wm.closeAll({ silent: true });
-        }
+        // Merge geom del preset sin borrar ventanas ya abiertas.
+        Object.keys(windows).forEach(function (id) {
+          savedGeom[id] = windows[id];
+        });
         const ids =
           (payload.preset && payload.preset.window_ids) || Object.keys(windows);
         ids.forEach(function (id) {
@@ -944,9 +1465,11 @@
   }
 
   startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
+      // No cerrar menú: el preset ahora suma ventanas, no reemplaza.
       applyWorkspacePreset(name);
     });
   });
@@ -958,9 +1481,9 @@
           ? ev.target.closest("[data-preset-delete]")
           : null;
       if (delBtn && customPresetsHost.contains(delBtn)) {
+        ev.preventDefault();
         ev.stopPropagation();
         const delName = delBtn.getAttribute("data-preset-delete");
-        closeStartMenu();
         deleteCustomPreset(delName);
         return;
       }
@@ -968,8 +1491,9 @@
         ? ev.target.closest("[data-preset]")
         : null;
       if (!btn || !customPresetsHost.contains(btn)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
       applyWorkspacePreset(name);
     });
   }
@@ -977,16 +1501,20 @@
   if (btnPresetSave) {
     btnPresetSave.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      closeStartMenu();
       saveCurrentAsPreset();
     });
   }
 
-  refreshPresetsMenu();
-
-  document.addEventListener("click", function () {
+  document.addEventListener("click", function (ev) {
+    if (!isStartMenuOpen()) return;
+    var t = ev.target;
+    if (startMenu && startMenu.contains(t)) return;
+    if (startBtn && (t === startBtn || startBtn.contains(t))) return;
+    if (brandEl && (t === brandEl || brandEl.contains(t))) return;
     closeStartMenu();
   });
+
+  refreshPresetsMenu();
 
   function setClockTimezone(tz) {
     /* F74: status bar clock · UTC (default) | local */
@@ -1151,6 +1679,8 @@
     openHealth();
     openMarket();
     openBlotter();
+    // No abrir Mis simulaciones al boot: el usuario la abre cuando quiere
+    // (queda detrás salvo que la ponga adelante).
 
     // F37: first-run wizard si meta.onboarding_done ausente
     if (

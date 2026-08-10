@@ -1,43 +1,30 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-08
-Versión: 1.01.0 · Binance Spot Testnet prep (PR #4)
+Actualizado: 2026-08-09
+Versión: 1.01.0 · UI favoritos + Spot/Futures Testnet
 
 ESTADO
 ------
-- LIVE_BLOCKED=True (sin cambios)
-- Binance Spot Testnet: cliente extendido + CLI diagnóstico
-- Hummingbot: export research-safe + probe externo (sin runtime embebido)
-- Producción Binance: bloqueada por diseño (api.binance.com rechazado)
+- LIVE_BLOCKED=True
+- Workbench tip reiniciado (:8765) con .env Futures
+- Favoritos 1-clic en taskbar: Chat · Alpha · Sim · MC · Spot · Futures
+- Guided Lab solo en menú avanzado (no favoritos)
+- .url del escritorio = solo browser; .bat = reinicio tip
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-Preparación Binance Spot Testnet + scripts Windows:
-- BinanceTestnetClient: get_account, get_balances, auth_check, connectivity_check
-- CLI: quantlab-testnet diagnostic → TESTNET READY: YES/NO
-- Scripts: tools/windows/01..08 (.bat setup, credenciales, tests, arranque)
-- Docs: docs/ops/BINANCE_TESTNET_SETUP.md, HUMMINGBOT_TESTNET.md
-- Tests: 23 nuevos (account, diagnostic, hummingbot probe)
+Reorg Workbench + dual testnet UI:
+- Merge UI desde modo-real-workbench-aafd
+- taskbar-quick + ql_menu_favorites_v4
+- panes binance_spot / binance_futures
+- launch.py carga .env
+- Desktop: QuantLab Workbench.bat
 
-BRANCH / PR
------------
-- Branch: cursor/binance-testnet-hummingbot-prep-2828
-- PR: https://github.com/ssciarratta/QuantLab/pull/4
-
-PIPELINE PRODUCTO
------------------
-Research → Backtest → MC → Paper → Binance Testnet → Live
-   ✅         ✅       ✅     ✅          🟡 opt-in        🔒 bloqueado
-
-PRÓXIMO (OPERADOR — PC ESCRITORIO)
-----------------------------------
-1. git pull (ver SYNC_PC.txt)
-2. tools\windows\01_setup_testnet_environment.bat
-3. tools\windows\02_configure_testnet_credentials.bat (keys testnet.binance.vision)
-4. tools\windows\07_full_testnet_diagnostic.bat → TESTNET READY: YES
-5. tools\windows\08_start_quantlab_testnet.bat
+PRÓXIMO
+-------
+Ctrl+F5 · unlock Futures · demo chica
+Spot: keys en testnet.binance.vision cuando haga falta
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL inventados
-Testnet remoto: QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_* + unlock LIVE
+LIVE_BLOCKED=True · Spot XOR Futures · REAL=PAPER

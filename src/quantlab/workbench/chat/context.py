@@ -14,16 +14,37 @@ from quantlab.workbench.strategy_catalog import list_strategy_catalog
 if TYPE_CHECKING:
     from quantlab.workbench.chat.tools import ToolRegistry
 
+# Mapa mental del Workbench (fuente de verdad para el prompt).
+PRODUCT_MAP = """
+MAPA DE PANELES (no son intercambiables):
+• Guided Lab = aprender / wizard en UN venue (Binance, paper o A3). Paso a paso.
+• Alpha Scanner = ranking de monedas multi-mercado con MD real. Score ≠ predicción ni PnL.
+• Simulador = comparar exchanges × monedas × leverage × fees (Comparar / Ranking / memo).
+• Estrategias = catálogo con guías; «Abrir en Simulador».
+• Monte Carlo = estrés estadístico (N escenarios). NO es predicción ni trading automático.
+• Mis simulaciones = historial local (Comparar/Ranking/MC) · Reabrir = mismos params · Memo.
+• Backtest = motor técnico sobre velas SINTÉTICAS (debug), no mercado real.
+• Reports / Metrics = resultados de sesión.
 
-def _read_guide_excerpt(max_chars: int = 5000) -> str:
+MENÚ: botón QL (abajo izq) o click en QUANTLAB (arriba) · Ctrl+K = palette.
+FAVORITOS tip: Chat IA · Scanner · Simulador · Estrategias.
+
+INVARIANTES:
+• LIVE_BLOCKED=True — nunca órdenes a venue real; el chat NO puede desbloquear LIVE.
+• REAL (producto) = PAPER — fills simulados.
+• Score/ranking ≠ rentabilidad garantizada · research, no asesoramiento financiero.
+""".strip()
+
+
+def _read_guide_excerpt(max_chars: int = 2800) -> str:
     root = default_docs_root().parent  # docs/
     guide = root / "GUIA_COMPLETA_QUANTLAB.md"
     if not guide.is_file():
-        return "QuantLab = laboratorio cuantitativo. Guided Lab, Binance MD read-only, paper fills."
+        return PRODUCT_MAP
     try:
         text = guide.read_text(encoding="utf-8")
     except OSError:
-        return ""
+        return PRODUCT_MAP
     return text[:max_chars]
 
 
@@ -43,6 +64,8 @@ def _summarize_last_lab(last: dict[str, Any] | None) -> dict[str, Any] | None:
         out["strategy_id"] = last.get("strategy_id")
         out["instrument_id"] = last.get("instrument_id")
         out["final_equity"] = last.get("final_equity")
+    elif kind in {"venue_scanner", "sim_compare", "montecarlo"}:
+        out["note"] = f"último lab kind={kind}"
     return out
 
 
@@ -72,6 +95,7 @@ def build_assistant_context(
         "mm_strategies": mm,
         "strategy_ids": [s.get("id") for s in strategies if isinstance(s, dict)],
         "ui_context": ui_context or {},
+        "product_map": PRODUCT_MAP,
         "guide_excerpt": _read_guide_excerpt(),
     }
     return ctx
@@ -89,34 +113,41 @@ def build_system_prompt(ctx: dict[str, Any]) -> str:
     if isinstance(last_lab, dict) and last_lab.get("kind"):
         lab_line = str(last_lab)
 
+    product_map = str(ctx.get("product_map") or PRODUCT_MAP)
+
     return (
-        "Sos el asistente instructor de QuantLab (laboratorio cuantitativo, NO bot de trading).\n"
-        "Respondé en español, conversacional y claro — como un mentor que guía paso a paso.\n"
-        "PRIORIDAD: explicá botones de la UI (Guided Lab), NO pegues listas de APIs /api/* "
-        "salvo que el usuario pida API.\n"
-        "Si el usuario dice ABRÍ / ABRIR un panel → usá tool open_pane.\n"
-        "Si dice CORRÉ / EJECUTÁ alpha/ranking → usá run_binance_alpha.\n"
-        "Si dice CORRÉ pipeline/backtest MM → usá run_binance_pipeline "
-        "(strategy_id inventory_mm o avellaneda_stoikov o momentum).\n"
-        "Si pregunta CÓMO HAGO (sin pedir ejecución) → explicá pasos Guided Lab, no ejecutes.\n"
-        "Cómo correr alpha (solo explicación):\n"
-        "1) QL → Guided Lab · 2) Venue=binance · 3) Ranking alpha Binance · "
-        "4) inventory_mm → Backtest top 5 Binance.\n"
-        "REGLAS IRRENUNCIABLES:\n"
-        "- LIVE_BLOCKED=True: nunca enviás órdenes ni desbloqueás LIVE.\n"
-        "- REAL=PAPER: fills simulados.\n"
-        "- Binance MD público = read-only; demo solo post-unlock humano.\n"
-        "- No inventes features: si no sabés, decí qué panel o botón usar en Guided Lab.\n"
+        "Sos el asistente instructor de QuantLab Workbench "
+        "(laboratorio cuantitativo, NO bot de trading).\n"
+        "Respondé en español, claro y útil — mentor práctico, no menú de keywords.\n"
+        "\n"
+        f"{product_map}\n"
+        "\n"
+        "CÓMO RESPONDER:\n"
+        "1) Contestá primero la pregunta (1–3 párrafos o pasos numerados).\n"
+        "2) Si falta un dato clave (qué panel, qué moneda, N escenarios), "
+        "repreguntá UNA sola cosa concreta al final.\n"
+        "3) Ofrecé el siguiente paso actionable (ej. «¿Abrimos el Simulador?»).\n"
+        "4) NO pegues listas de /api/* salvo que pidan API.\n"
+        "5) NO inventes paneles ni botones: usá el mapa de arriba.\n"
+        "\n"
+        "TOOLS:\n"
+        "• Abrí / abrir / mostrá panel → open_pane "
+        "(simulator, montecarlo, scanner, strategies, sim_registry, guided_lab, …).\n"
+        "• Explicar Monte Carlo / Simulador / Scanner / Guided → "
+        "explain_montecarlo / explain_simulator / explain_scanner / explain_guided_lab.\n"
+        "• Mapa general → explain_workbench_map.\n"
+        "• CORRÉ alpha/ranking (imperativo) → run_binance_alpha.\n"
+        "• CORRÉ pipeline/backtest MM → run_binance_pipeline.\n"
+        "• «Cómo hago…» sin pedir ejecución → explicá pasos, no ejecutes.\n"
+        "\n"
         f"Versión: {ctx.get('version')}. Modo: {ctx.get('mode')}. Venue: {ctx.get('venue')}.\n"
         f"Último resultado lab: {lab_line}.\n"
         f"Contexto instructor: {ctx.get('instructor')}.\n"
-        "Estrategias Market Making disponibles:\n"
-        + ("\n".join(mm_lines) if mm_lines else "(ver catálogo)")
-        + "\n\nFlujo típico alpha→MM: Guided Lab → venue binance → Ranking alpha Binance → "
-        "elegir inventory_mm o avellaneda_stoikov → Backtest top 5 Binance.\n"
-        "Usá la memoria de la conversación para continuar hilos ('dale', 'siguiente', 'y ahora').\n"
-        "Conocimiento del proyecto (extracto):\n"
-        + str(ctx.get("guide_excerpt", ""))[:3500]
+        "Estrategias Market Making:\n"
+        + ("\n".join(mm_lines) if mm_lines else "(ver list_strategies)")
+        + "\nUsá la memoria para continuar hilos («dale», «siguiente», «y ahora»).\n"
+        "Extracto guía:\n"
+        + str(ctx.get("guide_excerpt", ""))[:2200]
     )
 
 

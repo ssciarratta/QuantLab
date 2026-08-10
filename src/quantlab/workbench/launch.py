@@ -92,7 +92,40 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _load_dotenv_cwd() -> None:
+    """Carga .env local si existe (sin sobrescribir env ya definida)."""
+    env_path = Path.cwd() / ".env"
+    if not env_path.is_file():
+        return
+    try:
+        text = env_path.read_text(encoding="utf-8")
+    except OSError:
+        return
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, _, value = stripped.partition("=")
+        key = key.strip()
+        if key and key not in os.environ:
+            os.environ[key] = value.strip().strip('"').strip("'")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
+    # Windows: consolas cp1252/ascii rompen logs y tqdm (█, ñ, —).
+    # Forzar (no setdefault): un .env / shell con PYTHONIOENCODING=ascii
+    # dejaba el Scanner en 500 al imprimir barras HuggingFace.
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONUTF8"] = "1"
+    os.environ["TQDM_ASCII"] = "1"
+    os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+    _load_dotenv_cwd()
+    for stream in (sys.stdout, sys.stderr):
+        reconf = getattr(stream, "reconfigure", None)
+        if callable(reconf):
+            with contextlib.suppress(Exception):
+                reconf(encoding="utf-8", errors="replace")
+
     args = build_parser().parse_args(list(argv) if argv is not None else None)
 
     if not LIVE_BLOCKED:

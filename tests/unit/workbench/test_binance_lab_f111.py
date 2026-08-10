@@ -207,11 +207,14 @@ def test_binance_kline_limit_allows_1200() -> None:
     assert fetch_mock.call_args.kwargs["kline_limit"] == 1200
 
 
-def test_binance_kline_limit_rejects_over_3000() -> None:
+def test_binance_kline_limit_rejects_over_max() -> None:
+    from quantlab.brokers.md_limits import LAB_KLINE_LIMIT_MAX
     from quantlab.core.exceptions import ValidationError
 
-    with pytest.raises(ValidationError, match="3000"):
-        lab_services.run_binance_lab_scanner(kline_limit=3001, top_n=2, symbol_limit=5)
+    with pytest.raises(ValidationError, match=str(LAB_KLINE_LIMIT_MAX)):
+        lab_services.run_binance_lab_scanner(
+            kline_limit=LAB_KLINE_LIMIT_MAX + 1, top_n=2, symbol_limit=5
+        )
 
 
 def test_run_lab_backtest_with_bars(binance_universe: dict[str, list[Bar]]) -> None:

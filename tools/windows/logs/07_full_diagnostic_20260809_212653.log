@@ -1,0 +1,36 @@
+TESTNET READY: NO
+
+Base URL: https://testnet.binance.vision
+Producción bloqueada: True
+
+--- Conectividad ---
+  OK: True
+  Ping: True
+  Server time (ms): 1786321647220
+
+--- Autenticación ---
+  (no evaluada)
+
+--- Balances (no-cero) ---
+  (sin datos)
+
+--- Estrategia ---
+  (no evaluada)
+
+--- QuantLab routing ---
+  LIVE_BLOCKED: True
+  Transport: local_demo_sim
+  Unlock: False
+
+--- Hummingbot ---
+  Instalado: False
+  Método: none
+  Testnet spot soportado en HB: False
+  Recomendación: HB spot: usar binance_paper_trade (paper) o QuantLab F102 testnet nativo. Perp testnet: binance_perpetual_testnet. Mantener desacoplado vía exports.
+
+--- Problemas ---
+  - Credenciales testnet ausentes (BINANCE_DEMO_API_KEY/SECRET).
+  - QUANTLAB_DEMO_USE_TESTNET no está activo.
+  - Unlock LIVE no activo (requerido para routing demo; diagnóstico de red sigue disponible).
+  - Sin credenciales: balances y auth no disponibles.
+  - QuantLab no está en transport binance_spot_testnet (actual: local_demo_sim).

@@ -3,8 +3,7 @@ setlocal EnableExtensions EnableDelayedExpansion
 title QuantLab - Test Binance Testnet Connection
 
 call "%~dp0_common.bat" || exit /b 1
-set "LOG=%QL_LOG_DIR%\03_testnet_connection_%DATE:~-4%%DATE:~3,2%%DATE:~0,2%_%TIME:~0,2%%TIME:~3,2%.log"
-set "LOG=%LOG: =0%"
+set "LOG=%QL_LOG_DIR%\03_testnet_connection_%QL_STAMP%.log"
 
 echo.
 echo ============================================================

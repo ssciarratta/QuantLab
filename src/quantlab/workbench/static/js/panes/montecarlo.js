@@ -21,55 +21,57 @@
     root.className = "pane-lab pane-montecarlo";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>MONTE CARLO — ROBUSTEZ DE ESTRATEGIA</h3>" +
-      '<p class="muted" style="margin-top:0">' +
-      "Mide sensibilidad bajo supuestos elegidos. <strong>No predice precios futuros.</strong>" +
-      "</p>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;align-items:flex-end">' +
-      '<label class="field" title="Cantidad de escenarios independientes">Escenarios' +
+      '<div class="pane-head">' +
+      "<h3>Monte Carlo</h3>" +
+      '<p class="muted pane-sub">Robustez bajo supuestos · no predice precios</p>' +
+      "</div>" +
+      '<div id="mc-source-banner" class="mc-source-banner" role="status">' +
+      '<strong>Origen:</strong> <span id="mc-source-summary">Sin simulación ligada — modo técnico demo.</span>' +
+      '<div id="mc-source-detail" class="mc-source-detail muted mono"></div>' +
+      "</div>" +
+      '<div class="pane-toolbar">' +
+      '<label title="Cantidad de escenarios independientes">Escenarios' +
       '<input id="mc-n" type="number" value="1000" min="2" max="1000000" step="1" /></label>' +
-      '<div class="pane-row" id="mc-presets" style="gap:0.25rem;flex-wrap:wrap"></div>' +
-      "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;margin-top:0.4rem;align-items:flex-end">' +
-      '<label class="field" title="Cada escenario vuelve a ejecutar la estrategia sobre estas N velas perturbadas.">' +
-      "Velas utilizadas por escenario" +
-      '<input id="mc-bars" type="number" value="60" min="8" max="500" /></label>' +
-      '<span class="muted mono" id="mc-bars-duration" style="align-self:center"></span>' +
-      '<label class="field" title="10 bps = 0,10 %">Ruido (bps)' +
+      '<label title="Velas perturbadas por escenario">Velas/esc.' +
+      '<input id="mc-bars" type="number" value="60" min="8" max="5000" /></label>' +
+      '<label title="50 bps = 0,50 % estrés ligado; 10 = micro-ruido">Ruido bps' +
       '<input id="mc-noise" type="number" value="10" min="0" max="500" step="1" /></label>' +
-      '<label class="field" title="Misma seed + mismos datos = mismo resultado">Seed' +
+      '<label title="Misma seed = mismo resultado">Seed' +
       '<input id="mc-seed" type="number" value="42" /></label>' +
-      '<label class="field" title="Opcional — vincula Scan">scan_id' +
-      '<input id="mc-scan" type="text" placeholder="opcional" style="width:8em" /></label>' +
-      '<label class="field" title="Opcional — vincula Backtest">backtest_id' +
-      '<input id="mc-bt" type="text" placeholder="opcional" style="width:8em" /></label>' +
+      '<label title="Opcional — vincula Scan">scan_id' +
+      '<input id="mc-scan" type="text" placeholder="opcional" /></label>' +
+      '<label title="Opcional — vincula Backtest">backtest_id' +
+      '<input id="mc-bt" type="text" placeholder="opcional" /></label>' +
       "</div>" +
-      '<div class="pane-row" style="flex-wrap:wrap;gap:0.5rem;margin-top:0.4rem;align-items:center">' +
-      '<label class="muted" title="Guarda hasta 16 curvas completas para visualización. No limita la cantidad total de escenarios simulados.">' +
-      '<input type="checkbox" id="mc-paths" /> Guardar muestra de trayectorias</label>' +
+      '<div class="pane-row" id="mc-presets" style="gap:0.25rem;flex-wrap:wrap;margin:0.15rem 0"></div>' +
+      '<div class="pane-actions">' +
+      '<label class="muted" title="Guarda hasta 16 curvas. No limita escenarios.">' +
+      '<input type="checkbox" id="mc-paths" /> trayectorias</label>' +
       '<button type="button" class="btn" id="mc-run">Simular</button>' +
+      '<button type="button" class="btn secondary" id="mc-memo" title="Reabrir memorando de la última corrida">Ver memorando</button> ' +
       '<button type="button" class="btn secondary" id="mc-refresh">Actualizar</button>' +
-      '<button type="button" class="btn secondary" id="mc-copy-id">Copiar run ID</button>' +
-      '<button type="button" class="btn secondary" id="mc-cancel" disabled hidden>Cancelar</button>' +
+      '<button type="button" class="btn secondary" id="mc-copy-id">Copiar ID</button>' +
+      '<button type="button" class="btn secondary stop-run" id="mc-cancel" disabled hidden>Stop</button>' +
+      '<span class="mono muted" id="mc-bars-duration"></span>' +
       '<span class="mono" id="mc-status">—</span>' +
       "</div>" +
-      '<p class="muted" id="mc-warn" style="margin:0.4rem 0 0"></p>' +
-      '<div id="mc-cost" class="mono muted" style="margin-top:0.35rem"></div>' +
-      '<div id="mc-progress" style="margin-top:0.35rem"></div>' +
+      '<p class="muted" id="mc-warn" style="margin:0.25rem 0 0"></p>' +
+      '<div id="mc-cost" class="mono muted"></div>' +
+      '<div id="mc-progress"></div>' +
       "</div>" +
       '<div class="pane-section" id="mc-ctx-section">' +
-      "<h3>Contexto del experimento</h3>" +
+      "<h3>Contexto</h3>" +
       '<div class="mono" id="mc-context">—</div>' +
-      '<div class="pane-row" style="margin-top:0.4rem;gap:0.4rem;flex-wrap:wrap">' +
-      '<button type="button" class="btn secondary" id="mc-open-bt" disabled title="Sin backtest_id">Abrir backtest</button>' +
-      '<button type="button" class="btn secondary" id="mc-open-scan" disabled title="Sin scan_id">Abrir scan</button>' +
-      '<button type="button" class="btn secondary" id="mc-open-ds" disabled title="Sin dataset">Abrir dataset</button>' +
-      '<span class="muted mono" id="mc-nav-hint" style="align-self:center"></span>' +
+      '<div class="pane-actions">' +
+      '<button type="button" class="btn secondary" id="mc-open-bt" disabled title="Sin backtest_id">Backtest</button>' +
+      '<button type="button" class="btn secondary" id="mc-open-scan" disabled title="Sin scan_id">Scan</button>' +
+      '<button type="button" class="btn secondary" id="mc-open-ds" disabled title="Sin dataset">Dataset</button>' +
+      '<span class="muted mono" id="mc-nav-hint"></span>' +
       "</div>" +
-      '<div id="mc-dataset-detail" style="margin-top:0.5rem;display:none"></div>' +
+      '<div id="mc-dataset-detail" style="margin-top:0.35rem;display:none"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>¿Qué estamos simulando?</h3>" +
+      "<h3>¿Qué simulamos?</h3>" +
       '<div id="mc-explain">—</div>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -113,6 +115,196 @@
     let activeJobId = null;
     let pollTimer = null;
     let runBusy = false;
+    let gateHandle = null;
+    /** Contexto heredado del Simulador (moneda + params). */
+    let simContext = null;
+
+    function setSimContext(ctx, opts) {
+      opts = opts || {};
+      if (!ctx || typeof ctx !== "object") {
+        simContext = null;
+      } else {
+        simContext = ctx;
+      }
+      // Al ligar desde Simulador, no arrastrar backtest_id de Guided Lab
+      if (simContext && opts.clearLabIds !== false) {
+        var scanEl = root.querySelector("#mc-scan");
+        var btEl = root.querySelector("#mc-bt");
+        if (scanEl) scanEl.value = "";
+        if (btEl) btEl.value = "";
+      }
+      renderSourceBanner();
+    }
+
+    function pullSimHandoff() {
+      if (simContext && simContext.pairs && simContext.pairs.length) {
+        return simContext;
+      }
+      try {
+        if (global.QLShell && typeof global.QLShell.getSimHandoff === "function") {
+          var h = global.QLShell.getSimHandoff();
+          if (h && h.pairs && h.pairs.length) {
+            setSimContext(h);
+            return h;
+          }
+        }
+      } catch (e) {}
+      return simContext;
+    }
+
+    function formatConfirmIdentity(ctx) {
+      if (!ctx) return "";
+      var lines = [
+        "Vas a estresar ESTA simulación (no un activo al azar):",
+        "",
+        "Moneda: " + (ctx.coin || (ctx.coins && ctx.coins.join(", ")) || "—"),
+        "Mercado(s): " + ((ctx.venues && ctx.venues.join(", ")) || "—"),
+        "Estrategia: " + (ctx.strategy_label || ctx.strategy_id || "—"),
+        "Tipo: " + (ctx.market_type || "—"),
+        "TF / período: " +
+          (ctx.interval || "—") +
+          " · " +
+          (ctx.period_days != null ? ctx.period_days + " días" : "—"),
+        "Leverage: x" + (ctx.leverage != null ? ctx.leverage : "—"),
+        "Capital: " +
+          (ctx.capital_mode || "—") +
+          " · inicial=" +
+          (ctx.initial_capital != null ? ctx.initial_capital : "—") +
+          " · por trade=" +
+          (ctx.per_trade_usd != null ? ctx.per_trade_usd : "—"),
+        "Pares: " +
+          ((ctx.pairs || [])
+            .map(function (p) {
+              return (p.venue || "?") + "/" + (p.ticker || p.underlying || "?");
+            })
+            .join(", ") || "—"),
+        "",
+        "Monte Carlo re-ejecuta ESA estrategia (mismo capital, leverage, funding/liq) sobre velas reales + ruido.",
+        "No calibra el resultado para igualar el % de Comparar.",
+        "",
+        "¿Confirmás correr con estos parámetros?",
+      ];
+      return lines.join("\n");
+    }
+
+    function confirmRunIdentity() {
+      var ctx = pullSimHandoff();
+      if (ctx && ctx.pairs && ctx.pairs.length) {
+        return window.confirm(formatConfirmIdentity(ctx));
+      }
+      var goDemo = window.confirm(
+        "NO hay simulación ligada.\n\n" +
+          "Monte Carlo no sabe qué moneda ni qué estrategia estresar.\n\n" +
+          "OK = modo DEMO sintético (WB:SYN / BuyOnce) — NO es tu simulación\n" +
+          "Cancelar = volvé al Simulador, elegí moneda+estrategia y abrí Monte Carlo desde allí"
+      );
+      return goDemo;
+    }
+
+    function renderSourceBanner() {
+      var sumEl = root.querySelector("#mc-source-summary");
+      var detEl = root.querySelector("#mc-source-detail");
+      var ban = root.querySelector("#mc-source-banner");
+      if (!sumEl || !detEl || !ban) return;
+      if (!simContext) {
+        ban.classList.remove("mc-source-linked");
+        ban.classList.add("mc-source-orphan");
+        sumEl.textContent =
+          "Sin simulación ligada — modo técnico demo (no está atado a una moneda del Simulador).";
+        detEl.textContent =
+          "Abrí Monte Carlo desde Simulador (botón Monte Carlo) con mercados y moneda elegidos.";
+        return;
+      }
+      ban.classList.add("mc-source-linked");
+      ban.classList.remove("mc-source-orphan");
+      sumEl.textContent =
+        simContext.summary_line ||
+        ((simContext.kind === "rank" ? "Ranking" : "Comparar") +
+          " · " +
+          (simContext.coin || "—") +
+          " · " +
+          (simContext.strategy_label || simContext.strategy_id || "—"));
+      var bits = [];
+      bits.push("Moneda: " + (simContext.coin || "—"));
+      bits.push(
+        "Mercados: " +
+          ((simContext.venues && simContext.venues.join(", ")) || "—")
+      );
+      bits.push(
+        "Estrategia: " +
+          (simContext.strategy_label || simContext.strategy_id || "—")
+      );
+      bits.push(
+        "TF " +
+          (simContext.interval || "—") +
+          " · " +
+          (simContext.period_days != null
+            ? simContext.period_days + "d"
+            : "—") +
+          " · x" +
+          (simContext.leverage != null ? simContext.leverage : "—")
+      );
+      bits.push(
+        "Capital: " +
+          (simContext.capital_mode || "—") +
+          " / " +
+          (simContext.initial_capital != null
+            ? simContext.initial_capital
+            : "—") +
+          " · por trade=" +
+          (simContext.per_trade_usd != null
+            ? simContext.per_trade_usd
+            : "—")
+      );
+      if (simContext.pairs && simContext.pairs.length) {
+        bits.push(
+          "Pares: " +
+            simContext.pairs
+              .map(function (p) {
+                return (p.venue || "?") + "/" + (p.ticker || p.underlying || "?");
+              })
+              .join(", ")
+        );
+      }
+      detEl.textContent = bits.join(" · ");
+    }
+
+    function formatSimContextLines(ctx) {
+      if (!ctx) {
+        return [
+          "— CONTEXTO ORIGEN —",
+          "Sin simulación del Simulador ligada (modo técnico demo).",
+          "",
+        ];
+      }
+      return [
+        "— CONTEXTO ORIGEN (SIMULADOR) —",
+        "Resumen: " + (ctx.summary_line || "—"),
+        "Tipo corrida: " + (ctx.kind === "rank" ? "Ranking" : "Comparar"),
+        "Moneda(s): " + (ctx.coin || (ctx.coins && ctx.coins.join(", ")) || "—"),
+        "Mercado(s): " + ((ctx.venues && ctx.venues.join(", ")) || "—"),
+        "Estrategia: " + (ctx.strategy_label || ctx.strategy_id || "—"),
+        "Tipo mercado: " + (ctx.market_type || "—"),
+        "TF / período: " +
+          (ctx.interval || "—") +
+          " · " +
+          (ctx.period_days != null ? ctx.period_days + " días" : "—"),
+        "Leverage: x" + (ctx.leverage != null ? ctx.leverage : "—"),
+        "Capital: " +
+          (ctx.capital_mode || "—") +
+          " · inicial=" +
+          (ctx.initial_capital != null ? ctx.initial_capital : "—") +
+          " · por trade=" +
+          (ctx.per_trade_usd != null ? ctx.per_trade_usd : "—"),
+        "Pares: " +
+          ((ctx.pairs || [])
+            .map(function (p) {
+              return (p.venue || "?") + "/" + (p.ticker || p.underlying || "?");
+            })
+            .join(", ") || "—"),
+        "",
+      ];
+    }
 
     function esc(s) {
       return QLLabUI.escapeHtml(s);
@@ -142,7 +334,7 @@
       if (v == null || initial == null || !initial) return "No disponible";
       const p = ((Number(v) - Number(initial)) / Number(initial)) * 100;
       const sign = p >= 0 ? "+" : "";
-      return sign + p.toFixed(4) + " %";
+      return sign + p.toFixed(2) + " %";
     }
 
     function pctProb(v) {
@@ -174,9 +366,12 @@
       return Math.max(2, Math.min(1000000, Math.trunc(n)));
     }
 
+    var MC_MAX_BARS = 5000;
+    var SIM_LINKED_NOISE = 50;
+
     function clampBars(n) {
       if (!isFinite(n)) return 60;
-      return Math.max(8, Math.min(500, Math.trunc(n)));
+      return Math.max(8, Math.min(MC_MAX_BARS, Math.trunc(n)));
     }
 
     function readScenarios() {
@@ -300,6 +495,9 @@
       var eta = p.eta_seconds != null ? p.eta_seconds + " s" : "—";
       var sps = p.scenarios_per_second != null ? p.scenarios_per_second : "—";
       var barW = pct != null ? Math.max(0, Math.min(100, pct)) : 0;
+      if (global.QLRunGate && typeof QLRunGate.setProgress === "function") {
+        if (pct != null && isFinite(pct)) QLRunGate.setProgress(pct);
+      }
       progressEl.innerHTML =
         '<div class="muted">Job <span class="mono">' +
         esc(job.job_id || "") +
@@ -517,6 +715,18 @@
       const scanId = firstDefined(ctx.scan_id, rel.scan_id);
 
       ctxEl.innerHTML =
+        (simContext
+          ? row(
+              "Origen Simulador",
+              na(simContext.summary_line || simContext.coin)
+            ) +
+            row("Moneda origen", na(simContext.coin)) +
+            row(
+              "Estrategia origen",
+              na(simContext.strategy_label || simContext.strategy_id)
+            )
+          : row("Origen Simulador", "— (modo técnico demo)")
+        ) +
         row("Estrategia", na(strategy)) +
         row("Símbolos", na(symbols)) +
         row("Venue", na(venue)) +
@@ -536,11 +746,13 @@
         row("Scan origen", na(scanId)) +
         row("run_id", na(data && data.run_id)) +
         row("schema", na(data && data.schema_version)) +
-        (ctx.orphan_technical_mode
+        (ctx.orphan_technical_mode && !ctx.sim_linked && !simContext
           ? '<p class="status-bad" style="margin-top:0.4rem">' +
             esc(ctx.orphan_warning || "Modo técnico huérfano") +
             "</p>"
-          : "");
+          : ctx.sim_linked || simContext
+            ? '<p class="status-ok" style="margin-top:0.4rem">Ligado al Simulador · no es modo huérfano</p>'
+            : "");
       updateNavButtons(data);
     }
 
@@ -554,6 +766,16 @@
         (data && data.bars_meta && data.bars_meta.duration_label) ||
         (cfg.bar_horizon_label ? cfg.bar_horizon_label : bars + " × 1m");
       explainEl.innerHTML =
+        (simContext
+          ? "<p><strong>Identidad:</strong> estrés ligado a " +
+            esc(simContext.coin || "moneda") +
+            " · " +
+            esc(simContext.strategy_label || simContext.strategy_id || "estrategia") +
+            " · " +
+            esc((simContext.venues && simContext.venues.join(", ")) || "mercados") +
+            " (desde Simulador).</p>"
+          : "<p class=\"status-bad\"><strong>Sin origen:</strong> no hay moneda/estrategia del Simulador. " +
+            "Abrí MC desde el botón Monte Carlo del Simulador.</p>") +
         "<p><strong>Método:</strong> " +
         esc(na(data && data.method)) +
         " — perturbación OHLC gaussiana + re-ejecución del backtester.</p>" +
@@ -735,6 +957,258 @@
         "</div>";
     }
 
+    function buildMcMemo(data, formParams) {
+      formParams = formParams || {};
+      var ctx =
+        formParams.sim_context ||
+        simContext ||
+        (data && data.context && data.context.sim_context) ||
+        null;
+      if (
+        !ctx &&
+        data &&
+        data.context &&
+        data.context.sim_linked &&
+        data.context.coin
+      ) {
+        ctx = {
+          coin: data.context.coin,
+          strategy_id: data.context.strategy_id || data.context.strategy_name,
+          strategy_label: data.context.strategy_name,
+          venues: data.context.venue ? [data.context.venue] : [],
+          market_type: data.context.market_type,
+          interval: data.context.timeframe,
+          summary_line: data.context.sim_summary || "",
+          kind: "compare",
+        };
+      }
+      var lines = [];
+      var n = data && data.n_scenarios != null ? data.n_scenarios : formParams.n_scenarios;
+      lines.push("QUANTLAB — MEMORANDO MONTE CARLO");
+      lines.push("Generado: " + new Date().toLocaleString("es-AR"));
+      lines.push("LIVE_BLOCKED=true · research / no predice precios");
+      lines.push("");
+      lines = lines.concat(formatSimContextLines(ctx));
+      lines.push("— PARA QUÉ SIRVE —");
+      lines.push(
+        "Estrés de robustez: N escenarios con ruido en precios; " +
+          "mirá media / desvío / IC95 de la media de equity final. " +
+          "No es predicción del mercado ni garantía de PnL."
+      );
+      if (ctx && (ctx.coin || ctx.strategy_id)) {
+        lines.push(
+          "Esta corrida está identificada sobre: " +
+            (ctx.coin || "—") +
+            " / " +
+            (ctx.strategy_label || ctx.strategy_id || "estrategia") +
+            " (contexto Simulador)."
+        );
+      }
+      if (data && data.warnings && data.warnings.length) {
+        lines.push("Avisos: " + data.warnings.join(" · "));
+      }
+      var nEff =
+        (data && data.context && data.context.n_bars_effective) ||
+        (data && data.n_bars) ||
+        formParams.n_bars;
+      var simEst =
+        data && data.context && data.context.sim_bars_estimate;
+      if (simEst && nEff && Number(simEst) > Number(nEff)) {
+        lines.push(
+          "IMPORTANTE: Comparar usó ≈" +
+            simEst +
+            " velas; MC solo estresa " +
+            nEff +
+            ". El % de HISTÓRICO no se replica en MC."
+        );
+      }
+      lines.push("");
+      lines.push("— PARÁMETROS MONTE CARLO —");
+      lines.push("Escenarios (N): " + (n != null ? n : "—"));
+      lines.push(
+        "Velas por escenario: " +
+          (formParams.n_bars != null
+            ? formParams.n_bars
+            : data && data.n_bars != null
+              ? data.n_bars
+              : "—")
+      );
+      lines.push(
+        "Ruido bps: " +
+          (formParams.noise_bps != null
+            ? formParams.noise_bps
+            : data && data.noise_bps != null
+              ? data.noise_bps
+              : "—")
+      );
+      lines.push(
+        "Seed: " +
+          (formParams.seed != null
+            ? formParams.seed
+            : data && data.seed != null
+              ? data.seed
+              : "—")
+      );
+      lines.push(
+        "strategy_id: " +
+          ((ctx && (ctx.strategy_id || ctx.strategy_label)) ||
+            (data && data.context && (data.context.strategy_id || data.context.strategy_name)) ||
+            "—")
+      );
+      lines.push(
+        "símbolo/dataset: " +
+          ((data && data.dataset && (data.dataset.symbol || data.dataset.dataset_id)) ||
+            "—")
+      );
+      lines.push("scan_id: " + (formParams.scan_id || "—"));
+      lines.push("backtest_id: " + (formParams.backtest_id || "—"));
+      lines.push(
+        "Trayectorias guardadas: " + (formParams.store_paths ? "sí" : "no")
+      );
+      lines.push(
+        "Modo: " +
+          ((data && data.mode) ||
+            (data && data.context && data.context.lab_mode) ||
+            (ctx ? "sim_linked" : formParams.backtest_id ? "normal" : "technical_lab"))
+      );
+      lines.push("run_id: " + ((data && data.run_id) || "—"));
+      lines.push("");
+      lines.push("— RESULTADOS —");
+      lines.push(
+        "Media equity final: " +
+          (data && data.mean_equity != null
+            ? Number(data.mean_equity).toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "—")
+      );
+      lines.push(
+        "Std equity: " +
+          (data && data.std_equity != null
+            ? Number(data.std_equity).toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })
+            : "—")
+      );
+      if (data && data.ci_low != null && data.ci_high != null) {
+        lines.push(
+          "CI95 media: [" +
+            Number(data.ci_low).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }) +
+            ", " +
+            Number(data.ci_high).toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }) +
+            "]"
+        );
+      }
+      lines.push("");
+      lines.push("— FIN MEMORANDO —");
+      var csvLines = [
+        [
+          "coin",
+          "strategy_id",
+          "venues",
+          "n_scenarios",
+          "n_bars",
+          "noise_bps",
+          "seed",
+          "scan_id",
+          "backtest_id",
+          "mean_equity",
+          "std_equity",
+          "ci_low",
+          "ci_high",
+          "run_id",
+        ].join(","),
+        [
+          (ctx && (ctx.coin || "")) || "",
+          (ctx && (ctx.strategy_id || "")) || "",
+          (ctx && ctx.venues && ctx.venues.join("|")) || "",
+          n != null ? n : "",
+          formParams.n_bars != null ? formParams.n_bars : "",
+          formParams.noise_bps != null ? formParams.noise_bps : "",
+          formParams.seed != null ? formParams.seed : "",
+          formParams.scan_id || "",
+          formParams.backtest_id || "",
+          data && data.mean_equity != null ? data.mean_equity : "",
+          data && data.std_equity != null ? data.std_equity : "",
+          data && data.ci_low != null ? data.ci_low : "",
+          data && data.ci_high != null ? data.ci_high : "",
+          (data && data.run_id) || "",
+        ].join(","),
+      ];
+      var coinTag = (ctx && ctx.coin) || "run";
+      return {
+        kind: "montecarlo",
+        title:
+          "Memorando · MC " +
+          coinTag +
+          " · N=" +
+          (n != null ? n : "?"),
+        text: lines.join("\n"),
+        csv: csvLines.join("\n"),
+        filenameBase:
+          "quantlab-mc-" +
+          String(coinTag).replace(/[^a-zA-Z0-9_-]+/g, "_") +
+          "-" +
+          (n != null ? n : "run") +
+          "-" +
+          Date.now(),
+        nRows: 1,
+      };
+    }
+
+    function readMcFormParams() {
+      return {
+        n_scenarios: readScenarios(),
+        n_bars: clampBars(parseInt(root.querySelector("#mc-bars").value, 10)),
+        noise_bps: parseFloat(root.querySelector("#mc-noise").value),
+        seed: parseInt(root.querySelector("#mc-seed").value, 10),
+        scan_id: (root.querySelector("#mc-scan").value || "").trim(),
+        backtest_id: (root.querySelector("#mc-bt").value || "").trim(),
+        store_paths: root.querySelector("#mc-paths").checked,
+        sim_context: simContext || null,
+      };
+    }
+
+    function presentMcMemo(data, formParams, doRegister) {
+      if (!data) return;
+      var params = formParams || readMcFormParams();
+      if (!params.sim_context && simContext) params.sim_context = simContext;
+      var memo = buildMcMemo(data, params);
+      if (doRegister && global.QLSimRegistry && typeof global.QLSimRegistry.add === "function") {
+        try {
+          var coin = (params.sim_context && params.sim_context.coin) || "";
+          global.QLSimRegistry.add({
+            kind: "montecarlo",
+            title: memo.title,
+            summary:
+              (coin ? coin + " · " : "") +
+              "N=" +
+              (params.n_scenarios != null ? params.n_scenarios : "?") +
+              " · media=" +
+              money(data.mean_equity),
+            params: params,
+            memo: memo,
+          });
+        } catch (e) {}
+      }
+      // Tras corrida: solo guardar. Abrir memo solo si el usuario lo pide.
+      if (
+        !doRegister &&
+        global.QLSimRegistry &&
+        typeof global.QLSimRegistry.openMemo === "function"
+      ) {
+        global.QLSimRegistry.openMemo(memo, params);
+      }
+    }
+
     function renderResult(data) {
       lastData = data;
       if (!data) {
@@ -759,6 +1233,9 @@
         warnEl.textContent =
           (warnEl.textContent ? warnEl.textContent + " · " : "") +
           data.warnings.join(" · ");
+      }
+      if (data.context && data.context.sim_context) {
+        setSimContext(data.context.sim_context, { clearLabIds: true });
       }
       renderContext(data);
       renderExplain(data);
@@ -905,6 +1382,15 @@
       }
     }
 
+    function endGate() {
+      if (gateHandle) {
+        try {
+          gateHandle.end();
+        } catch (e) {}
+        gateHandle = null;
+      }
+    }
+
     function pollJob(jobId) {
       stopPoll();
       activeJobId = jobId;
@@ -920,6 +1406,7 @@
               activeJobId = null;
               setCancelVisible(false);
               runBusy = false;
+              endGate();
               if (st === "failed") {
                 QLLabUI.setStatus(status, false, job.error || "job failed");
                 return;
@@ -927,6 +1414,7 @@
               var result = job.result;
               if (result) {
                 renderResult(result);
+                presentMcMemo(result, readMcFormParams(), true);
                 refresh().catch(function () {});
               } else {
                 QLLabUI.setStatus(
@@ -945,6 +1433,7 @@
             activeJobId = null;
             setCancelVisible(false);
             runBusy = false;
+            endGate();
             QLLabUI.setStatus(status, false, err.message || String(err));
           });
       }
@@ -952,24 +1441,39 @@
     }
 
     function buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, asyncFlag) {
+      var ctx = simContext || null;
+      var sid =
+        (ctx && ctx.strategy_id) ||
+        null;
       var body = {
         n_scenarios: n,
         n_bars: bars,
         noise_bps: isFinite(noise) ? noise : 10,
         seed: isFinite(seed) ? seed : 42,
-        scan_id: scan || null,
-        backtest_id: bt || null,
+        scan_id: ctx ? null : scan || null,
+        backtest_id: ctx ? null : bt || null,
         store_paths: storePaths,
         confirm_large: !!confirmLarge,
-        mode: bt ? "normal" : "technical_lab",
+        mode: ctx ? "technical_lab" : bt ? "normal" : "technical_lab",
         max_persisted_trajectories: MAX_TRAJECTORIES,
       };
+      if (sid) body.strategy_id = sid;
+      if (ctx) {
+        body.sim_context = ctx;
+        // El backend fuerza mode=sim_linked al ver sim_context.
+        // No mandar "sim_linked" en el wire: evita 400 si el proceso
+        // Workbench no se reinició aún (validación vieja solo lab/normal).
+      }
       if (asyncFlag) body.async = true;
       return body;
     }
 
     async function runSimulation() {
       if (runBusy) return;
+      if (!confirmRunIdentity()) {
+        QLLabUI.setStatus(status, false, "cancelado — confirmá moneda/estrategia");
+        return;
+      }
       var n = readScenarios();
       setScenarios(n);
       var bars = clampBars(parseInt(root.querySelector("#mc-bars").value, 10));
@@ -979,6 +1483,13 @@
       var scan = (root.querySelector("#mc-scan").value || "").trim();
       var bt = (root.querySelector("#mc-bt").value || "").trim();
       var storePaths = root.querySelector("#mc-paths").checked;
+      // Con sim ligada, no mandar BT residual de Guided Lab
+      if (simContext) {
+        scan = "";
+        bt = "";
+        root.querySelector("#mc-scan").value = "";
+        root.querySelector("#mc-bt").value = "";
+      }
 
       var confirmLarge = false;
       if (n >= CONFIRM_LARGE_N) {
@@ -989,11 +1500,50 @@
         confirmLarge = true;
       }
 
+      var summaryParts = [
+        (simContext && simContext.coin) || "MC",
+        (simContext && simContext.strategy_id) || "demo",
+        formatIntEs(n) + " esc",
+        bars + " velas",
+      ];
+      if (global.QLRunGate) {
+        gateHandle = await QLRunGate.begin({
+          kind: "montecarlo",
+          label: "Monte Carlo",
+          summary: summaryParts.join(" · "),
+          busyRoot: root,
+          onCancel: function () {
+            if (activeJobId) {
+              jobCancel(activeJobId).catch(function () {});
+            }
+            stopPoll();
+            runBusy = false;
+            setCancelVisible(false);
+            QLLabUI.setStatus(status, false, "detenido");
+          },
+        });
+        if (!gateHandle) return;
+      }
+
       runBusy = true;
-      QLLabUI.setStatus(status, true, "ejecutando…");
+      QLLabUI.setStatus(
+        status,
+        true,
+        simContext
+          ? "ejecutando · " +
+              (simContext.coin || "sim") +
+              " · " +
+              (simContext.strategy_id || "?")
+          : "ejecutando (demo)…"
+      );
       status.className = "mono muted";
       warnEl.textContent = scenarioWarning(n);
       progressEl.innerHTML = "";
+
+      var fetchOpts =
+        gateHandle && gateHandle.signal
+          ? { signal: gateHandle.signal }
+          : undefined;
 
       try {
         if (n >= ESTIMATE_N) {
@@ -1001,7 +1551,8 @@
             Object.assign(
               buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, false),
               { estimate_only: true }
-            )
+            ),
+            fetchOpts
           );
           renderCostEstimate(
             estResp && estResp.estimate,
@@ -1013,7 +1564,8 @@
 
         var useAsync = n >= ASYNC_N;
         var data = await QLApi.labMonteCarlo(
-          buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, useAsync)
+          buildBody(n, bars, noise, seed, scan, bt, storePaths, confirmLarge, useAsync),
+          fetchOpts
         );
 
         if (data && data.kind === "montecarlo_job") {
@@ -1027,13 +1579,20 @@
 
         runBusy = false;
         setCancelVisible(false);
+        endGate();
         renderResult(data);
+        presentMcMemo(data, readMcFormParams(), true);
         refresh().catch(function () {});
       } catch (err) {
         runBusy = false;
         setCancelVisible(false);
         stopPoll();
-        QLLabUI.setStatus(status, false, err.message || String(err));
+        endGate();
+        if (QLLabUI.isAbortError && QLLabUI.isAbortError(err)) {
+          QLLabUI.setStatus(status, false, "detenido");
+        } else {
+          QLLabUI.setStatus(status, false, err.message || String(err));
+        }
         out.innerHTML = "";
       }
     }
@@ -1081,6 +1640,10 @@
     });
 
     cancelBtn.addEventListener("click", function () {
+      if (global.QLRunGate && QLRunGate.isBusy()) {
+        QLRunGate.stop();
+        return;
+      }
       if (!activeJobId) return;
       cancelBtn.disabled = true;
       jobCancel(activeJobId)
@@ -1093,6 +1656,10 @@
           QLLabUI.setStatus(status, false, err.message);
         });
     });
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(cancelBtn, { kinds: ["montecarlo"] });
+      QLRunGate.bindBusyHost(root, { kinds: ["montecarlo"] });
+    }
 
     root.querySelector("#mc-open-bt").addEventListener("click", function () {
       const id =
@@ -1173,6 +1740,16 @@
     root.querySelector("#mc-run").addEventListener("click", function () {
       runSimulation();
     });
+    var memoBtn = root.querySelector("#mc-memo");
+    if (memoBtn) {
+      memoBtn.addEventListener("click", function () {
+        if (!lastData) {
+          QLLabUI.setStatus(status, false, "sin corrida aún — simulá primero");
+          return;
+        }
+        presentMcMemo(lastData, readMcFormParams(), false);
+      });
+    }
 
     setScenarios(1000);
     updateBarsDurationHint(null);
@@ -1185,11 +1762,20 @@
       if (!focus) return;
       if (focus.prefill) {
         const p = focus.prefill;
+        if (p.sim_context) setSimContext(p.sim_context, { clearLabIds: true });
         if (p.n_scenarios != null) setScenarios(p.n_scenarios);
-        if (p.n_bars != null) root.querySelector("#mc-bars").value = p.n_bars;
+        if (p.n_bars != null) root.querySelector("#mc-bars").value = String(clampBars(p.n_bars));
+        if (p.noise_bps != null) root.querySelector("#mc-noise").value = p.noise_bps;
+        else if (p.sim_context) root.querySelector("#mc-noise").value = String(SIM_LINKED_NOISE);
         if (p.seed != null) root.querySelector("#mc-seed").value = p.seed;
-        if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
-        if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        if (!p.sim_context) {
+          if (p.scan_id) root.querySelector("#mc-scan").value = p.scan_id;
+          if (p.backtest_id) root.querySelector("#mc-bt").value = p.backtest_id;
+        }
+        if (p.store_paths != null) {
+          var pathsEl = root.querySelector("#mc-paths");
+          if (pathsEl) pathsEl.checked = !!p.store_paths;
+        }
         updateBarsDurationHint(null);
       }
       if (focus.message) {
@@ -1197,6 +1783,29 @@
         if (warnEl) warnEl.textContent = focus.message;
       }
     };
+    root.applyPrefill = function (prefill) {
+      if (!prefill || typeof prefill !== "object") return;
+      if (prefill.sim_context) setSimContext(prefill.sim_context, { clearLabIds: true });
+      if (prefill.n_scenarios != null) setScenarios(prefill.n_scenarios);
+      if (prefill.n_bars != null) {
+        root.querySelector("#mc-bars").value = String(clampBars(prefill.n_bars));
+      }
+      if (prefill.noise_bps != null) {
+        root.querySelector("#mc-noise").value = prefill.noise_bps;
+      } else if (prefill.sim_context) {
+        // Estrés real al ligar Sim (no micro-ruido 10). No calibra PnL.
+        root.querySelector("#mc-noise").value = String(SIM_LINKED_NOISE);
+      }
+      if (prefill.seed != null) root.querySelector("#mc-seed").value = prefill.seed;
+      // Solo aplicar scan/bt si NO viene sim_context (evita residuo TRXUSDT de Guided Lab)
+      if (!prefill.sim_context) {
+        if (prefill.scan_id) root.querySelector("#mc-scan").value = prefill.scan_id;
+        if (prefill.backtest_id) root.querySelector("#mc-bt").value = prefill.backtest_id;
+      }
+      updateBarsDurationHint(null);
+      if (prefill.message && warnEl) warnEl.textContent = prefill.message;
+    };
+    renderSourceBanner();
     root.applyNavFocus();
     return root;
   }

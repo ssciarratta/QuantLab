@@ -4,9 +4,10 @@ Ejecutar con **doble clic** desde el Explorador o desde CMD. Todos asumen raíz 
 
 | Script | Función |
 |--------|---------|
-| `_common.bat` | Helper interno (paths, .env, runner uv/python) |
+| `_common.bat` | Helper interno (paths, .env, `.venv` python, stamp logs) |
 | `01_setup_testnet_environment.bat` | `uv sync`, verifica CLI `quantlab-testnet` |
-| `02_configure_testnet_credentials.bat` | Crea/actualiza `.env` (secret oculto al tipear) |
+| `02_configure_testnet_credentials.bat` | `.env` Spot Testnet (secret oculto) |
+| `02b_configure_futures_testnet_credentials.bat` | `.env` Futures Testnet (XOR Spot) |
 | `03_test_binance_testnet_connection.bat` | Ping + auth + balances (log en `logs/`) |
 | `04_show_testnet_balances.bat` | Muestra balances testnet |
 | `05_install_or_setup_hummingbot.bat` | Guía instalación HB (Docker/WSL) |
@@ -26,7 +27,13 @@ Ejecutar con **doble clic** desde el Explorador o desde CMD. Todos asumen raíz 
 
 ## Logs
 
-`tools/windows/logs/*.log` — generados por scripts 03 y 07.
+`tools/windows/logs/*.log` — generados por scripts 03 y 07 (nombre con stamp `yyyyMMdd_HHmmss`, independiente del locale de Windows).
+
+## Notas PC local (ES-AR)
+
+- `_common.bat` **no** usa `setlocal` sticky: exporta `QL_*` al script llamador.
+- Preferencia de runner: `.venv\Scripts\python.exe` → evita que `uv run` intente reescribir `quantlab-workbench.exe` mientras el Workbench está abierto.
+- Locale `DATE=dom dd/mm/yyyy` rompe substrings `%DATE:~…%`; no usarlas en scripts nuevos.
 
 ## Seguridad
 

@@ -9,7 +9,7 @@ import urllib.request
 from typing import Any
 
 from quantlab.core.exceptions import ValidationError
-from quantlab.workbench.chat.tools import ALLOWED_TOOLS, ToolRegistry
+from quantlab.workbench.chat.tools import ALLOWED_PANES, ALLOWED_TOOLS, ToolRegistry, _TOOL_META
 
 _DEFAULT_BASE = "https://api.openai.com/v1"
 _DEFAULT_MODEL = "gpt-4o-mini"
@@ -52,22 +52,55 @@ def resolve_llm_endpoint() -> tuple[str, str]:
 
 
 def _tool_specs() -> list[dict[str, Any]]:
+    hints: dict[str, dict[str, Any]] = {
+        "open_pane": {
+            "pane": {
+                "type": "string",
+                "description": "Panel id: " + ", ".join(sorted(ALLOWED_PANES)),
+            }
+        },
+        "search_docs": {"query": {"type": "string"}},
+        "suggest_workflow": {
+            "goal": {
+                "type": "string",
+                "description": "aprender|binance|comparar|estres|estrategia|a3|alpha_mm",
+            }
+        },
+        "instructor_guide": {
+            "lesson": {
+                "type": "string",
+                "description": "alpha_binance|mm_after_alpha|full_alpha_mm",
+            }
+        },
+        "run_binance_alpha": {"top_n": {"type": "integer"}},
+        "run_binance_pipeline": {
+            "strategy_id": {"type": "string"},
+            "top_n": {"type": "integer"},
+        },
+        "get_session_summary": {"limit": {"type": "integer"}},
+    }
     specs: list[dict[str, Any]] = []
     for name in sorted(ALLOWED_TOOLS):
+        meta = _TOOL_META.get(name, {})
+        props = hints.get(
+            name,
+            {
+                "query": {"type": "string"},
+                "goal": {"type": "string"},
+                "lesson": {"type": "string"},
+                "limit": {"type": "integer"},
+                "pane": {"type": "string"},
+            },
+        )
         specs.append(
             {
                 "type": "function",
                 "function": {
                     "name": name,
-                    "description": f"QuantLab read-only tool: {name}",
+                    "description": meta.get("description") or f"QuantLab tool: {name}",
                     "parameters": {
                         "type": "object",
-                        "properties": {
-                            "query": {"type": "string"},
-                            "goal": {"type": "string"},
-                            "lesson": {"type": "string"},
-                            "limit": {"type": "integer"},
-                        },
+                        "properties": props,
                         "additionalProperties": True,
                     },
                 },
@@ -147,8 +180,19 @@ def complete_with_llm(
                 "abrí",
                 "abri ",
                 "abrir",
+                "mostrá",
+                "mostra",
                 "run alpha",
                 "run pipeline",
+                "explic",
+                "parámetro",
+                "parametro",
+                "montecarlo",
+                "monte carlo",
+                "simulador",
+                "scanner",
+                "cómo",
+                "como ",
             )
         ):
             use_tools = True

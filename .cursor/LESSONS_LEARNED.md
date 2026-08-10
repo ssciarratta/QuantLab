@@ -64,6 +64,37 @@
 - Slippage paper es **adverso** (BUY peor / SELL peor); default `0` = identidad.
 - Panel Riesgo es read-only de límites + sesión; no sustituye el gate LIVE.
 
+### 9. Monte Carlo «ligado» debe ser motor, no solo memo (2026-07-31)
+
+- Pasar `sim_context` solo al banner/memo engaña: el POST seguía BuyOnce + WB:SYN.
+- Regla: handoff Sim → POST `sim_context` + `strategy_id` + confirmación explícita moneda/estrategia/params; runner carga velas del par y la estrategia del Sim (`mode=sim_linked`).
+- Limpiar `backtest_id` residual de Guided Lab al abrir MC desde Simulador.
+
+### 10. Corridas concurrentes = UX + AbortSignal (2026-07-31)
+
+- Sin coordinador, Comparar/Ranking/MC/Scanner se pisan en silencio.
+- `QLRunGate`: una activa; si hay otra → Esperar / Cortar / Cancelar; Stop en panel y status bar.
+- `QLApi.request` debe aceptar `signal` (AbortController); jobs MC async se cancelan vía `onCancel` + API cancel.
+
+### 11. Kronos + consola ASCII Windows (2026-08-04)
+
+- Barras tqdm/HuggingFace con `█` en stdout ASCII → `UnicodeEncodeError` → HTTP 500.
+- Mitigación: `stdio_guard.safe_stdio` + forzar UTF-8/`TQDM_ASCII`/`HF_HUB_DISABLE_PROGRESS_BARS`.
+
+### 12. Binance CJK en universo «Todas» (2026-08-05)
+
+- Mismo mensaje `ascii codec … position 26-29`, pero causa distinta: `http.client` encode del request line.
+- Prefijo `GET /api/v3/klines?symbol=` tiene len 25 → chars 26-29 = `币安人生` del par `币安人生USDT`.
+- `fetch_universe_bars` solo capturaba `ValidationError` → el UnicodeEncodeError tumbaba todo el scan.
+- Fix: `is_http_safe_symbol` (solo A-Z0-9) al listar; skip + ValidationError en klines; catch UnicodeEncodeError.
+
+### 13. PEPE futures ≠ PEPEUSDT (2026-08-05)
+
+- Simulador PEPE + Binance futures → `binance MD HTTP 400: Bad Request`.
+- Causa: `resolve_instrument` armaba `PEPEUSDT`; USDT-M solo lista `1000PEPEUSDT` (igual Bybit).
+- Spot `PEPEUSDT` sí existe; el bug es solo futures/multiplier.
+- Fix: `USDT_M_MULTIPLIER_BASE` en `symbol_map.py` (PEPE→1000PEPE, SHIB, FLOKI, …).
+
 ---
 
 ## Permanentes (pre-F19, siguen vigentes)

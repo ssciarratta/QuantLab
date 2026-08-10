@@ -15,37 +15,41 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
+      '<div class="pane-head">' +
       '<h3 data-i18n="pane.guided_lab">Guided Lab</h3>' +
-      '<p class="muted" style="margin-top:0" data-i18n="guided_lab.intro">' +
-      "Flujo: venue → scan → estrategia → simular. " +
-      "LIVE solo tras usuario/contraseña (corte humano). Sin unlock = bloqueado.</p>" +
+      '<p class="muted pane-sub">Paso a paso · Binance/A3 · LIVE solo tras unlock</p>' +
+      "</div>" +
+      '<details class="pane-more muted">' +
+      '<summary>Ayuda · vs Simulador / Backtest · leyenda datos</summary>' +
+      '<p style="margin:0.35rem 0" data-i18n="guided_lab.intro">' +
+      "Flujo guiado (sobre todo Binance): venue → scan → estrategia → simular/paper. " +
+      "<strong>No reemplaza</strong> el <em>Simulador</em> ni el <em>Backtest</em> (sintético). " +
+      "LIVE solo tras unlock.</p>" +
       '<div class="data-legend" role="note">' +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-real">HISTÓRICO Binance</span>' +
-      "<span>Klines / ticks públicos reales del mercado. " +
-      "Ranking y <em>Backtest top 5</em> miran las últimas N velas hasta ahora " +
-      "(ej. de las 14:00 a las 15:01 según tamaño de vela).</span>" +
+      "<span>Klines / ticks públicos reales. Ranking y Backtest top 5 = últimas N velas.</span>" +
       "</div>" +
       '<div class="data-legend-row">' +
       '<span class="data-badge data-badge-synth">SINTÉTICO lab</span>' +
-      "<span>Barras inventadas del laboratorio. " +
-      "<em>Scan lab</em> y <em>Simular backtest</em> — no son precios de Binance.</span>" +
+      "<span>Barras inventadas. Scan lab / Simular backtest — no son precios de Binance.</span>" +
       "</div>" +
-      "</div>" +
+      "</div></details>" +
       '<div class="mono" id="gl-live">LIVE_BLOCKED = True</div>' +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.unlock.title">0. Unlock LIVE (opcional)</h3>' +
-      '<p class="muted" style="margin-top:0" data-i18n="guided_lab.unlock.hint">' +
+      '<details class="pane-more muted"><summary>Credenciales LIVE</summary>' +
+      '<p style="margin:0.3rem 0" data-i18n="guided_lab.unlock.hint">' +
       "Definí QUANTLAB_LIVE_USER / QUANTLAB_LIVE_PASSWORD en tu PC. " +
-      "Nunca se guardan en git ni en disco de sesión.</p>" +
-      '<div class="pane-row">' +
+      "Nunca se guardan en git ni en disco de sesión.</p></details>" +
+      '<div class="pane-row pane-actions">' +
       '<input type="text" id="gl-user" placeholder="usuario" autocomplete="username">' +
       '<input type="password" id="gl-pass" placeholder="contraseña" autocomplete="current-password">' +
       '<button type="button" class="btn secondary" id="gl-unlock" data-i18n="guided_lab.unlock.btn" data-tip="Valida usuario/contraseña LIVE locales.\nSin unlock el demo sigue bloqueado." data-i18n-tip="tip.gl.unlock">Unlock</button>' +
       '<button type="button" class="btn secondary" id="gl-lock" data-i18n="guided_lab.lock.btn" data-tip="Vuelve a LIVE_BLOCKED.\nCorta el camino demo hasta nuevo unlock." data-i18n-tip="tip.gl.lock">Lock</button>' +
-      "</div>" +
       '<span class="mono muted" id="gl-unlock-status">—</span>' +
+      "</div>" +
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.venue">1. Venue</h3>' +
@@ -136,9 +140,9 @@
       '<option value="4h">4h</option>' +
       '<option value="1d">1d</option>' +
       "</select></label>" +
-      '<label class="muted" title="Cantidad de velas Binance (8–3000). Pagina API de a 1000. Default 1200 ≈ 20× el histórico de 60.">' +
+      '<label class="muted" title="Cantidad de velas Binance (8–525600). Pagina API. Default 1200.">' +
       "n_bars/klines " +
-      '<input type="number" id="gl-bars" value="1200" min="8" max="3000" style="width:4.5em">' +
+      '<input type="number" id="gl-bars" value="1200" min="8" max="525600" style="width:5.5em">' +
       "</label>" +
       "</div>" +
       '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
@@ -166,6 +170,7 @@
       "</div>" +
       '<div class="pane-row" style="margin-top:0.4rem">' +
       '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Backtest paper con barras SINTÉTICAS del lab.\nNo son klines de Binance; no envía órdenes." data-i18n-tip="tip.gl.run">Simular backtest (sintético)</button>' +
+      '<button type="button" class="btn secondary stop-run" id="gl-stop" hidden disabled title="Detener corrida">Stop</button>' +
       '<span class="mono muted" id="gl-run-status">—</span>' +
       "</div>" +
       '<dl class="kv" id="gl-result"></dl>' +
@@ -424,7 +429,7 @@
       let interval = (intervalEl && intervalEl.value) || "5m";
       let klineLimit = Number(barsEl && barsEl.value) || 1200;
       if (klineLimit < 8) klineLimit = 8;
-      if (klineLimit > 3000) klineLimit = 3000;
+      if (klineLimit > 525600) klineLimit = 525600;
       return { interval: interval, kline_limit: klineLimit };
     }
 
@@ -499,6 +504,135 @@
 
     let lastBinanceSymbols = [];
 
+    function installGuidedTabs() {
+      var sections = Array.prototype.slice.call(
+        root.querySelectorAll(":scope > .pane-section")
+      );
+      if (sections.length < 6) return;
+      var header = sections[0];
+      var unlock = sections[1];
+      var venue = sections[2];
+      var scan = sections[3];
+      var strategy = sections[4];
+      var simulate = sections[5];
+      var demo = sections[6] || null;
+
+      var tabBar = document.createElement("div");
+      tabBar.className = "sim-tabs gl-tabs";
+      tabBar.setAttribute("role", "tablist");
+      var tabs = [
+        { id: "empezar", label: "1. Empezar" },
+        { id: "inventado", label: "2. Inventado" },
+        { id: "historico", label: "3. Histórico Binance" },
+        { id: "practicar", label: "4. Practicar" },
+        { id: "avanzado", label: "5. Unlock LIVE" },
+      ];
+      tabs.forEach(function (tb, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "sim-tab" + (i === 0 ? " active" : "");
+        b.setAttribute("data-tab", tb.id);
+        b.textContent = tb.label;
+        tabBar.appendChild(b);
+      });
+      header.appendChild(tabBar);
+
+      var tip = document.createElement("p");
+      tip.className = "muted";
+      tip.style.cssText = "margin:0.45rem 0 0;font-size:0.85em";
+      tip.innerHTML =
+        "<strong>Cómo leer este panel:</strong> " +
+        "Empezar = elegí venue · Inventado = datos falsos del lab · " +
+        "Histórico = klines reales Binance · Practicar = paper/A3/demo · " +
+        "Unlock = solo si querés demo LIVE gated. " +
+        "Comparar varios exchanges → panel <em>Simulador</em>.";
+      header.appendChild(tip);
+
+      // Move A3 block under practicar container
+      var a3 = root.querySelector("#gl-section-a3");
+      var practicarWrap = document.createElement("div");
+      practicarWrap.className = "pane-section gl-panel";
+      practicarWrap.setAttribute("data-panel", "practicar");
+      var practicarTitle = document.createElement("h3");
+      practicarTitle.textContent = "Practicar (paper / A3 / demo)";
+      practicarWrap.appendChild(practicarTitle);
+      var practicarHint = document.createElement("p");
+      practicarHint.className = "muted";
+      practicarHint.style.marginTop = "0";
+      practicarHint.textContent =
+        "Órdenes de mentira o demo gated. No es backtest histórico multi-venue.";
+      practicarWrap.appendChild(practicarHint);
+      if (a3) {
+        a3.style.display = "";
+        practicarWrap.appendChild(a3);
+      }
+      if (demo) {
+        demo.style.display = "";
+        practicarWrap.appendChild(demo);
+      }
+      root.appendChild(practicarWrap);
+
+      unlock.classList.add("gl-panel");
+      unlock.setAttribute("data-panel", "avanzado");
+      venue.classList.add("gl-panel");
+      venue.setAttribute("data-panel", "empezar");
+      scan.classList.add("gl-panel");
+      scan.setAttribute("data-panel", "historico");
+      strategy.classList.add("gl-panel");
+      strategy.setAttribute("data-panel", "historico");
+      simulate.classList.add("gl-panel");
+      simulate.setAttribute("data-panel", "inventado");
+
+      // Inventado also needs Scan lab button — clone tip + move scan lab visibility note
+      var invNote = document.createElement("p");
+      invNote.className = "muted";
+      invNote.style.fontSize = "0.85em";
+      invNote.innerHTML =
+        '<span class="data-badge data-badge-synth">SINTÉTICO</span> ' +
+        "Esta solapa usa barras inventadas. Para Scan lab (sintético) también podés " +
+        "usar el botón en Histórico cuando el venue no es solo Binance — " +
+        "el botón <em>Scan lab</em> sigue en la solapa Histórico arriba del ranking.";
+      simulate.insertBefore(invNote, simulate.firstChild.nextSibling);
+
+      // Put Scan lab more visible: add shortcut buttons on inventado
+      var invActions = document.createElement("div");
+      invActions.className = "pane-row";
+      invActions.style.marginBottom = "0.4rem";
+      var btnScanLab = document.createElement("button");
+      btnScanLab.type = "button";
+      btnScanLab.className = "btn secondary";
+      btnScanLab.textContent = "Scan lab (sintético)";
+      btnScanLab.addEventListener("click", function () {
+        var real = root.querySelector("#gl-scan");
+        if (real) real.click();
+      });
+      invActions.appendChild(btnScanLab);
+      simulate.insertBefore(invActions, invNote.nextSibling);
+
+      function showGlTab(name) {
+        root.querySelectorAll(".gl-tabs .sim-tab").forEach(function (b) {
+          b.classList.toggle("active", b.getAttribute("data-tab") === name);
+        });
+        root.querySelectorAll(".gl-panel").forEach(function (p) {
+          var pan = p.getAttribute("data-panel");
+          p.style.display = pan === name ? "" : "none";
+        });
+        // Venue section always shows venue select on empezar; keep a3 parent logic
+        if (name === "empezar" && a3 && a3.parentElement === practicarWrap) {
+          // a3 stays in practicar
+        }
+      }
+
+      root.querySelectorAll(".gl-tabs .sim-tab").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          showGlTab(btn.getAttribute("data-tab"));
+        });
+      });
+
+      root.showGlTab = showGlTab;
+      showGlTab("empezar");
+    }
+
     function applyVenueUi() {
       const venue = root.querySelector("#gl-venue").value;
       const a3Section = root.querySelector("#gl-section-a3");
@@ -525,6 +659,12 @@
       const alphaOpts = root.querySelector("#gl-alpha-opts");
       if (alphaOpts) {
         alphaOpts.style.display = showBn ? "" : "none";
+      }
+      if (typeof root.showGlTab === "function") {
+        if (venue === "a3") root.showGlTab("practicar");
+        else if (venue === "binance") {
+          /* stay; user elige Histórico o Practicar */
+        } else if (venue === "paper") root.showGlTab("inventado");
       }
     }
 
@@ -693,11 +833,32 @@
             root.querySelector("#gl-a3-sym").value = items[0].symbol || "";
           }
           a3Out.innerHTML = items
-            .slice(0, 12)
+            .slice(0, 40)
             .map(function (it) {
-              return esc(it.symbol || it.instrument_id || JSON.stringify(it));
+              var sym = it.symbol || it.instrument_id || "";
+              var mat =
+                it.maturity ||
+                (it.meta && it.meta.maturity) ||
+                (it.raw && it.raw.maturity) ||
+                "";
+              var desc = it.description || it.name || "";
+              var tag = mat
+                ? " · vence " + mat + " · margen + diferencias diarias"
+                : "";
+              return (
+                esc(sym) +
+                (desc ? " — " + esc(desc) : "") +
+                esc(tag)
+              );
             })
             .join("<br>") || "—";
+          if (items.length) {
+            window.alert(
+              "Instrumentos A3/Matba: los futuros (soja, maíz, trigo, DLR, etc.) " +
+                "exigen margen de cámara y están sujetos a diferencias diarias " +
+                "(mark-to-market). Al lado de cada contrato verás el vencimiento si el MD lo informa."
+            );
+          }
         })
         .catch(function (err) {
           statusErr(a3Status, err);
@@ -1070,87 +1231,120 @@
       }
       if (nBars < 4) nBars = 4;
       if (nBars > 2000) nBars = 2000;
-      runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
-      resultEl.innerHTML = "";
-      QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars })
-        .then(function (data) {
-          runStatus.textContent = data.ok
-            ? t("guided_lab.status.simulation_ok", "simulación ok (sintético)")
-            : t("guided_lab.status.failed", "falló");
-          runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
-          const br = data.bar_range || {};
-          const daysApprox = approxDaysFromBars(data.n_bars, iv);
-          resultEl.innerHTML =
-            "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-synth\">SINTÉTICO lab</span> — no es Binance</dd>" +
-            "<dt>horizonte</dt><dd class=\"mono\">" +
-            esc(data.n_bars) +
-            " velas (~" +
-            esc(daysApprox) +
-            " días a intervalo UI " +
-            esc(iv) +
-            ")</dd>" +
-            (br.start
-              ? "<dt>rango sim</dt><dd class=\"mono\">" +
-                esc(formatRangeHuman(br.start, br.end)) +
-                "</dd>"
-              : "") +
-            "<dt>strategy</dt><dd class=\"mono\">" +
-            esc(data.strategy_id) +
-            "</dd>" +
-            "<dt>capital inicial</dt><dd class=\"mono num\">" +
-            esc(data.initial_equity != null ? data.initial_equity : "100000") +
-            "</dd>" +
-            "<dt>capital final</dt><dd class=\"mono num\">" +
-            esc(data.final_equity) +
-            "</dd>" +
-            "<dt>PnL</dt><dd class=\"mono num\">" +
-            esc(data.pnl != null ? data.pnl : "—") +
-            "</dd>" +
-            "<dt>fees totales</dt><dd class=\"mono num\">" +
-            esc(data.total_fees) +
-            "</dd>" +
-            "<dt>fee / operación (lado)</dt><dd class=\"mono\">" +
-            esc(
-              (data.fee_per_side && data.fee_per_side.taker_bps) ||
-                (data.fee_schedule && data.fee_schedule.taker_bps) ||
-                "10"
-            ) +
-            " bps (" +
-            esc(
-              (data.fee_per_side && data.fee_per_side.taker_pct) ||
-                (data.fee_schedule && data.fee_schedule.taker_pct) ||
-                "0.10"
-            ) +
-            "%) · as_of " +
-            esc(
-              (data.fee_per_side && data.fee_per_side.as_of) ||
-                (data.fee_schedule && data.fee_schedule.as_of) ||
-                "—"
-            ) +
-            "</dd>" +
-            "<dt>fee medio / fill</dt><dd class=\"mono num\">" +
-            esc(data.avg_fee_per_fill != null ? data.avg_fee_per_fill : "—") +
-            "</dd>" +
-            "<dt>fills (trades)</dt><dd class=\"mono num\">" +
-            esc(data.n_fills) +
-            " <span class=\"muted\">← los decide la estrategia, no el # de días</span></dd>" +
-            "<dt>veredicto</dt><dd>" +
-            esc(data.verdict_es || "—") +
-            "</dd>";
-          if (Array.isArray(data.fills) && data.fills.length) {
-            resultEl.innerHTML +=
-              "<dt>detalle</dt><dd>" +
-              formatBacktestRun(
-                { ok: true, symbol: "SYN", result: data },
-                data.strategy_id
+
+      function executeGlBacktest(handle) {
+        runStatus.textContent = t("guided_lab.status.simulating", "simulando…");
+        resultEl.innerHTML = "";
+        var fetchOpts =
+          handle && handle.signal ? { signal: handle.signal } : undefined;
+        QLApi.labBacktest({ strategy_id: strategy, n_bars: nBars }, fetchOpts)
+          .then(function (data) {
+            runStatus.textContent = data.ok
+              ? t("guided_lab.status.simulation_ok", "simulación ok (sintético)")
+              : t("guided_lab.status.failed", "falló");
+            runStatus.className = data.ok ? "mono status-ok" : "mono status-bad";
+            const br = data.bar_range || {};
+            const daysApprox = approxDaysFromBars(data.n_bars, iv);
+            resultEl.innerHTML =
+              "<dt>tipo de datos</dt><dd><span class=\"data-badge data-badge-synth\">SINTÉTICO lab</span> — no es Binance</dd>" +
+              "<dt>horizonte</dt><dd class=\"mono\">" +
+              esc(data.n_bars) +
+              " velas (~" +
+              esc(daysApprox) +
+              " días a intervalo UI " +
+              esc(iv) +
+              ")</dd>" +
+              (br.start
+                ? "<dt>rango sim</dt><dd class=\"mono\">" +
+                  esc(formatRangeHuman(br.start, br.end)) +
+                  "</dd>"
+                : "") +
+              "<dt>strategy</dt><dd class=\"mono\">" +
+              esc(data.strategy_id) +
+              "</dd>" +
+              "<dt>capital inicial</dt><dd class=\"mono num\">" +
+              esc(data.initial_equity != null ? data.initial_equity : "100000") +
+              "</dd>" +
+              "<dt>capital final</dt><dd class=\"mono num\">" +
+              esc(data.final_equity) +
+              "</dd>" +
+              "<dt>PnL</dt><dd class=\"mono num\">" +
+              esc(data.pnl != null ? data.pnl : "—") +
+              "</dd>" +
+              "<dt>fees totales</dt><dd class=\"mono num\">" +
+              esc(data.total_fees) +
+              "</dd>" +
+              "<dt>fee / operación (lado)</dt><dd class=\"mono\">" +
+              esc(
+                (data.fee_per_side && data.fee_per_side.taker_bps) ||
+                  (data.fee_schedule && data.fee_schedule.taker_bps) ||
+                  "10"
               ) +
+              " bps (" +
+              esc(
+                (data.fee_per_side && data.fee_per_side.taker_pct) ||
+                  (data.fee_schedule && data.fee_schedule.taker_pct) ||
+                  "0.10"
+              ) +
+              "%) · as_of " +
+              esc(
+                (data.fee_per_side && data.fee_per_side.as_of) ||
+                  (data.fee_schedule && data.fee_schedule.as_of) ||
+                  "—"
+              ) +
+              "</dd>" +
+              "<dt>fee medio / fill</dt><dd class=\"mono num\">" +
+              esc(data.avg_fee_per_fill != null ? data.avg_fee_per_fill : "—") +
+              "</dd>" +
+              "<dt>fills (trades)</dt><dd class=\"mono num\">" +
+              esc(data.n_fills) +
+              " <span class=\"muted\">← los decide la estrategia, no el # de días</span></dd>" +
+              "<dt>veredicto</dt><dd>" +
+              esc(data.verdict_es || "—") +
               "</dd>";
-          }
-        })
-        .catch(function (err) {
-          statusErr(runStatus, err);
-        });
+            if (Array.isArray(data.fills) && data.fills.length) {
+              resultEl.innerHTML +=
+                "<dt>detalle</dt><dd>" +
+                formatBacktestRun(
+                  { ok: true, symbol: "SYN", result: data },
+                  data.strategy_id
+                ) +
+                "</dd>";
+            }
+          })
+          .catch(function (err) {
+            if (QLLabUI.isAbortError && QLLabUI.isAbortError(err)) {
+              runStatus.textContent = "detenido";
+              runStatus.className = "mono status-bad";
+            } else {
+              statusErr(runStatus, err);
+            }
+          })
+          .then(function () {
+            if (handle) handle.end();
+          });
+      }
+
+      if (!global.QLRunGate) {
+        executeGlBacktest(null);
+        return;
+      }
+      QLRunGate.begin({
+        kind: "guided_backtest",
+        label: "Guided Lab",
+        summary: strategy + " · " + nBars + " bars",
+        busyRoot: root,
+      }).then(function (handle) {
+        if (!handle) return;
+        executeGlBacktest(handle);
+      });
     });
+    if (global.QLRunGate) {
+      QLRunGate.bindStopButton(root.querySelector("#gl-stop"), {
+        kinds: ["guided_backtest"],
+      });
+      QLRunGate.bindBusyHost(root, { kinds: ["guided_backtest"] });
+    }
 
     const demoStatus = root.querySelector("#gl-demo-status");
     const demoOut = root.querySelector("#gl-demo-out");
@@ -1260,6 +1454,12 @@
       const list = (strategies || []).filter(function (s) {
         return s && s.runnable !== false;
       });
+      const labels = {};
+      (strategies || []).forEach(function (s) {
+        if (s && s.family) {
+          labels[s.family] = s.family_label_es || s.family;
+        }
+      });
       const byFamily = {};
       list.forEach(function (s) {
         const fam = s.family || "other";
@@ -1267,14 +1467,16 @@
         byFamily[fam].push(s);
       });
       Object.keys(byFamily)
-        .sort()
+        .sort(function (a, b) {
+          return String(labels[a] || a).localeCompare(String(labels[b] || b), "es");
+        })
         .forEach(function (fam) {
           const group = document.createElement("optgroup");
-          group.label = fam;
+          group.label = labels[fam] || fam;
           byFamily[fam].forEach(function (s) {
             const opt = document.createElement("option");
             opt.value = s.id;
-            opt.textContent = (s.name || s.id) + " · binance-ready";
+            opt.textContent = s.name || s.id;
             if (s.description) opt.title = s.description;
             group.appendChild(opt);
           });
@@ -1289,7 +1491,7 @@
       if (hint) {
         hint.textContent =
           list.length +
-          " runnable (backtest/paper/Binance demo). Stubs ocultos aquí.";
+          " runnable agrupadas por familia. Stubs ocultos aquí.";
       }
     }
 
@@ -1336,6 +1538,7 @@
             esc(focus.message || "Usá → Monte Carlo o Ranking/Backtest.") +
             "</p>";
         }
+        if (typeof root.showGlTab === "function") root.showGlTab("historico");
       }
     };
 
@@ -1359,6 +1562,7 @@
         });
     };
 
+    installGuidedTabs();
     applyVenueUi();
     loadAlphaProfiles();
     root.refresh();

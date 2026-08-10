@@ -112,6 +112,11 @@ def main() -> int:
     print("Repo:", REPO)
     print("URL:", URL)
     load_dotenv(REPO / ".env")
+    # Post-.env: forzar UTF-8 (Windows ASCII + tqdm █ tumba Alpha Scanner).
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONUTF8"] = "1"
+    os.environ["TQDM_ASCII"] = "1"
+    os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
     print_llm_status()
 
     # Siempre reiniciar :8765 para cargar código + .env nuevos

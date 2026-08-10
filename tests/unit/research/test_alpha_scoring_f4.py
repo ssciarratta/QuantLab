@@ -77,6 +77,11 @@ def test_min_max_and_robust_normalize() -> None:
     assert mm[0] == pytest.approx(0.0)
     assert mm[2] == pytest.approx(1.0)
     assert mm[3] is None
+    # N=1: neutro 0.5 (antes colapsaba a 0 y rompía moneda puntual)
+    solo = min_max_normalize([42.0])
+    assert solo == [pytest.approx(0.5)]
+    empate = min_max_normalize([3.0, 3.0, 3.0])
+    assert empate == [0.0, 0.0, 0.0]
     rob = robust_normalize([1.0, 2.0, 3.0, 100.0])
     assert all(x is not None for x in rob)
     assert min(x for x in rob if x is not None) == pytest.approx(0.0)

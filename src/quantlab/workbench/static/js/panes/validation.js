@@ -7,15 +7,16 @@
     root.className = "pane-lab pane-validation";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Validation / Walk-Forward</h3>" +
-      '<p class="muted" style="margin-top:0">Splits temporales sobre barras sintéticas · anti-leakage · persiste en <span class="mono">session/validation</span>.</p>' +
-      '<div class="pane-row">' +
-      '<label class="muted">n_bars <input type="number" id="vl-bars" class="mono" min="20" max="200" value="40" style="width:4.5rem"></label>' +
-      '<label class="muted">train <input type="number" id="vl-train" class="mono" min="2" max="100" value="10" style="width:3.5rem"></label>' +
-      '<label class="muted">test <input type="number" id="vl-test" class="mono" min="1" max="50" value="5" style="width:3.5rem"></label>' +
+      '<div class="pane-head"><h3>Validation</h3>' +
+      '<p class="muted pane-sub">Walk-forward · anti-leakage</p></div>' +
+      '<div class="pane-toolbar">' +
+      '<label>n_bars <input type="number" id="vl-bars" class="mono" min="20" max="200" value="40"></label>' +
+      '<label>train <input type="number" id="vl-train" class="mono" min="2" max="100" value="10"></label>' +
+      '<label>test <input type="number" id="vl-test" class="mono" min="1" max="50" value="5"></label>' +
       "</div>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="vl-run">Correr splits</button>' +
+      '<button type="button" class="btn secondary stop-run" id="vl-stop" hidden disabled title="Detener validación">Stop</button>' +
       '<button type="button" class="btn secondary" id="vl-refresh">Actualizar</button>' +
       '<span class="mono" id="vl-status">—</span>' +
       "</div>" +
@@ -239,21 +240,36 @@
       });
     });
 
-    QLLabUI.bindRun(root, "#vl-run", "#vl-status", "#vl-out", function () {
-      const nBars = parseInt(root.querySelector("#vl-bars").value, 10) || 40;
-      const trainSize = parseInt(root.querySelector("#vl-train").value, 10) || 10;
-      const testSize = parseInt(root.querySelector("#vl-test").value, 10) || 5;
-      return QLApi.labValidationRun({
-        n_bars: nBars,
-        train_size: trainSize,
-        test_size: testSize,
-        step: testSize,
-      }).then(function (data) {
-        renderResult(data);
-        refresh().catch(function () {});
-        return data;
-      });
-    });
+    QLLabUI.bindRun(
+      root,
+      "#vl-run",
+      "#vl-status",
+      "#vl-out",
+      function (signal) {
+        const nBars = parseInt(root.querySelector("#vl-bars").value, 10) || 40;
+        const trainSize = parseInt(root.querySelector("#vl-train").value, 10) || 10;
+        const testSize = parseInt(root.querySelector("#vl-test").value, 10) || 5;
+        return QLApi.labValidationRun(
+          {
+            n_bars: nBars,
+            train_size: trainSize,
+            test_size: testSize,
+            step: testSize,
+          },
+          signal ? { signal: signal } : undefined
+        ).then(function (data) {
+          renderResult(data);
+          refresh().catch(function () {});
+          return data;
+        });
+      },
+      {
+        kind: "validation",
+        label: "Validación",
+        stopSel: "#vl-stop",
+        renderJson: false,
+      }
+    );
 
     root.refresh = refresh;
     return root;

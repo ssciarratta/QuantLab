@@ -111,10 +111,17 @@ class A3BrokerPort:
     def list_instruments(self) -> list[BrokerInstrument]:
         out: list[BrokerInstrument] = []
         for inst in self._backend.get_instruments():
+            desc = inst.description or ""
+            if inst.maturity:
+                desc = (
+                    f"{desc} · vence {inst.maturity} · margen+dif.diarias"
+                    if desc
+                    else f"vence {inst.maturity} · margen+dif.diarias"
+                )
             out.append(
                 BrokerInstrument(
                     symbol=inst.symbol,
-                    description=inst.description or "",
+                    description=desc,
                     currency=inst.currency or "",
                     status=inst.status or "UNKNOWN",
                 )

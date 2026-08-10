@@ -1,31 +1,41 @@
 # Manual — Optimizer
 
-Búsqueda de parámetros de estrategia en el lab (grid/search acotado).
+Grid **lookback × quantity** (momentum) sobre velas históricas o sintéticas.
 
 ## Cómo abrir
 
-1. Menú **QL** (barra inferior) → elegir el panel.
-2. **Ctrl+K** (Command Palette) → escribir el nombre.
-3. Presets: QL → Research / Trading Paper / Ops (abren conjuntos de paneles).
+1. Menú **QL** → **Optimizer**
+2. Ctrl+K → `optimizer`
+3. **Mis simulaciones** → Reabrir / Memo
 
 ## Invariantes
 
-- `LIVE_BLOCKED=True` por defecto: sin unlock no hay routing LIVE a venue.
-- Modo **REAL** del producto = **PAPER** (fills simulados), no órdenes en exchange de producción.
-- Este panel **no** garantiza rentabilidad ni es asesoramiento financiero.
+- `LIVE_BLOCKED=True` · REAL = PAPER
+- Máx. 12 trials por corrida (anti-abuso)
 
-## Para qué sirve
+## Modos de datos
 
-Explorar combinaciones de hiperparámetros y comparar métricas en sesión.
+| Modo | Qué usa |
+|------|---------|
+| **Histórico** (default) | Venue + moneda + TF + período (MD público) |
+| **Sintético** | `n_bars` 8–60 (debug) |
+
+Contexto visible: moneda · mercado · velas · rango. Memo + registro como Sim/Backtest.
 
 ## Cómo usar
 
-1. Abrí **Optimizer**.
-2. Definí rango/grid y métrica objetivo.
-3. Ejecutá y revisá ranking de candidatos.
-4. Exportá / llevá el mejor set a Backtest o Experiments.
+1. Histórico · moneda · período · capital.
+2. lookbacks (ej. `2,3`) · qty (ej. `1`) · **Optimizar** (**Stop** disponible).
+3. Mejor trial + tabla + Pareto sharpe/MDD.
+4. **Ver memorando** · Mis simulaciones → Reabrir.
+5. Atajos: **→ Backtest** · **→ Simulador**.
 
 ## Riesgos
 
-- Overfitting: optimizar demasiado sobre el mismo sample.
-- Preferí Validation Splits / walk-forward antes de confiar en un óptimo.
+- Overfitting sobre el mismo sample.
+- Preferí Validation / walk-forward antes de confiar en un óptimo.
+
+## API
+
+`POST /api/lab/optimize` con `mode=historical` + venue/underlying/period_days  
+o `mode=synthetic` + `n_bars`.

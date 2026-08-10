@@ -23,6 +23,16 @@ dev = [
     "mypy>=1.14.0",
     "types-PyYAML>=6.0.12",
 ]
+# Kronos-inside-Scanner (CPU/GPU). No está en deps base: QuantLab arranca sin esto.
+kronos = [
+    "torch>=2.0.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "einops>=0.8.0",
+    "huggingface_hub>=0.33.0",
+    "safetensors>=0.6.0",
+    "tqdm>=4.67.0",
+]
 
 [project.scripts]
 quantlab-vertical-slice = "quantlab.vertical_slice.runner:main"
@@ -68,7 +78,7 @@ module = ["pyRofex", "pyRofex.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["duckdb", "duckdb.*"]
+module = ["torch", "torch.*", "pandas", "pandas.*", "einops", "einops.*", "model", "model.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

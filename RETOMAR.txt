@@ -1,22 +1,25 @@
 QUANTLAB — CHECKPOINT
 =====================
-2026-08-08 · branch cursor/binance-testnet-hummingbot-prep-2828 · v1.01.0
+2026-08-09 · UI favoritos + dual testnet · v1.01.0
 
-✅ BinanceTestnetClient extendido (account/balances/auth)
-✅ CLI quantlab-testnet diagnostic
-✅ tools/windows/01..08 (.bat)
-✅ Docs ops testnet + hummingbot
-✅ PR #4 abierto
+HECHO
+-----
+✅ Merge UI modo-real (Simulador, favoritos, Scanner multi-venue)
+✅ Favoritos tip: Chat · Alpha · Simulador · MC · Spot · Futures
+✅ Barra inferior taskbar-quick (1 clic, mismos favoritos)
+✅ Guided Lab fuera de favoritos → menú «Lab avanzado»
+✅ Paneles Spot/Futures + API /api/live/testnet*
+✅ Workbench reiniciado con .env (Futures keys OK)
+✅ Acceso Escritorio: «QuantLab Workbench.bat» (reinicia tip)
+   El .url solo abre el browser — usá el .bat para código nuevo
 
-PENDIENTE EN PC ESCRITORIO
---------------------------
-- git fetch + checkout rama PR (ver SYNC_PC.txt)
-- Ejecutar .bat 01 → 02 → 03 → 07
-- Keys: https://testnet.binance.vision
-- Objetivo: TESTNET READY: YES
+CÓMO USAR
+---------
+1. Doble clic: Desktop\QuantLab Workbench.bat
+2. Ctrl+F5 en el browser
+3. Barra abajo: Chat / Alpha / Simulador / MC / Spot / Futures
+4. Futures → Unlock operator/quantlab-local → Enviar demo
 
-Arranque Workbench: tools\windows\08_start_quantlab_testnet.bat
-                  o uv run quantlab-workbench → http://127.0.0.1:8765
-
-Prompt Cursor Desktop:
-  "Seguí testnet Binance. Ejecuté 01-07. Resultado: TESTNET READY: ..."
+INVARIANTES
+-----------
+LIVE_BLOCKED=True · Spot XOR Futures

@@ -11,8 +11,12 @@ DEFAULT_SCENARIOS: Final[int] = 1_000
 MINI_LAB_SCENARIOS: Final[int] = 20
 
 MIN_BARS: Final[int] = 8
-MAX_BARS: Final[int] = 500  # lab: horizonte de velas por escenario
+# Suficiente para ~200d en 1h (o ~90d con margen). No calibra PnL: solo horizonte.
+MAX_BARS: Final[int] = 5_000
 DEFAULT_BARS: Final[int] = 60
+# Estrés al ligar desde Simulador (10 bps ≈ micro-ruido; no stress real).
+SIM_LINKED_DEFAULT_NOISE_BPS: Final[float] = 50.0
+DEFAULT_NOISE_BPS: Final[float] = 10.0
 
 DEFAULT_BATCH_SIZE: Final[int] = 1_000
 DEFAULT_MAX_PERSISTED_TRAJECTORIES: Final[int] = 16

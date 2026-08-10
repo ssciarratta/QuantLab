@@ -114,3 +114,20 @@ fallos que la suite Linux no podía detectar:
 
 Regla futura: todo smoke/test nuevo usa paths temporales portables y toda
 conexión sqlite se cierra explícitamente.
+
+---
+
+## Scanner Binance — stablecoins en ranking (2026-08-03)
+
+**Síntoma:** tanda spot (p.ej. 30) devolvía USDC #1 (Trad ~0.71) + HOT #2; el
+usuario interpretaba “moneda puntual HOT” y veía un par inventado/sin sentido.
+
+**Causa:** `list_spot_symbols` tomaba el orden de `exchangeInfo` (incluye
+USDCUSDT temprano). El score MM premia “spread” estrecho estimado desde OHLC;
+una stablecoin tiene rango casi nulo → score inflado. HOT sí existe (Holo /
+HOTUSDT).
+
+**Fix:** excluir `STABLECOIN_BASE_ASSETS` del universo automático; moneda
+puntual filtra siempre a lo pedido y falla claro si no hay MD.
+
+**Regla:** nunca rankear base stablecoin en universo auto; pedido explícito OK.

@@ -6,6 +6,7 @@ Nunca pega a ``api.binance.com`` para órdenes. Testnet remoto = opt-in F102.
 
 from __future__ import annotations
 
+import contextlib
 import threading
 import uuid
 from collections.abc import Callable
@@ -87,10 +88,13 @@ class BinanceDemoRouter:
         if intent.side is None or intent.quantity is None:
             raise ValidationError("PLACE_ORDER requiere side y quantity")
 
-        from quantlab.brokers.binance.testnet_client import testnet_remote_enabled
+        from quantlab.brokers.binance.demo_transport import resolve_demo_transport
 
-        if testnet_remote_enabled():
-            return self._submit_testnet(intent)
+        transport = resolve_demo_transport(unlocked=True)
+        if transport == "binance_spot_testnet":
+            return self._submit_spot_testnet(intent)
+        if transport == "binance_futures_testnet":
+            return self._submit_futures_testnet(intent)
         return self._submit_local(intent)
 
     def cancel(self, order_id: str) -> BrokerAck:
@@ -106,17 +110,26 @@ class BinanceDemoRouter:
                 message="orden demo no encontrada o ya cerrada",
                 venue=self.venue_id,
             )
-        from quantlab.brokers.binance.testnet_client import testnet_remote_enabled
-
         open_order = self._open_orders.pop(oid)
-        if testnet_remote_enabled() and open_order.get("exchange_order_id"):
-            from quantlab.brokers.binance.testnet_client import BinanceTestnetClient
+        exchange_oid = open_order.get("exchange_order_id")
+        transport = str(open_order.get("transport") or "")
+        if exchange_oid:
+            if transport == "binance_spot_testnet":
+                from quantlab.brokers.binance.testnet_client import BinanceTestnetClient
 
-            client = BinanceTestnetClient()
-            client.cancel_order(
-                symbol=str(open_order["symbol"]),
-                order_id=str(open_order["exchange_order_id"]),
-            )
+                BinanceTestnetClient().cancel_order(
+                    symbol=str(open_order["symbol"]),
+                    order_id=str(exchange_oid),
+                )
+            elif transport == "binance_futures_testnet":
+                from quantlab.brokers.binance.futures_testnet_client import (
+                    BinanceFuturesTestnetClient,
+                )
+
+                BinanceFuturesTestnetClient().cancel_order(
+                    symbol=str(open_order["symbol"]),
+                    order_id=str(exchange_oid),
+                )
         return BrokerAck(
             order_id=oid,
             client_order_id=f"cancel-{uuid.uuid4().hex[:8]}",
@@ -216,21 +229,26 @@ class BinanceDemoRouter:
             venue=self.venue_id,
         )
 
-    def _submit_testnet(self, intent: OrderIntent) -> BrokerAck:
+    def _submit_remote_order(
+        self,
+        intent: OrderIntent,
+        *,
+        transport: str,
+        id_prefix: str,
+        place_limit: Any,
+        place_market: Any,
+    ) -> BrokerAck:
         assert intent.side is not None and intent.quantity is not None
-        from quantlab.brokers.binance.testnet_client import BinanceTestnetClient
-
         symbol = intent.instrument_id.strip().upper()
-        client = BinanceTestnetClient()
         if intent.order_type is OrderType.LIMIT and intent.price is not None:
-            result = client.place_limit_order(
+            result = place_limit(
                 symbol=symbol,
                 side=intent.side.value.upper(),
                 quantity=str(intent.quantity),
                 price=str(intent.price),
                 client_order_id=intent.intent_id,
             )
-            raw_id = result.order_id.removeprefix("BN-TN-")
+            raw_id = result.order_id.removeprefix(id_prefix)
             if result.status in {"NEW", "PARTIALLY_FILLED"}:
                 self._open_orders[result.order_id] = {
                     "order_id": result.order_id,
@@ -242,35 +260,41 @@ class BinanceDemoRouter:
                     "order_type": "limit",
                     "status": result.status,
                     "exchange_order_id": raw_id,
-                    "transport": "binance_spot_testnet",
+                    "transport": transport,
                 }
                 return BrokerAck(
                     order_id=result.order_id,
                     client_order_id=result.client_order_id,
                     status=result.status,
-                    message=f"binance testnet limit {result.status}",
+                    message=f"{transport} limit {result.status}",
                     venue=self.venue_id,
                 )
             fill_price = intent.price
         else:
-            result = client.place_market_order(
+            result = place_market(
                 symbol=symbol,
                 side=intent.side.value.upper(),
                 quantity=str(intent.quantity),
                 client_order_id=intent.intent_id,
             )
-            fill_price = intent.price if intent.price is not None else self._price_lookup(symbol)
+            fill_price = (
+                intent.price if intent.price is not None else self._price_lookup(symbol)
+            )
             raw = result.raw
             fills = raw.get("fills") if isinstance(raw.get("fills"), list) else []
             if fills and isinstance(fills[0], dict) and fills[0].get("price"):
                 fill_price = _parse_decimal(fills[0]["price"], field="fill_price")
+            avg = raw.get("avgPrice")
+            if avg not in (None, "", "0", "0.0", "0.00000000"):
+                with contextlib.suppress(ValidationError):
+                    fill_price = _parse_decimal(avg, field="avgPrice")
 
         if result.status not in {"FILLED", "PARTIALLY_FILLED"}:
             return BrokerAck(
                 order_id=result.order_id,
                 client_order_id=result.client_order_id,
                 status=result.status,
-                message=f"binance testnet {result.status}",
+                message=f"{transport} {result.status}",
                 venue=self.venue_id,
             )
 
@@ -279,16 +303,42 @@ class BinanceDemoRouter:
             intent=intent,
             symbol=result.symbol,
             fill_price=fill_price,
-            transport="binance_spot_testnet",
+            transport=transport,
             exchange_status=result.status,
-            exchange_order_id=result.order_id.removeprefix("BN-TN-"),
+            exchange_order_id=result.order_id.removeprefix(id_prefix),
         )
         return BrokerAck(
             order_id=result.order_id,
             client_order_id=result.client_order_id,
             status=result.status,
-            message=f"binance testnet {result.status}",
+            message=f"{transport} {result.status}",
             venue=self.venue_id,
+        )
+
+    def _submit_spot_testnet(self, intent: OrderIntent) -> BrokerAck:
+        from quantlab.brokers.binance.testnet_client import BinanceTestnetClient
+
+        client = BinanceTestnetClient()
+        return self._submit_remote_order(
+            intent,
+            transport="binance_spot_testnet",
+            id_prefix="BN-TN-",
+            place_limit=client.place_limit_order,
+            place_market=client.place_market_order,
+        )
+
+    def _submit_futures_testnet(self, intent: OrderIntent) -> BrokerAck:
+        from quantlab.brokers.binance.futures_testnet_client import (
+            BinanceFuturesTestnetClient,
+        )
+
+        client = BinanceFuturesTestnetClient()
+        return self._submit_remote_order(
+            intent,
+            transport="binance_futures_testnet",
+            id_prefix="BN-FUT-TN-",
+            place_limit=client.place_limit_order,
+            place_market=client.place_market_order,
         )
 
     def open_orders(self) -> list[dict[str, Any]]:
@@ -300,25 +350,34 @@ class BinanceDemoRouter:
         return list(self._fills[-limit:])
 
     def status(self) -> dict[str, Any]:
-        from quantlab.brokers.binance.testnet_client import testnet_status
+        from quantlab.brokers.binance.demo_transport import demo_transport_status
 
-        tn = testnet_status()
-        transport = (
-            "binance_spot_testnet" if tn["remote_enabled"] else "local_demo_sim"
-        )
+        dt = demo_transport_status(unlocked=True)
+        transport = dt.get("transport") or "local_demo_sim"
+        remote = transport in {
+            "binance_spot_testnet",
+            "binance_futures_testnet",
+        }
         return {
-            "ok": True,
+            "ok": dt.get("error") is None,
             "venue": self.venue_id,
             "transport": transport,
             "n_fills": len(self._fills),
             "n_open_orders": len(self._open_orders),
             "symbols": sorted(_DEFAULT_MIDS),
-            "remote_testnet": bool(tn["remote_enabled"]),
-            "testnet": tn,
-            "note": (
-                "Default: simulador local post-unlock. "
-                "Remoto: QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_API_KEY/SECRET."
+            "remote_testnet": remote,
+            "remote_market": (
+                "spot"
+                if transport == "binance_spot_testnet"
+                else "futures"
+                if transport == "binance_futures_testnet"
+                else None
             ),
+            "testnet": dt.get("spot"),
+            "futures_testnet": dt.get("futures"),
+            "conflict": bool(dt.get("conflict")),
+            "error": dt.get("error"),
+            "note": dt.get("note"),
         }
 
 

@@ -1,14 +1,32 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-08-07  
+**Actualizado:** 2026-08-09  
+<<<<<<< Updated upstream
+**Branch trabajo:** `cursor/binance-testnet-hummingbot-prep-2828` (+ UI modo-real merge)  
+**Versión tip:** **1.01.0** · UI favoritos + dual Spot/Futures Testnet  
+**Lección scanner 2026-08-05:** `is_http_safe_symbol` (A-Z0-9) — CJK en exchangeInfo rompía urllib  
+**Lección scanner 2026-08-04:** `stdio_guard` Windows ASCII + tqdm/HF  
+**Simulador:** comparar · ranking · MC handoff · memo · registro · futures multiplier  
+**Monte Carlo:** estrés N · `sim_linked` · hereda capital/leverage  
+**Menú QL:** favoritos Chat · Alpha · Simulador · Monte Carlo · Spot · Futures (reordenables)  
+**Roles:** Guided=aprender (menú avanzado) · Sim=comparar · Scanner=ranking · MC=estrés · Testnet Spot/Futures=demo XOR  
+**Alpha Scanner:** multi-mercado · Kronos-inside · typeahead · anti-stablecoin  
+**Chat IA:** tools open panes · chips · FakeProvider  
+**Números UI:** `QLFmt` 2 decimales  
+**Testnet:** Spot `testnet.binance.vision` · Futures `testnet.binancefuture.com` · keys distintas · LIVE_BLOCKED  
+
+=======
 **Branch trabajo:** `cursor/binance-testnet-hummingbot-prep-2828`  
-**Versión tip:** **1.01.0** (F111 Binance alpha + pipeline + chat copilot; UI resize bordes + tooltips)  
+**Versión tip:** **1.01.0** (+ dual Spot/Futures Testnet demo; F111 alpha intacto)  
 **Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
 **Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
+>>>>>>> Stashed changes
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
-**Manuales:** `docs/manuales/` (índice + 34 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
-**Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner muestra v local + GH tip + botón sync + hora última mod · `/api/update/*`  
+**Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
+**Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); params editables a mano por estrategia en Comparar  
+**Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner v local + GH tip + sync · «mod» = max(commit, GH, mtime working tree `src/quantlab`) · `/api/update/*`  
+**Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)  
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
@@ -181,14 +199,28 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 17. Estrategias F115: `strategy_catalog` por familia · `runnable`/`binance_ready` · stubs fail-closed · skill `strategy-expander`
 18. Backtest UX: `verdict_es` + Guided Lab explica fills/equity; MM half_spread escala al mid en alts
 19. Fees lab: `brokers/binance/fees.py` VIP0 Spot 10 bps (BNB opt-in via env); `run_lab_backtest` ya no usa fee=0
-20. Horizonte Binance: klines paginadas hasta 3000; UI default 1200; summary con fills/orders/bar_range
+20. Horizonte MD lab: klines paginadas hasta **525_600** (1y@1m); aviso pesado >40k; UI default 1200
 21. **FASE 0 Alpha Scanner:** auditoría en `docs/scanner/current-alpha-scanner-audit.md` + baseline sintético; sin cambio de scoring aún
+22. **Alpha Scanner MD real:** `run_venue_lab_scanner` + `recommend.py` (score→familia/estrategias/TF); UI chips → `Simulador.applyPrefill`; Binance spot=listado exchange, resto=SIM_COINS vía md_router
+
+## Decisiones técnicas (2026-08-09)
+
+- Spot Testnet y Futures Testnet son venues/keys distintos; QuantLab soporta ambos con flags separados.
+- Remoto activo: **XOR** (`QUANTLAB_DEMO_USE_TESTNET` vs `QUANTLAB_DEMO_USE_FUTURES_TESTNET`).
+- Cliente Futures: `BinanceFuturesTestnetClient` → solo `testnet.binancefuture.com` (fapi).
+- Keys HB `binance_perpetual_testnet` → `BINANCE_FUTURES_DEMO_*` (no Spot).
 
 ## Próximo
 
-- Operador: ejecutar `tools/windows/01..07` con credenciales testnet.binance.vision
-- Validar `quantlab-testnet diagnostic` → TESTNET READY: YES en PC local
+<<<<<<< Updated upstream
+- Reiniciar Workbench tip (matar :8765 viejo) → favoritos Chat/Alpha/Sim/MC/Spot/Futures
+- Unlock LIVE + demo Futures; Spot keys cuando se quieran
+- Guided Lab solo en menú avanzado (no favoritos)
+=======
+- Reiniciar Workbench + unlock `operator`/`quantlab-local` → demo Futures
+- Spot: keys propias en testnet.binance.vision cuando se quiera probar Spot
+>>>>>>> Stashed changes
 
 ## Checkpoint
 
-Ver `RETOMAR.txt` en la raíz — pegar en Cursor: `seguí desde donde quedaste — autónomo`
+Ver `RETOMAR.txt`

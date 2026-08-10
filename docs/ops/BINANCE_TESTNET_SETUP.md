@@ -1,12 +1,13 @@
 # Binance Spot Testnet — Guía operativa
 
-**Versión:** 1.01.0+ · **Ámbito:** solo `testnet.binance.vision` · **Producción:** bloqueada
+**Versión:** 1.01.0+ · **Ámbito:** solo `testnet.binance.vision` · **Producción:** bloqueada  
+**Futures:** ver `docs/ops/BINANCE_FUTURES_TESTNET.md` (venue y keys independientes).
 
 ## Pipeline del producto
 
 ```text
-Research → Backtest → Monte Carlo → Paper → Binance Spot Testnet → Live
-   ✅          ✅           ✅         ✅            🟡              🔒
+Research → Backtest → Monte Carlo → Paper → Binance Testnet (Spot|Futures) → Live
+   ✅          ✅           ✅         ✅            🟡 opt-in XOR              🔒
 ```
 
 | Etapa | Estado actual | Notas |
@@ -15,7 +16,8 @@ Research → Backtest → Monte Carlo → Paper → Binance Spot Testnet → Liv
 | Backtest / Optimizer | Habilitado | Fees lab VIP0 |
 | Monte Carlo | Habilitado | Export HB research-safe |
 | Paper (REAL=PAPER) | Habilitado | Fills simulados |
-| **Binance Spot Testnet** | **Opt-in F102** | Requiere unlock + flag + keys |
+| **Binance Spot Testnet** | **Opt-in F102** | Requiere unlock + flag + keys Spot |
+| **Binance Futures Testnet** | **Opt-in** | Flag/keys Futures; XOR con Spot |
 | Live producción | **BLOQUEADO** | `LIVE_BLOCKED=True` |
 
 ## Requisitos Testnet remoto
@@ -41,10 +43,11 @@ Instalado vía `pyproject.toml` (`quantlab-testnet`).
 
 | Comando | Descripción |
 |---------|-------------|
-| `quantlab-testnet status` | Flags/keys (sin red) |
-| `quantlab-testnet ping` | Ping + server time (público) |
-| `quantlab-testnet balances` | Balances firmados (requiere keys) |
-| `quantlab-testnet diagnostic` | Informe `TESTNET READY: YES/NO` |
+| `quantlab-testnet status` | Flags/keys Spot+Futures (sin red) |
+| `quantlab-testnet ping --market all` | Ping Spot + Futures (público) |
+| `quantlab-testnet balances [--market spot\|futures]` | Balances firmados |
+| `quantlab-testnet diagnostic [--market spot\|futures\|all]` | READY por mercado |
+| `quantlab-testnet futures-diagnostic` | Alias futures |
 | `quantlab-testnet hummingbot` | Estado HB externo |
 | `quantlab-testnet hb-verify` | Scan configs HB vs producción |
 

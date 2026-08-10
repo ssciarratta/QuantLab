@@ -7,20 +7,28 @@ from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
+from quantlab.brokers.binance.demo_transport import (
+    demo_transport_status,
+    remote_testnet_conflict,
+    resolve_demo_transport,
+)
+from quantlab.brokers.binance.futures_testnet_client import (
+    FUTURES_TESTNET_BASE_URL,
+    BinanceFuturesTestnetClient,
+    futures_testnet_keys_configured,
+    public_futures_connectivity_check,
+)
 from quantlab.brokers.binance.testnet_client import (
     TESTNET_BASE_URL,
     BinanceTestnetClient,
     TestnetBalance,
     public_connectivity_check,
     testnet_keys_configured,
-    testnet_remote_enabled,
-    testnet_status,
 )
 from quantlab.core.exceptions import ValidationError
 from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.execution.live_unlock import live_unlock_status
 from quantlab.execution_export.hummingbot_probe import hummingbot_status
-
 
 _DEFAULT_SYMBOL = "BTCUSDT"
 _DEFAULT_MIN_NOTIONAL_USDT = Decimal("10")
@@ -108,24 +116,21 @@ def assess_strategy_funds(
 
 def _quantlab_routing_status() -> dict[str, Any]:
     unlock = live_unlock_status()
-    transport = "local_demo_sim"
-    demo_note = "Unlock LIVE no activo; routing demo remoto no disponible."
-    if unlock.get("unlocked"):
-        transport = (
-            "binance_spot_testnet" if testnet_remote_enabled() else "local_demo_sim"
-        )
-        demo_note = (
-            "Transport remoto testnet habilitado."
-            if testnet_remote_enabled()
-            else "Demo local simulado (flag testnet o keys ausentes)."
-        )
+    unlocked = bool(unlock.get("unlocked"))
+    dt = demo_transport_status(unlocked=unlocked)
+    transport = dt.get("transport")
+    if transport is None:
+        transport = "conflict" if dt.get("conflict") else "local_demo_sim"
     return {
         "live_blocked": LIVE_BLOCKED is True,
         "live_routing": False,
         "unlock": unlock,
         "transport": transport,
-        "testnet": testnet_status(),
-        "note": demo_note,
+        "testnet": dt.get("spot"),
+        "futures_testnet": dt.get("futures"),
+        "conflict": bool(dt.get("conflict")),
+        "error": dt.get("error"),
+        "note": dt.get("note"),
     }
 
 
@@ -151,7 +156,8 @@ def run_testnet_diagnostic(
     unlock = live_unlock_status()
     if not unlock.get("unlocked"):
         issues.append(
-            "Unlock LIVE no activo (requerido para routing demo; diagnóstico de red sigue disponible)."
+            "Unlock LIVE no activo (requerido para routing demo; "
+            "diagnóstico de red sigue disponible)."
         )
 
     if LIVE_BLOCKED is not True:
@@ -252,6 +258,12 @@ def run_testnet_diagnostic(
             except ValidationError as exc:
                 issues.append(f"No se pudieron leer balances: {exc}")
 
+    if remote_testnet_conflict():
+        issues.append(
+            "Conflicto: Spot y Futures testnet remoto activos a la vez "
+            "(desactive uno de los flags USE_*)."
+        )
+
     routing = _quantlab_routing_status()
     if routing["transport"] != "binance_spot_testnet":
         issues.append(
@@ -261,6 +273,7 @@ def run_testnet_diagnostic(
 
     ready = not issues and connectivity is not None and connectivity.get("ok") is True
     return {
+        "market": "spot",
         "testnet_ready": ready,
         "base_url": TESTNET_BASE_URL,
         "production_blocked": True,
@@ -274,11 +287,221 @@ def run_testnet_diagnostic(
     }
 
 
+def run_futures_testnet_diagnostic(
+    *,
+    symbol: str = _DEFAULT_SYMBOL,
+    skip_network: bool = False,
+) -> dict[str, Any]:
+    """Diagnóstico Futures USD-M Testnet sin crear órdenes."""
+    issues: list[str] = []
+    connectivity: dict[str, Any] | None = None
+    auth: dict[str, Any] | None = None
+    balances: list[dict[str, str]] = []
+    strategy: dict[str, Any] | None = None
+    hb = hummingbot_status()
+
+    if not futures_testnet_keys_configured():
+        issues.append(
+            "Credenciales Futures testnet ausentes "
+            "(BINANCE_FUTURES_DEMO_API_KEY/SECRET)."
+        )
+    flag = os.environ.get("QUANTLAB_DEMO_USE_FUTURES_TESTNET", "").strip().lower()
+    if flag not in {"1", "true", "yes", "on"}:
+        issues.append("QUANTLAB_DEMO_USE_FUTURES_TESTNET no está activo.")
+
+    unlock = live_unlock_status()
+    if not unlock.get("unlocked"):
+        issues.append(
+            "Unlock LIVE no activo (requerido para routing demo; "
+            "diagnóstico de red sigue disponible)."
+        )
+
+    if LIVE_BLOCKED is not True:
+        issues.append("CRÍTICO: LIVE_BLOCKED no es True.")
+
+    if FUTURES_TESTNET_BASE_URL != "https://testnet.binancefuture.com":
+        issues.append("CRÍTICO: FUTURES_TESTNET_BASE_URL inesperado.")
+
+    if remote_testnet_conflict():
+        issues.append(
+            "Conflicto: Spot y Futures testnet remoto activos a la vez "
+            "(desactive uno de los flags USE_*)."
+        )
+
+    client: BinanceFuturesTestnetClient | None = None
+    if futures_testnet_keys_configured():
+        try:
+            client = BinanceFuturesTestnetClient()
+        except ValidationError as exc:
+            issues.append(f"No se pudo instanciar cliente futures testnet: {exc}")
+
+    if skip_network:
+        connectivity = {"ok": None, "skipped": True, "note": "Red omitida (skip_network)."}
+    elif client is not None:
+        conn = client.connectivity_check()
+        connectivity = {
+            "ok": conn.ok,
+            "ping_ok": conn.ping_ok,
+            "server_time_ms": conn.server_time_ms,
+            "base_url": conn.base_url,
+            "error": conn.error,
+        }
+        if not conn.ok:
+            issues.append(
+                f"Conectividad futures testnet falló: {conn.error or 'ping/time inválido'}"
+            )
+    else:
+        try:
+            conn = public_futures_connectivity_check()
+            connectivity = {
+                "ok": conn.ok,
+                "ping_ok": conn.ping_ok,
+                "server_time_ms": conn.server_time_ms,
+                "base_url": conn.base_url,
+                "error": conn.error,
+                "auth_required_for_balances": True,
+            }
+            if not conn.ok:
+                issues.append(
+                    "Conectividad pública futures testnet falló: "
+                    f"{conn.error or 'ping/time inválido'}"
+                )
+        except ValidationError as exc:
+            connectivity = {"ok": False, "error": str(exc)}
+            issues.append(f"Conectividad futures testnet falló: {exc}")
+        issues.append("Sin credenciales Futures: balances y auth no disponibles.")
+
+    if client is not None and not skip_network:
+        auth_result = client.auth_check()
+        auth = {
+            "ok": auth_result.ok,
+            "can_trade": auth_result.can_trade,
+            "permissions": list(auth_result.permissions),
+            "uid": auth_result.uid,
+            "account_type": auth_result.account_type,
+            "error": auth_result.error,
+        }
+        if not auth_result.ok:
+            issues.append(f"Autenticación futures testnet falló: {auth_result.error}")
+        elif not auth_result.can_trade:
+            issues.append("Cuenta futures testnet reporta canTrade=false.")
+
+        if auth_result.ok:
+            try:
+                parsed_fut = client.get_balances(omit_zero=True)
+                balances = [
+                    {
+                        "asset": b.asset,
+                        "free": b.available_balance,
+                        "locked": b.as_testnet_balance().locked,
+                        "total": b.wallet_balance,
+                        "wallet_balance": b.wallet_balance,
+                        "available_balance": b.available_balance,
+                        "unrealized_profit": b.unrealized_profit,
+                    }
+                    for b in parsed_fut
+                ]
+                if not balances:
+                    issues.append("Cuenta futures testnet sin balances no-cero.")
+                tn_balances = [b.as_testnet_balance() for b in parsed_fut]
+                strat = assess_strategy_funds(tn_balances, symbol=symbol)
+                strategy = {
+                    "symbol": strat.symbol,
+                    "base_asset": strat.base_asset,
+                    "quote_asset": strat.quote_asset,
+                    "has_quote_usdt": strat.has_quote_usdt,
+                    "quote_free": strat.quote_free,
+                    "base_free": strat.base_free,
+                    "min_notional_usdt": strat.min_notional_usdt,
+                    "sufficient_for_strategy": strat.sufficient_for_strategy,
+                    "notes": list(strat.notes),
+                }
+                if not strat.sufficient_for_strategy:
+                    issues.append(
+                        "Fondos insuficientes para estrategia mínima en "
+                        f"{symbol} (ver strategy.notes)."
+                    )
+            except ValidationError as exc:
+                issues.append(f"No se pudieron leer balances futures: {exc}")
+
+    routing = _quantlab_routing_status()
+    if routing["transport"] != "binance_futures_testnet":
+        issues.append(
+            "QuantLab no está en transport binance_futures_testnet "
+            f"(actual: {routing['transport']})."
+        )
+
+    ready = not issues and connectivity is not None and connectivity.get("ok") is True
+    return {
+        "market": "futures",
+        "testnet_ready": ready,
+        "futures_testnet_ready": ready,
+        "base_url": FUTURES_TESTNET_BASE_URL,
+        "production_blocked": True,
+        "connectivity": connectivity,
+        "auth": auth,
+        "balances": balances,
+        "strategy": strategy,
+        "quantlab_routing": routing,
+        "hummingbot": hb,
+        "issues": issues,
+    }
+
+
+def run_combined_testnet_diagnostic(
+    *,
+    symbol: str = _DEFAULT_SYMBOL,
+    skip_network: bool = False,
+) -> dict[str, Any]:
+    """Diagnóstico Spot + Futures (sin órdenes)."""
+    spot = run_testnet_diagnostic(symbol=symbol, skip_network=skip_network)
+    futures = run_futures_testnet_diagnostic(symbol=symbol, skip_network=skip_network)
+    conflict = remote_testnet_conflict()
+    active_transport: str
+    try:
+        active_transport = resolve_demo_transport(
+            unlocked=bool(live_unlock_status().get("unlocked"))
+        )
+    except ValidationError:
+        active_transport = "conflict"
+    return {
+        "spot_ready": bool(spot.get("testnet_ready")),
+        "futures_ready": bool(futures.get("testnet_ready")),
+        "any_ready": bool(spot.get("testnet_ready") or futures.get("testnet_ready")),
+        "conflict": conflict,
+        "active_transport": active_transport,
+        "production_blocked": True,
+        "spot": spot,
+        "futures": futures,
+    }
+
+
+def format_combined_diagnostic_report(payload: dict[str, Any]) -> str:
+    lines = [
+        "=== QuantLab dual testnet ===",
+        f"SPOT READY: {'YES' if payload.get('spot_ready') else 'NO'}",
+        f"FUTURES READY: {'YES' if payload.get('futures_ready') else 'NO'}",
+        f"Active transport: {payload.get('active_transport')}",
+        f"Conflict flags: {payload.get('conflict')}",
+        f"Producción bloqueada: {payload.get('production_blocked')}",
+        "",
+        "----- SPOT -----",
+        format_diagnostic_report(payload.get("spot") or {}),
+        "----- FUTURES -----",
+        format_diagnostic_report(payload.get("futures") or {}).replace(
+            "TESTNET READY:", "FUTURES TESTNET READY:", 1
+        ),
+    ]
+    return "\n".join(lines)
+
+
 def format_diagnostic_report(payload: dict[str, Any]) -> str:
     """Informe legible para operador."""
     lines: list[str] = []
     ready = "YES" if payload.get("testnet_ready") else "NO"
+    market = str(payload.get("market") or "spot").upper()
     lines.append(f"TESTNET READY: {ready}")
+    lines.append(f"Market: {market}")
     lines.append("")
     lines.append(f"Base URL: {payload.get('base_url')}")
     lines.append(f"Producción bloqueada: {payload.get('production_blocked')}")

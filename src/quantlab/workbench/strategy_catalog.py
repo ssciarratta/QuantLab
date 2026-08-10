@@ -694,6 +694,8 @@ def list_runnable_strategy_ids() -> list[str]:
 
 def list_strategy_catalog() -> list[dict[str, Any]]:
     """Lista metadata serializable (API / UI)."""
+    from quantlab.workbench.strategy_guides import attach_guides_to_catalog_rows
+
     out: list[dict[str, Any]] = []
     for m in STRATEGY_CATALOG:
         out.append(
@@ -708,7 +710,7 @@ def list_strategy_catalog() -> list[dict[str, Any]]:
                 "binance_ready": m.runnable,
             }
         )
-    return out
+    return attach_guides_to_catalog_rows(out)
 
 
 def merge_default_params(
