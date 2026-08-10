@@ -1,30 +1,42 @@
-QUANTLAB ‚Äî RESUMEN DEL PROYECTO
+QUANTLAB ù RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-09
-Versi√≥n: 1.01.0 ¬∑ UI favoritos + Spot/Futures Testnet
+Actualizado: 2026-08-10
+Versiùn: 1.01.0 ù UI favoritos + Spot/Futures Testnet
 
 ESTADO
 ------
 - LIVE_BLOCKED=True
 - Workbench tip reiniciado (:8765) con .env Futures
-- Favoritos 1-clic en taskbar: Chat ¬∑ Alpha ¬∑ Sim ¬∑ MC ¬∑ Spot ¬∑ Futures
-- Guided Lab solo en men√∫ avanzado (no favoritos)
-- .url del escritorio = solo browser; .bat = reinicio tip
+- Favoritos 1-clic en taskbar: Chat ù Alpha ù Sim ù MC ù Spot ù Futures
+- Guided Lab solo en menù avanzado (no favoritos)
+- Launcher ùnico: `este.bat` (doble clic ? Workbench :8765)
 
-√öLTIMA IMPLEMENTACI√ìN
+ùLTIMA IMPLEMENTACIùN
 ---------------------
+2026-08-10 ù Launcher ùnico `este.bat`; eliminados arrancar_quantlab.bat y ABRIR_WORKBENCH.bat.
+
 Reorg Workbench + dual testnet UI:
 - Merge UI desde modo-real-workbench-aafd
 - taskbar-quick + ql_menu_favorites_v4
 - panes binance_spot / binance_futures
 - launch.py carga .env
-- Desktop: QuantLab Workbench.bat
 
-PR√ìXIMO
+PRùXIMO
 -------
-Ctrl+F5 ¬∑ unlock Futures ¬∑ demo chica
+Ctrl+F5 ù unlock Futures ù demo chica
 Spot: keys en testnet.binance.vision cuando haga falta
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True ¬∑ Spot XOR Futures ¬∑ REAL=PAPER
+LIVE_BLOCKED=True ù Spot XOR Futures ù REAL=PAPER
+
+================================================================================
+UBICACIùN / SYNC ù 2026-08-10
+================================================================================
+- Carpeta local: Desktop\PROYECTOS CURSOR\<este-proyecto>
+- Sync GitHub: GitSync (C:\Users\ssciarratta\GitSync) sobre PROYECTOS CURSOR
+- Horarios: 13:00, 17:00, 23:59 y al encender la PC
+- Remotes GitHub: sin cambio de nombre (solo se moviù la ruta local)
+- Escritorio libre: ya no es raùz de sync ni de proyectos Cursor
+- Herramientas manuales: PROYECTOS CURSOR\00-sync-tools\
+

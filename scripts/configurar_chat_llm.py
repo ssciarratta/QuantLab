@@ -105,7 +105,7 @@ def main(argv: list[str]) -> int:
     }
     upsert_env(ENV_PATH, updates)
     print(f"OK: .env actualizado → provider={provider}")
-    print("Ahora ejecutá arrancar_quantlab.bat")
+    print("Ahora ejecutá este.bat")
     return 0
 
 

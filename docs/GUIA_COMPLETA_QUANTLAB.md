@@ -38,6 +38,8 @@ QuantLab es un **laboratorio de investigación cuantitativa**. Permite:
 
 ## 3. Cómo arrancar
 
+**Windows:** doble clic en `este.bat` en la raíz del repo.
+
 ```bash
 cd C:\Users\ssciarratta\Desktop\QuantLab   # o ruta del clone
 uv sync --extra dev                         # primera vez

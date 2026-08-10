@@ -2,7 +2,7 @@
 
 Uso:
   .venv\\Scripts\\python.exe scripts\\arrancar_workbench.py
-  o doble-clic en arrancar_quantlab.bat
+  o doble-clic en este.bat
 
 Por defecto REINICIA el proceso en :8765 para cargar código/.env nuevos.
 """
@@ -85,14 +85,20 @@ def kill_port(port: int = PORT) -> None:
         time.sleep(0.8)
 
 
+def _ensure_pythonpath() -> None:
+    src = str(REPO / "src")
+    existing = os.environ.get("PYTHONPATH", "")
+    parts = [p for p in existing.split(os.pathsep) if p]
+    if src not in parts:
+        os.environ["PYTHONPATH"] = src + (os.pathsep + existing if existing else "")
+
+
 def workbench_cmd() -> list[str]:
-    exe = REPO / ".venv" / "Scripts" / "quantlab-workbench.exe"
-    if exe.is_file():
-        return [str(exe), "--no-browser", "--port", str(PORT)]
+    args = ["--no-browser", "--port", str(PORT)]
     py = REPO / ".venv" / "Scripts" / "python.exe"
     if py.is_file():
-        return [str(py), "-m", "quantlab.workbench.launch", "--no-browser", "--port", str(PORT)]
-    return ["uv", "run", "quantlab-workbench", "--no-browser", "--port", str(PORT)]
+        return [str(py), "-m", "quantlab.workbench.launch", *args]
+    return ["uv", "run", "--no-sync", "quantlab-workbench", *args]
 
 
 def print_llm_status() -> None:
@@ -108,6 +114,7 @@ def print_llm_status() -> None:
 
 def main() -> int:
     os.chdir(REPO)
+    _ensure_pythonpath()
     print("QuantLab Workbench")
     print("Repo:", REPO)
     print("URL:", URL)
