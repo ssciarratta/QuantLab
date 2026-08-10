@@ -66,6 +66,7 @@
       '<button type="button" class="btn secondary" id="mc-open-bt" disabled title="Sin backtest_id">Backtest</button>' +
       '<button type="button" class="btn secondary" id="mc-open-scan" disabled title="Sin scan_id">Scan</button>' +
       '<button type="button" class="btn secondary" id="mc-open-ds" disabled title="Sin dataset">Dataset</button>' +
+      '<button type="button" class="btn slt-launch-btn" id="mc-open-live" title="Abrir Corrida en vivo con contexto MC (no arranca solo)">▶ Corrida en vivo</button>' +
       '<span class="muted mono" id="mc-nav-hint"></span>' +
       "</div>" +
       '<div id="mc-dataset-detail" style="margin-top:0.35rem;display:none"></div>' +
@@ -809,14 +810,14 @@
     function card(title, main, sub) {
       return (
         '<div style="min-width:9rem;padding:0.5rem 0.65rem;border:1px solid rgba(127,127,127,0.25)">' +
-        '<div class="muted" style="font-size:0.8em">' +
+        '<div class="muted" style="font-size:1.10em">' +
         esc(title) +
         "</div>" +
         '<div class="mono" style="font-size:1.05em">' +
         esc(main) +
         "</div>" +
         (sub
-          ? '<div class="muted" style="font-size:0.8em">' + esc(sub) + "</div>"
+          ? '<div class="muted" style="font-size:1.10em">' + esc(sub) + "</div>"
           : "") +
         "</div>"
       );
@@ -985,7 +986,12 @@
       var lines = [];
       var n = data && data.n_scenarios != null ? data.n_scenarios : formParams.n_scenarios;
       lines.push("QUANTLAB — MEMORANDO MONTE CARLO");
-      lines.push("Generado: " + new Date().toLocaleString("es-AR"));
+      lines.push(
+        "Generado: " +
+          (window.QLFmt && window.QLFmt.fmtDateTime
+            ? window.QLFmt.fmtDateTime(new Date())
+            : new Date().toLocaleString("es-AR"))
+      );
       lines.push("LIVE_BLOCKED=true · research / no predice precios");
       lines.push("");
       lines = lines.concat(formatSimContextLines(ctx));
@@ -1328,7 +1334,11 @@
             return (
               "<tr>" +
               '<td class="mono">' +
-              esc(na(r.created_at)) +
+              esc(
+                r.created_at && window.QLFmt && window.QLFmt.fmtDateTime
+                  ? window.QLFmt.fmtDateTime(r.created_at)
+                  : na(r.created_at)
+              ) +
               "</td>" +
               '<td class="mono">' +
               esc(r.run_id) +
@@ -1661,6 +1671,52 @@
       QLRunGate.bindBusyHost(root, { kinds: ["montecarlo"] });
     }
 
+    function openLiveTestFromMc() {
+      var ctx = pullSimHandoff();
+      if (!ctx || !ctx.pairs || !ctx.pairs.length) {
+        window.alert(
+          "Necesitás contexto de Simulador (mercado + moneda + estrategia).\n" +
+            "Abrí Monte Carlo desde el Simulador o completá el contexto."
+        );
+        return;
+      }
+      var coin = ctx.coin || (ctx.coins && ctx.coins[0]) || (ctx.pairs[0] && ctx.pairs[0].underlying);
+      var sym = String(coin || "BTC").toUpperCase();
+      if (sym.indexOf("USDT") < 0) sym = sym.split(",")[0].trim() + "USDT";
+      var scanId = (root.querySelector("#mc-scan").value || "").trim();
+      var btId = (root.querySelector("#mc-bt").value || "").trim();
+      var mcId =
+        (lastData && firstDefined(lastData.run_id, lastData.id, lastData.job_id)) || "";
+      var prefill = {
+        source_module: "montecarlo",
+        sim_context: ctx,
+        monte_carlo_id: mcId || undefined,
+        scan_id: scanId || undefined,
+        backtest_id: btId || undefined,
+        strategy_id: ctx.strategy_id || "buy_once",
+        symbol: sym,
+        execution_destination: "PAPER",
+        market_type: ctx.market_type || "spot",
+        interval: ctx.interval,
+        venue: ctx.venues && ctx.venues[0],
+        monte_carlo_metrics: lastData
+          ? {
+              mean_equity: lastData.mean_equity,
+              p5_equity: lastData.p5_equity,
+              p95_equity: lastData.p95_equity,
+              n_scenarios: lastData.n_scenarios,
+            }
+          : {},
+        message:
+          "Monte Carlo · " +
+          (ctx.summary_line || ctx.coin || sym) +
+          (mcId ? " · run " + mcId : ""),
+      };
+      if (global.QLShell && QLShell.open) {
+        QLShell.open("strategy_live_test", { prefill: prefill });
+      }
+    }
+
     root.querySelector("#mc-open-bt").addEventListener("click", function () {
       const id =
         lastData &&
@@ -1736,6 +1792,13 @@
         "</details>";
       QLLabUI.setStatus(status, true, "dataset_id=" + dsId);
     });
+
+    var mcLiveBtn = root.querySelector("#mc-open-live");
+    if (mcLiveBtn) {
+      mcLiveBtn.addEventListener("click", function () {
+        openLiveTestFromMc();
+      });
+    }
 
     root.querySelector("#mc-run").addEventListener("click", function () {
       runSimulation();

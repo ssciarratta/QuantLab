@@ -157,7 +157,7 @@
       '<p class="muted pane-sub">Guías del catálogo · usá «Abrir en Simulador» para comparar</p></div>' +
       '<div class="sim-actions" style="margin:0.3rem 0">' +
       '<input type="search" id="st-search" placeholder="Buscar estrategia o familia…" ' +
-      'style="flex:1;min-width:10rem;font-size:0.78rem">' +
+      'style="flex:1;min-width:10rem;font-size:1.08rem">' +
       '<span class="mono muted" id="st-count">—</span>' +
       "</div>" +
       '<div id="st-list">cargando…</div>' +
@@ -195,7 +195,7 @@
           ? ' <span class="data-badge">runnable</span>'
           : ' <span class="data-badge data-badge-synth">stub · aún no corre</span>') +
         (teaser
-          ? '<div class="muted" style="font-weight:400;font-size:0.72em;margin-top:0.15rem">' +
+          ? '<div class="muted" style="font-weight:400;font-size:1.04em;margin-top:0.15rem">' +
             esc(teaser) +
             (teaser.length >= 110 ? "…" : "") +
             "</div>"

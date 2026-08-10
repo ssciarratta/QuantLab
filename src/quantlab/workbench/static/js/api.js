@@ -441,6 +441,74 @@
     liveDemoOpenOrders: function () {
       return request("GET", "/api/live/demo/open-orders");
     },
+    executionStrategies: function () {
+      return request("GET", "/api/execution/strategies");
+    },
+    executionStrategyCapabilities: function (strategyId) {
+      return request(
+        "GET",
+        "/api/execution/strategies/" + encodeURIComponent(strategyId) + "/capabilities"
+      );
+    },
+    executionCreatePromotion: function (body) {
+      return request("POST", "/api/execution/promotions", body || {});
+    },
+    executionRun: function (body) {
+      return request("POST", "/api/execution/run", body || {});
+    },
+    executionLive: function (sessionId) {
+      var q = sessionId
+        ? "?session_id=" + encodeURIComponent(sessionId)
+        : "";
+      return request("GET", "/api/execution/live" + q);
+    },
+    executionValidatePromotion: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/validate",
+        {}
+      );
+    },
+    executionPreflightPromotion: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/preflight",
+        {}
+      );
+    },
+    executionOpenSession: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/open-session",
+        {}
+      );
+    },
+    executionSessionStatus: function (sessionId) {
+      return request(
+        "GET",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/status"
+      );
+    },
+    executionStopSession: function (sessionId) {
+      return request(
+        "POST",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/stop",
+        {}
+      );
+    },
+    executionStartPaper: function (sessionId, body) {
+      return request(
+        "POST",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/start-paper",
+        body || {}
+      );
+    },
+    executionSessions: function () {
+      return request("GET", "/api/execution/sessions");
+    },
+    executionHummingbotStatus: function () {
+      return request("GET", "/api/execution/hummingbot/status");
+    },
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
     },

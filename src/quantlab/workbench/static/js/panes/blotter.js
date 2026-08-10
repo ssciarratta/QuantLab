@@ -83,7 +83,9 @@
           return (
             "<tr>" +
             "<td>" +
-            (f.ts || "").slice(11, 19) +
+            (window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(f.ts)
+              : (f.ts || "").slice(11, 19)) +
             "</td>" +
             "<td>" +
             (f.symbol || "") +

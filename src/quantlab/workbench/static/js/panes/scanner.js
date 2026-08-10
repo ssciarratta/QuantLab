@@ -80,8 +80,7 @@
     root.innerHTML =
       '<div class="pane-section sc-pane">' +
       '<div class="sc-head">' +
-      "<h3>Alpha Scanner</h3>" +
-      '<p class="muted sc-sub">MD real · ranking por rama · score ≠ rentabilidad</p>' +
+      '<p class="muted sc-sub">MD real · ranking por rama · score ≠ rentabilidad · barra superior = mover / × cerrar</p>' +
       "</div>" +
       '<div class="sc-toolbar">' +
       '<label>Fuente<select id="sc-source">' +
@@ -145,7 +144,7 @@
       '<label>Muestras<input id="sc-kronos-samples" type="number" value="4" min="1" max="16" /></label>' +
       '<label title="Rompe compatibilidad histórica del score legacy">' +
       '<input type="checkbox" id="sc-kronos-legacy"> Kronos en legacy</label>' +
-      '<span class="muted" style="font-size:0.8em;margin-left:0.25rem">' +
+      '<span class="muted" style="font-size:1.10em;margin-left:0.25rem">' +
       "Trad. + Kronos → Final · no garantiza PnL · click en score = memo" +
       "</span>" +
       "</div>" +
@@ -904,7 +903,7 @@
         "/" +
         esc(mt) +
         "</p>" +
-        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.8em">' +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:1.10em">' +
         esc(
           row.kronos_explanation ||
             (explained && explained.headline) ||
@@ -912,7 +911,7 @@
             ""
         ) +
         "</p>" +
-        '<p style="margin:0 0 0.35rem;font-size:0.8em">' +
+        '<p style="margin:0 0 0.35rem;font-size:1.10em">' +
         "Ruptura " +
         esc(
           km.kronos_breakout_risk != null
@@ -938,37 +937,37 @@
             : "—"
         ) +
         " <span class=\"muted\">(acuerdo, no calibrada)</span></p>" +
-        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>¿Qué es este número?</strong><br>' +
+        '<p style="margin:0 0 0.35rem;font-size:1.10em"><strong>¿Qué es este número?</strong><br>' +
         esc(
           (explained && explained.what_is) ||
             "Va de 0 a 1: compara esta moneda con las otras del scan para la rama elegida. No es rentabilidad."
         ) +
         "</p>" +
-        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>¿Por qué en esta rama?</strong><br>' +
+        '<p style="margin:0 0 0.35rem;font-size:1.10em"><strong>¿Por qué en esta rama?</strong><br>' +
         esc((explained && explained.family_why) || "") +
         "</p>" +
-        '<p style="margin:0 0 0.35rem;font-size:0.8em"><strong>Esta banda</strong><br>' +
+        '<p style="margin:0 0 0.35rem;font-size:1.10em"><strong>Esta banda</strong><br>' +
         esc(band.why || "") +
         "</p>" +
-        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.75em">' +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:1.06em">' +
         esc(
           (explained && explained.ranges_help) ||
             "0.50–0.99 ≈ rangos útiles para probar; ≥0.75 mejor ajuste."
         ) +
         "</p>" +
         (factorLis
-          ? "<p style=\"margin:0 0 0.2rem;font-size:0.8em\"><strong>Factores que arman el score</strong></p>" +
-            '<ul style="margin:0 0 0.45rem 1.1rem;padding:0;font-size:0.78em">' +
+          ? "<p style=\"margin:0 0 0.2rem;font-size:1.10em\"><strong>Factores que arman el score</strong></p>" +
+            '<ul style="margin:0 0 0.45rem 1.1rem;padding:0;font-size:1.08em">' +
             factorLis +
             "</ul>"
           : "") +
         (nextLis
-          ? "<p style=\"margin:0 0 0.2rem;font-size:0.8em\"><strong>Qué hacer ahora</strong></p>" +
-            '<ol style="margin:0 0 0.25rem 1.1rem;padding:0;font-size:0.78em">' +
+          ? "<p style=\"margin:0 0 0.2rem;font-size:1.10em\"><strong>Qué hacer ahora</strong></p>" +
+            '<ol style="margin:0 0 0.25rem 1.1rem;padding:0;font-size:1.08em">' +
             nextLis +
             "</ol>"
           : "") +
-        '<p class="muted" style="margin:0 0 0.35rem;font-size:0.72em">' +
+        '<p class="muted" style="margin:0 0 0.35rem;font-size:1.04em">' +
         esc((explained && explained.note) || "Score ≠ rentabilidad. LIVE bloqueado.") +
         "</p>" +
         '<button type="button" class="btn secondary" id="sc-open-memo">Ver memorando Kronos</button>' +
@@ -990,7 +989,8 @@
         "<span class=\"muted\">Timeframes</span> " +
         (tfChips || "—") +
         "</div>" +
-        '<button type="button" class="btn" id="sc-open-sim">Abrir en Simulador</button>' +
+        '<button type="button" class="btn" id="sc-open-sim">Abrir en Simulador</button> ' +
+        '<button type="button" class="btn slt-launch-btn" id="sc-open-live-test">▶ Corrida en vivo</button>' +
         "</div>";
 
       box.querySelectorAll(".sc-chip").forEach(function (btn) {
@@ -1024,6 +1024,43 @@
             prefill.strategy_id = rec.strategies[0].id;
           }
           openSim(prefill);
+        });
+      }
+      var liveBtn = box.querySelector("#sc-open-live-test");
+      if (liveBtn) {
+        liveBtn.addEventListener("click", function () {
+          var scanId =
+            (lastScan && lastScan.persisted && lastScan.persisted.scan_id) ||
+            (lastScan && lastScan.scan_id) ||
+            null;
+          var prefill = {
+            source_module: "alpha_scanner",
+            scan_id: scanId,
+            venue: venue,
+            market_type: mt,
+            underlying: und,
+            symbol: und && String(und).toUpperCase().indexOf("USDT") >= 0
+              ? String(und).toUpperCase()
+              : String(und || "BTC").toUpperCase() + "USDT",
+            interval: iv,
+            score: row.score,
+            profile: rec.family || rec.profile,
+            strategies: rec.strategies,
+            execution_destination: "PAPER",
+            message:
+              "Scanner · " +
+              (und || row.instrument_id || "?") +
+              " · " +
+              (iv || "?") +
+              " · score " +
+              (row.score != null ? row.score : "—"),
+          };
+          if (rec.strategies && rec.strategies[0]) {
+            prefill.strategy_id = rec.strategies[0].id;
+          }
+          if (global.QLShell && QLShell.open) {
+            QLShell.open("strategy_live_test", { prefill: prefill });
+          }
         });
       }
       var memoBtn = box.querySelector("#sc-open-memo");
@@ -1339,11 +1376,11 @@
         " · " +
         esc(prop.family_label_es || prop.family || "—") +
         "</h4>" +
-        '<p style="margin:0 0 0.4rem;font-size:0.85em">' +
+        '<p style="margin:0 0 0.4rem;font-size:1.14em">' +
         esc(prop.text || "") +
         "</p>" +
         (voteTxt
-          ? '<p class="muted" style="margin:0 0 0.35rem;font-size:0.72em">Votos top: ' +
+          ? '<p class="muted" style="margin:0 0 0.35rem;font-size:1.04em">Votos top: ' +
             esc(voteTxt) +
             "</p>"
           : "") +
@@ -1353,7 +1390,7 @@
         '<div class="pane-row" style="flex-wrap:wrap;gap:0.35rem">' +
         tfChips +
         "</div>" +
-        '<p class="muted" style="margin:0.35rem 0 0;font-size:0.72em">' +
+        '<p class="muted" style="margin:0.35rem 0 0;font-size:1.04em">' +
         esc(prop.note || "Score ≠ rentabilidad.") +
         "</p></div>"
       );
@@ -1426,21 +1463,21 @@
         '<div class="pane-section" style="border:1px solid var(--amber-dim,#a67c3a);border-radius:8px;padding:0.55rem 0.7rem;margin-bottom:0.55rem">' +
         "<h4 style=\"margin:0 0 0.35rem\">Comparación entre mercados</h4>" +
         (cmp.headline
-          ? '<p style="margin:0 0 0.45rem;font-size:0.85em"><strong>' +
+          ? '<p style="margin:0 0 0.45rem;font-size:1.14em"><strong>' +
             esc(cmp.headline) +
             "</strong></p>"
           : "") +
-        '<table class="mono" style="width:100%;font-size:0.78em;border-collapse:collapse;margin-bottom:0.45rem">' +
+        '<table class="mono" style="width:100%;font-size:1.08em;border-collapse:collapse;margin-bottom:0.45rem">' +
         "<thead><tr><th>Venue</th><th>Top moneda</th><th>Top pts</th><th>Media top pts</th></tr></thead>" +
         "<tbody>" +
         summaryRows +
         "</tbody></table>" +
         (cross
-          ? '<p class="muted" style="margin:0 0 0.2rem;font-size:0.75em">Misma moneda · ventaja del mejor venue</p><ul style="margin:0 0 0.35rem 1.1rem;padding:0;font-size:0.78em">' +
+          ? '<p class="muted" style="margin:0 0 0.2rem;font-size:1.06em">Misma moneda · ventaja del mejor venue</p><ul style="margin:0 0 0.35rem 1.1rem;padding:0;font-size:1.08em">' +
             cross +
             "</ul>"
-          : '<p class="muted" style="font-size:0.75em">Pocas monedas en común entre venues para cruzar.</p>') +
-        '<p class="muted" style="margin:0;font-size:0.72em">' +
+          : '<p class="muted" style="font-size:1.06em">Pocas monedas en común entre venues para cruzar.</p>') +
+        '<p class="muted" style="margin:0;font-size:1.04em">' +
         esc(cmp.note || "") +
         "</p></div>"
       );
@@ -1735,7 +1772,7 @@
         }
         if (data.venue_errors && data.venue_errors.length) {
           html +=
-            '<p class="muted" style="font-size:0.75em;color:var(--bad,#c66)">Errores: ' +
+            '<p class="muted" style="font-size:1.06em;color:var(--bad,#c66)">Errores: ' +
             esc(
               data.venue_errors
                 .map(function (e) {

@@ -57,7 +57,9 @@
           const cls =
             "session-item" + (isCurrent ? " session-item--current" : "");
           const created = s.created_at
-            ? String(s.created_at).slice(0, 19).replace("T", " ")
+            ? window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(s.created_at)
+              : String(s.created_at).slice(0, 19).replace("T", " ")
             : "—";
           const badge = isCurrent
             ? '<span class="session-badge">actual</span>'

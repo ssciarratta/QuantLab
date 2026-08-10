@@ -18,6 +18,14 @@ call "%~dp0tools\windows\_common.bat" || (
   exit /b 1
 )
 
+REM Kronos (Alpha Scanner): instala vendor/deps solo si faltan
+if defined QL_PY (
+  "%QL_PY%" "%QL_ROOT%\scripts\ensure_kronos.py" --quiet
+) else (
+  where uv >nul 2>&1
+  if not errorlevel 1 uv run --no-sync python scripts\ensure_kronos.py --quiet
+)
+
 REM Preferir venv local: evita que uv run reescriba quantlab-workbench.exe bloqueado
 if defined QL_PY (
   set "PYTHONPATH=%QL_ROOT%\src;%PYTHONPATH%"

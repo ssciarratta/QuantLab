@@ -154,7 +154,8 @@
       applyProgressToBars(null);
       return;
     }
-    banner.hidden = false;
+    /* Solo status bar (#sb-run-gate): el banner en workspace tapaba titlebars WM. */
+    banner.hidden = true;
     var a = snap.active || {};
     var title =
       (a.label || a.kind || "Corrida") +
@@ -201,7 +202,7 @@
       '<p class="ql-run-gate-current mono" id="ql-run-gate-current"></p>' +
       '<p class="muted" id="ql-run-gate-new-label">Nueva corrida:</p>' +
       '<p class="ql-run-gate-next mono" id="ql-run-gate-next"></p>' +
-      '<p class="muted" style="font-size:0.78em">¿Qué querés hacer?</p>' +
+      '<p class="muted" style="font-size:1.08em">¿Qué querés hacer?</p>' +
       '<div class="ql-run-gate-actions">' +
       '<button type="button" class="btn secondary" data-act="wait">Esperar a que termine la anterior</button>' +
       '<button type="button" class="btn" data-act="cut">Cortar la anterior y correr esta</button>' +

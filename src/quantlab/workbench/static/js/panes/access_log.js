@@ -91,7 +91,10 @@
       const ordered = events.slice().reverse();
       listEl.innerHTML = ordered
         .map(function (ev) {
-          const ts = (ev.ts || "").slice(0, 19).replace("T", " ");
+          const ts =
+            window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(ev.ts)
+              : (ev.ts || "").slice(0, 19).replace("T", " ");
           const status = ev.status != null ? String(ev.status) : "?";
           const ms = ev.ms != null ? String(ev.ms) + " ms" : "—";
           return (

@@ -128,5 +128,8 @@
     bindRun: bindRun,
     isAbortError: isAbortError,
   };
-  global.QLFmt = { num: num, pct: pct, money: num };
+  global.QLFmt = global.QLFmt || {};
+  global.QLFmt.num = num;
+  global.QLFmt.pct = pct;
+  global.QLFmt.money = num;
 })(window);

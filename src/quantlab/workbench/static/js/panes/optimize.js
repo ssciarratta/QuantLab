@@ -89,7 +89,7 @@
       '<div class="pane-toolbar">' +
       '<label>lookbacks <input type="text" id="op-lb" class="mono" value="2,3"></label>' +
       '<label>qty <input type="text" id="op-qty" class="mono" value="1"></label>' +
-      '<span class="muted mono" style="font-size:0.75em">estrategia: momentum (grid)</span>' +
+      '<span class="muted mono" style="font-size:1.06em">estrategia: momentum (grid)</span>' +
       "</div>" +
       '<div class="pane-actions">' +
       '<button type="button" class="btn" id="op-run">Optimizar</button>' +
@@ -319,7 +319,12 @@
       var best = (data && data.best) || {};
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE OPTIMIZER");
-      lines.push("Fecha: " + new Date().toLocaleString("es-AR"));
+      lines.push(
+        "Fecha: " +
+          (window.QLFmt && window.QLFmt.fmtDateTime
+            ? window.QLFmt.fmtDateTime(new Date())
+            : new Date().toLocaleString("es-AR"))
+      );
       lines.push("");
       lines.push("=== QUÉ SE CORRIÓ ===");
       lines.push(

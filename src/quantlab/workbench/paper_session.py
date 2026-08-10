@@ -43,6 +43,7 @@ class PaperSessionConfig:
     max_steps: int = 100
     interval_ms: int | None = None
     params: Mapping[str, Any] = field(default_factory=dict)
+    testnet_mirror: str = "none"  # none | spot | futures
 
     def __post_init__(self) -> None:
         if not self.strategy_id.strip():
@@ -53,6 +54,8 @@ class PaperSessionConfig:
             raise ValidationError("max_steps debe estar entre 1 y 10000")
         if self.interval_ms is not None and self.interval_ms < 1:
             raise ValidationError("interval_ms debe ser >= 1")
+        if self.testnet_mirror not in ("none", "spot", "futures"):
+            raise ValidationError("testnet_mirror debe ser none|spot|futures")
         object.__setattr__(self, "params", dict(self.params))
 
 
@@ -158,6 +161,12 @@ class PaperSessionRunner:
         self._bars: list[Bar] = []
         self._stop_event = threading.Event()
         self._bg_thread: threading.Thread | None = None
+        self._testnet_mirror_stats: dict[str, Any] = {
+            "mode": "none",
+            "attempts": 0,
+            "ok": 0,
+            "last": None,
+        }
 
     def start(self, config: PaperSessionConfig) -> dict[str, Any]:
         """Inicia (o reinicia) la sesión; opcionalmente lanza background."""
@@ -170,6 +179,7 @@ class PaperSessionRunner:
                 max_steps=config.max_steps,
                 interval_ms=config.interval_ms,
                 params=dict(config.params),
+                testnet_mirror=config.testnet_mirror,
             )
             self._strategy = build_session_strategy(normalized.strategy_id, normalized.params)
             self._strategy.reset()
@@ -177,6 +187,12 @@ class PaperSessionRunner:
             self._bars.clear()
             self._steps = 0
             self._last_error = None
+            self._testnet_mirror_stats = {
+                "mode": normalized.testnet_mirror,
+                "attempts": 0,
+                "ok": 0,
+                "last": None,
+            }
             self._running = True
             self._stop_event.clear()
             if normalized.interval_ms is not None:
@@ -221,6 +237,7 @@ class PaperSessionRunner:
                 "background_alive": bool(
                     self._bg_thread is not None and self._bg_thread.is_alive()
                 ),
+                "testnet_mirror": dict(self._testnet_mirror_stats),
             }
 
     def _background_loop(self) -> None:
@@ -361,6 +378,28 @@ class PaperSessionRunner:
 
         base["status"] = ack.status
         base["ack"] = to_jsonable(dataclass_to_dict(ack))
+
+        cfg = self._config
+        if (
+            cfg is not None
+            and cfg.testnet_mirror in ("spot", "futures")
+            and intent.intent_type is IntentType.PLACE_ORDER
+            and ack.status not in ("RISK_REJECTED", "BROKER_REJECTED")
+        ):
+            from quantlab.execution.strategy_execution.testnet_bridge import (
+                mirror_intent_to_testnet,
+            )
+
+            self._testnet_mirror_stats["attempts"] += 1
+            mirror = mirror_intent_to_testnet(
+                intent,
+                market=cfg.testnet_mirror,  # type: ignore[arg-type]
+            )
+            self._testnet_mirror_stats["last"] = mirror
+            if mirror.get("ok"):
+                self._testnet_mirror_stats["ok"] += 1
+            base["testnet_mirror"] = mirror
+
         return base
 
     def _portfolio_from_book(self, now: datetime) -> PortfolioState:

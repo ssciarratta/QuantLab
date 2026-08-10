@@ -9,8 +9,6 @@ from quantlab.core.exceptions import ValidationError
 VENUES = frozenset({"binance", "okx", "bybit", "hyperliquid", "a3"})
 MARKET_TYPES = frozenset({"spot", "futures"})
 
-# USDT-M perps con multiplicador (Binance/Bybit). Spot suele ser BASEUSDT
-# (PEPEUSDT); futures lista 1000PEPEUSDT — sin alias → HTTP 400 Invalid symbol.
 USDT_M_MULTIPLIER_BASE: dict[str, str] = {
     "PEPE": "1000PEPE",
     "SHIB": "1000SHIB",
@@ -37,12 +35,22 @@ class ResolvedInstrument:
     instrument_id: str
 
 
+# IDs de catálogo / dex → base cripto canónica (Simulador puede enviar «uniswap»).
+UNDERLYING_ALIASES: dict[str, str] = {
+    "UNISWAP": "UNI",
+    "BITCOIN": "BTC",
+    "ETHEREUM": "ETH",
+    "WBTC": "BTC",
+}
+
+
 def _normalize_crypto_underlying(raw: str) -> str:
     text = raw.strip().upper().replace("/", "").replace("-", "")
     if text.endswith("USDT"):
         text = text[: -len("USDT")]
     if text.endswith("SWAP"):
         text = text[: -len("SWAP")]
+    text = UNDERLYING_ALIASES.get(text, text)
     if not text or not text.isalnum():
         raise ValidationError(f"underlying inválido: {raw!r}")
     return text

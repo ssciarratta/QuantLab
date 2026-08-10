@@ -176,10 +176,10 @@
       '<label>maker <input id="sim-maker" type="number" step="0.1"></label>' +
       '<label>taker <input id="sim-taker" type="number" step="0.1"></label>' +
       '<button type="button" class="btn secondary" id="sim-fee-reset" data-tip="Vuelve al schedule del mercado.">Fees mercado</button>' +
-      '<span class="mono muted" id="sim-fee-mode" style="font-size:0.72em">por mercado</span>' +
+      '<span class="mono muted" id="sim-fee-mode" style="font-size:1.04em">por mercado</span>' +
       '<button type="button" class="btn secondary" id="sim-add-cost">+ Gasto</button>' +
       "</div>" +
-      '<div id="sim-extra-costs" class="mono muted" style="font-size:0.78em"></div>' +
+      '<div id="sim-extra-costs" class="mono muted" style="font-size:1.08em"></div>' +
       "</details>" +
       "</div>" +
       '<div class="sim-panel" data-panel="comparar">' +
@@ -203,6 +203,9 @@
       '<button type="button" class="btn" id="sim-open-mc" ' +
       'title="Estresa la selección actual (mercado + moneda + estrategia) en Monte Carlo">' +
       "Monte Carlo</button>" +
+      '<button type="button" class="btn slt-launch-btn" id="sim-open-live-test" ' +
+      'title="Abrir Corrida en vivo con mercado + moneda + estrategia actuales (no arranca solo)">' +
+      "▶ Corrida en vivo</button>" +
       '<span class="muted mono" id="sim-mc-sel-hint">Elegí mercado + moneda</span>' +
       '<button type="button" class="btn secondary" id="sim-open-blotter">Paper Blotter</button>' +
       "</div>" +
@@ -635,6 +638,69 @@
               " · velas/esc≈" +
               nbarsHint +
               " · ruido 50 bps · mismo leverage/funding que Comparar (no calibra PnL)",
+          },
+        });
+      }
+    }
+
+    function executionSymbolFromHandoff(handoff) {
+      var p0 = handoff.pairs && handoff.pairs[0];
+      var raw = (p0 && (p0.ticker || p0.underlying)) || handoff.coin || "BTC";
+      raw = String(raw).split(",")[0].trim().toUpperCase();
+      var aliases = { UNISWAP: "UNI", BITCOIN: "BTC", ETHEREUM: "ETH", WBTC: "BTC" };
+      if (raw.indexOf("USDT") < 0) {
+        var base = raw.replace(/USDT$/i, "");
+        if (aliases[base]) base = aliases[base];
+        return base + "USDT";
+      }
+      var base2 = raw.replace(/USDT$/i, "");
+      if (aliases[base2]) return aliases[base2] + "USDT";
+      return raw;
+    }
+
+    function openLiveTestFromSelection() {
+      var prep = preparePairsForRun();
+      var sid =
+        (root.querySelector("#sim-strat-hist") &&
+          root.querySelector("#sim-strat-hist").value) ||
+        "";
+      var handoff = null;
+      if (lastSimHandoff && lastSimHandoff.pairs && lastSimHandoff.pairs.length) {
+        try {
+          handoff = JSON.parse(JSON.stringify(lastSimHandoff));
+        } catch (e) {
+          handoff = lastSimHandoff;
+        }
+      }
+      if (!handoff || !handoff.pairs || !handoff.pairs.length) {
+        handoff = buildSimHandoff("compare", prep.pairs, {
+          strategy_id: sid,
+        });
+      } else if (sid && !handoff.strategy_id) {
+        handoff.strategy_id = sid;
+      }
+      if (!handoff.pairs || !handoff.pairs.length) {
+        window.alert(
+          "Elegí al menos un mercado y una moneda antes de probar con datos reales."
+        );
+        return;
+      }
+      var sym = executionSymbolFromHandoff(handoff);
+      var sidFinal = handoff.strategy_id || sid || "buy_once";
+      var stratMeta = findStrategy(sidFinal);
+      if (global.QLShell && QLShell.open) {
+        QLShell.open("strategy_live_test", {
+          prefill: {
+            source_module: "simulator",
+            sim_context: handoff,
+            strategy_id: sidFinal,
+            symbol: sym,
+            execution_destination: "PAPER",
+            market_type: handoff.market_type,
+            interval: handoff.interval,
+            venue: handoff.venues && handoff.venues[0],
+            strategy_parameters: (stratMeta && stratMeta.default_params) || {},
+            message: "Simulador · " + (handoff.summary_line || sym),
           },
         });
       }
@@ -1260,7 +1326,7 @@
           ? ' <span class="data-badge">runnable</span>'
           : ' <span class="data-badge data-badge-synth">stub · aún no corre</span>') +
         (teaser
-          ? '<div class="muted" style="font-weight:400;font-size:0.72em;margin-top:0.15rem">' +
+          ? '<div class="muted" style="font-weight:400;font-size:1.04em;margin-top:0.15rem">' +
             esc(teaser) +
             (teaser.length >= 110 ? "…" : "") +
             "</div>"
@@ -1360,7 +1426,7 @@
             (items[0].how_it_works && items[0].how_it_works.when_to_use) || [];
           var famIntro =
             whenFam.length > 0
-              ? '<p class="muted sim-fam-when" style="font-size:0.75em;margin:0.25rem 0 0.45rem">' +
+              ? '<p class="muted sim-fam-when" style="font-size:1.06em;margin:0.25rem 0 0.45rem">' +
                 "<strong>Cuándo usar esta familia:</strong> " +
                 esc(whenFam[0]) +
                 "</p>"
@@ -1783,7 +1849,7 @@
       });
       if (!rows.length) return "sin filas";
       return (
-        '<p class="muted" style="font-size:0.75em;margin:0.2rem 0 0.35rem">' +
+        '<p class="muted" style="font-size:1.06em;margin:0.2rem 0 0.35rem">' +
         "Resumen — orden: moneda A→Z, luego rentabilidad % ↓. " +
         "Al agregar una moneda en un mercado tildado se intenta copiar a los otros tildados." +
         "</p>" +
@@ -2014,7 +2080,7 @@
           })
           .join("") +
         "</tbody></table>" +
-        '<p class="muted" style="font-size:0.75em;margin:0.35rem 0 0">' +
+        '<p class="muted" style="font-size:1.06em;margin:0.35rem 0 0">' +
         esc(m.n_strategies_ok || 0) +
         "/" +
         esc(m.n_strategies_run || 0) +
@@ -2044,7 +2110,7 @@
         '<input type="range" class="sim-rank-dock-font-range" min="70" max="140" value="100" step="5">' +
         "</label>" +
         "</div>" +
-        '<p class="muted" style="font-size:0.72em;margin:0.2rem 0 0.4rem">' +
+        '<p class="muted" style="font-size:1.04em;margin:0.2rem 0 0.4rem">' +
         "Resultados dentro del Simulador · × cierra cada mercado · click en fila = usar estrategia." +
         "</p>";
       var cols =
@@ -2730,7 +2796,7 @@
 
       function afterCompare(d) {
         var feeNote =
-          '<p class="muted" style="font-size:0.72em;margin:0.15rem 0">' +
+          '<p class="muted" style="font-size:1.04em;margin:0.15rem 0">' +
           "PnL y capital final ya son NETOS de fees (VIP0 por mercado). " +
           "La columna «Fees gastados» es el detalle; no hay que restarlos otra vez. " +
           '<button type="button" class="btn secondary sim-compare-memo-btn" style="margin-left:0.35rem">Ver memorando</button>' +
@@ -2980,6 +3046,12 @@
       });
     }
     bindOpenMc(root.querySelector("#sim-open-mc"));
+    var liveTestBtn = root.querySelector("#sim-open-live-test");
+    if (liveTestBtn) {
+      liveTestBtn.addEventListener("click", function () {
+        openLiveTestFromSelection();
+      });
+    }
     syncMcSelHint();
 
     root.getSimHandoff = function () {

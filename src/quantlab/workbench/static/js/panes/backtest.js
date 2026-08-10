@@ -391,7 +391,12 @@
       var br = (data && data.bar_range) || {};
       var lines = [];
       lines.push("QUANTLAB — MEMORANDO DE BACKTEST");
-      lines.push("Fecha: " + new Date().toLocaleString("es-AR"));
+      lines.push(
+        "Fecha: " +
+          (window.QLFmt && window.QLFmt.fmtDateTime
+            ? window.QLFmt.fmtDateTime(new Date())
+            : new Date().toLocaleString("es-AR"))
+      );
       lines.push("");
       lines.push("=== QUÉ SE CORRIÓ ===");
       lines.push(

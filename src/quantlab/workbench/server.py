@@ -11,6 +11,22 @@ from typing import Any
 from urllib.parse import unquote, urlparse
 
 from quantlab.core.exceptions import ValidationError
+from quantlab.workbench.execution_api import (
+    handle_get_execution_hummingbot_status,
+    handle_get_execution_live,
+    handle_get_execution_promotion,
+    handle_get_execution_sessions,
+    handle_get_execution_session_status,
+    handle_get_execution_strategies,
+    handle_get_execution_strategy_capabilities,
+    handle_post_execution_promotion_open_session,
+    handle_post_execution_promotion_preflight,
+    handle_post_execution_promotion_validate,
+    handle_post_execution_promotions,
+    handle_post_execution_run,
+    handle_post_execution_session_start_paper,
+    handle_post_execution_session_stop,
+)
 from quantlab.workbench.api import (
     ApiError,
     WorkbenchState,
@@ -378,6 +394,49 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                         handle_get_testnet_balances(state, parsed.query)
                     )
                     return
+                if path == "/api/execution/strategies":
+                    self._send_json(handle_get_execution_strategies(state))
+                    return
+                if path.startswith("/api/execution/strategies/") and path.endswith(
+                    "/capabilities"
+                ):
+                    sid = unquote(
+                        path[len("/api/execution/strategies/") : -len("/capabilities")].strip(
+                            "/"
+                        )
+                    )
+                    if not _path_segment_ok(sid):
+                        self._send_error_json(400, "strategy_id inválido")
+                        return
+                    self._send_json(handle_get_execution_strategy_capabilities(state, sid))
+                    return
+                if path == "/api/execution/hummingbot/status":
+                    self._send_json(handle_get_execution_hummingbot_status(state))
+                    return
+                if path == "/api/execution/sessions":
+                    self._send_json(handle_get_execution_sessions(state))
+                    return
+                if path == "/api/execution/live":
+                    from urllib.parse import parse_qs
+
+                    q = parse_qs(parsed.query or "")
+                    session_q = (q.get("session_id") or [None])[0]
+                    self._send_json(handle_get_execution_live(state, session_q))
+                    return
+                if path.startswith("/api/execution/promotions/"):
+                    tail = unquote(path[len("/api/execution/promotions/") :]).strip("/")
+                    if tail and "/" not in tail and _path_segment_ok(tail):
+                        self._send_json(handle_get_execution_promotion(state, tail))
+                        return
+                if path.startswith("/api/execution/sessions/") and path.endswith("/status"):
+                    sid = unquote(
+                        path[len("/api/execution/sessions/") : -len("/status")].strip("/")
+                    )
+                    if not _path_segment_ok(sid):
+                        self._send_error_json(400, "session_id inválido")
+                        return
+                    self._send_json(handle_get_execution_session_status(state, sid))
+                    return
                 if path == "/api/live/demo/fills":
                     self._send_json(handle_get_live_demo_fills(state))
                     return
@@ -683,6 +742,71 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/live/demo/cancel":
                     self._send_json(handle_post_live_demo_cancel(state, body))
+                    return
+                if path == "/api/execution/promotions":
+                    self._send_json(handle_post_execution_promotions(state, body))
+                    return
+                if path == "/api/execution/run":
+                    self._send_json(handle_post_execution_run(state, body))
+                    return
+                if path.startswith("/api/execution/promotions/") and path.endswith(
+                    "/validate"
+                ):
+                    pid = unquote(
+                        path[len("/api/execution/promotions/") : -len("/validate")].strip("/")
+                    )
+                    if not _path_segment_ok(pid):
+                        self._send_error_json(400, "promotion_id inválido")
+                        return
+                    self._send_json(handle_post_execution_promotion_validate(state, pid))
+                    return
+                if path.startswith("/api/execution/promotions/") and path.endswith(
+                    "/preflight"
+                ):
+                    pid = unquote(
+                        path[len("/api/execution/promotions/") : -len("/preflight")].strip("/")
+                    )
+                    if not _path_segment_ok(pid):
+                        self._send_error_json(400, "promotion_id inválido")
+                        return
+                    self._send_json(handle_post_execution_promotion_preflight(state, pid))
+                    return
+                if path.startswith("/api/execution/promotions/") and path.endswith(
+                    "/open-session"
+                ):
+                    pid = unquote(
+                        path[len("/api/execution/promotions/") : -len("/open-session")].strip(
+                            "/"
+                        )
+                    )
+                    if not _path_segment_ok(pid):
+                        self._send_error_json(400, "promotion_id inválido")
+                        return
+                    self._send_json(handle_post_execution_promotion_open_session(state, pid))
+                    return
+                if path.startswith("/api/execution/sessions/") and path.endswith("/stop"):
+                    sid = unquote(
+                        path[len("/api/execution/sessions/") : -len("/stop")].strip("/")
+                    )
+                    if not _path_segment_ok(sid):
+                        self._send_error_json(400, "session_id inválido")
+                        return
+                    self._send_json(handle_post_execution_session_stop(state, sid))
+                    return
+                if path.startswith("/api/execution/sessions/") and path.endswith(
+                    "/start-paper"
+                ):
+                    sid = unquote(
+                        path[len("/api/execution/sessions/") : -len("/start-paper")].strip(
+                            "/"
+                        )
+                    )
+                    if not _path_segment_ok(sid):
+                        self._send_error_json(400, "session_id inválido")
+                        return
+                    self._send_json(
+                        handle_post_execution_session_start_paper(state, sid, body)
+                    )
                     return
                 if path == "/api/lab/binance/scan":
                     self._send_json(handle_post_binance_scan(state, body))

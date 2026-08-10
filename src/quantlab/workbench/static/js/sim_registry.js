@@ -15,6 +15,12 @@
       .replace(/"/g, "&quot;");
   }
 
+  function fmtWhen(iso) {
+    if (global.QLFmt && global.QLFmt.fmtDateTime) return global.QLFmt.fmtDateTime(iso);
+    if (!iso) return "—";
+    return new Date(iso).toLocaleString("es-AR");
+  }
+
   function load() {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
@@ -104,12 +110,12 @@
       waHref +
       '" target="_blank" rel="noopener noreferrer">Compartir WhatsApp</a>' +
       (memo.nRows != null
-        ? '<span class="muted mono" style="font-size:0.72em">' +
+        ? '<span class="muted mono" style="font-size:1.04em">' +
           esc(memo.nRows) +
           " filas CSV</span>"
         : "") +
       "</div>" +
-      '<p class="muted" style="font-size:0.75em;margin:0.35rem 0">' +
+      '<p class="muted" style="font-size:1.06em;margin:0.35rem 0">' +
       "Memorando + parámetros · arrastrá bordes · × cierra." +
       "</p>" +
       '<pre class="sim-memo-body mono"></pre>';
@@ -376,6 +382,45 @@
     return { headers: headers, rows: rows };
   }
 
+  /** Índice CSV con alias ES/EN (memorando Comparar usa mercado/modo/moneda). */
+  function buildCsvCell(headers) {
+    var idx = {};
+    headers.forEach(function (h, i) {
+      var k = String(h || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, "_");
+      if (k) idx[k] = i;
+    });
+    var aliases = {
+      venue: ["venue", "mercado", "market", "exchange"],
+      market_type: ["market_type", "modo", "tipo", "tipo_mercado"],
+      underlying: ["underlying", "moneda", "coin", "ticker", "symbol", "activo"],
+      instrument_id: ["instrument_id", "instrumento", "instrument"],
+      leverage: ["leverage", "x", "apalancamiento"],
+      strategy_id: ["strategy_id", "estrategia", "strategy"],
+      capital_inicial: ["capital_inicial", "initial_capital", "capital"],
+      capital_final_neto: ["capital_final_neto", "final_equity", "capital_final"],
+      margen_trade: ["margen_trade", "margin_trade", "margin_per_trade"],
+      margen_pico: ["margen_pico", "peak_margin", "margin_peak"],
+      faltante: ["faltante", "missing_margin", "margin_missing"],
+      pnl_pct: ["pnl_pct", "rentab_pct", "return_pct"],
+      n_ops: ["n_ops", "n_operaciones", "n_fills", "fills"],
+      fees_totales: ["fees_totales", "fees", "total_fees"],
+      fee_por_op: ["fee_por_op", "fee_per_op", "avg_fee"],
+      dif_vs_bench: ["dif_vs_bench", "diff_bench", "bench_diff"],
+      liquidated: ["liquidated", "liq", "liquidacion"],
+    };
+    return function cell(row, logicalKey) {
+      var keys = aliases[logicalKey] || [logicalKey];
+      for (var j = 0; j < keys.length; j++) {
+        var i = idx[keys[j]];
+        if (i != null && row[i] != null && row[i] !== "") return row[i];
+      }
+      return "";
+    };
+  }
+
   function fmtNum(v, digits) {
     if (v == null || v === "" || v === "undefined" || v === "null") return "—";
     var n = Number(v);
@@ -469,57 +514,74 @@
 
   function renderCompareTable(e) {
     var parsed = parseCsv(e.memo && e.memo.csv);
-    var idx = {};
-    parsed.headers.forEach(function (h, i) {
-      idx[h] = i;
-    });
-    function cell(row, key) {
-      var i = idx[key];
-      return i == null ? "" : row[i];
-    }
+    var cell = buildCsvCell(parsed.headers);
+    var meta = entryMetaBits(e);
+    var pairs = (e.params && e.params.pairs) || [];
     if (!parsed.rows.length) {
-      var m = entryMetaBits(e);
       return (
         '<table class="sim-summary-table mono ql-sim-reg-table"><thead><tr>' +
         "<th>Mercado</th><th>Modo</th><th>Moneda</th><th>x</th>" +
         "<th>Estrategia</th><th>TF</th><th>Período</th><th>Capital</th>" +
         "<th>Resumen</th></tr></thead><tbody><tr>" +
         "<td>" +
-        esc(m.venues) +
-        "</td><td>—</td><td>" +
-        esc(m.coin) +
+        esc(meta.venues) +
         "</td><td>" +
-        esc(String(m.leverage)) +
+        esc(
+          (e.params && e.params.meta && e.params.meta.market_type) ||
+            (e.params && e.params.common && e.params.common.market_type) ||
+            "—"
+        ) +
         "</td><td>" +
-        esc(m.strategy) +
+        esc(meta.coin) +
         "</td><td>" +
-        esc(String(m.interval)) +
+        esc(String(meta.leverage)) +
         "</td><td>" +
-        esc(String(m.period)) +
+        esc(meta.strategy) +
+        "</td><td>" +
+        esc(String(meta.interval)) +
+        "</td><td>" +
+        esc(String(meta.period)) +
         "d</td><td>" +
-        esc(String(m.capital_mode)) +
+        esc(String(meta.capital_mode)) +
         "</td><td>" +
         esc(e.summary || "—") +
         "</td></tr></tbody></table>"
       );
     }
     var body = parsed.rows
-      .map(function (row) {
+      .map(function (row, rowIdx) {
+        var pair = pairs[rowIdx] || {};
         var falt = cell(row, "faltante");
         var liq = cell(row, "liquidated");
+        var venue =
+          cell(row, "venue") ||
+          pair.venue ||
+          (meta.venues !== "—" ? String(meta.venues).split(", ")[0] : "") ||
+          "—";
+        var marketType =
+          cell(row, "market_type") ||
+          (e.params && e.params.meta && e.params.meta.market_type) ||
+          (e.params && e.params.common && e.params.common.market_type) ||
+          "—";
+        var coin =
+          cell(row, "underlying") ||
+          pair.underlying ||
+          pair.ticker ||
+          meta.coin ||
+          "—";
         return (
           "<tr>" +
           "<td>" +
-          esc(cell(row, "venue") || "—") +
+          esc(venue) +
           "</td>" +
           "<td>" +
-          esc(cell(row, "market_type") || "—") +
+          esc(marketType) +
           "</td>" +
           "<td>" +
-          esc(cell(row, "underlying") || "—") +
+          esc(coin) +
           "</td>" +
           "<td>" +
-          esc(cell(row, "leverage") || "—") +
+          esc(cell(row, "leverage") || meta.leverage || "—") +
           "</td>" +
           "<td>" +
           fmtNum(cell(row, "capital_inicial")) +
@@ -703,9 +765,7 @@
   }
 
   function renderEntryBlock(e) {
-    var when = e.created_at
-      ? new Date(e.created_at).toLocaleString("es-AR")
-      : "—";
+    var when = e.created_at ? fmtWhen(e.created_at) : "—";
     var kind = e.kind || "run";
     var tableHtml =
       kind === "montecarlo"
@@ -754,7 +814,7 @@
     if (!listEl) return;
     if (!list.length) {
       listEl.innerHTML =
-        '<p class="muted" style="font-size:0.78em;margin:0.5rem">' +
+        '<p class="muted" style="font-size:1.08em;margin:0.5rem">' +
         "Todavía no hay corridas.<br/>Corré <strong>Comparar</strong>, " +
         "<strong>Ranking</strong>, <strong>Backtest</strong>, " +
         "<strong>Optimizer</strong> o <strong>Monte Carlo</strong>." +
@@ -785,7 +845,7 @@
     root.className = "pane-sim-registry";
     root.innerHTML =
       '<div class="ql-sim-registry-toolbar">' +
-      '<span class="muted" style="font-size:0.72em;flex:1">' +
+      '<span class="muted" style="font-size:1.04em;flex:1">' +
       "Mis simulaciones · vista tipo HISTÓRICO · Reabrir = params · Memo" +
       "</span>" +
       '<span class="mono muted ql-sim-registry-count">0</span> ' +

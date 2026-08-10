@@ -84,7 +84,7 @@
       "</div>" +
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.scan">2. Escanear</h3>' +
-      '<p class="muted" style="margin:0 0 0.4rem;font-size:0.85em">' +
+      '<p class="muted" style="margin:0 0 0.4rem;font-size:1.14em">' +
       '<span class="data-badge data-badge-synth">SINTÉTICO</span> Scan lab · ' +
       '<span class="data-badge data-badge-real">HISTÓRICO</span> Scan Binance / Ranking / Backtest top 5' +
       "</p>" +
@@ -111,9 +111,9 @@
       '<span data-i18n="guided_lab.wf.rank_fraction">rank_fraction</span> ' +
       '<input type="number" id="gl-rank-fraction" value="0.70" min="0.05" max="0.95" step="0.05" style="width:3.5em">' +
       "</label>" +
-      '<span class="muted" style="font-size:0.85em" data-i18n="guided_lab.alpha.score_note">score ≠ rentabilidad</span>' +
+      '<span class="muted" style="font-size:1.14em" data-i18n="guided_lab.alpha.score_note">score ≠ rentabilidad</span>' +
       "</div>" +
-      '<p class="muted" id="gl-wf-legend" style="margin:0.35rem 0 0;font-size:0.85em" data-i18n="guided_lab.wf.legend">' +
+      '<p class="muted" id="gl-wf-legend" style="margin:0.35rem 0 0;font-size:1.14em" data-i18n="guided_lab.wf.legend">' +
       "<strong>Leyenda walk-forward:</strong> ON (default) — ranking en la 1ª fracción " +
       "(rank_fraction, p.ej. 70%) de las velas; backtest en el tramo posterior, sin overlap. " +
       "Desmarcar = opt-out → misma ventana rank+BT (selección in-sample; sesgo). " +
@@ -145,7 +145,7 @@
       '<input type="number" id="gl-bars" value="1200" min="8" max="525600" style="width:5.5em">' +
       "</label>" +
       "</div>" +
-      '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:0.85em">' +
+      '<p class="muted" id="gl-bars-hint" style="margin:0.35rem 0 0;font-size:1.14em">' +
       "Ranking / Backtest top 5: mira el mercado REAL de Binance y toma las últimas N velas hasta ahora " +
       "(ej. 5m×1200 ≈ desde hace ~4 días hasta este momento). Detalle fills abajo + panel Reports." +
       "</p>" +
@@ -153,7 +153,7 @@
       '<div class="pane-section">' +
       '<h3 data-i18n="guided_lab.section.simulate">4. Simular (paper)</h3>' +
       '<p class="data-badge data-badge-synth" style="display:inline-block;margin:0 0 0.4rem">DATOS SINTÉTICOS (lab)</p>' +
-      '<p class="muted" style="margin:0 0 0.45rem;font-size:0.85em">' +
+      '<p class="muted" style="margin:0 0 0.45rem;font-size:1.14em">' +
       "No usa Binance. Genera barras inventadas del lab. " +
       "Elegí <strong>días</strong> (o velas). Los <strong>trades no se fijan</strong>: los decide la estrategia." +
       "</p>" +
@@ -166,7 +166,7 @@
       "velas sim " +
       '<input type="number" id="gl-sim-bars" value="2000" min="4" max="2000" style="width:4.5em">' +
       "</label>" +
-      '<span class="mono muted" id="gl-sim-hint" style="font-size:0.8em">—</span>' +
+      '<span class="mono muted" id="gl-sim-hint" style="font-size:1.10em">—</span>' +
       "</div>" +
       '<div class="pane-row" style="margin-top:0.4rem">' +
       '<button type="button" class="btn" id="gl-run" data-i18n="guided_lab.simulate.run" data-tip="Backtest paper con barras SINTÉTICAS del lab.\nNo son klines de Binance; no envía órdenes." data-i18n-tip="tip.gl.run">Simular backtest (sintético)</button>' +
@@ -298,7 +298,11 @@
             .map(function (f) {
               return (
                 "<tr><td class=\"mono\">" +
-                esc((f.timestamp || "").slice(0, 19)) +
+                esc(
+                  window.QLFmt && window.QLFmt.fmtDateTime
+                    ? window.QLFmt.fmtDateTime(f.timestamp)
+                    : (f.timestamp || "").slice(0, 19)
+                ) +
                 "</td><td>" +
                 esc(f.side || "—") +
                 "</td><td class=\"mono num\">" +
@@ -407,6 +411,9 @@
     function formatRangeHuman(startIso, endIso) {
       if (!startIso || !endIso) return "";
       function short(iso) {
+        if (window.QLFmt && window.QLFmt.fmtDateTime) {
+          return window.QLFmt.fmtDateTime(iso);
+        }
         try {
           const d = new Date(iso);
           if (isNaN(d.getTime())) return String(iso).slice(0, 16);
@@ -539,7 +546,7 @@
 
       var tip = document.createElement("p");
       tip.className = "muted";
-      tip.style.cssText = "margin:0.45rem 0 0;font-size:0.85em";
+      tip.style.cssText = "margin:0.45rem 0 0;font-size:1.14em";
       tip.innerHTML =
         "<strong>Cómo leer este panel:</strong> " +
         "Empezar = elegí venue · Inventado = datos falsos del lab · " +
@@ -1015,7 +1022,7 @@
                 "</span>";
               if (advanced && sc.components && sc.components.length) {
                 line +=
-                  '<div class="muted" style="margin-left:0.5rem;font-size:0.85em">' +
+                  '<div class="muted" style="margin-left:0.5rem;font-size:1.14em">' +
                   sc.components
                     .map(function (c) {
                       return (
@@ -1034,7 +1041,7 @@
               }
               if (advanced && sc.penalties && sc.penalties.length) {
                 line +=
-                  '<div class="muted" style="margin-left:0.5rem;font-size:0.85em">penalties: ' +
+                  '<div class="muted" style="margin-left:0.5rem;font-size:1.14em">penalties: ' +
                   esc(JSON.stringify(sc.penalties)) +
                   "</div>";
               }

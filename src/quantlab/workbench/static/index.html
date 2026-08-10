@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>QuantLab Workbench</title>
-  <link rel="stylesheet" href="/static/css/workbench.css?v=20260805a" />
+  <link rel="stylesheet" href="/static/css/workbench.css?v=20260810p" />
 </head>
 <body data-theme="slate">
   <a class="skip-link" href="#workspace" data-i18n="skip_to_content">Ir al contenido</a>
@@ -47,7 +47,7 @@
         <span class="sb-sep">·</span>
         <span class="sb-item sb-font-controls">
           <button type="button" class="sb-font-btn" id="sb-font-down" aria-label="Reducir letra" data-tip="Reducir tamaño de letra en toda la UI.\nSe guarda en settings de sesión." data-i18n-tip="tip.font.down">A−</button>
-          <span class="mono muted sb-font-value" id="sb-font-value">115%</span>
+          <span class="mono muted sb-font-value" id="sb-font-value">125%</span>
           <button type="button" class="sb-font-btn" id="sb-font-up" aria-label="Agrandar letra" data-tip="Agrandar tamaño de letra en toda la UI.\nSe guarda en settings de sesión." data-i18n-tip="tip.font.up">A+</button>
         </span>
         <span class="sb-sep">·</span>
@@ -85,14 +85,25 @@
 
   <div id="start-menu" class="start-menu hidden" hidden>
     <details class="start-acc" open>
-      <summary class="start-acc-sum">Mis favoritos</summary>
+      <summary class="start-acc-sum">Barra rápida</summary>
       <div class="start-acc-body" id="ql-favorites">
-        <p class="muted" style="font-size:0.72em;margin:0.2rem 0 0.35rem">
-          Arriba: los que más usás. ↑↓ para ordenar · se guarda solo.
-        </p>
+        <p class="muted ql-menu-hint">Los botones de la barra inferior salen de «Personalizar menú QL».</p>
         <div id="ql-fav-list"></div>
-        <button type="button" id="ql-fav-reset" class="btn secondary" style="margin-top:0.35rem;font-size:0.72rem">
-          Restaurar favoritos (Chat · Alpha · Sim · MC · Spot · Futures)
+        <button type="button" id="ql-fav-reset" class="btn secondary ql-menu-reset-btn">
+          Restaurar menú default
+        </button>
+      </div>
+    </details>
+
+    <details class="start-acc" open>
+      <summary class="start-acc-sum">Personalizar menú QL</summary>
+      <div class="start-acc-body" id="ql-menu-customize">
+        <p class="muted ql-menu-hint">
+          Barra = botones abajo · Menú = secciones QL · ↑↓ orden · ⤒ primero arriba · se guarda solo.
+        </p>
+        <div id="ql-menu-customize-list"></div>
+        <button type="button" id="ql-menu-reset" class="btn secondary ql-menu-reset-btn">
+          Restaurar menú default
         </button>
       </div>
     </details>
@@ -116,47 +127,7 @@
       </div>
     </details>
 
-    <details class="start-acc">
-      <summary class="start-acc-sum">Lab avanzado / Guided</summary>
-      <div class="start-acc-body">
-        <button type="button" data-open="guided_lab" data-i18n="pane.guided_lab" data-tip="Wizard paso a paso (aprender).\nPara comparar mercados usá Simulador.\nPara ranking usá Alpha Scanner." data-i18n-tip="tip.pane.guided_lab">Guided Lab</button>
-        <button type="button" data-open="strategies" data-tip="Catálogo de estrategias · abrir en Simulador.">Estrategias</button>
-        <button type="button" data-open="sim_registry" data-tip="Historial Comparar / Ranking / Monte Carlo.">Mis simulaciones</button>
-        <button type="button" data-open="backtest" data-i18n="pane.backtest" data-tip="Backtest técnico (sintético/histórico).\nDebug — no reemplaza el Simulador." data-i18n-tip="tip.pane.backtest">Backtest</button>
-      </div>
-    </details>
-
-    <details class="start-acc">
-      <summary class="start-acc-sum" data-i18n="menu.session">Sesión / paper</summary>
-      <div class="start-acc-body">
-        <button type="button" data-open="health" data-i18n="pane.health" data-tip="Estado del sistema, modo PAPER y LIVE_BLOCKED.\nPunto de partida para ver si el lab está sano." data-i18n-tip="tip.pane.health">Salud / Modo</button>
-        <button type="button" data-open="market" data-i18n="pane.market" data-tip="Market data read-only (ticks / snapshots).\nNo envía órdenes." data-i18n-tip="tip.pane.market">Market Data</button>
-        <button type="button" data-open="universe" data-i18n="pane.universe" data-tip="Universo de símbolos y watchlist.\nImportá/exportá listas para lab." data-i18n-tip="tip.pane.universe">Universe</button>
-        <button type="button" data-open="catalog" data-i18n="pane.catalog" data-tip="Catálogo de datasets y artefactos disponibles.\nExploración read-only." data-i18n-tip="tip.pane.catalog">Data Catalog</button>
-        <button type="button" data-open="blotter" data-i18n="pane.blotter" data-tip="Blotter de órdenes paper.\nHistorial simulado de la sesión." data-i18n-tip="tip.pane.blotter">Paper Blotter</button>
-        <button type="button" data-open="journal" data-i18n="pane.journal" data-tip="Journal paper autoritativo.\nFuente de verdad de fills simulados." data-i18n-tip="tip.pane.journal">Journal</button>
-        <button type="button" data-open="paper_session" data-i18n="pane.paper_session" data-tip="Sesión paper: capital, PnL y estado.\nRehydrate tras rebuild." data-i18n-tip="tip.pane.paper_session">Sesión Paper</button>
-        <button type="button" data-open="positions" data-i18n="pane.positions" data-tip="Posiciones abiertas en paper.\nDerivadas del journal." data-i18n-tip="tip.pane.positions">Posiciones</button>
-        <button type="button" data-open="risk" data-i18n="pane.risk" data-tip="Límites de riesgo y kill switches paper.\nNo habilita LIVE." data-i18n-tip="tip.pane.risk">Riesgo</button>
-        <button type="button" data-open="reconciliation" data-i18n="pane.reconciliation" data-tip="Reconciliación paper vs estado esperado.\nDetecta desvíos de sesión." data-i18n-tip="tip.pane.reconciliation">Reconciliación</button>
-      </div>
-    </details>
-
-    <details class="start-acc">
-      <summary class="start-acc-sum" data-i18n="menu.lab">Laboratorio avanzado</summary>
-      <div class="start-acc-body">
-        <button type="button" data-open="metrics" data-i18n="pane.metrics" data-tip="Métricas del último run (Sharpe, DD, etc.).\nVista rápida post-backtest." data-i18n-tip="tip.pane.metrics">Metrics / Último</button>
-        <button type="button" data-open="reports" data-i18n="pane.reports" data-tip="Reportes e informes de experimentos.\nExportá resultados del lab." data-i18n-tip="tip.pane.reports">Reports</button>
-        <button type="button" data-open="experiments" data-i18n="pane.experiments" data-tip="Registro de experimentos y variantes.\nSeguimiento de hipótesis." data-i18n-tip="tip.pane.experiments">Experiments</button>
-        <button type="button" data-open="optimize" data-i18n="pane.optimize" data-tip="Optimizer de parámetros de estrategia.\nExploración controlada (paper)." data-i18n-tip="tip.pane.optimize">Optimizer</button>
-        <button type="button" data-open="features" data-i18n="pane.features" data-tip="Ingeniería / inspección de features.\nInputs para alphas." data-i18n-tip="tip.pane.features">Features</button>
-        <button type="button" data-open="export_hb" data-i18n="pane.export_hb" data-tip="Exportar configs hacia Hummingbot.\nPuente research → bot (fuera de LIVE)." data-i18n-tip="tip.pane.export_hb">Hummingbot Export</button>
-        <button type="button" data-open="validation" data-i18n="pane.validation" data-tip="Splits de validación train/test.\nEvita overfit en el lab." data-i18n-tip="tip.pane.validation">Validation Splits</button>
-        <button type="button" data-open="venues" data-i18n="pane.venues" data-tip="Registro de venues/brokers disponibles.\nSolo lectura." data-i18n-tip="tip.pane.venues">Venues</button>
-        <button type="button" data-open="api_explorer" data-i18n="pane.api_explorer" data-tip="Explorá endpoints del Workbench.\nÚtil para debug y docs internas." data-i18n-tip="tip.pane.api_explorer">API Explorer</button>
-        <button type="button" data-open="diagnostics" data-i18n="pane.diagnostics" data-tip="Snapshot de diagnóstico y soporte.\nDescargá bundle para auditoría." data-i18n-tip="tip.pane.diagnostics">Diagnostics</button>
-      </div>
-    </details>
+    <div id="ql-menu-dynamic"></div>
 
     <details class="start-acc">
       <summary class="start-acc-sum" data-i18n="menu.windows">Ventanas</summary>
@@ -187,31 +158,18 @@
         </button>
       </div>
     </details>
-
-    <details class="start-acc">
-      <summary class="start-acc-sum" data-i18n="menu.system">Sistema</summary>
-      <div class="start-acc-body">
-        <button type="button" data-open="sessions" data-i18n="pane.sessions" data-tip="Gestión de sesiones del Workbench.\nListá y revisá sesiones locales." data-i18n-tip="tip.pane.sessions">Sessions</button>
-        <button type="button" data-open="activity" data-i18n="pane.activity" data-tip="Log de actividad de la sesión.\nAuditoría operativa ligera." data-i18n-tip="tip.pane.activity">Activity</button>
-        <button type="button" data-open="access_log" data-i18n="pane.access_log" data-tip="Access log de la API del Workbench.\nQuién/qué tocó endpoints." data-i18n-tip="tip.pane.access_log">Access Log</button>
-        <button type="button" data-open="backups" data-i18n="pane.backups" data-tip="Backups y restauración de sesión.\nExportá estado local." data-i18n-tip="tip.pane.backups">Backups</button>
-        <button type="button" data-open="ops_metrics" data-i18n="pane.ops_metrics" data-tip="Métricas operativas del servidor.\nSalud y throughput internos." data-i18n-tip="tip.pane.ops_metrics">Ops Metrics</button>
-        <button type="button" data-open="settings" data-i18n="pane.settings" data-tip="Preferencias UI, locale y sesión.\nIncluye escala de fuente." data-i18n-tip="tip.pane.settings">Settings</button>
-        <button type="button" data-open="docs" data-i18n="pane.docs" data-tip="Ayuda y documentación embebida.\nGuías del laboratorio." data-i18n-tip="tip.pane.docs">Help / Docs</button>
-        <button type="button" data-open="about" data-i18n="pane.about" data-tip="Acerca de QuantLab: versión y fases.\nIdentidad del build actual." data-i18n-tip="tip.pane.about">Acerca de</button>
-      </div>
-    </details>
   </div>
 
   <script src="/static/js/i18n.js"></script>
+  <script src="/static/js/fmt.js?v=20260810o"></script>
   <script src="/static/js/tips.js"></script>
   <script src="/static/js/api.js?v=20260803c"></script>
-  <script src="/static/js/run_gate.js"></script>
+  <script src="/static/js/run_gate.js?v=20260810k"></script>
   <script src="/static/js/toasts.js"></script>
   <script src="/static/js/wm.js"></script>
   <script src="/static/js/command_palette.js"></script>
   <script src="/static/js/panes/lab_common.js"></script>
-  <script src="/static/js/sim_registry.js?v=20260803b"></script>
+  <script src="/static/js/sim_registry.js?v=20260810n"></script>
   <script src="/static/js/panes/health.js"></script>
   <script src="/static/js/panes/market.js"></script>
   <script src="/static/js/panes/universe.js"></script>
@@ -226,12 +184,13 @@
   <script src="/static/js/panes/api_explorer.js"></script>
   <script src="/static/js/panes/diagnostics.js"></script>
   <script src="/static/js/panes/guided_lab.js"></script>
-  <script src="/static/js/panes/simulator.js?v=20260803b"></script>
+  <script src="/static/js/panes/simulator.js?v=20260810n"></script>
   <script src="/static/js/panes/strategies.js"></script>
   <script src="/static/js/panes/binance_testnet.js?v=20260809"></script>
+  <script src="/static/js/panes/strategy_live_test.js?v=20260810r"></script>
   <script src="/static/js/panes/chat.js"></script>
   <script src="/static/js/panes/backtest.js"></script>
-  <script src="/static/js/panes/scanner.js?v=20260805a"></script>
+  <script src="/static/js/panes/scanner.js?v=20260810k"></script>
   <script src="/static/js/panes/metrics.js"></script>
   <script src="/static/js/panes/reports.js"></script>
   <script src="/static/js/panes/experiments.js"></script>
@@ -246,10 +205,11 @@
   <script src="/static/js/panes/access_log.js"></script>
   <script src="/static/js/panes/backups.js"></script>
   <script src="/static/js/panes/ops_metrics.js"></script>
-  <script src="/static/js/panes/settings.js"></script>
+  <script src="/static/js/panes/settings.js?v=20260810k"></script>
   <script src="/static/js/panes/docs.js"></script>
   <script src="/static/js/about.js"></script>
   <script src="/static/js/onboarding.js"></script>
-  <script src="/static/js/shell.js?v=20260803b"></script>
+  <script src="/static/js/ql_menu.js?v=20260810o"></script>
+  <script src="/static/js/shell.js?v=20260810o"></script>
 </body>
 </html>

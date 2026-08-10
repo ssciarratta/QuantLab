@@ -64,7 +64,10 @@
 
       listEl.innerHTML = backups
         .map(function (b) {
-          const ts = (b.mtime_utc || "").slice(0, 19).replace("T", " ");
+          const ts =
+            window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(b.mtime_utc)
+              : (b.mtime_utc || "").slice(0, 19).replace("T", " ");
           const sha = b.sha256 ? String(b.sha256).slice(0, 12) + "…" : "—";
           return (
             '<div class="backup-item">' +

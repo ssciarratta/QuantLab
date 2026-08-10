@@ -1,42 +1,34 @@
-QUANTLAB ù RESUMEN DEL PROYECTO
+QUANTLAB ó RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-10
-Versiùn: 1.01.0 ù UI favoritos + Spot/Futures Testnet
+VersiÛn: 1.01.0 ó Men˙ QL + fechas + SLT UX
 
 ESTADO
 ------
-- LIVE_BLOCKED=True
-- Workbench tip reiniciado (:8765) con .env Futures
-- Favoritos 1-clic en taskbar: Chat ù Alpha ù Sim ù MC ù Spot ù Futures
-- Guided Lab solo en menù avanzado (no favoritos)
-- Launcher ùnico: `este.bat` (doble clic ? Workbench :8765)
+- LIVE_BLOCKED=True ∑ REAL=PAPER
+- Men˙ QL v5 personalizable ∑ fechas dd/mm - HH:mm:ss global
+- Corrida en vivo: tipografÌa compacta + tooltips + error idle corregido
+- TipografÌa workbench: 18px ◊ 118% default
 
-ùLTIMA IMPLEMENTACIùN
+⁄LTIMA IMPLEMENTACI”N
 ---------------------
-2026-08-10 ù Launcher ùnico `este.bat`; eliminados arrancar_quantlab.bat y ABRIR_WORKBENCH.bat.
+2026-08-10 ó Corrida en vivo UX:
+- Panel SLT compacto, grilla ordenada, data-tip en campos y tabs
+- Error fantasma corregido (last_error en idle ya no muestra ? Error)
+- INICIAR bloqueado si estrategia [research]
+- Cache bust ?v=20260810p
 
-Reorg Workbench + dual testnet UI:
-- Merge UI desde modo-real-workbench-aafd
-- taskbar-quick + ql_menu_favorites_v4
-- panes binance_spot / binance_futures
-- launch.py carga .env
+C”MO USAR
+---------
+1. Ctrl+F5 tras actualizar
+2. Corrida en vivo: elegir estrategia ? ∑ destino PAPER ∑ pasar mouse sobre campos
+3. QL ? Personalizar men˙ QL para ordenar barra y paneles
 
-PRùXIMO
+PR”XIMO
 -------
-Ctrl+F5 ù unlock Futures ù demo chica
-Spot: keys en testnet.binance.vision cuando haga falta
+- Spot testnet remoto
+- Hummingbot futures
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True ù Spot XOR Futures ù REAL=PAPER
-
-================================================================================
-UBICACIùN / SYNC ù 2026-08-10
-================================================================================
-- Carpeta local: Desktop\PROYECTOS CURSOR\<este-proyecto>
-- Sync GitHub: GitSync (C:\Users\ssciarratta\GitSync) sobre PROYECTOS CURSOR
-- Horarios: 13:00, 17:00, 23:59 y al encender la PC
-- Remotes GitHub: sin cambio de nombre (solo se moviù la ruta local)
-- Escritorio libre: ya no es raùz de sync ni de proyectos Cursor
-- Herramientas manuales: PROYECTOS CURSOR\00-sync-tools\
-
+LIVE_BLOCKED=True ∑ MAX_ACTIVE_STRATEGIES=1

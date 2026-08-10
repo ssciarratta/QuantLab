@@ -28,9 +28,9 @@
   let clockTimezone = "UTC"; /* F74: settings.timezone UTC|local */
   let heartbeatPollSeconds = 5; /* F75: N seconds · GET /api/broker/heartbeat */
   let heartbeatTimer = null;
-  let uiFontScale = 1.15;
-  const FONT_MIN = 0.85;
-  const FONT_MAX = 1.6;
+  let uiFontScale = 1.18;
+  const FONT_MIN = 0.9;
+  const FONT_MAX = 1.55;
   const FONT_STEP = 0.1;
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
@@ -65,7 +65,7 @@
 
   function applyFontScale(scale, persist) {
     let s = Number(scale);
-    if (!isFinite(s)) s = 1.15;
+    if (!isFinite(s)) s = 1.18;
     if (s < FONT_MIN) s = FONT_MIN;
     if (s > FONT_MAX) s = FONT_MAX;
     s = Math.round(s * 100) / 100;
@@ -790,6 +790,44 @@
     );
   }
 
+  function openStrategyLiveTest(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("strategy_live_test", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
+    if (wm.windows.has("strategy_live_test")) {
+      if (typeof wm.restore === "function") wm.restore("strategy_live_test");
+      wm.focus("strategy_live_test");
+      if (typeof wm.bringToFront === "function") wm.bringToFront("strategy_live_test");
+      const root = wm.windows.get("strategy_live_test").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      }
+      return;
+    }
+    if (!QLPanes.createStrategyLiveTestPane) {
+      window.alert(
+        "Corrida en vivo no cargó (JS en caché).\nCtrl+F5 y volvé a intentar."
+      );
+      return;
+    }
+    const pane = QLPanes.createStrategyLiveTestPane();
+    wm.open(
+      "strategy_live_test",
+      tr("pane.strategy_live_test", "Corrida en vivo"),
+      pane,
+      mergeOpts("strategy_live_test", { x: 40, y: 24, w: 920, h: 920 })
+    );
+    if (typeof wm.bringToFront === "function") wm.bringToFront("strategy_live_test");
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    }
+  }
+
   const openers = {
     health: openHealth,
     market: openMarket,
@@ -829,6 +867,7 @@
     validation: openValidation,
     binance_spot: openBinanceSpot,
     binance_futures: openBinanceFutures,
+    strategy_live_test: openStrategyLiveTest,
   };
 
   window.QLShell = {
@@ -925,8 +964,13 @@
   })();
   try {
     const stored = localStorage.getItem("ql_ui_font_scale");
-    if (stored) applyFontScale(stored, false);
-    else applyFontScale(uiFontScale, false);
+    if (stored === "1.25" || stored === "1.4") {
+      applyFontScale(1.18, true);
+    } else if (stored) {
+      applyFontScale(stored, false);
+    } else {
+      applyFontScale(uiFontScale, false);
+    }
   } catch (e) {
     applyFontScale(uiFontScale, false);
   }
@@ -1084,238 +1128,18 @@
     });
   }
 
-  // —— Favoritos del menú QL (orden custom, persistido) ——
-  var FAV_STORAGE_KEY = "ql_menu_favorites_v4";
-  var FAV_DEFAULT = [
-    "chat",
-    "scanner",
-    "simulator",
-    "montecarlo",
-    "binance_spot",
-    "binance_futures",
-  ];
-  var FAV_META = {
-    sim_registry: {
-      label: "Mis simulaciones",
-      tip: "Historial Comparar / Ranking / Monte Carlo.",
-    },
-    chat: { label: "Chat IA", tip: "Asistente research." },
-    scanner: {
-      label: "Alpha Scanner",
-      tip: "Ranking MD real multi-mercado.",
-    },
-    simulator: {
-      label: "Simulador",
-      tip: "Comparar mercados × monedas × leverage.",
-    },
-    strategies: {
-      label: "Estrategias",
-      tip: "Guías del catálogo.",
-    },
-    guided_lab: { label: "Guided Lab", tip: "Wizard paper/demo (avanzado)." },
-    montecarlo: { label: "Monte Carlo", tip: "Estrés estadístico." },
-    backtest: { label: "Backtest", tip: "Debug sintético / histórico." },
-    binance_spot: {
-      label: "Spot Testnet",
-      tip: "Binance Spot Testnet · unlock + demo.",
-    },
-    binance_futures: {
-      label: "Futures Testnet",
-      tip: "Binance Futures Testnet · unlock + demo.",
-    },
-  };
-
-  function loadFavorites() {
-    try {
-      var raw = localStorage.getItem(FAV_STORAGE_KEY);
-      if (!raw) {
-        var legacy =
-          localStorage.getItem("ql_menu_favorites_v3") ||
-          localStorage.getItem("ql_menu_favorites_v2") ||
-          localStorage.getItem("ql_menu_favorites");
-        if (legacy) {
-          var old = JSON.parse(legacy);
-          if (Array.isArray(old) && old.length) {
-            var merged = old.filter(function (id) {
-              return !!openers[id];
-            });
-            /* Completar con defaults nuevos (Spot/Futures/MC) si faltan */
-            FAV_DEFAULT.forEach(function (id) {
-              if (merged.indexOf(id) < 0 && openers[id]) merged.push(id);
-            });
-            if (merged.length) {
-              saveFavorites(merged);
-              return merged;
-            }
-          }
-        }
-      } else {
-        var arr = JSON.parse(raw);
-        if (Array.isArray(arr) && arr.length) {
-          return arr.filter(function (id) {
-            return !!openers[id];
-          });
-        }
-      }
-    } catch (e) {}
-    return FAV_DEFAULT.slice();
-  }
-
-  function saveFavorites(ids) {
-    try {
-      localStorage.setItem(FAV_STORAGE_KEY, JSON.stringify(ids));
-    } catch (e) {}
-  }
-
-  function renderTaskbarQuick() {
-    var bar = document.getElementById("taskbar-quick");
-    if (!bar) return;
-    var ids = loadFavorites();
-    bar.innerHTML = ids
-      .map(function (id) {
-        var meta = FAV_META[id] || { label: id, tip: id };
-        return (
-          '<button type="button" class="tb-quick-btn" data-open="' +
-          id +
-          '" data-tip="' +
-          meta.tip +
-          '" title="' +
-          meta.label +
-          '">' +
-          meta.label +
-          "</button>"
-        );
-      })
-      .join("");
-    bar.querySelectorAll("[data-open]").forEach(function (btn) {
-      btn.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        var key = btn.getAttribute("data-open");
-        if (openers[key]) openers[key]();
-      });
+  // —— Menú QL personalizable (barra + secciones) ——
+  if (window.QLMenu) {
+    window.QLMenu.init({
+      openers: openers,
+      handlers: { about: openAbout },
+      startMenu: startMenu,
     });
   }
-
-  function renderFavoritesMenu() {
-    var box = document.getElementById("ql-fav-list");
-    renderTaskbarQuick();
-    if (!box) return;
-    var ids = loadFavorites();
-    box.innerHTML = ids
-      .map(function (id, idx) {
-        var meta = FAV_META[id] || { label: id, tip: id };
-        return (
-          '<div class="ql-fav-row" data-fav="' +
-          id +
-          '">' +
-          '<button type="button" class="ql-fav-open" data-open="' +
-          id +
-          '" data-tip="' +
-          meta.tip +
-          '">' +
-          meta.label +
-          "</button>" +
-          '<span class="ql-fav-moves">' +
-          '<button type="button" class="ql-fav-up" data-i="' +
-          idx +
-          '" title="Subir"' +
-          (idx === 0 ? " disabled" : "") +
-          ">↑</button>" +
-          '<button type="button" class="ql-fav-down" data-i="' +
-          idx +
-          '" title="Bajar"' +
-          (idx === ids.length - 1 ? " disabled" : "") +
-          ">↓</button>" +
-          "</span></div>"
-        );
-      })
-      .join("");
-    box.querySelectorAll(".ql-fav-open").forEach(function (btn) {
-      btn.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var key = btn.getAttribute("data-open");
-        try {
-          if (openers[key]) openers[key]();
-        } catch (err) {
-          window.alert(
-            "No pude abrir «" +
-              key +
-              "»: " +
-              (err && err.message ? err.message : String(err)) +
-              "\nCtrl+F5 si el error persiste."
-          );
-        }
-      });
-    });
-    box.querySelectorAll(".ql-fav-up").forEach(function (btn) {
-      btn.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var i = Number(btn.getAttribute("data-i"));
-        if (i <= 0) return;
-        var cur = loadFavorites();
-        var t = cur[i - 1];
-        cur[i - 1] = cur[i];
-        cur[i] = t;
-        saveFavorites(cur);
-        renderFavoritesMenu();
-      });
-    });
-    box.querySelectorAll(".ql-fav-down").forEach(function (btn) {
-      btn.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var i = Number(btn.getAttribute("data-i"));
-        var cur = loadFavorites();
-        if (i >= cur.length - 1) return;
-        var t = cur[i + 1];
-        cur[i + 1] = cur[i];
-        cur[i] = t;
-        saveFavorites(cur);
-        renderFavoritesMenu();
-      });
-    });
-  }
-
-  var favReset = document.getElementById("ql-fav-reset");
-  if (favReset) {
-    favReset.addEventListener("click", function (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      saveFavorites(FAV_DEFAULT.slice());
-      renderFavoritesMenu();
-    });
-  }
-  renderFavoritesMenu();
 
   // Clicks dentro del menú no deben cerrarlo (seguir abriendo paneles).
   startMenu.addEventListener("click", function (ev) {
     ev.stopPropagation();
-  });
-
-  startMenu.querySelectorAll("[data-open]").forEach(function (btn) {
-    btn.addEventListener("click", function (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      const key = btn.getAttribute("data-open");
-      if (key === "about") {
-        openAbout();
-        return;
-      }
-      try {
-        if (openers[key]) openers[key]();
-      } catch (err) {
-        window.alert(
-          "No pude abrir «" +
-            key +
-            "»: " +
-            (err && err.message ? err.message : String(err)) +
-            "\nCtrl+F5 si el error persiste."
-        );
-      }
-      // Menú QL permanece abierto para seguir navegando.
-    });
   });
 
   startMenu.querySelectorAll("[data-wm-action]").forEach(function (btn) {
@@ -1572,6 +1396,14 @@
   function tickClock() {
     if (!clockEl) return;
     const now = new Date();
+    if (window.QLFmt && window.QLFmt.fmtDateTime) {
+      if (clockTimezone === "UTC") {
+        clockEl.textContent = window.QLFmt.fmtDateTime(now, { utc: true, suffix: " UTC" });
+      } else {
+        clockEl.textContent = window.QLFmt.fmtDateTime(now);
+      }
+      return;
+    }
     const loc =
       window.QLi18n && QLi18n.getLocale && QLi18n.getLocale() === "en"
         ? "en-US"

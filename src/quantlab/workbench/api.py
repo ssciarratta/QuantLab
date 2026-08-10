@@ -2885,6 +2885,10 @@ def handle_post_paper_session_start(state: WorkbenchState, body: dict[str, Any])
     else:
         raise ApiError(400, "params debe ser objeto JSON")
 
+    testnet_mirror = body.get("testnet_mirror", "none")
+    if testnet_mirror not in ("none", "spot", "futures"):
+        raise ApiError(400, "testnet_mirror debe ser none|spot|futures")
+
     runner = _ensure_paper_session_runner(state)
     try:
         config = PaperSessionConfig(
@@ -2893,6 +2897,7 @@ def handle_post_paper_session_start(state: WorkbenchState, body: dict[str, Any])
             max_steps=max_steps,
             interval_ms=interval_ms,
             params=params_dict,
+            testnet_mirror=str(testnet_mirror),
         )
         status = runner.start(config)
     except ValidationError as exc:

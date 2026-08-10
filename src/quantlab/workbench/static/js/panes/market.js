@@ -191,7 +191,9 @@
           (s.last || "") +
           "</dd>" +
           "<dt>ts</dt><dd>" +
-          (s.ts || "") +
+          (window.QLFmt && window.QLFmt.fmtDateTime
+            ? window.QLFmt.fmtDateTime(s.ts)
+            : s.ts || "") +
           "</dd>";
       } catch (err) {
         snapOut.innerHTML = "<dt>error</dt><dd class=\"status-bad\">" + err.message + "</dd>";

@@ -108,7 +108,11 @@
             '<span class="muted">' +
             QLLabUI.escapeHtml(r.strategy_id || "—") +
             " · " +
-            QLLabUI.escapeHtml((r.created_at || "").slice(0, 19).replace("T", " ")) +
+            QLLabUI.escapeHtml(
+              window.QLFmt && window.QLFmt.fmtDateTime
+                ? window.QLFmt.fmtDateTime(r.created_at)
+                : (r.created_at || "").slice(0, 19).replace("T", " ")
+            ) +
             (r.has_html ? " · HTML" : "") +
             "</span>" +
             "</button>"

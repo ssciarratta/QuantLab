@@ -23,7 +23,7 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Pasos</h3>" +
-      '<pre class="mono" id="hb-steps" style="white-space:pre-wrap;font-size:0.78rem;margin:0">—</pre>' +
+      '<pre class="mono" id="hb-steps" style="white-space:pre-wrap;font-size:1.08rem;margin:0">—</pre>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Exports previos</h3>" +
@@ -101,7 +101,11 @@
               esc(r.live_routing === true ? "true" : "false") +
               "</td>" +
               '<td class="mono">' +
-              esc(r.created_at || "—") +
+              esc(
+                r.created_at && window.QLFmt && window.QLFmt.fmtDateTime
+                  ? window.QLFmt.fmtDateTime(r.created_at)
+                  : (r.created_at || "—")
+              ) +
               "</td>" +
               "</tr>"
             );

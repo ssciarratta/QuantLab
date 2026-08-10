@@ -43,7 +43,10 @@
         .map(function (ev) {
           const ok = ev.ok !== false;
           const cls = ok ? "activity-item activity-item--ok" : "activity-item activity-item--err";
-          const ts = (ev.ts || "").slice(0, 19).replace("T", " ");
+          const ts =
+            window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(ev.ts)
+              : (ev.ts || "").slice(0, 19).replace("T", " ");
           const detail = ev.detail
             ? '<div class="muted mono activity-detail">' +
               escapeHtml(JSON.stringify(ev.detail)) +

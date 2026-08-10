@@ -12,7 +12,7 @@ from quantlab.workbench.settings import default_settings, normalize_settings, pa
 
 def test_ui_font_scale_default() -> None:
     s = default_settings()
-    assert s["ui_font_scale"] == 1.15
+    assert s["ui_font_scale"] == 1.18
     assert parse_ui_font_scale(1.3) == 1.3
     out = normalize_settings({**default_settings(), "ui_font_scale": 1.45})
     assert out["ui_font_scale"] == 1.45
