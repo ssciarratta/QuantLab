@@ -1,6 +1,6 @@
 # Manuales de uso — QuantLab Workbench
 
-**Versión tip:** 1.01.0 · **Actualizado:** 2026-07-27
+**Versión tip:** 1.01.0 · **Actualizado:** 2026-07-31
 **UI:** http://127.0.0.1:8765 · Help: QL → Help / Docs → carpeta `manuales/`
 
 Este índice lista **todas las funciones de panel** del Workbench. Cada archivo es un manual operativo (cómo usar, límites, invariantes).
@@ -19,7 +19,9 @@ uv run quantlab-workbench
 
 - `LIVE_BLOCKED` · `REAL = PAPER` · secrets nunca en git/logs/chat
 - Chat IA: safe-mode (no envía órdenes)
-- Alpha Scanner / Monte Carlo / Backtest: investigación; no predicen el futuro
+- Alpha Scanner / Monte Carlo / Backtest / Optimizer: investigación; no predicen el futuro
+- **Mis simulaciones** (Sims): memos + Reabrir (Comparar, Ranking, MC, Backtest, Optimizer)
+- **Stop** / gate: una corrida a la vez (Esperar · Cortar · Cancelar)
 
 ## Manuales por panel
 
@@ -81,6 +83,7 @@ uv run quantlab-workbench
 |--------|------|
 | [33-shell-navegacion.md](33-shell-navegacion.md) | Menú QL, presets, ventanas, deep-links |
 | [34-about.md](34-about.md) | About / versión |
+| [35-simulador.md](35-simulador.md) | Simulador multi-venue (solapas) |
 
 ## Guías técnicas (subdirs Help)
 

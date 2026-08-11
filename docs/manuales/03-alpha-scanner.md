@@ -21,10 +21,18 @@ Ordenar candidatos (sintéticos WB:A/B/C o universo Binance MD) por score compue
 ## Cómo usar
 
 1. Abrí **Alpha Scanner**.
-2. Elegí perfil (`legacy_v1` default, momentum, mean_reversion, …).
-3. Ejecutá **Escanear**.
-4. Revisá ranking, exclusiones y `scan_id`.
-5. Continuá en Guided Lab / Backtest / Monte Carlo.
+2. Elegí rama / perfil (Market making, Momentum, …).
+3. (Opcional) ajustá **Kronos**: ON/OFF, Top 20/30, horizonte en velas, muestras.
+4. Ejecutá **Escanear**.
+5. Revisá columnas **Trad. / Kronos / Final**, ruptura y notas.
+6. Continuá en Simulador / Backtest / Monte Carlo (mismo flujo de siempre).
+
+## Kronos (dentro del Scanner)
+
+- No es un panel aparte. Enriquecer ranking con forecast de horizonte.
+- `legacy_v1` no altera el score (peso 0) salvo “Kronos en legacy”.
+- Ausencia de Kronos → métricas `null` (nunca 0 fingido) + ranking tradicional.
+- Detalle: `docs/scanner/kronos-inside-scanner.md`
 
 ## Perfiles (resumen)
 

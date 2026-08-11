@@ -67,6 +67,33 @@ def test_profile_catalog_exposes_label_es() -> None:
     assert "default lab" in legacy["label_es"]
 
 
+def test_scanner_family_catalog_matches_simulator_branches() -> None:
+    from quantlab.research.alpha.profiles import (
+        SCANNER_FAMILY_ORDER,
+        build_profile,
+        scanner_family_catalog,
+    )
+    from quantlab.workbench.lab_services import list_alpha_profiles
+    from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES
+
+    cat = scanner_family_catalog()
+    assert len(cat) == 10
+    assert [r["name"] for r in cat] == list(SCANNER_FAMILY_ORDER)
+    assert "demo" not in {r["name"] for r in cat}
+    for row in cat:
+        assert row["label_es"] == FAMILY_LABELS_ES[row["name"]]
+        assert row["family"] == row["name"]
+        # Cada rama debe poder scorear
+        assert build_profile(row["name"]).factors
+
+    api = list_alpha_profiles()
+    assert api["ok"] is True
+    assert api["default_profile"] == "auto"
+    assert len(api["profiles"]) == 11  # Auto + 10 familias
+    assert api["profiles"][0]["name"] == "auto"
+    assert api["profiles"][0]["auto_mode"] is True
+    assert api["profiles"][1]["label_es"] == "Tendenciales"
+
 def test_legacy_profile_matches_alpha_scanner() -> None:
     bars = {
         "BN:A": _bars("A", trend=True),

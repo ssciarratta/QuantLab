@@ -1,28 +1,28 @@
-QUANTLAB â€” RESUMEN (worktree UI redesign)
-==========================================
+QUANTLAB — RESUMEN DEL PROYECTO
+================================
 Actualizado: 2026-08-11
-VersiÃ³n: 1.1.0 Â· Rama feature/ui-radical-simplification
+Versión: 1.1.0 · main
 
 ESTADO
 ------
-- Worktree: QuantLab-ui-redesign (aislado del repo principal)
-- UI simplificaciÃ³n radical Fases 0â€“14 implementadas en rama
-- Smoke: scripts/smoke_ui_redesign.bat OK (Windows)
-- Merge a main: pendiente autorizaciÃ³n explÃ­cita
+- UI redesign Fases 0–14 mergeadas en main (friendly theme, Inicio, MC en flujo)
+- Corrida en vivo: duración d/h/min/s, gráfico exchange, klines API, max_steps 500k
+- 39 estrategias · PAPER + Spot/Futures Testnet
+- Smoke Windows: scripts/smoke_ui_redesign.bat OK
+- LIVE_BLOCKED=True
 
-ÃšLTIMA IMPLEMENTACIÃ“N (2026-08-11)
+ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
 ----------------------------------
-- friendly_ui.css â€” tema cÃ¡lido, bordes redondeados, copy en espaÃ±ol claro
-- Inicio: grid 4Ã—2 compacto (8 accesos en 2 filas al 100%)
-- Monte Carlo en Inicio, barra rÃ¡pida y flujo Simâ†’BTâ†’MCâ†’SLT
-- Launcher: cambio entorno prueba.bat + smoke nativo .bat
-- ql_ui.js / home.js / panel_registry.js actualizados
+- Merge feature/ui-radical-simplification ? main
+- friendly_ui.css + Inicio grid 4×2 + Monte Carlo en home/taskbar/flujo
+- SLT: lightweight-charts, ticker bid/ask, panel operaciones
+- Launcher: cambio entorno prueba.bat (smoke + arranque :8765)
 
-PRÃ“XIMO
+PRÓXIMO
 -------
-- Prueba visual usuario â†’ push/PR/merge a main si aprueba
-- Opcional: order book estilo exchange en SLT (post-merge)
+- Order book en panel lateral SLT
+- Params runtime sin reiniciar sesión
 
-BLOQUEOS
---------
-- Order routing LIVE real (fuera de alcance UI)
+INVARIANTES
+-----------
+LIVE_BLOCKED=True · MAX_ACTIVE_STRATEGIES=1

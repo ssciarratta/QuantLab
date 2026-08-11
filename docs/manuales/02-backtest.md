@@ -1,38 +1,45 @@
 # Manual — Backtest
 
-Correr un backtest de laboratorio sobre dataset sintético o referenciado.
+Una corrida: **1 moneda × 1 estrategia × período** (histórico MD público o sintético debug).
 
 ## Cómo abrir
 
-1. Menú **QL** (barra inferior) → elegir el panel.
-2. **Ctrl+K** (Command Palette) → escribir el nombre.
-3. Presets: QL → Research / Trading Paper / Ops (abren conjuntos de paneles).
+1. Menú **QL** → **Backtest**
+2. Ctrl+K → `backtest`
+3. **Mis simulaciones** → Reabrir / Memo
 
 ## Invariantes
 
-- `LIVE_BLOCKED=True` por defecto: sin unlock no hay routing LIVE a venue.
-- Modo **REAL** del producto = **PAPER** (fills simulados), no órdenes en exchange de producción.
-- Este panel **no** garantiza rentabilidad ni es asesoramiento financiero.
+- `LIVE_BLOCKED=True` · REAL = PAPER
+- Research-safe: no envía órdenes al venue
 
-## Para qué sirve
+## Modos de datos
 
-Evaluar una estrategia en histórico lab (métricas, equity, fills, fees).
+| Modo | Qué usa |
+|------|---------|
+| **Histórico** (default) | Venue + moneda + tipo + TF + período (mismas velas que Sim/MC) |
+| **Sintético** | Velas inventadas del lab (`n_bars`) — solo debug |
+
+El panel **informa** moneda, fuente, rango de fechas y estrategia en el contexto y en el memorando.
 
 ## Cómo usar
 
-1. Abrí **Backtest**.
-2. Completá parámetros (estrategia, barras, capital inicial, fee por lado si aplica).
-3. Ejecutá y esperá el resultado.
-4. Revisá Metrics / Reports para el historial de la sesión.
-5. Botón **→ Monte Carlo** (cuando hay `report_id`) para estrés.
+1. Datos = Histórico · mercado · moneda (ej. BTC) · período · TF · capital.
+2. Elegí estrategia y params · **Correr** (hay **Stop**).
+3. Leé el resumen (no solo el JSON) · **Ver memorando**.
+4. Queda en **Mis simulaciones** → Reabrir.
+5. Atajos: **→ Monte Carlo** · **→ Simulador**.
 
-## Lectura de resultados
+## Lectura
 
-- Capital inicial / final y fees totales ayudan a validar el modelo de costos.
-- Un backtest bueno en lab **no** implica edge en vivo.
+- Capital inicial/final, PnL, fees, fills, veredicto.
+- Un buen lab **no** implica edge en vivo.
+
+## API
+
+`POST /api/lab/backtest` con `mode=historical` + `venue` + `underlying` + `period_days`  
+o `mode=synthetic` + `n_bars`.
 
 ## Relacionado
 
-- Guided Lab (flujo guiado)
-- Reports / Metrics
-- Monte Carlo (mode `normal` exige `backtest_id`)
+Simulador · Monte Carlo · Optimizer · Reports

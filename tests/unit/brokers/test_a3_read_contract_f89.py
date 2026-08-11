@@ -50,7 +50,7 @@ def test_fake_contract_passes_and_report_is_frozen() -> None:
 
     assert report.status is A3ReadContractStatus.PASS
     assert report.lane == "fake"
-    assert report.instruments_count == 1
+    assert report.instruments_count == 8  # FakeA3Backend: DLR×2 + granos curados
     assert report.snapshots_count == 1
     assert report.write_calls == 0
     assert report.live_blocked is True

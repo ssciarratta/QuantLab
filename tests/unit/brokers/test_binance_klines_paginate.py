@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
 from quantlab.brokers.binance.public_md import (
     MAX_KLINES_TOTAL,
     BinancePublicMdClient,
@@ -21,7 +22,7 @@ def _row(i: int, *, base_ms: int = 1_700_000_000_000) -> list[object]:
 
 def test_klines_rejects_over_max() -> None:
     client = BinancePublicMdClient()
-    with pytest.raises(ValidationError, match="3000"):
+    with pytest.raises(ValidationError, match=str(MAX_KLINES_TOTAL)):
         client.klines("BTCUSDT", interval="1m", limit=MAX_KLINES_TOTAL + 1)
 
 
@@ -53,3 +54,25 @@ def test_klines_single_page_under_1000() -> None:
     bars = client.klines("BTCUSDT", interval="5m", limit=50)
     assert len(bars) == 50
     client._get_json.assert_called_once()
+
+
+def test_futures_klines_paginates_beyond_1500() -> None:
+    client = BinanceFuturesPublicMdClient()
+    page1 = [_row(i, base_ms=3_000_000) for i in range(1500, 3000)]
+    page2 = [_row(i, base_ms=3_000_000) for i in range(1200, 1500)]
+    calls: list[str] = []
+
+    def fake_get(path: str) -> list[object]:
+        calls.append(path)
+        if "endTime=" not in path:
+            return page1
+        return page2
+
+    client._get_json = fake_get  # type: ignore[method-assign]
+    bars = client.klines("BTCUSDT", interval="1m", limit=1800)
+    assert len(bars) == 1800
+    assert len(calls) >= 2
+    assert "endTime=" in calls[1]
+    assert "/fapi/v1/klines" in calls[0]
+    assert bars[0].instrument_id == "BNF:BTCUSDT"
+    assert bars[0].timestamp_open < bars[-1].timestamp_open

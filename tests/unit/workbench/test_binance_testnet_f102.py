@@ -25,9 +25,15 @@ from quantlab.workbench.session import WorkbenchSession
 @pytest.fixture(autouse=True)
 def _clean(monkeypatch: pytest.MonkeyPatch) -> None:
     reset_live_unlock_for_tests()
-    monkeypatch.delenv("QUANTLAB_DEMO_USE_TESTNET", raising=False)
-    monkeypatch.delenv("BINANCE_DEMO_API_KEY", raising=False)
-    monkeypatch.delenv("BINANCE_DEMO_API_SECRET", raising=False)
+    for key in (
+        "QUANTLAB_DEMO_USE_TESTNET",
+        "BINANCE_DEMO_API_KEY",
+        "BINANCE_DEMO_API_SECRET",
+        "QUANTLAB_DEMO_USE_FUTURES_TESTNET",
+        "BINANCE_FUTURES_DEMO_API_KEY",
+        "BINANCE_FUTURES_DEMO_API_SECRET",
+    ):
+        monkeypatch.delenv(key, raising=False)
     yield
     reset_live_unlock_for_tests()
 

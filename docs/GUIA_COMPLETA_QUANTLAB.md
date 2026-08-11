@@ -38,6 +38,8 @@ QuantLab es un **laboratorio de investigación cuantitativa**. Permite:
 
 ## 3. Cómo arrancar
 
+**Windows:** doble clic en `este.bat` en la raíz del repo.
+
 ```bash
 cd C:\Users\ssciarratta\Desktop\QuantLab   # o ruta del clone
 uv sync --extra dev                         # primera vez
@@ -147,10 +149,16 @@ El pipeline `POST /api/lab/binance/pipeline` usa **walk-forward por defecto** (`
 
 ### Monte Carlo (corrección tip)
 
-Panel **Monte Carlo**: shocks sintéticos / DatasetReference; **N = 2…1_000_000** (batching + jobs async; confirmación si N≥100k). `n_bars` = velas **por escenario**. Trayectorias persistidas acotadas (~16) **no** limitan N. Mode `normal` exige `backtest_id`. Deep-link desde Reports / Backtest / Guided Lab.
+Panel **Monte Carlo**: shocks sintéticos o **ligado al Simulador** (`sim_context` → `sim_linked`); **N = 2…1_000_000** (batching + jobs async). `n_bars` = velas **por escenario**. Desde el Sim hay **un** botón «Monte Carlo» (no varios CTAs equivalentes). Mode `normal` exige `backtest_id`. Deep-link desde Reports / Backtest / Guided Lab. **Stop** global si hay otra corrida.
 
 - Manual: [`manuales/04-montecarlo.md`](manuales/04-montecarlo.md)
 - Guía: [`montecarlo/montecarlo-guide.md`](montecarlo/montecarlo-guide.md) · trazabilidad / métodos / interpretación en la misma carpeta
+
+### Backtest / Optimizer (histórico)
+
+**Backtest** y **Optimizer** usan por defecto MD público (venue + moneda + período), con memo y Reabrir en Mis simulaciones. Modo sintético queda para debug.
+
+- Manuales: [`manuales/02-backtest.md`](manuales/02-backtest.md) · [`manuales/06-optimizer.md`](manuales/06-optimizer.md) · [`manuales/35-simulador.md`](manuales/35-simulador.md)
 
 ---
 
@@ -244,7 +252,7 @@ Base: `http://127.0.0.1:8765`
 | `/api/health` | GET | Salud |
 | `/api/about` | GET | Versión |
 | `/api/chat` | POST | Chat `{message}` |
-| `/api/lab/backtest` | POST | Backtest sintético |
+| `/api/lab/backtest` | POST | Backtest histórico o sintético |
 | `/api/lab/scanner` | POST | Scanner sintético |
 | `/api/lab/binance/scan` | POST | Scan MD Binance |
 | `/api/lab/binance/scanner` | POST | Ranking alpha klines Binance |

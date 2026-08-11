@@ -1,0 +1,63 @@
+QUANTLAB — SINCRONIZAR PC ESCRITORIO
+====================================
+Actualizado: 2026-08-08
+
+OBJETIVO
+--------
+Traer a tu PC todos los cambios de Binance Testnet (md, txt, código, .bat).
+
+PASO 1 — GIT PULL (CMD en carpeta QuantLab)
+-------------------------------------------
+cd C:\Users\ssciarratta\Desktop\QuantLab
+
+git fetch origin
+git checkout cursor/binance-testnet-hummingbot-prep-2828
+git pull origin cursor/binance-testnet-hummingbot-prep-2828
+
+(Si el PR #4 ya se mergeó a main:)
+git checkout main
+git pull origin main
+
+PASO 2 — DEPENDENCIAS
+---------------------
+uv sync
+
+(o sin uv:)
+python -m pip install -e ".[dev]"
+
+PASO 3 — SCRIPTS TESTNET (doble clic)
+-------------------------------------
+tools\windows\01_setup_testnet_environment.bat
+tools\windows\02_configure_testnet_credentials.bat
+tools\windows\03_test_binance_testnet_connection.bat
+tools\windows\07_full_testnet_diagnostic.bat
+
+PASO 4 — VERIFICAR
+------------------
+Debe mostrar: TESTNET READY: YES
+
+Manual:
+uv run quantlab-testnet diagnostic
+
+PASO 5 — ARRANCAR
+-----------------
+tools\windows\08_start_quantlab_testnet.bat
+
+ARCHIVOS CLAVE ACTUALIZADOS
+---------------------------
+- RESUMEN_PROYECTO.txt
+- RETOMAR.txt
+- SYNC_PC.txt (este archivo)
+- .env.example
+- docs/ops/BINANCE_TESTNET_SETUP.md
+- docs/ops/HUMMINGBOT_TESTNET.md
+- tools/windows/*.bat
+- src/quantlab/brokers/binance/testnet_client.py
+- src/quantlab/brokers/binance/cli.py
+- src/quantlab/brokers/binance/testnet_diagnostic.py
+
+NOTAS
+-----
+- .env NO va a git (local, creado por 02_configure)
+- Nunca commitear BINANCE_DEMO_API_SECRET
+- LIVE sigue bloqueado hasta unlock explícito en Workbench

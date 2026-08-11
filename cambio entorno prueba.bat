@@ -1,32 +1,28 @@
 @echo off
 setlocal EnableExtensions
 chcp 65001 >nul
-title QuantLab — CAMBIO ENTORNO PRUEBA (UI redesign)
+title QuantLab — arranque con smoke UI
 
 cd /d "%~dp0"
 
 echo.
 echo  ========================================================
-echo   CAMBIO ENTORNO PRUEBA
-echo   Worktree UI redesign ^| rama feature/ui-radical-simplification
-echo   Repo: QuantLab-ui-redesign
+echo   QUANTLAB — Smoke UI + Workbench
+echo   Rama main ^| UI friendly + Monte Carlo + SLT
 echo  ========================================================
-echo.
-echo  Este entorno NO es el QuantLab principal (este.bat).
-echo  Boot: solo ventana Inicio ^| menu por tareas ^| headers ES
 echo.
 
 set "PY=%CD%\.venv\Scripts\python.exe"
 
 where uv >nul 2>&1
 if errorlevel 1 (
-  echo  [ERROR] Falta uv en PATH. Instalalo o usa el venv del repo principal.
+  echo  [ERROR] Falta uv en PATH.
   pause
   exit /b 1
 )
 
 if not exist "%PY%" (
-  echo  Primera vez en este worktree: uv sync --extra dev ...
+  echo  Primera vez: uv sync --extra dev ...
   uv sync --extra dev
   if errorlevel 1 (
     echo  [ERROR] uv sync fallo.
@@ -40,13 +36,13 @@ echo.
 call "%~dp0scripts\smoke_ui_redesign.bat"
 if errorlevel 1 (
   echo.
-  echo  [ERROR] Smoke test fallo. Revisa arriba antes de arrancar.
+  echo  [ERROR] Smoke test fallo.
   pause
   exit /b 1
 )
 echo.
 
-echo  [2/2] Arrancando Workbench entorno prueba en http://127.0.0.1:8765 ...
+echo  [2/2] Arrancando Workbench en http://127.0.0.1:8765 ...
 echo.
 
 if exist "%PY%" (

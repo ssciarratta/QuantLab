@@ -78,3 +78,7 @@ requirements.txt
 review_staging/
 
 # CI versionado en .github/workflows/ci.yml (espejo: docs/ci/ci.yml.example)
+
+# Vendor Kronos (clonar localmente; ver third_party/README.md)
+third_party/kronos/
+

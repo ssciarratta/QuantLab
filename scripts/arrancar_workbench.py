@@ -2,7 +2,7 @@
 
 Uso:
   .venv\\Scripts\\python.exe scripts\\arrancar_workbench.py
-  o doble-clic en arrancar_quantlab.bat
+  o doble-clic en este.bat
 
 Por defecto REINICIA el proceso en :8765 para cargar código/.env nuevos.
 """
@@ -49,50 +49,27 @@ def server_alive(url: str = URL, timeout: float = 2.0) -> bool:
 
 def kill_port(port: int = PORT) -> None:
     """Mata el proceso que escucha en TCP :port (Windows)."""
-    if sys.platform != "win32":
-        return
-    try:
-        out = subprocess.check_output(
-            ["netstat", "-ano"],
-            text=True,
-            errors="replace",
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    except (OSError, subprocess.CalledProcessError):
-        return
-    pids: set[str] = set()
-    needle = f":{port}"
-    for line in out.splitlines():
-        if "LISTENING" not in line:
-            continue
-        if needle not in line:
-            continue
-        parts = line.split()
-        if not parts:
-            continue
-        pid = parts[-1]
-        if pid.isdigit() and pid != "0":
-            pids.add(pid)
-    for pid in pids:
-        print(f"Reiniciando: matando PID {pid} en :{port}")
-        subprocess.run(
-            ["taskkill", "/F", "/PID", pid],
-            capture_output=True,
-            text=True,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
-        )
-    if pids:
-        time.sleep(0.8)
+    from quantlab.workbench.launcher_singleton import claim_launcher_singleton
+
+    claim = claim_launcher_singleton(host="127.0.0.1", port=port)
+    if claim.get("killed_pids"):
+        print(f"Reiniciando: instancias previas cerradas pids={claim['killed_pids']}")
+
+
+def _ensure_pythonpath() -> None:
+    src = str(REPO / "src")
+    existing = os.environ.get("PYTHONPATH", "")
+    parts = [p for p in existing.split(os.pathsep) if p]
+    if src not in parts:
+        os.environ["PYTHONPATH"] = src + (os.pathsep + existing if existing else "")
 
 
 def workbench_cmd() -> list[str]:
-    exe = REPO / ".venv" / "Scripts" / "quantlab-workbench.exe"
-    if exe.is_file():
-        return [str(exe), "--no-browser", "--port", str(PORT)]
+    args = ["--no-browser", "--port", str(PORT)]
     py = REPO / ".venv" / "Scripts" / "python.exe"
     if py.is_file():
-        return [str(py), "-m", "quantlab.workbench.launch", "--no-browser", "--port", str(PORT)]
-    return ["uv", "run", "quantlab-workbench", "--no-browser", "--port", str(PORT)]
+        return [str(py), "-m", "quantlab.workbench.launch", *args]
+    return ["uv", "run", "--no-sync", "quantlab-workbench", *args]
 
 
 def print_llm_status() -> None:
@@ -108,15 +85,37 @@ def print_llm_status() -> None:
 
 def main() -> int:
     os.chdir(REPO)
+    _ensure_pythonpath()
+    from quantlab.workbench.launcher_singleton import (
+        claim_launcher_singleton,
+        clear_launcher_lock,
+    )
+
     print("QuantLab Workbench")
     print("Repo:", REPO)
     print("URL:", URL)
+
+    claim = claim_launcher_singleton(host="127.0.0.1", port=PORT)
+    if claim.get("killed_pids"):
+        print(
+            "Instancias previas cerradas (ventanas este.bat / workbench): "
+            + ", ".join(str(p) for p in claim["killed_pids"])
+        )
+    elif not claim.get("port_free"):
+        print("Aviso: puerto :8765 aún ocupado; reintentando liberar…")
+        kill_port(PORT)
+
     load_dotenv(REPO / ".env")
+    # Post-.env: forzar UTF-8 (Windows ASCII + tqdm █ tumba Alpha Scanner).
+    os.environ["PYTHONIOENCODING"] = "utf-8"
+    os.environ["PYTHONUTF8"] = "1"
+    os.environ["TQDM_ASCII"] = "1"
+    os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
     print_llm_status()
 
-    # Siempre reiniciar :8765 para cargar código + .env nuevos
+    # Asegurar :8765 libre (claim_launcher_singleton ya mató ocupantes).
     if server_alive():
-        print("\nHay un workbench viejo en :8765 — lo reinicio con .env actual.")
+        print("\nWorkbench previo aún respondía — reinicio con .env actual.")
         kill_port(PORT)
         for _ in range(20):
             if not server_alive():
@@ -151,6 +150,8 @@ def main() -> int:
             proc.kill()
         print("\nWorkbench detenido.")
         return 0
+    finally:
+        clear_launcher_lock(only_if_pid=os.getpid())
 
 
 if __name__ == "__main__":

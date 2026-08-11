@@ -1,12 +1,25 @@
 QUANTLAB — CHECKPOINT
 =====================
-2026-07-27 · branch cursor/modo-real-workbench-aafd · v1.01.0 F115
+2026-08-09 · UI favoritos + dual testnet · v1.01.0
 
-✅ 50 estrategias · 39 runnable · 11 stubs
-✅ Proxies stats/ML/micro/vol promovidos
-✅ UI API por familia · skill strategy-expander
+HECHO
+-----
+✅ Merge UI modo-real (Simulador, favoritos, Scanner multi-venue)
+✅ Favoritos tip: Chat · Alpha · Simulador · MC · Spot · Futures
+✅ Barra inferior taskbar-quick (1 clic, mismos favoritos)
+✅ Guided Lab fuera de favoritos → menú «Lab avanzado»
+✅ Paneles Spot/Futures + API /api/live/testnet*
+✅ Workbench reiniciado con .env (Futures keys OK)
+✅ Acceso Escritorio: «QuantLab Workbench.bat» (reinicia tip)
+   El .url solo abre el browser — usá el .bat para código nuevo
 
-Arranque: arrancar_quantlab.bat → http://127.0.0.1:8765 → F5
+CÓMO USAR
+---------
+1. Doble clic: Desktop\QuantLab Workbench.bat
+2. Ctrl+F5 en el browser
+3. Barra abajo: Chat / Alpha / Simulador / MC / Spot / Futures
+4. Futures → Unlock operator/quantlab-local → Enviar demo
 
-Stubs pendientes: sector_rotation, risk_parity, asset_allocation,
-queue_position, triangular/cross/funding/basis arb, delta/gamma/covered
+INVARIANTES
+-----------
+LIVE_BLOCKED=True · Spot XOR Futures
