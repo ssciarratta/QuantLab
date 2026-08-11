@@ -54,7 +54,15 @@
     dest:
       "PAPER = motor local, MD real, fills simulados (39 ★) · Spot Testnet = mismo motor + espejo órdenes reales testnet spot (39 ★) · Futures Testnet = motor + espejo futures testnet (39 ★)",
     steps:
-      "Ticks del motor paper · Cada step lee mercado y puede simular fills · No es duración en minutos",
+      "Pasos del motor (avanzado) · Se calcula automáticamente desde la duración",
+    duration:
+      "Cuánto tiempo querés dejar correr la estrategia · Se convierte en pasos según la cadencia",
+    chart_tf:
+      "Intervalo de cada vela del gráfico · 1m/5m para ver entradas en detalle",
+    dur_d: "Días de corrida continua",
+    dur_h: "Horas adicionales",
+    dur_m: "Minutos adicionales",
+    dur_s: "Segundos adicionales",
     market:
       "Spot o Futures · Debe coincidir con el handoff · Afecta reglas y resolución del símbolo",
     interval:
@@ -154,9 +162,46 @@
       '<option value="BINANCE_SPOT_TESTNET">Spot Testnet</option>' +
       '<option value="BINANCE_FUTURES_TESTNET">Futures Testnet</option>' +
       "</select></label>" +
-      '<label class="slt-field"' +
+      '<label class="slt-field slt-field-wide"' +
+      tipAttr(FIELD_TIPS.duration) +
+      '><span>Duración de la corrida</span>' +
+      '<div class="slt-duration-row">' +
+      '<label class="slt-dur-unit"' +
+      tipAttr(FIELD_TIPS.dur_d) +
+      '><span>días</span><input id="slt-dur-d" type="number" min="0" max="30" value="0"></label>' +
+      '<label class="slt-dur-unit"' +
+      tipAttr(FIELD_TIPS.dur_h) +
+      '><span>horas</span><input id="slt-dur-h" type="number" min="0" max="23" value="1"></label>' +
+      '<label class="slt-dur-unit"' +
+      tipAttr(FIELD_TIPS.dur_m) +
+      '><span>min</span><input id="slt-dur-m" type="number" min="0" max="59" value="0"></label>' +
+      '<label class="slt-dur-unit"' +
+      tipAttr(FIELD_TIPS.dur_s) +
+      '><span>seg</span><input id="slt-dur-s" type="number" min="0" max="59" value="0"></label>' +
+      "</div>" +
+      '<div class="slt-dur-presets">' +
+      '<button type="button" class="btn ghost slt-dur-preset" data-dur="900">15 min</button>' +
+      '<button type="button" class="btn ghost slt-dur-preset" data-dur="3600">1 hora</button>' +
+      '<button type="button" class="btn ghost slt-dur-preset" data-dur="14400">4 horas</button>' +
+      '<button type="button" class="btn ghost slt-dur-preset" data-dur="86400">24 horas</button>' +
+      "</div>" +
+      '<p class="muted slt-dur-summary" id="slt-dur-summary">≈ 4.500 pasos · cadencia 800 ms · ~1 h</p>' +
+      "</label>" +
+      '<label class="slt-field slt-field-adv"' +
       tipAttr(FIELD_TIPS.steps) +
-      '><span>Steps</span><input id="slt-steps" type="number" value="25" min="1" max="500"></label>' +
+      '><span>Pasos (avanzado)</span><input id="slt-steps" type="number" value="4500" min="1" max="500000"></label>' +
+      '<label class="slt-field"' +
+      tipAttr(FIELD_TIPS.chart_tf) +
+      '><span>Velas del gráfico</span><select id="slt-chart-tf">' +
+      '<option value="1m" selected>1 minuto</option>' +
+      '<option value="3m">3 minutos</option>' +
+      '<option value="5m">5 minutos</option>' +
+      '<option value="15m">15 minutos</option>' +
+      '<option value="1h">1 hora</option>' +
+      "</select></label>" +
+      '<label class="slt-field"' +
+      tipAttr(FIELD_TIPS.interval_ms) +
+      '><span>Cadencia entre pasos (ms)</span><input id="slt-interval-ms" type="number" min="100" value="800"></label>' +
       "</div>" +
       '<div id="slt-strat-hint" class="muted slt-hint">—</div>' +
       "</div>" +
@@ -183,19 +228,34 @@
       '><span>Apalancamiento</span><input id="slt-leverage" type="text" placeholder="1"></label>' +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.per_trade) +
-      '><span>USD / trade</span><input id="slt-per-trade" type="text" placeholder="—"></label>' +
-      '<label class="slt-field"' +
-      tipAttr(FIELD_TIPS.interval_ms) +
-      '><span>Cadencia (ms)</span><input id="slt-interval-ms" type="number" min="100" value="800"></label>' +
+      '><span>USD por operación</span><input id="slt-per-trade" type="text" placeholder="—"></label>' +
       "</div>" +
       "<h4>Cómo opera la estrategia</h4>" +
       '<p id="slt-strat-desc" class="slt-strat-desc muted">—</p>' +
       '<div id="slt-strat-params" class="slt-form-grid slt-params-grid"></div>' +
       "</div>" +
+      '<div class="pane-section slt-chart-section">' +
+      "<h4>Precio en vivo y operaciones</h4>" +
+      '<p class="muted slt-chart-lead">Velas reales de Binance · flechas verdes/rojas = compras/ventas simuladas (paper) · no mueve dinero real</p>' +
+      '<div class="slt-ticker-bar" id="slt-ticker">' +
+      '<span class="slt-ticker-sym" id="slt-ticker-sym">—</span>' +
+      '<span class="slt-ticker-last" id="slt-ticker-last">—</span>' +
+      '<span class="slt-ticker-bidask muted" id="slt-ticker-ba">bid/ask —</span>' +
+      '<span class="slt-ticker-spread muted" id="slt-ticker-spread">spread —</span>' +
+      "</div>" +
+      '<div class="slt-chart-layout">' +
+      '<div id="slt-chart-host" class="slt-chart-host"></div>' +
+      '<aside class="slt-order-side" id="slt-order-side">' +
+      "<h5>Últimas operaciones</h5>" +
+      '<div id="slt-order-side-list" class="slt-order-side-list muted">Sin operaciones aún</div>' +
+      "</aside>" +
+      "</div>" +
+      "</div>" +
       '<div class="pane-section slt-live" id="slt-live-box">' +
       '<div class="slt-phase" id="slt-phase">● Listo</div>' +
       '<div class="slt-err-detail muted" id="slt-err-detail" hidden></div>' +
       '<div class="slt-metrics" id="slt-metrics">Sin corrida activa — elegí estrategia ★ y pulsá INICIAR</div>' +
+      '<div class="slt-live-hint muted" id="slt-live-hint" hidden></div>' +
       '<div class="slt-progress-wrap"><div class="slt-progress-bar" id="slt-progress"></div></div>' +
       '<div class="slt-last-action mono" id="slt-last-action">—</div>' +
       "</div>" +
@@ -212,7 +272,10 @@
       "</div>" +
       '<div class="pane-section slt-tabs-wrap">' +
       '<div class="slt-tab-bar">' +
-      '<button type="button" class="slt-tab active" data-tab="resumen"' +
+      '<button type="button" class="slt-tab active" data-tab="grafico"' +
+      tipAttr("Gráfico de precio + marcas de compra/venta") +
+      ">Gráfico</button>" +
+      '<button type="button" class="slt-tab" data-tab="resumen"' +
       tipAttr("Estado general · sesión · PnL · pasos") +
       ">Resumen</button>" +
       '<button type="button" class="slt-tab" data-tab="ordenes"' +
@@ -231,7 +294,10 @@
       tipAttr("JSON crudo · debug · no operar desde acá") +
       ">Técnico</button>" +
       "</div>" +
-      '<div class="slt-tab-panel active" data-panel="resumen" id="slt-panel-resumen"></div>' +
+      '<div class="slt-tab-panel active" data-panel="grafico" id="slt-panel-grafico">' +
+      '<p class="muted">El gráfico principal está arriba. Acá ves detalle de cotización y libro.</p>' +
+      '<div id="slt-panel-grafico-detail"></div></div>' +
+      '<div class="slt-tab-panel" data-panel="resumen" id="slt-panel-resumen"></div>' +
       '<div class="slt-tab-panel" data-panel="ordenes" id="slt-panel-ordenes"></div>' +
       '<div class="slt-tab-panel" data-panel="posiciones" id="slt-panel-posiciones"></div>' +
       '<div class="slt-tab-panel" data-panel="mercado" id="slt-panel-mercado"></div>' +
@@ -257,6 +323,11 @@
     var lastRunStages = [];
     var lastPaperStarted = false;
     var closureShown = false;
+    var sltChart = null;
+    var chartLoadTimer = null;
+    var lastChartSymbol = "";
+    var plannedDurationMs = 3600000;
+    var durationManualSteps = false;
 
     var stratSel = root.querySelector("#slt-strategy");
     var symIn = root.querySelector("#slt-symbol");
@@ -267,10 +338,265 @@
     var phaseEl = root.querySelector("#slt-phase");
     var errDetailEl = root.querySelector("#slt-err-detail");
     var metricsEl = root.querySelector("#slt-metrics");
+    var liveHintEl = root.querySelector("#slt-live-hint");
     var progressEl = root.querySelector("#slt-progress");
     var lastActEl = root.querySelector("#slt-last-action");
     var startBtn = root.querySelector("#slt-start");
     var stopBtn = root.querySelector("#slt-stop");
+    var durSummaryEl = root.querySelector("#slt-dur-summary");
+    var chartHostEl = root.querySelector("#slt-chart-host");
+    var chartTfSel = root.querySelector("#slt-chart-tf");
+
+    function parseDurationMs() {
+      var d = parseInt((root.querySelector("#slt-dur-d") || {}).value, 10) || 0;
+      var h = parseInt((root.querySelector("#slt-dur-h") || {}).value, 10) || 0;
+      var m = parseInt((root.querySelector("#slt-dur-m") || {}).value, 10) || 0;
+      var s = parseInt((root.querySelector("#slt-dur-s") || {}).value, 10) || 0;
+      return (((d * 24 + h) * 60 + m) * 60 + s) * 1000;
+    }
+
+    function formatDurationHuman(ms) {
+      if (!ms || ms <= 0) return "0 s";
+      var sec = Math.floor(ms / 1000);
+      var parts = [];
+      var d = Math.floor(sec / 86400);
+      var h = Math.floor((sec % 86400) / 3600);
+      var m = Math.floor((sec % 3600) / 60);
+      var s = sec % 60;
+      if (d) parts.push(d + " d");
+      if (h) parts.push(h + " h");
+      if (m) parts.push(m + " min");
+      if (s || !parts.length) parts.push(s + " s");
+      return parts.join(" ");
+    }
+
+    function getIntervalMs() {
+      var msEl = root.querySelector("#slt-interval-ms");
+      var iv = msEl ? parseInt(msEl.value, 10) : 800;
+      return isFinite(iv) && iv >= 100 ? iv : 800;
+    }
+
+    function computeMaxStepsFromDuration() {
+      var totalMs = parseDurationMs();
+      var intervalMs = getIntervalMs();
+      if (totalMs <= 0) {
+        return stepsIn ? parseInt(stepsIn.value, 10) || 25 : 25;
+      }
+      var steps = Math.floor(totalMs / intervalMs);
+      return Math.max(1, Math.min(500000, steps));
+    }
+
+    function applyDurationToSteps() {
+      if (durationManualSteps) return;
+      var steps = computeMaxStepsFromDuration();
+      plannedDurationMs = parseDurationMs();
+      if (stepsIn) stepsIn.value = String(steps);
+      if (durSummaryEl) {
+        var iv = getIntervalMs();
+        durSummaryEl.textContent =
+          "≈ " +
+          steps.toLocaleString("es-AR") +
+          " pasos · cada " +
+          (iv / 1000).toLocaleString("es-AR") +
+          " s · duración " +
+          formatDurationHuman(plannedDurationMs);
+        if (steps >= 500000) {
+          durSummaryEl.textContent += " · tope 500.000 pasos — acortá duración o subí cadencia";
+        }
+      }
+    }
+
+    function setDurationFromSeconds(totalSec) {
+      var sec = Math.max(0, parseInt(totalSec, 10) || 0);
+      var d = Math.floor(sec / 86400);
+      sec -= d * 86400;
+      var h = Math.floor(sec / 3600);
+      sec -= h * 3600;
+      var m = Math.floor(sec / 60);
+      var s = sec % 60;
+      var dEl = root.querySelector("#slt-dur-d");
+      var hEl = root.querySelector("#slt-dur-h");
+      var mEl = root.querySelector("#slt-dur-m");
+      var sEl = root.querySelector("#slt-dur-s");
+      if (dEl) dEl.value = String(d);
+      if (hEl) hEl.value = String(h);
+      if (mEl) mEl.value = String(m);
+      if (sEl) sEl.value = String(s);
+      durationManualSteps = false;
+      applyDurationToSteps();
+    }
+
+    function ensureChart() {
+      if (!chartHostEl || !global.SLTChart) return null;
+      if (!sltChart || !sltChart.ready) {
+        sltChart = SLTChart.create({ container: chartHostEl, height: 340 });
+      }
+      return sltChart;
+    }
+
+    function loadChartKlines(force) {
+      if (!QLApi.binanceKlines || !symIn) return Promise.resolve();
+      var sym = (symIn.value || "BTCUSDT").trim().toUpperCase();
+      var marketEl = root.querySelector("#slt-market");
+      var marketType = marketEl ? marketEl.value : "spot";
+      var tf = chartTfSel ? chartTfSel.value : "1m";
+      if (!force && sym === lastChartSymbol && sltChart && sltChart.ready) {
+        return Promise.resolve();
+      }
+      lastChartSymbol = sym;
+      return QLApi.binanceKlines({
+        symbol: sym,
+        interval: tf,
+        limit: 180,
+        market_type: marketType,
+      })
+        .then(function (payload) {
+          var ch = ensureChart();
+          if (ch && payload && payload.bars) ch.loadKlines(payload);
+        })
+        .catch(function () {});
+    }
+
+    function scheduleChartReload() {
+      if (chartLoadTimer) clearInterval(chartLoadTimer);
+      loadChartKlines(true);
+      chartLoadTimer = setInterval(function () {
+        loadChartKlines(true);
+      }, 30000);
+    }
+
+    function renderTicker(mkt, sym) {
+      var symEl = root.querySelector("#slt-ticker-sym");
+      var lastEl = root.querySelector("#slt-ticker-last");
+      var baEl = root.querySelector("#slt-ticker-ba");
+      var spEl = root.querySelector("#slt-ticker-spread");
+      if (symEl) symEl.textContent = sym || "—";
+      if (!mkt) return;
+      var last = mkt.last != null ? mkt.last : mkt.mid;
+      var bid = mkt.bid;
+      var ask = mkt.ask;
+      if (lastEl) {
+        lastEl.textContent = last != null ? fmtNum(last) : "—";
+        lastEl.className = "slt-ticker-last";
+      }
+      if (baEl) {
+        baEl.textContent =
+          "Compra " +
+          fmtNum(bid) +
+          " · Venta " +
+          fmtNum(ask);
+      }
+      if (spEl && bid != null && ask != null && Number(ask) > 0) {
+        var spreadBps = ((Number(ask) - Number(bid)) / Number(ask)) * 10000;
+        spEl.textContent = "Spread " + spreadBps.toFixed(1) + " bps";
+      }
+    }
+
+    function renderOrderSide(fills) {
+      var el = root.querySelector("#slt-order-side-list");
+      if (!el) return;
+      if (!fills || !fills.length) {
+        el.innerHTML = '<span class="muted">Sin operaciones aún</span>';
+        return;
+      }
+      el.innerHTML = fills
+        .slice()
+        .reverse()
+        .slice(0, 12)
+        .map(function (f) {
+          var side = String(f.side || "").toUpperCase();
+          var isBuy = side === "BUY" || side === "B";
+          return (
+            '<div class="slt-order-row ' +
+            (isBuy ? "slt-order-buy" : "slt-order-sell") +
+            '">' +
+            '<span class="slt-order-side">' +
+            (isBuy ? "COMPRA" : "VENTA") +
+            "</span>" +
+            '<span class="mono">' +
+            fmtNum(f.quantity || f.qty) +
+            " @ " +
+            fmtNum(f.price) +
+            "</span>" +
+            '<span class="muted">' +
+            esc(fmtDt(f.ts || f.timestamp || "")) +
+            "</span></div>"
+          );
+        })
+        .join("");
+    }
+
+    function renderGraficoDetail(mkt, live) {
+      var el = root.querySelector("#slt-panel-grafico-detail");
+      if (!el) return;
+      if (!mkt) {
+        el.innerHTML = '<p class="muted">Conectá una corrida para ver cotización en vivo.</p>';
+        return;
+      }
+      el.innerHTML =
+        '<dl class="kv slt-mkt-kv">' +
+        "<dt>Último precio</dt><dd>" +
+        fmtNum(mkt.last || mkt.mid) +
+        "</dd>" +
+        "<dt>Compra (bid)</dt><dd>" +
+        fmtNum(mkt.bid) +
+        "</dd>" +
+        "<dt>Venta (ask)</dt><dd>" +
+        fmtNum(mkt.ask) +
+        "</dd>" +
+        "<dt>Operaciones simuladas</dt><dd>" +
+        esc(String((live && live.fills_count) || 0)) +
+        "</dd>" +
+        "</dl>" +
+        '<details class="slt-mkt-raw"><summary class="muted">Datos técnicos completos (JSON)</summary>' +
+        "<pre class=\"mono\">" +
+        esc(JSON.stringify(mkt, null, 2)) +
+        "</pre></details>";
+    }
+
+    root.querySelectorAll(".slt-dur-preset").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setDurationFromSeconds(btn.getAttribute("data-dur"));
+      });
+    });
+    ["#slt-dur-d", "#slt-dur-h", "#slt-dur-m", "#slt-dur-s", "#slt-interval-ms"].forEach(function (
+      sel
+    ) {
+      var el = root.querySelector(sel);
+      if (el) {
+        el.addEventListener("input", function () {
+          durationManualSteps = false;
+          applyDurationToSteps();
+        });
+      }
+    });
+    if (stepsIn) {
+      stepsIn.addEventListener("input", function () {
+        durationManualSteps = true;
+        if (durSummaryEl) {
+          durSummaryEl.textContent =
+            "Modo avanzado: " +
+            (parseInt(stepsIn.value, 10) || 0).toLocaleString("es-AR") +
+            " pasos manuales · duración ≈ " +
+            formatDurationHuman(
+              (parseInt(stepsIn.value, 10) || 0) * getIntervalMs()
+            );
+        }
+      });
+    }
+    if (chartTfSel) {
+      chartTfSel.addEventListener("change", function () {
+        loadChartKlines(true);
+      });
+    }
+    if (symIn) {
+      symIn.addEventListener("change", function () {
+        loadChartKlines(true);
+      });
+    }
+    applyDurationToSteps();
+    ensureChart();
+    loadChartKlines(true);
 
     function logEvent(msg) {
       var ts =
@@ -728,6 +1054,67 @@
       closureShown = false;
     }
 
+    function buildFinalClosure(live, headline) {
+      var summary = live.live_summary || {};
+      var ps = live.paper_status || {};
+      var sess = live.execution_session || {};
+      var man = sess.manifest || {};
+      var steps = summary.steps != null ? summary.steps : ps.steps || 0;
+      var maxS = summary.max_steps || ps.max_steps || "?";
+      var dest = man.execution_destination || summary.destination || "PAPER";
+      var mirror = ps.testnet_mirror || {};
+      var done = lastRunStages
+        .filter(function (s) {
+          return s.ok;
+        })
+        .map(function (s) {
+          var label = s.name;
+          if (s.name === "start_testnet_engine") label = "Motor paper + espejo testnet";
+          if (s.name === "start_paper") label = "Motor paper en vivo";
+          return label + (s.detail ? " · " + JSON.stringify(s.detail) : "");
+        })
+        .concat([
+          "Corrida paper · steps " + steps + "/" + maxS,
+          (live.fills_count || 0) + " fill(s) simulados",
+        ]);
+      var notDone = ["Producción LIVE (siempre bloqueada)"];
+      if (String(dest).indexOf("TESTNET") >= 0) {
+        var okN = mirror.ok || 0;
+        var att = mirror.attempts || 0;
+        if (okN > 0) {
+          done.push("Espejo testnet: " + okN + " orden(es) real(es)");
+        } else if (att > 0) {
+          notDone.unshift(
+            "Espejo testnet: sin órdenes reales (unlock demo + flag/keys .env)"
+          );
+        } else {
+          notDone.unshift(
+            "Espejo testnet omitido — motor paper sí corrió (falta unlock/keys)"
+          );
+        }
+      }
+      return {
+        outcome: "completed",
+        headline: headline || "Corrida finalizada — resumen",
+        done: done,
+        not_done: notDone,
+        metrics: {
+          fills: live.fills_count,
+          steps: steps,
+          max_steps: maxS,
+          equity: live.pnl && live.pnl.equity,
+          realized_pnl: live.pnl && live.pnl.realized_pnl,
+          unrealized_pnl: live.pnl && live.pnl.unrealized_pnl,
+          session_state: sess.state || summary.phase,
+          strategy_id: man.strategy_id || summary.strategy_id,
+          strategy_name: man.strategy_name || summary.strategy_name,
+          symbol: summary.symbol_resolved || man.symbol || summary.symbol,
+          destination: dest,
+          error: summary.error || ps.last_error,
+        },
+      };
+    }
+
     function renderClosureSummary(closure) {
       if (!closure) return;
       var box = root.querySelector("#slt-closure-box");
@@ -781,7 +1168,53 @@
       box.hidden = false;
       closureShown = true;
       logEvent("RESUMEN: " + (closure.headline || closure.outcome));
-      box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function updateLiveHint(summary, ps) {
+      if (!liveHintEl) return;
+      var running = summary && summary.paper_running;
+      if (!running) {
+        liveHintEl.hidden = true;
+        liveHintEl.textContent = "";
+        return;
+      }
+      var dest = String(summary.destination || "");
+      var lines = [
+        "Qué está pasando: el motor lee MD real de Binance, la estrategia decide y los fills son simulados (paper).",
+      ];
+      if (dest.indexOf("TESTNET") >= 0) {
+        var mirror = (ps && ps.testnet_mirror) || {};
+        if (mirror.mode && mirror.mode !== "none") {
+          if ((mirror.ok || 0) > 0) {
+            lines.push(
+              "Espejo " +
+                mirror.mode +
+                ": " +
+                mirror.ok +
+                " orden(es) real(es) en testnet · intentos " +
+                (mirror.attempts || 0) +
+                "."
+            );
+          } else {
+            lines.push(
+              "Espejo " +
+                mirror.mode +
+                ": omitido (sin unlock demo o keys) — solo ves actividad paper arriba."
+            );
+          }
+        }
+      }
+      lines.push(
+        "Duración planificada: " +
+          formatDurationHuman(plannedDurationMs || parseDurationMs()) +
+          " · paso " +
+          (summary.steps != null ? summary.steps : ps.steps || 0) +
+          "/" +
+          (summary.max_steps || ps.max_steps || "?") +
+          " · el resumen final aparece al terminar o al pulsar DETENER."
+      );
+      liveHintEl.textContent = lines.join(" ");
+      liveHintEl.hidden = false;
     }
 
     function renderLive(live) {
@@ -790,42 +1223,23 @@
       var summary = live.live_summary || {};
       var ps = live.paper_status || {};
       var running = !!summary.paper_running;
+
+      if (running) {
+        hideClosure();
+      }
+
       if (lastPaperRunning && !running && sessionId && lastPaperStarted && !closureShown) {
-        renderClosureSummary({
-          outcome: "completed",
-          headline: "Corrida paper terminada — resumen",
-          done: lastRunStages
-            .filter(function (s) {
-              return s.ok;
-            })
-            .map(function (s) {
-              return s.name + (s.detail ? " · " + s.detail : "");
-            })
-            .concat([
-              "Steps " +
-                (summary.steps != null ? summary.steps : ps.steps || 0) +
-                "/" +
-                (summary.max_steps || ps.max_steps || "?"),
-              (live.fills_count || 0) + " fill(s)",
-            ]),
-          not_done: [
-            "Órdenes Spot/Futures testnet remotas (bloqueado MVP)",
-            "Producción LIVE (bloqueada)",
-          ],
-          metrics: {
-            fills: live.fills_count,
-            steps: summary.steps || ps.steps,
-            max_steps: summary.max_steps || ps.max_steps,
-            equity: live.pnl && live.pnl.equity,
-            realized_pnl: live.pnl && live.pnl.realized_pnl,
-            session_state: summary.phase,
-            strategy_id: summary.strategy_id,
-            strategy_name: summary.strategy_name,
-            symbol: summary.symbol_resolved || summary.symbol,
-            destination: summary.destination,
-            error: summary.error || ps.last_error,
-          },
-        });
+        var finHead =
+          summary.steps >= summary.max_steps
+            ? "Corrida completada — resumen final"
+            : "Corrida detenida — resumen final";
+        renderClosureSummary(buildFinalClosure(live, finHead));
+        if (root.querySelector("#slt-closure-box")) {
+          root.querySelector("#slt-closure-box").scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
         stopPoll();
         runStartedAt = null;
       }
@@ -833,9 +1247,19 @@
       var pnl = live.pnl || {};
       var mkt = live.market || {};
       renderPhase(summary, ps);
+      updateLiveHint(summary, ps);
 
       if (metricsEl) {
-        var elapsed = runStartedAt ? Math.round((Date.now() - runStartedAt) / 1000) + "s" : "—";
+        var elapsedSec = runStartedAt ? Math.round((Date.now() - runStartedAt) / 1000) : 0;
+        var elapsed = runStartedAt ? elapsedSec + " s" : "—";
+        var stepsNow = summary.steps != null ? summary.steps : ps.steps || 0;
+        var maxSteps = summary.max_steps || ps.max_steps || 0;
+        var ivMs = getIntervalMs();
+        var etaSec =
+          running && maxSteps > stepsNow
+            ? Math.round((maxSteps - stepsNow) * (ivMs / 1000))
+            : 0;
+        var etaLabel = etaSec > 0 ? formatDurationHuman(etaSec * 1000) : "—";
         metricsEl.innerHTML =
           "<span><b>" +
           esc(summary.strategy_name || summary.strategy_id || "—") +
@@ -843,23 +1267,36 @@
           "<span class=\"mono\">" +
           esc(summary.symbol_resolved || summary.symbol || "—") +
           "</span> · " +
-          "<span>step " +
-          esc(String(summary.steps != null ? summary.steps : ps.steps || 0)) +
+          "<span>paso " +
+          esc(String(stepsNow)) +
           "/" +
-          esc(String(summary.max_steps || ps.max_steps || "?")) +
+          esc(String(maxSteps || "?")) +
           "</span> · " +
           "<span>equity " +
           fmtNum(pnl.equity) +
           "</span> · " +
-          "<span>PnL " +
+          "<span>resultado " +
           fmtNum(pnl.total_pnl != null ? pnl.total_pnl : pnl.unrealized) +
           "</span> · " +
-          "<span>fills " +
+          "<span>operaciones " +
           esc(String(live.fills_count || 0)) +
           "</span> · " +
-          "<span>t " +
+          "<span>transcurrido " +
           elapsed +
+          "</span> · " +
+          "<span>falta ~" +
+          etaLabel +
           "</span>";
+      }
+
+      var symResolved = summary.symbol_resolved || summary.symbol || (symIn && symIn.value);
+      renderTicker(mkt, symResolved);
+      renderOrderSide(live.fills || []);
+      renderGraficoDetail(mkt, live);
+      var ch = ensureChart();
+      if (ch) {
+        if (mkt) ch.updateMarket(mkt);
+        if (live.fills) ch.setFills(live.fills);
       }
 
       if (progressEl) {
@@ -871,8 +1308,8 @@
         var lf = live.last_fill;
         if (lf) {
           lastActEl.textContent =
-            "Último fill: " +
-            (lf.side || "?") +
+            "Última operación: " +
+            (String(lf.side || "").toUpperCase() === "BUY" || lf.side === "B" ? "Compra" : "Venta") +
             " " +
             (lf.quantity || lf.qty || "?") +
             " @ " +
@@ -1027,33 +1464,39 @@
       if (!el) return;
       var fills = live.fills || [];
       if (!fills.length) {
-        el.innerHTML = '<p class="muted">Sin fills aún.</p>';
+        el.innerHTML =
+          '<p class="muted">Todavía no hubo operaciones simuladas. Cuando la estrategia compre o venda, aparecen acá y en el gráfico.</p>';
         return;
       }
       var rows = fills
         .slice()
         .reverse()
         .map(function (f) {
+          var side = String(f.side || "").toUpperCase();
+          var isBuy = side === "BUY" || side === "B";
           return (
             "<tr><td>" +
             esc(fmtDt(f.ts || f.timestamp || "")) +
-            "</td><td>" +
-            esc(f.side) +
+            "</td><td class=\"" +
+            (isBuy ? "slt-order-buy" : "slt-order-sell") +
+            "\">" +
+            (isBuy ? "Compra" : "Venta") +
             "</td><td>" +
             esc(f.symbol || f.instrument_id) +
             "</td><td>" +
             fmtNum(f.quantity || f.qty) +
             "</td><td>" +
             fmtNum(f.price) +
-            "</td><td>" +
+            "</td><td class=\"muted\">" +
             esc(f.order_id || "") +
             "</td></tr>"
           );
         })
         .join("");
       el.innerHTML =
-        '<table class="sim-summary-table mono" style="width:100%;font-size:1.04em">' +
-        "<thead><tr><th>Hora</th><th>Side</th><th>Sym</th><th>Qty</th><th>Px</th><th>Order</th></tr></thead>" +
+        '<p class="muted slt-ord-lead">Operaciones simuladas (paper) · no son órdenes reales en Binance salvo espejo testnet</p>' +
+        '<table class="sim-summary-table mono slt-ord-table">' +
+        "<thead><tr><th>Hora</th><th>Operación</th><th>Par</th><th>Cantidad</th><th>Precio</th><th>ID orden</th></tr></thead>" +
         "<tbody>" +
         rows +
         "</tbody></table>";
@@ -1100,13 +1543,34 @@
       if (!el) return;
       var m = live.market;
       if (!m) {
-        el.innerHTML = '<p class="muted">Sin snapshot (conectá broker con INICIAR).</p>';
+        el.innerHTML =
+          '<p class="muted">Sin cotización aún. Iniciá la corrida para ver precios en vivo de Binance (solo lectura).</p>';
         return;
       }
       el.innerHTML =
-        "<pre class=\"mono\" style=\"white-space:pre-wrap;margin:0;font-size:1.06em\">" +
+        '<dl class="kv slt-mkt-kv">' +
+        "<dt>Par</dt><dd>" +
+        esc(live.live_summary && live.live_summary.symbol_resolved) +
+        "</dd>" +
+        "<dt>Último precio</dt><dd><b>" +
+        fmtNum(m.last || m.mid) +
+        "</b></dd>" +
+        "<dt>Mejor compra (bid)</dt><dd class=\"slt-order-buy\">" +
+        fmtNum(m.bid) +
+        "</dd>" +
+        "<dt>Mejor venta (ask)</dt><dd class=\"slt-order-sell\">" +
+        fmtNum(m.ask) +
+        "</dd>" +
+        "<dt>Spread</dt><dd>" +
+        (m.bid != null && m.ask != null
+          ? fmtNum(Number(m.ask) - Number(m.bid))
+          : "—") +
+        "</dd>" +
+        "</dl>" +
+        '<details class="slt-mkt-raw"><summary class="muted">Ver JSON técnico completo (no se omite información)</summary>' +
+        "<pre class=\"mono\" style=\"white-space:pre-wrap;margin:0;font-size:1.00em;max-height:14rem;overflow:auto\">" +
         esc(JSON.stringify(m, null, 2)) +
-        "</pre>";
+        "</pre></details>";
     }
 
     function renderEvents() {
@@ -1157,8 +1621,9 @@
         symbol: symIn ? symIn.value : "BTCUSDT",
         execution_destination: destSel ? destSel.value : "PAPER",
         market_type: op.market_type || "spot",
-        max_steps: stepsIn ? parseInt(stepsIn.value, 10) || 25 : 25,
+        max_steps: computeMaxStepsFromDuration(),
         interval_ms: op.interval_ms,
+        planned_duration_ms: parseDurationMs(),
         strategy_parameters: stratParams,
       };
       if (op.interval) body.interval = op.interval;
@@ -1184,10 +1649,15 @@
         clearInterval(pollTimer);
         pollTimer = null;
       }
+      if (chartLoadTimer) {
+        clearInterval(chartLoadTimer);
+        chartLoadTimer = null;
+      }
     }
 
     function startPoll() {
       stopPoll();
+      scheduleChartReload();
       pollTimer = setInterval(function () {
         if (!sessionId && !lastLive) return;
         QLApi.executionLive(sessionId)
@@ -1392,7 +1862,16 @@
       hideClosure();
       lastPaperRunning = false;
       lastPaperStarted = false;
-      logEvent("INICIAR — pipeline automático…");
+      applyDurationToSteps();
+      plannedDurationMs = parseDurationMs();
+      logEvent(
+        "INICIAR — duración " +
+          formatDurationHuman(plannedDurationMs) +
+          " · " +
+          computeMaxStepsFromDuration().toLocaleString("es-AR") +
+          " pasos…"
+      );
+      loadChartKlines(true);
       QLApi.executionRun(buildRunBody())
         .then(function (res) {
           sessionId = res.session_id;
@@ -1418,7 +1897,7 @@
           }
           if (sessionId) startPoll();
           renderLive(res.live || {});
-          if (res.closure_summary) {
+          if (res.closure_summary && !res.paper_started) {
             renderClosureSummary(res.closure_summary);
           }
           loadHistory();

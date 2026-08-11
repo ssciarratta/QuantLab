@@ -1,31 +1,29 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-10
-Versión: 1.01.0 — Testnet 39 estrategias cableadas
+Actualizado: 2026-08-11
+Versión: 1.01.0
 
 ESTADO
 ------
-- LIVE_BLOCKED=True — REAL=PAPER/testnet únicamente
-- 39 estrategias ?: PAPER + Spot Testnet + Futures Testnet (motor + espejo)
-- 11 stubs [solo catálogo]: no ejecutan
-- este.bat: cierra ventanas/procesos previos al abrir uno nuevo
+- 39 estrategias ? · PAPER + Spot/Futures Testnet (motor + espejo)
+- Corrida en vivo: duración configurable (d/h/min/s) hasta 500k pasos
+- Gráfico estilo exchange: velas Binance + marcas compra/venta paper
+- max_steps backend: hasta 500.000 (? 4,6 días @ 800 ms)
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-08-10 — Launcher singleton + fix MD:
-- launcher_singleton.py: mata ventanas este.bat previas + workbench :8765
-- arrancar_workbench.py: claim al inicio (data/runtime/launcher.pid)
-- fake.py: BinancePublicMdClient (UNIUSDT y símbolos lazy MD)
-
-CÓMO ARRANCAR
--------------
-1. Doble clic este.bat (cierra instancias viejas automáticamente)
-2. Ctrl+F5 en el navegador
-3. Corrida en vivo: estrategia ? ? destino ? INICIAR
+2026-08-11 — Corrida en vivo más real y menos técnica:
+- Duración: días/horas/min/seg + presets (15m, 1h, 4h, 24h) ? calcula pasos
+- ETA y tiempo transcurrido en barra de estado
+- Gráfico lightweight-charts + ticker bid/ask + panel últimas operaciones
+- API POST /api/lab/binance/klines (read-only, spot/futures)
+- Tab Mercado: vista humana + JSON técnico colapsable (nada omitido)
+- Cache UI ?v=20260811b
 
 PRÓXIMO
 -------
-- Params runtime ajustables sin reiniciar sesión
+- Book de profundidad (order book) en panel lateral
+- Params runtime sin reiniciar sesión
 
 INVARIANTES
 -----------

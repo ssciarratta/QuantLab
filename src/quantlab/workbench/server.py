@@ -109,6 +109,7 @@ from quantlab.workbench.api import (
     handle_post_backups_run,
     handle_post_binance_pipeline,
     handle_post_binance_scan,
+    handle_post_binance_klines,
     handle_post_binance_scanner,
     handle_post_broker_connect,
     handle_post_broker_disconnect,
@@ -810,6 +811,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/binance/scan":
                     self._send_json(handle_post_binance_scan(state, body))
+                    return
+                if path == "/api/lab/binance/klines":
+                    self._send_json(handle_post_binance_klines(state, body))
                     return
                 if path == "/api/lab/binance/scanner":
                     self._send_json(handle_post_binance_scanner(state, body))

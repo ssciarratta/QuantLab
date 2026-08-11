@@ -512,6 +512,15 @@
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
     },
+    binanceKlines: function (opts) {
+      var o = opts || {};
+      return request("POST", "/api/lab/binance/klines", {
+        symbol: o.symbol || "BTCUSDT",
+        interval: o.interval || "1m",
+        limit: o.limit != null ? o.limit : 120,
+        market_type: o.market_type || "spot",
+      });
+    },
     binanceScanner: function (opts) {
       const o = opts || {};
       return request("POST", "/api/lab/binance/scanner", {

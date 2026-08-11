@@ -50,8 +50,8 @@ class PaperSessionConfig:
             raise ValidationError("strategy_id requerido")
         if not self.symbol.strip():
             raise ValidationError("symbol requerido")
-        if self.max_steps < 1 or self.max_steps > 10_000:
-            raise ValidationError("max_steps debe estar entre 1 y 10000")
+        if self.max_steps < 1 or self.max_steps > 500_000:
+            raise ValidationError("max_steps debe estar entre 1 y 500000")
         if self.interval_ms is not None and self.interval_ms < 1:
             raise ValidationError("interval_ms debe ser >= 1")
         if self.testnet_mirror not in ("none", "spot", "futures"):

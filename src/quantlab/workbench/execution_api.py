@@ -222,6 +222,8 @@ def _build_closure_summary(
         "preflight": "Preflight de seguridad",
         "open_session": "Sesión de ejecución registrada",
         "start_paper": "Motor paper en vivo (fills)",
+        "start_testnet_engine": "Motor paper + espejo testnet",
+        "release_previous_session": "Sesión anterior cerrada",
     }
 
     done: list[str] = []
@@ -260,13 +262,36 @@ def _build_closure_summary(
     if not caps.get("paper_run_certified") and sid != "?":
         not_done.append(f"Estrategia {sid} no runnable en catálogo paper")
 
-    not_done.append("Órdenes Spot/Futures testnet remotas (bloqueado MVP)")
-    if LIVE_BLOCKED:
+    dest = str(manifest.get("execution_destination") or summary.get("destination") or "")
+    mirror = ps.get("testnet_mirror") or {}
+    mirror_mode = str(mirror.get("mode") or "none")
+    if "TESTNET" in dest.upper():
+        if mirror_mode in {"spot", "futures"}:
+            ok_n = int(mirror.get("ok") or 0)
+            att = int(mirror.get("attempts") or 0)
+            if ok_n > 0:
+                done.append(f"Espejo testnet {mirror_mode}: {ok_n} orden(es) real(es) enviada(s)")
+            elif att > 0:
+                not_done.append(
+                    f"Espejo testnet {mirror_mode}: intentos={att} · sin órdenes "
+                    "(unlock demo + flag/keys en .env)"
+                )
+            else:
+                not_done.append(
+                    f"Espejo testnet {mirror_mode}: omitido (unlock demo + flag/keys en .env)"
+                )
+        else:
+            not_done.append("Espejo testnet no configurado para este destino")
+    elif reason not in {"started"}:
+        not_done.append("Órdenes en exchange real (solo testnet cuando está cableado)")
+
+    if LIVE_BLOCKED and reason not in {"started"}:
         not_done.append("Producción LIVE (siempre bloqueada)")
 
     headlines = {
         "stopped": "Detenida manualmente — resumen final",
         "completed": "Corrida finalizada — resumen",
+        "started": "Motor arrancado — seguí el progreso arriba",
         "registered_only": "Registro completado — sin motor paper",
         "error": "Corrida con errores — resumen",
     }
@@ -583,14 +608,18 @@ def handle_post_execution_run(state: WorkbenchState, body: dict[str, Any]) -> di
         _stage("start_paper", False, paper_blocker)
 
     live = _enriched_live(state, rec.session_id)
-    closure_reason = "completed" if paper_started else "registered_only"
-    closure = _build_closure_summary(
-        live,
-        reason=closure_reason,
-        stages=stages,
-        paper_started=paper_started,
-        paper_blocker=paper_blocker,
-    )
+    ps = live.get("paper_status") or {}
+    still_running = bool(paper_started and ps.get("running"))
+    closure_reason = "started" if still_running else ("completed" if paper_started else "registered_only")
+    closure: dict[str, Any] | None = None
+    if not still_running:
+        closure = _build_closure_summary(
+            live,
+            reason=closure_reason,
+            stages=stages,
+            paper_started=paper_started,
+            paper_blocker=paper_blocker,
+        )
     return {
         "ok": True,
         "promotion_id": manifest.promotion_id,

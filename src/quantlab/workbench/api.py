@@ -1201,6 +1201,53 @@ def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dic
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_post_binance_klines(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/binance/klines — OHLCV público read-only para gráficos UI."""
+    from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
+    from quantlab.brokers.binance.public_md import BinancePublicMdClient
+
+    _ = state
+    symbol = body.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        raise ApiError(400, "symbol requerido")
+    interval = body.get("interval", "1m")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    limit = body.get("limit", 120)
+    if not isinstance(limit, int):
+        raise ApiError(400, "limit debe ser int")
+    market_type = str(body.get("market_type") or "spot").strip().lower()
+    if market_type not in ("spot", "futures"):
+        raise ApiError(400, "market_type debe ser spot o futures")
+    try:
+        client: BinancePublicMdClient | BinanceFuturesPublicMdClient
+        if market_type == "futures":
+            client = BinanceFuturesPublicMdClient()
+        else:
+            client = BinancePublicMdClient()
+        bars = client.klines(symbol.strip(), interval=interval.strip(), limit=limit)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    out_bars: list[dict[str, Any]] = []
+    for bar in bars:
+        out_bars.append(
+            {
+                "time": int(bar.timestamp_open.timestamp()),
+                "open": float(bar.open),
+                "high": float(bar.high),
+                "low": float(bar.low),
+                "close": float(bar.close),
+                "volume": float(bar.volume),
+            }
+        )
+    return {
+        "symbol": symbol.strip().upper(),
+        "interval": interval.strip(),
+        "market_type": market_type,
+        "bars": out_bars,
+    }
+
+
 def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/binance/scanner — Alpha ranking sobre klines Binance (F111)."""
     top_n = body.get("top_n", 5)

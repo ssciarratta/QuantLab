@@ -3868,6 +3868,15 @@ button.btn.stop-run {
   margin-bottom: 0.35rem;
 }
 
+.slt-v2 .slt-live-hint {
+  font-size: 0.92em;
+  line-height: 1.45;
+  margin-bottom: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid var(--accent, #5a9fd4);
+  background: rgba(90, 159, 212, 0.06);
+}
+
 .slt-v2 .slt-progress-wrap {
   height: 4px;
   background: var(--border, #333);
@@ -4237,3 +4246,35 @@ html[data-theme="high-contrast"] .win-body .muted {
   margin-bottom: 0.35rem;
   cursor: help;
 }
+
+.slt-v2 .slt-field-wide { grid-column: 1 / -1; }
+.slt-v2 .slt-duration-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+.slt-v2 .slt-dur-unit { display: flex; flex-direction: column; gap: 0.15rem; min-width: 4.5rem; }
+.slt-v2 .slt-dur-unit span { font-size: 0.72rem; color: var(--text-muted); }
+.slt-v2 .slt-dur-presets { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
+.slt-v2 .slt-dur-summary { margin: 0.35rem 0 0; font-size: 0.82rem; }
+.slt-v2 .slt-chart-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  background: linear-gradient(180deg, rgba(20, 28, 39, 0.95), rgba(12, 18, 25, 0.98));
+}
+.slt-v2 .slt-ticker-bar {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.65rem 1rem;
+  padding: 0.45rem 0.55rem; margin-bottom: 0.5rem;
+  background: var(--bg-elevated); border: 1px solid var(--border-soft); border-radius: 4px;
+}
+.slt-v2 .slt-ticker-sym { font-weight: 700; font-size: 1.05rem; }
+.slt-v2 .slt-ticker-last { font-size: 1.25rem; font-weight: 600; color: var(--amber); font-family: var(--mono); }
+.slt-v2 .slt-chart-layout { display: grid; grid-template-columns: 1fr 220px; gap: 0.55rem; min-height: 340px; }
+@media (max-width: 900px) { .slt-v2 .slt-chart-layout { grid-template-columns: 1fr; } }
+.slt-v2 .slt-chart-host { min-height: 340px; border: 1px solid var(--border-soft); border-radius: 4px; overflow: hidden; }
+.slt-v2 .slt-chart-canvas { width: 100%; height: 340px; }
+.slt-v2 .slt-order-side { border: 1px solid var(--border-soft); border-radius: 4px; padding: 0.45rem 0.5rem; background: var(--bg-panel); max-height: 340px; overflow: auto; }
+.slt-v2 .slt-order-side h5 { margin: 0 0 0.35rem; font-size: 0.85rem; }
+.slt-v2 .slt-order-side-list { display: flex; flex-direction: column; gap: 0.35rem; font-size: 0.78rem; }
+.slt-v2 .slt-order-row { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.3rem 0.35rem; border-radius: 3px; border-left: 3px solid var(--border); }
+.slt-v2 .slt-order-buy, .slt-v2 .slt-order-row.slt-order-buy { border-left-color: var(--ok); color: var(--ok); }
+.slt-v2 .slt-order-sell, .slt-v2 .slt-order-row.slt-order-sell { border-left-color: var(--danger); color: var(--danger); }
+.slt-v2 .slt-mkt-raw summary { cursor: pointer; margin-bottom: 0.35rem; }
+.slt-v2 .slt-ord-lead { margin: 0 0 0.45rem; font-size: 0.82rem; }
