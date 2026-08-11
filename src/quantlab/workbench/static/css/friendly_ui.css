@@ -501,7 +501,123 @@ body[data-ui-simplify="1"] .ql-toast {
   border-radius: var(--ql-radius-lg, 12px);
 }
 
-/* SLT — corrida en vivo compacta */
+/* SLT — dashboard horizontal (config izq · gráfico der) */
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-dashboard {
+  display: grid;
+  grid-template-columns: minmax(250px, 290px) minmax(0, 1fr);
+  gap: 0.45rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-dashboard-left {
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding-right: 0.15rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-dashboard-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-side-config {
+  padding: 0.35rem 0.4rem;
+  margin-bottom: 0.3rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+  background: var(--bg-panel);
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-side-grid {
+  grid-template-columns: 1fr;
+  gap: 0.3rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-side-grid .slt-field span {
+  font-size: 0.68rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-side-grid input,
+body[data-ui-simplify="1"] .slt-v2 .slt-side-grid select {
+  font-size: 0.78rem;
+  padding: 0.2rem 0.35rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-live-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-live-row .slt-phase {
+  margin-bottom: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-live-row .slt-metrics {
+  margin-bottom: 0;
+  flex: 1;
+  min-width: 8rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-ops-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  flex-shrink: 0;
+  padding: 0.15rem 0;
+  margin-bottom: 0.2rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-ops-label {
+  font-size: 0.68rem;
+  flex-shrink: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-side-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  align-items: center;
+  overflow-x: auto;
+  font-size: 0.68rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.15rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-buy.slt-order-chip {
+  background: color-mix(in srgb, #5dd39e 12%, transparent);
+  border-color: color-mix(in srgb, #5dd39e 35%, var(--border-soft));
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-sell.slt-order-chip {
+  background: color-mix(in srgb, #ff7b7b 12%, transparent);
+  border-color: color-mix(in srgb, #ff7b7b 35%, var(--border-soft));
+}
+
 body[data-ui-simplify="1"] .slt-v2 .slt-head-compact {
   margin-bottom: 0.35rem;
 }
@@ -514,6 +630,189 @@ body[data-ui-simplify="1"] .slt-v2 .slt-head-compact h3 {
 body[data-ui-simplify="1"] .slt-v2 .slt-catalog-line {
   margin: 0.1rem 0 0;
   font-size: 0.72rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-dashboard-right {
+  display: grid;
+  grid-template-rows: auto auto auto minmax(120px, 1fr);
+  gap: 0.3rem;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-live-top {
+  margin-bottom: 0;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elevated));
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-phase {
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-metrics {
+  font-size: 0.76rem;
+  line-height: 1.3;
+  margin-bottom: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-activity-explainer {
+  display: none;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-progress-wrap {
+  height: 4px;
+  margin: 0.15rem 0 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-last-action {
+  display: none;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-section {
+  flex: none;
+  margin-bottom: 0;
+  padding: 0.3rem 0.4rem 0.35rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+  background: linear-gradient(180deg, rgba(20, 16, 28, 0.98), rgba(12, 10, 18, 0.99));
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-head h4 {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-ticker-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.45rem;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  font-size: 0.74rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-ticker-last {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-host {
+  height: 200px !important;
+  min-height: 200px !important;
+  max-height: 200px !important;
+  flex: none !important;
+  position: relative;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #14101c;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-canvas,
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-lc {
+  width: 100% !important;
+  height: 200px !important;
+  min-height: 200px !important;
+  max-height: 200px !important;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-canvas-fallback {
+  width: 100%;
+  height: 200px;
+  display: block;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-chart-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.76rem;
+  text-align: center;
+  padding: 0.5rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-ops-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 0.1rem 0;
+  min-height: 1.6rem;
+  max-height: 1.8rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-order-side-list {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 0.66rem;
+  max-height: none;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-order-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.12rem;
+  padding: 0.12rem 0.3rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-tabs-wrap {
+  margin-top: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.4rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-tab-bar {
+  flex-shrink: 0;
+  margin-bottom: 0.25rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-tab {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.45rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2.slt-dashboard-root .slt-tab-panel {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  font-size: 0.74rem;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-live-top {
@@ -557,8 +856,12 @@ body[data-ui-simplify="1"] .slt-v2 .slt-last-action {
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-chart-section {
-  margin-bottom: 0.45rem;
-  padding: 0.4rem 0.5rem;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.25rem;
+  padding: 0.35rem 0.45rem;
   border: 1px solid var(--border-soft);
   border-radius: var(--ql-radius-md, 10px);
 }
@@ -593,29 +896,33 @@ body[data-ui-simplify="1"] .slt-v2 .slt-ticker-last {
   font-size: 1rem;
 }
 
-body[data-ui-simplify="1"] .slt-v2 .slt-chart-layout {
-  grid-template-columns: 1fr 150px;
-  gap: 0.4rem;
-  min-height: 0;
-}
-
 body[data-ui-simplify="1"] .slt-v2 .slt-chart-host {
-  min-height: 220px;
-  height: 220px;
+  flex: 1;
+  min-height: 180px;
+  height: auto;
+  position: relative;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-chart-canvas {
-  height: 220px !important;
+  min-height: 180px;
+  height: 100% !important;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-canvas-fallback {
+  width: 100%;
+  display: block;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-chart-placeholder {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 220px;
   font-size: 0.78rem;
   text-align: center;
   padding: 0.5rem;
+  pointer-events: none;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-order-side {
@@ -664,13 +971,19 @@ body[data-ui-simplify="1"] .slt-v2--running .slt-config-fold:not([open]) {
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-tabs-wrap {
-  margin-top: 0.35rem;
+  margin-top: 0;
+  flex-shrink: 0;
+  min-height: 0;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-tab-panel {
-  max-height: 9rem;
+  max-height: 7rem;
   overflow: auto;
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2--running .slt-activity-explainer {
+  display: none;
 }
 
 body[data-ui-simplify="1"] .slt-v2 .slt-source-ctx {
@@ -680,7 +993,23 @@ body[data-ui-simplify="1"] .slt-v2 .slt-source-ctx {
 }
 
 body[data-ui-simplify="1"] .ql-pane-v3.pane-strategy-live-test .ql-panel-flow-wrap {
-  margin-bottom: 0.35rem;
+  display: none;
+}
+
+body[data-ui-simplify="1"] .win-body:has(.slt-dashboard-root) {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem 0.5rem 0.4rem;
+}
+
+body[data-ui-simplify="1"] .win-body .slt-dashboard-root {
+  flex: 1;
+  min-height: 0;
+}
+
+body[data-ui-simplify="1"] .ql-pane-v3.pane-strategy-live-test > .ql-panel-header {
+  display: none;
 }
 
 body[data-ui-simplify="1"] .ql-pane-v3.pane-strategy-live-test .ql-panel-header {

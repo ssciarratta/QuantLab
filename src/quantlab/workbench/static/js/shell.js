@@ -862,6 +862,11 @@
       if (root && typeof root.applyPrefill === "function" && opts.prefill) {
         root.applyPrefill(opts.prefill);
       }
+      if (root && typeof root._sltChartRefresh === "function") {
+        setTimeout(function () {
+          root._sltChartRefresh();
+        }, 80);
+      }
       return;
     }
     if (!QLPanes.createStrategyLiveTestPane) {
@@ -875,11 +880,16 @@
       "strategy_live_test",
       tr("pane.strategy_live_test", "Corrida en vivo"),
       pane,
-      mergeOpts("strategy_live_test", { x: 40, y: 24, w: 920, h: 920 })
+      mergeOpts("strategy_live_test", { x: 40, y: 24, w: 1120, h: 680 })
     );
     if (typeof wm.bringToFront === "function") wm.bringToFront("strategy_live_test");
     if (opts.prefill && typeof pane.applyPrefill === "function") {
       pane.applyPrefill(opts.prefill);
+    }
+    if (typeof pane._sltChartRefresh === "function") {
+      setTimeout(function () {
+        pane._sltChartRefresh();
+      }, 200);
     }
   }
 

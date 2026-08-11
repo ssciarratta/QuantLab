@@ -120,8 +120,10 @@
 
   function createStrategyLiveTestPane() {
     var root = document.createElement("div");
-    root.className = "pane-strategy-live-test slt-v2";
+    root.className = "pane-strategy-live-test slt-v2 slt-dashboard-root";
     root.innerHTML =
+      '<div class="slt-dashboard">' +
+      '<aside class="slt-dashboard-left">' +
       '<div class="slt-head slt-head-compact">' +
       "<h3>Corrida en vivo</h3>" +
       '<p id="slt-catalog-line" class="slt-catalog-line muted">Catálogo: cargando…</p>' +
@@ -130,42 +132,13 @@
       '<div class="pane-row slt-action-row">' +
       '<button type="button" class="btn slt-btn-start slt-btn-hero" id="slt-start"' +
       tipAttr(FIELD_TIPS.start) +
-      ">▶ INICIAR CORRIDA</button>" +
+      ">▶ INICIAR</button>" +
       '<button type="button" class="btn danger" id="slt-stop" disabled' +
       tipAttr(FIELD_TIPS.stop) +
-      ">■ DETENER</button>" +
+      ">■ STOP</button>" +
       "</div>" +
-      '<div class="pane-section slt-live slt-live-top" id="slt-live-box">' +
-      '<div class="slt-phase" id="slt-phase">● Listo</div>' +
-      '<div class="slt-metrics" id="slt-metrics">Sin corrida — elegí estrategia ★ e INICIAR</div>' +
-      '<div class="slt-progress-wrap"><div class="slt-progress-bar" id="slt-progress"></div></div>' +
-      '<div class="slt-activity-explainer muted" id="slt-activity-explainer">' +
-      "Qué hace: lee precio real de Binance → la estrategia decide → registra fills <b>paper</b> (simulados). " +
-      "Las flechas en el gráfico son tus operaciones; no mueven dinero real." +
-      "</div>" +
-      '<div class="slt-live-hint muted" id="slt-live-hint" hidden></div>' +
-      '<div class="slt-err-detail muted" id="slt-err-detail" hidden></div>' +
-      '<div class="slt-last-action mono" id="slt-last-action">—</div>' +
-      "</div>" +
-      '<div class="pane-section slt-chart-section">' +
-      '<div class="slt-chart-head">' +
-      "<h4>Gráfico de precio</h4>" +
-      '<div class="slt-ticker-bar slt-ticker-inline" id="slt-ticker">' +
-      '<span class="slt-ticker-sym" id="slt-ticker-sym">—</span>' +
-      '<span class="slt-ticker-last" id="slt-ticker-last">—</span>' +
-      '<span class="slt-ticker-bidask muted" id="slt-ticker-ba">—</span>' +
-      '<span class="slt-ticker-spread muted" id="slt-ticker-spread">—</span>' +
-      "</div></div>" +
-      '<div class="slt-chart-layout">' +
-      '<div id="slt-chart-host" class="slt-chart-host"></div>' +
-      '<aside class="slt-order-side" id="slt-order-side">' +
-      "<h5>Últimas ops</h5>" +
-      '<div id="slt-order-side-list" class="slt-order-side-list muted">—</div>' +
-      "</aside></div></div>" +
-      '<details class="slt-fold slt-config-fold" open>' +
-      '<summary>Configurar corrida</summary>' +
-      '<div class="pane-section slt-config slt-config-inner">' +
-      '<div class="slt-form-grid slt-config-grid">' +
+      '<div class="pane-section slt-config slt-side-config">' +
+      '<div class="slt-form-grid slt-config-grid slt-side-grid">' +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.strategy) +
       '><span>Estrategia</span><select id="slt-strategy"></select></label>' +
@@ -218,15 +191,9 @@
       "</select></label>" +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.interval_ms) +
-      '><span>Cadencia entre pasos (ms)</span><input id="slt-interval-ms" type="number" min="100" value="800"></label>' +
+      '><span>Cadencia (ms)</span><input id="slt-interval-ms" type="number" min="100" value="800"></label>' +
       "</div>" +
-      '<div id="slt-strat-hint" class="muted slt-hint">—</div>' +
-      "</div></details>" +
-      '<details class="slt-fold slt-op-fold">' +
-      '<summary>Mercado, capital y parámetros de estrategia</summary>' +
-      '<div class="pane-section slt-operational slt-operational-inner">' +
-      "<h4>Mercado, periodicidad y capital</h4>" +
-      '<div class="slt-form-grid slt-op-grid">' +
+      '<div class="slt-form-grid slt-op-grid slt-side-grid">' +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.market) +
       '><span>Mercado</span><select id="slt-market"><option value="spot">Spot</option><option value="futures">Futures</option></select></label>' +
@@ -247,12 +214,49 @@
       '><span>Apalancamiento</span><input id="slt-leverage" type="text" placeholder="1"></label>' +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.per_trade) +
-      '><span>USD por operación</span><input id="slt-per-trade" type="text" placeholder="—"></label>' +
-      "</div>" +
-      "<h4>Cómo opera la estrategia</h4>" +
+      '><span>USD / op</span><input id="slt-per-trade" type="text" placeholder="—"></label>' +
+      "</div></div>" +
+      '<div id="slt-strat-hint" class="muted slt-hint">—</div>' +
+      '<details class="slt-fold slt-strat-fold">' +
+      '<summary>Parámetros estrategia</summary>' +
       '<p id="slt-strat-desc" class="slt-strat-desc muted">—</p>' +
       '<div id="slt-strat-params" class="slt-form-grid slt-params-grid"></div>' +
+      "</details>" +
+      '<details class="slt-fold slt-hist-fold">' +
+      '<summary>Historial reciente</summary>' +
+      '<div class="pane-section slt-hist slt-hist-inner">' +
+      '<div id="slt-hist-list" class="mono slt-hist-list">—</div>' +
       "</div></details>" +
+      "</aside>" +
+      '<main class="slt-dashboard-right">' +
+      '<div class="pane-section slt-live slt-live-top" id="slt-live-box">' +
+      '<div class="slt-live-row">' +
+      '<div class="slt-phase" id="slt-phase">● Listo</div>' +
+      '<div class="slt-metrics" id="slt-metrics">Sin corrida — elegí estrategia ★ e INICIAR</div>' +
+      "</div>" +
+      '<div class="slt-progress-wrap"><div class="slt-progress-bar" id="slt-progress"></div></div>' +
+      '<div class="slt-activity-explainer muted" id="slt-activity-explainer">' +
+      "MD real Binance → estrategia → fills <b>paper</b> simulados." +
+      "</div>" +
+      '<div class="slt-live-hint muted" id="slt-live-hint" hidden></div>' +
+      '<div class="slt-err-detail muted" id="slt-err-detail" hidden></div>' +
+      '<div class="slt-last-action mono" id="slt-last-action">—</div>' +
+      "</div>" +
+      '<div class="pane-section slt-chart-section">' +
+      '<div class="slt-chart-head">' +
+      "<h4>Gráfico</h4>" +
+      '<div class="slt-ticker-bar slt-ticker-inline" id="slt-ticker">' +
+      '<span class="slt-ticker-sym" id="slt-ticker-sym">—</span>' +
+      '<span class="slt-ticker-last" id="slt-ticker-last">—</span>' +
+      '<span class="slt-ticker-bidask muted" id="slt-ticker-ba">—</span>' +
+      '<span class="slt-ticker-spread muted" id="slt-ticker-spread">—</span>' +
+      "</div></div>" +
+      '<div id="slt-chart-host" class="slt-chart-host"></div>' +
+      "</div>" +
+      '<div class="slt-ops-strip">' +
+      '<span class="slt-ops-label muted">Últimas ops</span>' +
+      '<div id="slt-order-side-list" class="slt-order-side-list muted">—</div>' +
+      "</div>" +
       '<div class="pane-section slt-closure" id="slt-closure-box" hidden>' +
       '<h4 id="slt-closure-head">Resumen final</h4>' +
       '<div class="slt-closure-cols">' +
@@ -292,11 +296,7 @@
       '<div class="slt-tab-panel" data-panel="eventos" id="slt-panel-eventos"></div>' +
       '<div class="slt-tab-panel" data-panel="tecnico" id="slt-panel-tecnico"></div>' +
       "</div>" +
-      '<details class="slt-fold slt-hist-fold">' +
-      '<summary>Historial reciente</summary>' +
-      '<div class="pane-section slt-hist slt-hist-inner">' +
-      '<div id="slt-hist-list" class="mono slt-hist-list">—</div>' +
-      "</div></details>";
+      "</main></div>";
 
     var strategies = [];
     var familyLabels = {};
@@ -415,10 +415,28 @@
       applyDurationToSteps();
     }
 
+    var CHART_H = 200;
+
+    function showChartHostMessage(msg) {
+      if (!chartHostEl) return;
+      var ph = chartHostEl.querySelector(".slt-chart-placeholder");
+      if (!ph) {
+        ph = document.createElement("div");
+        ph.className = "slt-chart-placeholder muted";
+        chartHostEl.appendChild(ph);
+      }
+      ph.textContent = String(msg || "Sin datos");
+    }
+
     function ensureChart() {
       if (!chartHostEl || !global.SLTChart) return null;
-      if (!sltChart || !sltChart.ready) {
-        sltChart = SLTChart.create({ container: chartHostEl, height: 220 });
+      if (
+        !sltChart ||
+        !sltChart.ready ||
+        (typeof sltChart.hasSeries === "function" && !sltChart.hasSeries())
+      ) {
+        if (sltChart && sltChart.destroy) sltChart.destroy();
+        sltChart = SLTChart.create({ container: chartHostEl, height: CHART_H });
       }
       return sltChart;
     }
@@ -441,24 +459,16 @@
       })
         .then(function (payload) {
           var ch = ensureChart();
-          if (ch && payload && payload.bars) {
+          if (ch && payload && payload.bars && payload.bars.length) {
             ch.loadKlines(payload);
-          } else if (chartHostEl && (!payload || !payload.bars || !payload.bars.length)) {
-            chartHostEl.innerHTML =
-              '<div class="slt-chart-placeholder muted">Sin velas para ' +
-              esc(sym) +
-              " (" +
-              esc(marketType) +
-              ")</div>";
+          } else {
+            showChartHostMessage("Sin velas para " + sym + " (" + marketType + ")");
           }
         })
         .catch(function (err) {
-          if (chartHostEl) {
-            chartHostEl.innerHTML =
-              '<div class="slt-chart-placeholder muted">Error cargando velas: ' +
-              esc(err && err.message ? err.message : "red o símbolo") +
-              "</div>";
-          }
+          showChartHostMessage(
+            "Error cargando velas: " + (err && err.message ? err.message : "red o símbolo")
+          );
         });
     }
 
@@ -507,25 +517,21 @@
       el.innerHTML = fills
         .slice()
         .reverse()
-        .slice(0, 6)
+        .slice(0, 8)
         .map(function (f) {
           var side = String(f.side || "").toUpperCase();
           var isBuy = side === "BUY" || side === "B";
           return (
-            '<div class="slt-order-row ' +
+            '<span class="slt-order-row slt-order-chip ' +
             (isBuy ? "slt-order-buy" : "slt-order-sell") +
             '">' +
             '<span class="slt-order-side">' +
-            (isBuy ? "COMPRA" : "VENTA") +
-            "</span>" +
-            '<span class="mono">' +
+            (isBuy ? "C" : "V") +
+            "</span> " +
             fmtNum(f.quantity || f.qty) +
             " @ " +
             fmtNum(f.price) +
-            "</span>" +
-            '<span class="muted">' +
-            esc(fmtDt(f.ts || f.timestamp || "")) +
-            "</span></div>"
+            "</span>"
           );
         })
         .join("");
@@ -604,7 +610,10 @@
       ensureChart();
       loadChartKlines(true);
       if (sltChart && sltChart.resize) sltChart.resize();
-    }, 350);
+    }, 120);
+    setTimeout(function () {
+      if (sltChart && sltChart.resize) sltChart.resize();
+    }, 600);
 
     root._sltChartRefresh = function () {
       loadChartKlines(true);
@@ -1954,6 +1963,20 @@
         });
     });
 
+    function renderIdlePanels() {
+      var resumen = root.querySelector("#slt-panel-resumen");
+      if (resumen) {
+        resumen.innerHTML =
+          '<p class="muted">Sin corrida activa. Elegí estrategia ★ e INICIAR para ver resumen, órdenes y posiciones.</p>';
+      }
+      ["ordenes", "posiciones", "mercado", "eventos", "tecnico"].forEach(function (name) {
+        var el = root.querySelector("#slt-panel-" + name);
+        if (el && !el.innerHTML.trim()) {
+          el.innerHTML = '<p class="muted">—</p>';
+        }
+      });
+    }
+
     loadStrategies()
       .then(function () {
         loadHistory();
@@ -1968,9 +1991,13 @@
             startPoll();
           }
           renderLive(res.live);
+        } else {
+          renderIdlePanels();
         }
       })
-      .catch(function () {});
+      .catch(function () {
+        renderIdlePanels();
+      });
 
     return root;
   }

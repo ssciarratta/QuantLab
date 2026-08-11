@@ -5,22 +5,23 @@ Versión: 1.1.0 · main
 
 ESTADO
 ------
-- UI redesign Fases 0–14 mergeadas en main (friendly theme, Inicio, MC en flujo)
-- Corrida en vivo: duración d/h/min/s, gráfico exchange, klines API, max_steps 500k
+- UI redesign Fases 0–14 mergeadas en main
+- Corrida en vivo: dashboard 2 columnas, gráfico LC local, tabs visibles
+- lightweight-charts vendoreado en static/js/vendor/ (sin depender de CDN)
 - 39 estrategias · PAPER + Spot/Futures Testnet
-- Smoke Windows: scripts/smoke_ui_redesign.bat OK
 - LIVE_BLOCKED=True
 
 ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
 ----------------------------------
-- Merge UI + SLT en main (305c81a)
-- SLT UX compacto: estado arriba, gráfico 220px, config plegable, fix chart v4/v5
-- friendly_ui.css + Inicio 4×2 + Monte Carlo en flujo
+- Fix raíz gráfico: CDN bloqueado ? LC servido localmente
+- Canvas fallback con ejes precio/tiempo si LC falla
+- Layout: gráfico fijo 200px, tabs ocupan resto, sin flex desproporcionado
+- CSS override workbench.css (340px) + header SLT oculto
 
 PRÓXIMO
 -------
-- Order book en panel lateral SLT
-- Params runtime sin reiniciar sesión
+- Compactar sidebar izq (menos scroll)
+- Order book lateral SLT
 
 INVARIANTES
 -----------
