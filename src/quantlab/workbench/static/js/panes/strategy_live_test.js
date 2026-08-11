@@ -112,11 +112,110 @@
     return iso == null || iso === "" ? "—" : String(iso);
   }
 
-  function fmtNum(v) {
-    if (v == null || v === "") return "—";
-    var n = Number(v);
-    return isFinite(n) ? n.toLocaleString("es-AR", { maximumFractionDigits: 6 }) : String(v);
-  }
+    function fmtNum(v) {
+      if (v == null || v === "") return "—";
+      var n = Number(v);
+      return isFinite(n) ? n.toLocaleString("es-AR", { maximumFractionDigits: 6 }) : String(v);
+    }
+
+    function fmtDeltaNum(cur, prev) {
+      if (prev == null || cur == null || cur === "" || prev === "") {
+        return { text: "—", cls: "slt-delta-flat" };
+      }
+      var d = Number(cur) - Number(prev);
+      if (!isFinite(d)) return { text: "—", cls: "slt-delta-flat" };
+      var sign = d >= 0 ? "+" : "";
+      return {
+        text:
+          sign +
+          d.toLocaleString("es-AR", {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 4,
+          }),
+        cls: d > 0 ? "slt-delta-pos" : d < 0 ? "slt-delta-neg" : "slt-delta-flat",
+      };
+    }
+
+    function fmtPct(cur, base) {
+      if (base == null || cur == null) return "—";
+      var b = Number(base);
+      var c = Number(cur);
+      if (!isFinite(b) || !isFinite(c) || b === 0) return "—";
+      var pct = ((c - b) / Math.abs(b)) * 100;
+      var sign = pct >= 0 ? "+" : "";
+      return sign + pct.toFixed(2) + " %";
+    }
+
+    function initSltSplitters() {
+      var STORAGE_SIDEBAR = "ql.slt.sidebarW";
+      var STORAGE_UPPER = "ql.slt.upperH";
+      var colSplit = root.querySelector("#slt-split-col");
+      var rowSplit = root.querySelector("#slt-split-row");
+      var upper = root.querySelector(".slt-right-upper");
+      var savedW = localStorage.getItem(STORAGE_SIDEBAR);
+      if (savedW) root.style.setProperty("--slt-sidebar-w", savedW + "px");
+      var savedH = localStorage.getItem(STORAGE_UPPER);
+      if (savedH) root.style.setProperty("--slt-upper-h", savedH + "px");
+
+      function refreshChartSize() {
+        if (sltChart && sltChart.resize) sltChart.resize();
+      }
+
+      if (colSplit) {
+        colSplit.addEventListener("mousedown", function (e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          var startX = e.clientX;
+          var aside = root.querySelector(".slt-dashboard-left");
+          var startW = aside ? aside.getBoundingClientRect().width : 280;
+          colSplit.classList.add("slt-split-active");
+          function onMove(ev) {
+            var w = Math.max(200, Math.min(520, startW + (ev.clientX - startX)));
+            root.style.setProperty("--slt-sidebar-w", Math.round(w) + "px");
+          }
+          function onUp() {
+            colSplit.classList.remove("slt-split-active");
+            var w = parseInt(
+              getComputedStyle(root).getPropertyValue("--slt-sidebar-w"),
+              10
+            );
+            if (w) localStorage.setItem(STORAGE_SIDEBAR, String(w));
+            refreshChartSize();
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+      }
+
+      if (rowSplit && upper) {
+        rowSplit.addEventListener("mousedown", function (e) {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          var startY = e.clientY;
+          var startH = upper.getBoundingClientRect().height;
+          rowSplit.classList.add("slt-split-active");
+          function onMove(ev) {
+            var h = Math.max(140, Math.min(window.innerHeight * 0.78, startH + (ev.clientY - startY)));
+            root.style.setProperty("--slt-upper-h", Math.round(h) + "px");
+          }
+          function onUp() {
+            rowSplit.classList.remove("slt-split-active");
+            var h = parseInt(
+              getComputedStyle(root).getPropertyValue("--slt-upper-h"),
+              10
+            );
+            if (h) localStorage.setItem(STORAGE_UPPER, String(h));
+            refreshChartSize();
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+          }
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+      }
+    }
 
   function createStrategyLiveTestPane() {
     var root = document.createElement("div");
@@ -228,7 +327,9 @@
       '<div id="slt-hist-list" class="mono slt-hist-list">—</div>' +
       "</div></details>" +
       "</aside>" +
+      '<div class="slt-split-col" id="slt-split-col" title="Arrastrá para cambiar ancho del panel config" aria-label="Redimensionar panel config"></div>' +
       '<main class="slt-dashboard-right">' +
+      '<div class="slt-right-upper">' +
       '<div class="pane-section slt-live slt-live-top" id="slt-live-box">' +
       '<div class="slt-live-row">' +
       '<div class="slt-phase" id="slt-phase">● Listo</div>' +
@@ -257,6 +358,9 @@
       '<span class="slt-ops-label muted">Últimas ops</span>' +
       '<div id="slt-order-side-list" class="slt-order-side-list muted">—</div>' +
       "</div>" +
+      "</div>" +
+      '<div class="slt-split-row" id="slt-split-row" title="Arrastrá para cambiar alto del gráfico" aria-label="Redimensionar zona gráfico"></div>' +
+      '<div class="slt-right-lower">' +
       '<div class="pane-section slt-closure" id="slt-closure-box" hidden>' +
       '<h4 id="slt-closure-head">Resumen final</h4>' +
       '<div class="slt-closure-cols">' +
@@ -296,6 +400,7 @@
       '<div class="slt-tab-panel" data-panel="eventos" id="slt-panel-eventos"></div>' +
       '<div class="slt-tab-panel" data-panel="tecnico" id="slt-panel-tecnico"></div>' +
       "</div>" +
+      "</div>" +
       "</main></div>";
 
     var strategies = [];
@@ -314,6 +419,8 @@
     var closureShown = false;
     var sltChart = null;
     var chartLoadTimer = null;
+    var lastChartTf = null;
+    var lastChartMarket = null;
     var lastChartSymbol = "";
     var plannedDurationMs = 3600000;
     var durationManualSteps = false;
@@ -428,38 +535,131 @@
       ph.textContent = String(msg || "Sin datos");
     }
 
+    function klineSymbolFromText(sym) {
+      if (!sym) return "BTCUSDT";
+      var s = String(sym).trim().toUpperCase();
+      if (s.indexOf(":") >= 0) s = s.split(":").pop() || s;
+      s = s.replace("/", "");
+      if (s && s.indexOf("USDT") < 0 && s.indexOf("USDC") < 0 && s.indexOf("BUSD") < 0) {
+        s = s + "USDT";
+      }
+      return s || "BTCUSDT";
+    }
+
+    function resolveChartContext(live) {
+      var summary = live && live.live_summary ? live.live_summary : {};
+      var man =
+        live && live.execution_session && live.execution_session.manifest
+          ? live.execution_session.manifest
+          : {};
+      var symRaw =
+        summary.symbol_resolved ||
+        summary.symbol ||
+        man.symbol ||
+        (symIn && symIn.value) ||
+        "BTCUSDT";
+      var marketType =
+        man.market_type ||
+        (pendingPrefill && pendingPrefill.market_type) ||
+        (root.querySelector("#slt-market") && root.querySelector("#slt-market").value) ||
+        "spot";
+      return {
+        symbol: klineSymbolFromText(symRaw),
+        market_type: String(marketType || "spot").toLowerCase(),
+      };
+    }
+
+    function setFieldVal(sel, v) {
+      if (v == null || v === "") return;
+      var el = root.querySelector(sel);
+      if (el) el.value = String(v);
+    }
+
+    function syncFormFromLiveSession(live) {
+      if (!live || !(live.live_summary && live.live_summary.paper_running)) return;
+      var summary = live.live_summary;
+      var man =
+        live.execution_session && live.execution_session.manifest
+          ? live.execution_session.manifest
+          : {};
+      var sym = klineSymbolFromText(
+        summary.symbol_resolved || man.symbol || summary.symbol
+      );
+      if (symIn && symIn.value.toUpperCase() !== sym) symIn.value = sym;
+      if (stratSel && summary.strategy_id) {
+        if (stratSel.querySelector('[value="' + summary.strategy_id + '"]')) {
+          stratSel.value = summary.strategy_id;
+        }
+      }
+      if (man.market_type) setFieldVal("#slt-market", man.market_type);
+      if (man.execution_destination && destSel) destSel.value = man.execution_destination;
+      renderStrategyParams();
+      updateCatalogLine();
+    }
+
+    function chartTfValue() {
+      return chartTfSel ? chartTfSel.value : "1m";
+    }
+
+    function chartNetwork() {
+      // MD del motor paper/testnet = Binance producción (real). Gráfico alineado al ticker.
+      return "mainnet";
+    }
+
     function ensureChart() {
       if (!chartHostEl || !global.SLTChart) return null;
+      var tf = chartTfValue();
       if (
         !sltChart ||
         !sltChart.ready ||
         (typeof sltChart.hasSeries === "function" && !sltChart.hasSeries())
       ) {
         if (sltChart && sltChart.destroy) sltChart.destroy();
-        sltChart = SLTChart.create({ container: chartHostEl, height: CHART_H });
+        sltChart = SLTChart.create({
+          container: chartHostEl,
+          height: CHART_H,
+          interval: tf,
+        });
+      } else if (sltChart.setInterval) {
+        sltChart.setInterval(tf);
       }
       return sltChart;
     }
 
-    function loadChartKlines(force) {
-      if (!QLApi.binanceKlines || !symIn) return Promise.resolve();
-      var sym = (symIn.value || "BTCUSDT").trim().toUpperCase();
-      var marketEl = root.querySelector("#slt-market");
-      var marketType = marketEl ? marketEl.value : "spot";
-      var tf = chartTfSel ? chartTfSel.value : "1m";
-      if (!force && sym === lastChartSymbol && sltChart && sltChart.ready) {
+    function loadChartKlines(force, ctxOverride) {
+      if (!QLApi.binanceKlines) return Promise.resolve();
+      var ctx = ctxOverride || resolveChartContext(lastLive);
+      var sym = ctx.symbol;
+      var marketType = ctx.market_type || "spot";
+      var tf = chartTfValue();
+      var network = chartNetwork();
+      if (
+        !force &&
+        sym === lastChartSymbol &&
+        tf === lastChartTf &&
+        marketType === lastChartMarket &&
+        sltChart &&
+        sltChart.ready
+      ) {
         return Promise.resolve();
       }
+      var symbolChanged = sym !== lastChartSymbol || marketType !== lastChartMarket;
       lastChartSymbol = sym;
+      lastChartTf = tf;
+      lastChartMarket = marketType;
+      if (symbolChanged && sltChart && sltChart.clear) sltChart.clear();
       return QLApi.binanceKlines({
         symbol: sym,
         interval: tf,
         limit: 180,
         market_type: marketType,
+        network: network,
       })
         .then(function (payload) {
           var ch = ensureChart();
           if (ch && payload && payload.bars && payload.bars.length) {
+            if (ch.setInterval) ch.setInterval(tf);
+            payload.symbol = sym;
             ch.loadKlines(payload);
           } else {
             showChartHostMessage("Sin velas para " + sym + " (" + marketType + ")");
@@ -507,30 +707,53 @@
       }
     }
 
+    function fmtFillPrice(v) {
+      if (v == null || v === "") return "—";
+      var n = Number(v);
+      if (!isFinite(n)) return String(v);
+      var digits = Math.abs(n) >= 100 ? 2 : Math.abs(n) >= 1 ? 4 : 6;
+      return n.toLocaleString("es-AR", {
+        minimumFractionDigits: digits,
+        maximumFractionDigits: digits,
+      });
+    }
+
     function renderOrderSide(fills) {
       var el = root.querySelector("#slt-order-side-list");
       if (!el) return;
       if (!fills || !fills.length) {
-        el.innerHTML = '<span class="muted">Sin operaciones aún</span>';
+        el.innerHTML = '<span class="muted slt-ops-empty">Sin operaciones aún</span>';
         return;
       }
       el.innerHTML = fills
         .slice()
         .reverse()
-        .slice(0, 8)
+        .slice(0, 10)
         .map(function (f) {
           var side = String(f.side || "").toUpperCase();
           var isBuy = side === "BUY" || side === "B";
+          var qty = fmtNum(f.quantity || f.qty);
+          var px = fmtFillPrice(f.price);
           return (
-            '<span class="slt-order-row slt-order-chip ' +
-            (isBuy ? "slt-order-buy" : "slt-order-sell") +
-            '">' +
-            '<span class="slt-order-side">' +
-            (isBuy ? "C" : "V") +
-            "</span> " +
-            fmtNum(f.quantity || f.qty) +
+            '<span class="slt-op-chip ' +
+            (isBuy ? "slt-op-buy" : "slt-op-sell") +
+            '" title="' +
+            (isBuy ? "Compra" : "Venta") +
+            " " +
+            qty +
             " @ " +
-            fmtNum(f.price) +
+            px +
+            '">' +
+            '<span class="slt-op-badge">' +
+            (isBuy ? "C" : "V") +
+            "</span>" +
+            '<span class="slt-op-qty">' +
+            qty +
+            "</span>" +
+            '<span class="slt-op-at">@</span>' +
+            '<span class="slt-op-px">' +
+            px +
+            "</span>" +
             "</span>"
           );
         })
@@ -606,6 +829,7 @@
       });
     }
     applyDurationToSteps();
+    initSltSplitters();
     setTimeout(function () {
       ensureChart();
       loadChartKlines(true);
@@ -752,21 +976,17 @@
     function applyOperationalPrefill(prefill) {
       if (!prefill) return;
       var ctx = prefill.sim_context || {};
-      function setVal(sel, v) {
-        var el = root.querySelector(sel);
-        if (el && v != null && v !== "") el.value = String(v);
-      }
-      setVal("#slt-market", prefill.market_type || ctx.market_type);
-      setVal("#slt-interval", prefill.interval || ctx.interval);
-      setVal("#slt-venue", prefill.venue || (ctx.venues && ctx.venues[0]));
-      setVal("#slt-period", prefill.period_days || ctx.period_days);
-      setVal(
+      setFieldVal("#slt-market", prefill.market_type || ctx.market_type);
+      setFieldVal("#slt-interval", prefill.interval || ctx.interval);
+      setFieldVal("#slt-venue", prefill.venue || (ctx.venues && ctx.venues[0]));
+      setFieldVal("#slt-period", prefill.period_days || ctx.period_days);
+      setFieldVal(
         "#slt-capital",
         prefill.capital || ctx.initial_capital || ctx.capital
       );
-      setVal("#slt-leverage", prefill.leverage || ctx.leverage);
-      setVal("#slt-per-trade", prefill.per_trade_usd || ctx.per_trade_usd);
-      if (prefill.interval_ms != null) setVal("#slt-interval-ms", prefill.interval_ms);
+      setFieldVal("#slt-leverage", prefill.leverage || ctx.leverage);
+      setFieldVal("#slt-per-trade", prefill.per_trade_usd || ctx.per_trade_usd);
+      if (prefill.interval_ms != null) setFieldVal("#slt-interval-ms", prefill.interval_ms);
     }
 
     function collectOperationalConfig() {
@@ -1248,6 +1468,17 @@
 
       if (running) {
         hideClosure();
+        syncFormFromLiveSession(live);
+      }
+
+      var chartCtx = resolveChartContext(live);
+      var chartSym = chartCtx.symbol;
+      if (
+        running &&
+        (chartSym !== lastChartSymbol ||
+          chartCtx.market_type !== lastChartMarket)
+      ) {
+        loadChartKlines(true, chartCtx);
       }
 
       if (lastPaperRunning && !running && sessionId && lastPaperStarted && !closureShown) {
@@ -1311,7 +1542,9 @@
           "</span>";
       }
 
-      var symResolved = summary.symbol_resolved || summary.symbol || (symIn && symIn.value);
+      var symResolved = klineSymbolFromText(
+        summary.symbol_resolved || summary.symbol || (symIn && symIn.value)
+      );
       renderTicker(mkt, symResolved);
       renderOrderSide(live.fills || []);
       if (running) root.classList.add("slt-v2--running");
@@ -1319,7 +1552,10 @@
       var ch = ensureChart();
       if (ch) {
         if (ch.resize) ch.resize();
-        if (mkt) ch.updateMarket(mkt);
+        var chartReadySym = ch.getSymbol ? ch.getSymbol() : lastChartSymbol;
+        if (mkt && chartReadySym && chartReadySym === symResolved) {
+          ch.updateMarket(mkt);
+        }
         if (live.fills) ch.setFills(live.fills);
       }
 
@@ -1372,115 +1608,184 @@
       var ps = live.paper_status || {};
       var pnl = live.pnl || {};
       var caps = live.capabilities || {};
+      var mkt = live.market || {};
       var eq = live.equity_curve || [];
-      var eqRows = eq.length
-        ? eq
-            .slice(-12)
-            .reverse()
+      var stepsNow = s.steps != null ? s.steps : ps.steps || 0;
+      var maxSteps = s.max_steps || ps.max_steps || 0;
+      var progressPct =
+        maxSteps > 0 ? Math.min(100, Math.round((100 * stepsNow) / maxSteps)) : 0;
+      var fillsN = live.fills_count != null ? live.fills_count : (live.fills || []).length;
+      var pos = live.positions || [];
+      var posQty = pos.length
+        ? pos
             .map(function (p) {
               return (
-                "<tr><td>" +
-                esc(fmtDt(p.ts || p.timestamp || p.step || "")) +
-                "</td><td>" +
-                fmtNum(p.equity) +
-                "</td><td>" +
-                fmtNum(p.cash) +
-                "</td><td>" +
-                esc(String(p.step != null ? p.step : "")) +
-                "</td></tr>"
+                esc(p.symbol || p.instrument_id || "?") +
+                " " +
+                fmtNum(p.quantity || p.qty)
               );
             })
-            .join("")
-        : "<tr><td colspan=\"4\" class=\"muted\">Sin puntos equity aún</td></tr>";
+            .join(" · ")
+        : "Sin posición";
+
+      var eqNum = Number(pnl.equity);
+      var cashNum = Number(pnl.cash);
+      var posVal =
+        isFinite(eqNum) && isFinite(cashNum) ? fmtNum(eqNum - cashNum) : "—";
+      var spread =
+        mkt.bid != null && mkt.ask != null
+          ? fmtNum(Number(mkt.ask) - Number(mkt.bid))
+          : "—";
+
+      var eqPts = eq.slice(-24);
+      var eqRows = "";
+      if (!eqPts.length) {
+        eqRows =
+          '<tr><td colspan="8" class="muted">Sin puntos equity aún — se registran al operar.</td></tr>';
+      } else {
+        var ordered = eqPts.slice().reverse();
+        for (var i = 0; i < ordered.length; i++) {
+          var p = ordered[i];
+          var prev = i < ordered.length - 1 ? ordered[i + 1] : null;
+          var eqV = Number(p.equity);
+          var cashV = Number(p.cash);
+          var exposure =
+            isFinite(eqV) && isFinite(cashV) ? fmtNum(eqV - cashV) : "—";
+          var dEq = fmtDeltaNum(p.equity, prev && prev.equity);
+          var dCash = fmtDeltaNum(p.cash, prev && prev.cash);
+          var stepCell =
+            i === 0 && stepsNow != null ? esc(String(stepsNow)) : "—";
+          eqRows +=
+            "<tr>" +
+            "<td>" +
+            esc(fmtDt(p.ts || p.timestamp || "")) +
+            "</td>" +
+            "<td class=\"mono\">" +
+            stepCell +
+            "</td>" +
+            "<td class=\"mono\">" +
+            fmtNum(p.equity) +
+            "</td>" +
+            "<td class=\"mono\">" +
+            fmtNum(p.cash) +
+            "</td>" +
+            "<td class=\"mono\">" +
+            exposure +
+            "</td>" +
+            "<td class=\"mono " +
+            dEq.cls +
+            "\">" +
+            esc(dEq.text) +
+            "</td>" +
+            "<td class=\"mono " +
+            dCash.cls +
+            "\">" +
+            esc(dCash.text) +
+            "</td>" +
+            "<td class=\"mono muted\">" +
+            esc(prev ? fmtPct(p.equity, prev.equity) : "—") +
+            "</td>" +
+            "</tr>";
+        }
+      }
+
       el.innerHTML =
-        "<table class=\"sim-summary-table mono\" style=\"width:100%;font-size:1.08em\">" +
-        "<tr><th>Estrategia</th><td>" +
+        '<div class="slt-kpi-grid">' +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Paso</span><span class="slt-kpi-val mono">' +
+        esc(String(stepsNow)) +
+        " / " +
+        esc(String(maxSteps || "?")) +
+        ' <span class="muted">(' +
+        progressPct +
+        "%)</span></span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Operaciones</span><span class="slt-kpi-val mono">' +
+        esc(String(fillsN)) +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Equity</span><span class="slt-kpi-val mono">' +
+        fmtNum(pnl.equity) +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Cash</span><span class="slt-kpi-val mono">' +
+        fmtNum(pnl.cash) +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Exposición</span><span class="slt-kpi-val mono">' +
+        posVal +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">PnL realizado</span><span class="slt-kpi-val mono">' +
+        fmtNum(pnl.realized_pnl || pnl.total_pnl) +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Bid / Ask</span><span class="slt-kpi-val mono slt-order-buy">' +
+        fmtNum(mkt.bid) +
+        '</span> <span class="muted">/</span> <span class="slt-kpi-val mono slt-order-sell">' +
+        fmtNum(mkt.ask) +
+        "</span></div>" +
+        '<div class="slt-kpi"><span class="slt-kpi-label">Spread MD</span><span class="slt-kpi-val mono">' +
+        spread +
+        "</span></div>" +
+        "</div>" +
+        '<dl class="slt-session-kv">' +
+        "<div><dt>Estrategia</dt><dd>" +
         esc(man.strategy_name || man.strategy_id || s.strategy_name) +
-        "</td></tr>" +
-        "<tr><th>Símbolo</th><td>" +
+        "</dd></div>" +
+        "<div><dt>Símbolo</dt><dd class=\"mono\">" +
         esc(s.symbol_resolved || man.symbol || s.symbol) +
-        (s.symbol_resolved &&
-        man.symbol &&
-        s.symbol_resolved.toUpperCase() !== String(man.symbol).toUpperCase()
-          ? ' <span class="muted">(manifest ' + esc(man.symbol) + " → MD " + esc(s.symbol_resolved) + ")</span>"
-          : "") +
-        "</td></tr>" +
-        "<tr><th>Destino</th><td>" +
+        "</dd></div>" +
+        "<div><dt>Destino</dt><dd>" +
         esc(man.execution_destination || s.destination) +
-        "</td></tr>" +
-        "<tr><th>Estado sesión</th><td>" +
+        " · " +
+        esc(man.market_type || "spot") +
+        "</dd></div>" +
+        "<div><dt>Estado</dt><dd>" +
         esc(sess.state || s.phase) +
         (s.paper_running ? " · <b>PAPER ON</b>" : "") +
-        "</td></tr>" +
-        "<tr><th>Session / Promo</th><td class=\"mono\">" +
+        "</dd></div>" +
+        "<div><dt>Posición</dt><dd class=\"mono\">" +
+        posQty +
+        "</dd></div>" +
+        "<div><dt>Sesión</dt><dd class=\"mono\">" +
         esc(s.session_id || sess.session_id || "—") +
-        " · " +
-        esc(s.promotion_id || man.promotion_id || "—") +
-        "</td></tr>" +
-        "<tr><th>PnL</th><td>realized " +
-        fmtNum(pnl.realized_pnl) +
-        " · unrealized " +
-        fmtNum(pnl.unrealized_pnl) +
-        " · equity " +
-        fmtNum(pnl.equity) +
-        " · cash " +
-        fmtNum(pnl.cash) +
-        "</td></tr>" +
-        "<tr><th>Paper status</th><td>running=" +
-        esc(String(ps.running)) +
-        " · steps " +
-        esc(String(ps.steps || 0)) +
-        "/" +
-        esc(String(ps.max_steps || "?")) +
-        (ps.last_error ? " · <span style=\"color:var(--err,#f66)\">" + esc(ps.last_error) + "</span>" : "") +
-        "</td></tr>" +
+        "</dd></div>" +
+        "</dl>" +
         (ps.testnet_mirror && ps.testnet_mirror.mode && ps.testnet_mirror.mode !== "none"
-          ? "<tr><th>Espejo testnet</th><td>modo " +
+          ? '<p class="slt-mirror-note muted">Espejo testnet · ' +
             esc(ps.testnet_mirror.mode) +
             " · intentos " +
             esc(String(ps.testnet_mirror.attempts || 0)) +
             " · ok " +
             esc(String(ps.testnet_mirror.ok || 0)) +
-            (ps.testnet_mirror.last && ps.testnet_mirror.last.error
-              ? " · <span style=\"color:var(--warn,#c90)\">" + esc(ps.testnet_mirror.last.error) + "</span>"
-              : ps.testnet_mirror.last && ps.testnet_mirror.last.skipped
-                ? " · <span class=\"muted\">sin keys/unlock aún</span>"
-                : "") +
-            "</td></tr>"
+            "</p>"
           : "") +
         (s.paper_blocker
-          ? "<tr><th>Aviso</th><td style=\"color:var(--warn,#c90)\">" + esc(s.paper_blocker) + "</td></tr>"
+          ? '<p class="slt-warn-note">' + esc(s.paper_blocker) + "</p>"
           : "") +
-        (sourcePrefill && sourcePrefill.source_module
-          ? "<tr><th>Origen UI</th><td>" +
-            esc(sourcePrefill.source_module) +
-            (sourcePrefill.message ? " · " + esc(sourcePrefill.message) : "") +
-            "</td></tr>"
-          : "") +
-        (man.historical_metrics && Object.keys(man.historical_metrics).length
-          ? "<tr><th>Métricas origen</th><td><pre style=\"margin:0;white-space:pre-wrap;max-height:5rem;overflow:auto\">" +
-            esc(JSON.stringify(man.historical_metrics, null, 2)) +
-            "</pre></td></tr>"
-          : "") +
-        "<tr><th>Certificación</th><td>paper_run=" +
+        '<h4 class="slt-section-title">Curva equity · últimos ' +
+        eqPts.length +
+        " puntos</h4>" +
+        '<div class="slt-table-scroll">' +
+        '<table class="slt-data-table mono">' +
+        "<thead><tr>" +
+        "<th>Hora</th><th>Paso</th><th>Equity</th><th>Cash</th>" +
+        "<th>Exposición</th><th>Δ Equity</th><th>Δ Cash</th><th>Δ %</th>" +
+        "</tr></thead><tbody>" +
+        eqRows +
+        "</tbody></table></div>" +
+        '<details class="slt-fold slt-detail-fold">' +
+        "<summary>Más detalle técnico</summary>" +
+        '<dl class="slt-session-kv slt-session-kv-compact">' +
+        "<div><dt>Promo</dt><dd class=\"mono\">" +
+        esc(s.promotion_id || man.promotion_id || "—") +
+        "</dd></div>" +
+        "<div><dt>Broker</dt><dd>" +
+        (live.broker_connected ? "Paper · " + esc(live.venue || "") : "desconectado") +
+        "</dd></div>" +
+        "<div><dt>Certificación</dt><dd>paper_run=" +
         esc(String(caps.paper_run_certified)) +
-        " · spot_testnet=" +
-        esc(String(caps.spot_testnet_supported)) +
         " · " +
         esc(caps.certification_status || "") +
-        "</td></tr>" +
-        "<tr><th>Parámetros</th><td><pre style=\"margin:0;white-space:pre-wrap;max-height:6rem;overflow:auto\">" +
-        esc(JSON.stringify(man.strategy_parameters || {}, null, 2)) +
-        "</pre></td></tr>" +
-        "<tr><th>Broker</th><td>" +
-        (live.broker_connected ? "Paper conectado · " + esc(live.venue || "") : "desconectado") +
-        "</td></tr></table>" +
-        "<h4 style=\"margin:0.65rem 0 0.25rem;font-size:1.12em\">Curva equity (últimos puntos)</h4>" +
-        '<table class="sim-summary-table mono" style="width:100%;font-size:1.04em">' +
-        "<thead><tr><th>TS</th><th>Equity</th><th>Cash</th><th>Step</th></tr></thead>" +
-        "<tbody>" +
-        eqRows +
-        "</tbody></table>";
+        "</dd></div>" +
+        (sourcePrefill && sourcePrefill.source_module
+          ? "<div><dt>Origen</dt><dd>" + esc(sourcePrefill.source_module) + "</dd></div>"
+          : "") +
+        "</dl></details>";
     }
 
     function renderOrdenes(live) {
@@ -1510,7 +1815,7 @@
             "</td><td>" +
             fmtNum(f.quantity || f.qty) +
             "</td><td>" +
-            fmtNum(f.price) +
+            fmtFillPrice(f.price) +
             "</td><td class=\"muted\">" +
             esc(f.order_id || "") +
             "</td></tr>"
@@ -1828,10 +2133,9 @@
           stratSel.value = prefill.strategy_id;
         }
       }
-      if (prefill.symbol && symIn) symIn.value = prefill.symbol;
+      if (prefill.symbol && symIn) symIn.value = klineSymbolFromText(prefill.symbol);
       if (prefill.underlying && symIn && !prefill.symbol) {
-        var u = String(prefill.underlying).toUpperCase();
-        symIn.value = u.indexOf("USDT") >= 0 ? u : u + "USDT";
+        symIn.value = klineSymbolFromText(prefill.underlying);
       }
       if (prefill.sim_context) {
         var ctx = prefill.sim_context;
@@ -1841,8 +2145,7 @@
           }
         }
         if (!prefill.symbol && ctx.coin && symIn) {
-          var c = String(ctx.coin).toUpperCase();
-          symIn.value = c.indexOf("USDT") >= 0 ? c.split(",")[0].trim() : c.split(",")[0].trim() + "USDT";
+          symIn.value = klineSymbolFromText(String(ctx.coin).split(",")[0]);
         }
         if (ctx.market_type && !prefill.market_type) prefill.market_type = ctx.market_type;
       }
@@ -1878,6 +2181,7 @@
       destSel.addEventListener("change", function () {
         updateCatalogLine();
         refreshHint();
+        loadChartKlines(true);
       });
     }
 
@@ -1895,7 +2199,12 @@
           computeMaxStepsFromDuration().toLocaleString("es-AR") +
           " pasos…"
       );
-      loadChartKlines(true);
+      loadChartKlines(true, {
+        symbol: klineSymbolFromText(symIn ? symIn.value : "BTCUSDT"),
+        market_type:
+          (root.querySelector("#slt-market") && root.querySelector("#slt-market").value) ||
+          "spot",
+      });
       QLApi.executionRun(buildRunBody())
         .then(function (res) {
           sessionId = res.session_id;

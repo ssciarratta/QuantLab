@@ -5,6 +5,151 @@
   var LC_WAIT_MS = 8000;
   var LC_POLL_MS = 100;
 
+  var INTERVAL_SEC = {
+    "1m": 60,
+    "3m": 180,
+    "5m": 300,
+    "15m": 900,
+    "1h": 3600,
+    "4h": 14400,
+    "1d": 86400,
+  };
+
+  function resolveIntervalSec(tf) {
+    if (!tf) return 60;
+    var key = String(tf).trim();
+    return INTERVAL_SEC[key] || 60;
+  }
+
+  function nowSec(serverNow) {
+    var client = Math.floor(Date.now() / 1000);
+    if (serverNow != null && isFinite(Number(serverNow))) {
+      return Math.min(client, Math.floor(Number(serverNow)));
+    }
+    return client;
+  }
+
+  function barOpenTime(tsSec, sec) {
+    var s = sec > 0 ? sec : 60;
+    return Math.floor(tsSec / s) * s;
+  }
+
+  /** LC v4 muestra UTC en eje; codificamos hora local como UTC para alinear con reloj del usuario. */
+  function toLocalChartTime(utcSec) {
+    var d = new Date(utcSec * 1000);
+    return Math.floor(
+      Date.UTC(
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        d.getHours(),
+        d.getMinutes(),
+        d.getSeconds()
+      ) / 1000
+    );
+  }
+
+  function toChartBar(bar) {
+    return {
+      time: toLocalChartTime(bar.time),
+      open: bar.open,
+      high: bar.high,
+      low: bar.low,
+      close: bar.close,
+    };
+  }
+
+  function formatChartAxisTime(time) {
+    var ts =
+      typeof time === "number"
+        ? time
+        : time && time.timestamp != null
+          ? time.timestamp
+          : time && time.year != null
+            ? Math.floor(
+                Date.UTC(
+                  time.year,
+                  time.month - 1,
+                  time.day,
+                  time.hour || 0,
+                  time.minute || 0,
+                  time.second || 0
+                ) / 1000
+              )
+            : null;
+    if (ts == null) return "";
+    var d = new Date(ts * 1000);
+    var hh = String(d.getUTCHours()).padStart(2, "0");
+    var mm = String(d.getUTCMinutes()).padStart(2, "0");
+    return hh + ":" + mm;
+  }
+
+  function parseBarTime(raw) {
+    if (raw == null) return null;
+    var t = raw;
+    if (typeof t === "string") t = Math.floor(new Date(t).getTime() / 1000);
+    if (typeof t !== "number" || !isFinite(t)) return null;
+    if (t > 1e12) t = Math.floor(t / 1000);
+    return t;
+  }
+
+  function normalizeBars(bars, intervalSec, serverNow) {
+    if (!bars || !bars.length) return [];
+    var sec = intervalSec > 0 ? intervalSec : 60;
+    var now = nowSec(serverNow);
+    var formingOpen = barOpenTime(now, sec);
+    var byTime = {};
+    for (var i = 0; i < bars.length; i++) {
+      var b = bars[i];
+      var t = parseBarTime(b.time);
+      if (t == null) continue;
+      t = barOpenTime(t, sec);
+      if (t > formingOpen) continue;
+      var o = Number(b.open);
+      var h = Number(b.high);
+      var l = Number(b.low);
+      var c = Number(b.close);
+      if (!isFinite(o) || !isFinite(h) || !isFinite(l) || !isFinite(c)) continue;
+      byTime[t] = { time: t, open: o, high: h, low: l, close: c };
+    }
+    var out = Object.keys(byTime)
+      .map(function (k) {
+        return byTime[k];
+      })
+      .sort(function (a, b) {
+        return a.time - b.time;
+      });
+    return out;
+  }
+
+  function trimSyntheticBars(bars, intervalSec) {
+    if (!bars || bars.length < 2) return bars || [];
+    var sec = intervalSec > 0 ? intervalSec : 60;
+    var out = [bars[0]];
+    for (var i = 1; i < bars.length; i++) {
+      var prev = out[out.length - 1];
+      var cur = bars[i];
+      var delta = cur.time - prev.time;
+      if (delta > 0 && delta < sec) continue;
+      if (cur.time === prev.time) {
+        out[out.length - 1] = cur;
+        continue;
+      }
+      out.push(cur);
+    }
+    return out;
+  }
+
+  function clipBarsToNow(bars, intervalSec, serverNow) {
+    if (!bars || !bars.length) return [];
+    var sec = intervalSec > 0 ? intervalSec : 60;
+    var formingOpen = barOpenTime(nowSec(serverNow), sec);
+    var out = bars.filter(function (b) {
+      return b.time <= formingOpen;
+    });
+    return trimSyntheticBars(out, sec);
+  }
+
   function parseTs(fill) {
     var raw = fill.ts || fill.timestamp || fill.time;
     if (!raw) return null;
@@ -12,28 +157,6 @@
     var d = new Date(raw);
     if (isNaN(d.getTime())) return null;
     return Math.floor(d.getTime() / 1000);
-  }
-
-  function normalizeBars(bars) {
-    if (!bars || !bars.length) return [];
-    var out = [];
-    var lastT = -1;
-    for (var i = 0; i < bars.length; i++) {
-      var b = bars[i];
-      var t = b.time;
-      if (typeof t === "string") t = Math.floor(new Date(t).getTime() / 1000);
-      if (typeof t !== "number" || !isFinite(t)) continue;
-      if (t > 1e12) t = Math.floor(t / 1000);
-      if (t <= lastT) t = lastT + 1;
-      lastT = t;
-      var o = Number(b.open);
-      var h = Number(b.high);
-      var l = Number(b.low);
-      var c = Number(b.close);
-      if (!isFinite(o) || !isFinite(h) || !isFinite(l) || !isFinite(c)) continue;
-      out.push({ time: t, open: o, high: h, low: l, close: c });
-    }
-    return out;
   }
 
   function showMessage(wrap, msg) {
@@ -72,7 +195,7 @@
     return v.toFixed(6);
   }
 
-  function fmtTime(ts) {
+  function fmtTimeLocal(ts) {
     var d = new Date(ts * 1000);
     var hh = String(d.getHours()).padStart(2, "0");
     var mm = String(d.getMinutes()).padStart(2, "0");
@@ -132,7 +255,7 @@
     var step = Math.max(1, Math.floor(n / 5));
     for (var ti = 0; ti < n; ti += step) {
       var tx = pad.l + (plotW * (ti + 0.5)) / n;
-      ctx.fillText(fmtTime(bars[ti].time), tx, size.h - 6);
+      ctx.fillText(fmtTimeLocal(bars[ti].time), tx, size.h - 6);
     }
 
     var slot = plotW / n;
@@ -216,14 +339,18 @@
     opts = opts || {};
     var wrap = opts.container;
     var height = opts.height || 200;
+    var chartInterval = opts.interval || "1m";
+    var intervalSec = resolveIntervalSec(chartInterval);
     var lastBars = [];
+    var lastFills = [];
+    var serverNowSec = null;
+    var chartSymbol = null;
     var mode = "none";
     var chart = null;
     var series = null;
     var chartEl = null;
     var ro = null;
     var destroyed = false;
-    var lcReady = false;
 
     if (!wrap) {
       return {
@@ -234,12 +361,106 @@
         hasSeries: function () {
           return false;
         },
+        setInterval: function () {},
         loadKlines: function () {},
         updateMarket: function () {},
         setFills: function () {},
         resize: function () {},
         destroy: function () {},
       };
+    }
+
+    function syncInterval(tf) {
+      if (!tf) return;
+      chartInterval = String(tf);
+      intervalSec = resolveIntervalSec(chartInterval);
+    }
+
+    function applyVisibleWindow() {
+      if (!chart || !lastBars.length) return;
+      try {
+        chart.timeScale().fitContent();
+        var ps = chart.priceScale("right");
+        if (ps && ps.applyOptions) {
+          ps.applyOptions({ autoScale: true });
+        }
+      } catch (e) {}
+    }
+
+    function priceInRange(px, ref) {
+      if (!isFinite(px) || !isFinite(ref) || ref <= 0) return true;
+      var ratio = px / ref;
+      return ratio >= 0.2 && ratio <= 5;
+    }
+
+    function resetSeriesData() {
+      lastBars = [];
+      lastFills = [];
+      if (mode === "lc" && series) {
+        try {
+          series.setData([]);
+          applyMarkers(series, []);
+        } catch (e) {}
+      }
+    }
+
+    function renderSeriesData() {
+      if (mode === "lc" && series && chart) {
+        series.setData(lastBars.map(toChartBar));
+        applyVisibleWindow();
+      } else if (mode === "canvas" && lastBars.length) {
+        drawCanvasChart(wrap, lastBars, height);
+      }
+      refreshMarkers();
+    }
+
+    function buildNowMarker() {
+      var formingOpen = barOpenTime(nowSec(serverNowSec), intervalSec);
+      if (!lastBars.length) return null;
+      var hasBar = lastBars.some(function (b) {
+        return b.time === formingOpen;
+      });
+      if (!hasBar) return null;
+      return {
+        time: toLocalChartTime(formingOpen),
+        position: "inBar",
+        color: "rgba(200, 196, 216, 0.85)",
+        shape: "circle",
+        text: "Ahora",
+      };
+    }
+
+    function buildFillMarkers(fills) {
+      var now = nowSec(serverNowSec);
+      var formingOpen = barOpenTime(now, intervalSec);
+      return (fills || [])
+        .map(function (f) {
+          var t = parseTs(f);
+          if (!t || t > now) return null;
+          t = barOpenTime(t, intervalSec);
+          if (t > formingOpen) return null;
+          var side = String(f.side || "").toUpperCase();
+          var isBuy = side === "BUY" || side === "B";
+          return {
+            time: toLocalChartTime(t),
+            position: isBuy ? "belowBar" : "aboveBar",
+            color: isBuy ? "#5dd39e" : "#ff7b7b",
+            shape: isBuy ? "arrowUp" : "arrowDown",
+            text: isBuy ? "C" : "V",
+          };
+        })
+        .filter(Boolean)
+        .sort(function (a, b) {
+          return a.time - b.time;
+        });
+    }
+
+    function refreshMarkers() {
+      if (mode !== "lc" || !series) return;
+      var markers = buildFillMarkers(lastFills);
+      var nowMarker = buildNowMarker();
+      if (nowMarker) markers.push(nowMarker);
+      applyMarkers(series, markers);
     }
 
     function destroyLc() {
@@ -282,14 +503,40 @@
             horzLines: { color: "rgba(255,255,255,0.08)" },
           },
           crosshair: { mode: crossMode },
+          localization: {
+            locale:
+              typeof navigator !== "undefined" && navigator.language
+                ? navigator.language
+                : "es-AR",
+            timeFormatter: formatChartAxisTime,
+            dateFormatter: function (time) {
+              var ts =
+                typeof time === "number"
+                  ? time
+                  : time && time.year != null
+                    ? Math.floor(
+                        Date.UTC(time.year, time.month - 1, time.day) / 1000
+                      )
+                    : null;
+              if (ts == null) return "";
+              var d = new Date(ts * 1000);
+              return (
+                String(d.getUTCDate()).padStart(2, "0") +
+                "/" +
+                String(d.getUTCMonth() + 1).padStart(2, "0")
+              );
+            },
+          },
           rightPriceScale: {
             borderColor: "rgba(255,255,255,0.15)",
             scaleMargins: { top: 0.08, bottom: 0.08 },
+            autoScale: true,
           },
           timeScale: {
             borderColor: "rgba(255,255,255,0.15)",
             timeVisible: true,
             secondsVisible: false,
+            rightOffset: 4,
           },
           width: size.w,
           height: height,
@@ -300,7 +547,6 @@
           return false;
         }
         mode = "lc";
-        lcReady = true;
         if (typeof ResizeObserver !== "undefined") {
           ro = new ResizeObserver(function () {
             if (!chart || !wrap) return;
@@ -310,8 +556,7 @@
           ro.observe(wrap);
         }
         if (lastBars.length) {
-          series.setData(lastBars);
-          chart.timeScale().fitContent();
+          renderSeriesData();
           clearMessage(wrap);
         }
         return true;
@@ -329,13 +574,11 @@
       }
       waitForLc(function (ok) {
         if (destroyed || !wrap) return;
-        lcReady = ok;
         if (ok && lastBars.length && buildLc()) return;
       });
     }
 
     waitForLc(function (ok) {
-      lcReady = ok;
       if (!lastBars.length) showMessage(wrap, ok ? "Esperando velas…" : "Cargando gráficos…");
     });
 
@@ -345,15 +588,21 @@
         if (!lastBars.length) showMessage(wrap, "Sin velas — revisá símbolo y mercado");
         return;
       }
-      lastBars = normalizeBars(payload.bars);
+      var nextSymbol = payload.symbol ? String(payload.symbol).toUpperCase() : null;
+      if (nextSymbol && chartSymbol && nextSymbol !== chartSymbol) {
+        resetSeriesData();
+      }
+      if (nextSymbol) chartSymbol = nextSymbol;
+      if (payload.interval) syncInterval(payload.interval);
+      if (payload.server_now != null) serverNowSec = Number(payload.server_now);
+      lastBars = normalizeBars(payload.bars, intervalSec, serverNowSec);
       if (!lastBars.length) {
-        showMessage(wrap, "Velas inválidas");
+        showMessage(wrap, "Velas inválidas o fuera de rango");
         return;
       }
       clearMessage(wrap);
       if (mode === "lc" && series && chart) {
-        series.setData(lastBars);
-        chart.timeScale().fitContent();
+        renderSeriesData();
         return;
       }
       ensureLcThenRender();
@@ -368,50 +617,48 @@
             ? (Number(mkt.bid) + Number(mkt.ask)) / 2
             : null;
       if (!isFinite(px)) return;
+
+      var now = nowSec(serverNowSec);
+      var formingOpen = barOpenTime(now, intervalSec);
+      lastBars = clipBarsToNow(lastBars, intervalSec, serverNowSec);
+      if (!lastBars.length) return;
+
+      var refPx = lastBars[lastBars.length - 1].close;
+      if (!priceInRange(px, refPx)) return;
+
       var last = lastBars[lastBars.length - 1];
-      var nowSec = Math.floor(Date.now() / 1000);
-      var t = nowSec >= last.time ? nowSec : last.time;
-      var updated = {
-        time: t,
-        open: last.open,
-        high: Math.max(last.high, px),
-        low: Math.min(last.low, px),
-        close: px,
-      };
-      if (t === last.time) lastBars[lastBars.length - 1] = updated;
-      else lastBars.push(updated);
+      var updated;
+      if (!last || last.time < formingOpen) {
+        updated = { time: formingOpen, open: px, high: px, low: px, close: px };
+        if (last && last.time === formingOpen) {
+          lastBars[lastBars.length - 1] = updated;
+        } else {
+          lastBars.push(updated);
+        }
+      } else if (last.time === formingOpen) {
+        updated = {
+          time: formingOpen,
+          open: last.open,
+          high: Math.max(last.high, px),
+          low: Math.min(last.low, px),
+          close: px,
+        };
+        lastBars[lastBars.length - 1] = updated;
+      } else {
+        return;
+      }
+
       if (mode === "lc" && series) {
-        series.update(updated);
+        series.update(toChartBar(updated));
+        refreshMarkers();
       } else if (mode === "canvas") {
         drawCanvasChart(wrap, lastBars, height);
       }
     }
 
     function setFills(fills) {
-      if (mode !== "lc" || !series) return;
-      if (!fills || !fills.length) {
-        applyMarkers(series, []);
-        return;
-      }
-      var markers = fills
-        .map(function (f) {
-          var t = parseTs(f);
-          if (!t) return null;
-          var side = String(f.side || "").toUpperCase();
-          var isBuy = side === "BUY" || side === "B";
-          return {
-            time: t,
-            position: isBuy ? "belowBar" : "aboveBar",
-            color: isBuy ? "#5dd39e" : "#ff7b7b",
-            shape: isBuy ? "arrowUp" : "arrowDown",
-            text: isBuy ? "C" : "V",
-          };
-        })
-        .filter(Boolean)
-        .sort(function (a, b) {
-          return a.time - b.time;
-        });
-      applyMarkers(series, markers);
+      lastFills = fills || [];
+      refreshMarkers();
     }
 
     return {
@@ -422,6 +669,11 @@
       hasSeries: function () {
         return mode === "lc" ? !!series : lastBars.length > 0;
       },
+      setInterval: syncInterval,
+      getSymbol: function () {
+        return chartSymbol;
+      },
+      clear: resetSeriesData,
       loadKlines: loadKlines,
       updateMarket: updateMarket,
       setFills: setFills,
@@ -430,6 +682,7 @@
         if (mode === "lc" && chart) {
           var s = measureWrap(wrap, height);
           chart.applyOptions({ width: s.w, height: height });
+          applyVisibleWindow();
         } else if (lastBars.length) {
           drawCanvasChart(wrap, lastBars, height);
         } else {
@@ -443,5 +696,14 @@
     };
   }
 
-  global.SLTChart = { create: createSltChart };
+  global.SLTChart = {
+    create: createSltChart,
+    _test: {
+      normalizeBars: normalizeBars,
+      clipBarsToNow: clipBarsToNow,
+      barOpenTime: barOpenTime,
+      toLocalChartTime: toLocalChartTime,
+      resolveIntervalSec: resolveIntervalSec,
+    },
+  };
 })(typeof window !== "undefined" ? window : globalThis);

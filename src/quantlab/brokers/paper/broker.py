@@ -21,7 +21,7 @@ from quantlab.brokers.types import (
     PaperFill,
 )
 from quantlab.core.exceptions import ValidationError
-from quantlab.core.types.enums import IntentType
+from quantlab.core.types.enums import IntentType, OrderSide, OrderType
 from quantlab.core.types.orders import OrderIntent
 
 
@@ -57,6 +57,27 @@ def apply_paper_slippage(
     if side_u == "SELL":
         return price * (Decimal("1") - factor)
     raise ValidationError(f"side inválido para slippage: {side!r}")
+
+
+def _resolve_fill_price(
+    intent: OrderIntent,
+    snapshot: BrokerSnapshot,
+    mid: Decimal,
+) -> Decimal:
+    """Precio base del fill antes de slippage.
+
+    MARKET → mid (comportamiento histórico).
+    LIMIT con ``price`` → precio de la orden (cotizaciones MM).
+    Otros → mid.
+    """
+    _ = snapshot
+    if intent.order_type is OrderType.MARKET:
+        return mid
+    if intent.order_type is OrderType.LIMIT and intent.price is not None:
+        if intent.price <= 0:
+            raise ValidationError("LIMIT requiere price > 0")
+        return intent.price
+    return mid
 
 
 class PaperBroker:
@@ -244,7 +265,8 @@ class PaperBroker:
             raise ValidationError("PLACE_ORDER requiere side y quantity")
         snapshot = self._md.get_snapshot(intent.instrument_id)
         mid = _mid_or_fallback(snapshot)
-        price = apply_paper_slippage(mid, intent.side.value, self._slippage_bps)
+        base = _resolve_fill_price(intent, snapshot, mid)
+        price = apply_paper_slippage(base, intent.side.value, self._slippage_bps)
         self._seq += 1
         order_id = f"PAPER-{self._seq}-{uuid.uuid4().hex[:8]}"
         fill = PaperFill(

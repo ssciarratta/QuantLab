@@ -170,6 +170,45 @@ def test_paper_delegates_md_reads_and_book_account() -> None:
     assert broker.health()["paper_broker"] is True
 
 
+def test_paper_broker_limit_fills_at_limit_price_not_mid(tmp_path: Path) -> None:
+    md = _RecordingMd()
+    journal = PaperFillJournal(tmp_path / "lim.jsonl")
+    broker = PaperBroker(md, journal=journal)
+    ack = broker.submit(
+        OrderIntent(
+            intent_id="lim-bid",
+            intent_type=IntentType.PLACE_ORDER,
+            instrument_id="TEST",
+            side=OrderSide.BUY,
+            quantity=Decimal("1"),
+            price=Decimal("9.5"),
+            order_type=OrderType.LIMIT,
+            time_in_force=TimeInForce.GTC,
+        )
+    )
+    assert ack.status == "FILLED"
+    fills = journal.list_fills()
+    assert len(fills) == 1
+    assert fills[0].price == Decimal("9.5")
+    assert fills[0].price != Decimal("11")
+
+    ack2 = broker.submit(
+        OrderIntent(
+            intent_id="lim-ask",
+            intent_type=IntentType.PLACE_ORDER,
+            instrument_id="TEST",
+            side=OrderSide.SELL,
+            quantity=Decimal("1"),
+            price=Decimal("12.5"),
+            order_type=OrderType.LIMIT,
+            time_in_force=TimeInForce.GTC,
+        )
+    )
+    assert ack2.status == "FILLED"
+    fills2 = journal.list_fills()
+    assert fills2[-1].price == Decimal("12.5")
+
+
 def test_paper_fill_updates_book(tmp_path: Path) -> None:
     md = _RecordingMd()
     broker = PaperBroker(md, journal=PaperFillJournal(tmp_path / "j.jsonl"))

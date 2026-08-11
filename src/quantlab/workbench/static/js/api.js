@@ -519,6 +519,7 @@
         interval: o.interval || "1m",
         limit: o.limit != null ? o.limit : 120,
         market_type: o.market_type || "spot",
+        network: o.network || "mainnet",
       });
     },
     binanceScanner: function (opts) {

@@ -1,28 +1,27 @@
-QUANTLAB — RESUMEN DEL PROYECTO
+QUANTLAB â€” RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-11
-Versión: 1.1.0 · main
+VersiÃ³n: 1.1.0 â€” main
 
 ESTADO
 ------
-- UI redesign Fases 0–14 mergeadas en main
-- Corrida en vivo: dashboard 2 columnas, gráfico LC local, tabs visibles
-- lightweight-charts vendoreado en static/js/vendor/ (sin depender de CDN)
-- 39 estrategias · PAPER + Spot/Futures Testnet
+- UI redesign Fases 0â€“14 mergeadas en main
+- Corrida en vivo (SLT): grÃ¡fico corregido PAPER + Spot/Futures Testnet
+- lightweight-charts vendoreado en static/js/vendor/ (sin CDN)
+- 39 estrategias Â· PAPER + Spot/Futures Testnet
 - LIVE_BLOCKED=True
 
-ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
+ÃšLTIMA IMPLEMENTACIÃ“N (2026-08-11)
 ----------------------------------
-- Fix raíz gráfico: CDN bloqueado ? LC servido localmente
-- Canvas fallback con ejes precio/tiempo si LC falla
-- Layout: gráfico fijo 200px, tabs ocupan resto, sin flex desproporcionado
-- CSS override workbench.css (340px) + header SLT oculto
+- Tab Resumen SLT: KPIs + tabla equity (8 cols) + splitters redimensionables
+- PaperBroker LIMIT: fills al precio cotizado (MM)
+- Tests: test_binance_klines_ui.py
 
-PRÓXIMO
+PRÃ“XIMO
 -------
 - Compactar sidebar izq (menos scroll)
 - Order book lateral SLT
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · MAX_ACTIVE_STRATEGIES=1
+LIVE_BLOCKED=True Â· MAX_ACTIVE_STRATEGIES=1

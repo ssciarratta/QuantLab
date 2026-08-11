@@ -1201,10 +1201,41 @@ def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dic
         raise ApiError(400, str(exc)) from exc
 
 
+_KLINE_INTERVAL_SECONDS: dict[str, int] = {
+    "1m": 60,
+    "3m": 180,
+    "5m": 300,
+    "15m": 900,
+    "1h": 3600,
+    "4h": 14400,
+    "1d": 86400,
+}
+
+
+def _forming_kline_open(now_sec: int, interval: str) -> int:
+    step = _KLINE_INTERVAL_SECONDS.get(interval.strip(), 60)
+    return (now_sec // step) * step
+
+
+def _clip_kline_bars_for_ui(
+    bars: list[dict[str, Any]],
+    *,
+    interval: str,
+    now_sec: int,
+) -> list[dict[str, Any]]:
+    """Descarta velas posteriores a la vela en formación (evita eje futuro en UI)."""
+    forming_open = _forming_kline_open(now_sec, interval)
+    return [b for b in bars if int(b["time"]) <= forming_open]
+
+
 def handle_post_binance_klines(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/binance/klines — OHLCV público read-only para gráficos UI."""
+    from datetime import UTC, datetime
+
     from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
+    from quantlab.brokers.binance.futures_testnet_client import FUTURES_TESTNET_BASE_URL
     from quantlab.brokers.binance.public_md import BinancePublicMdClient
+    from quantlab.brokers.binance.testnet_client import TESTNET_BASE_URL
 
     _ = state
     symbol = body.get("symbol")
@@ -1213,21 +1244,36 @@ def handle_post_binance_klines(state: WorkbenchState, body: dict[str, Any]) -> d
     interval = body.get("interval", "1m")
     if not isinstance(interval, str):
         raise ApiError(400, "interval debe ser string")
+    interval = interval.strip()
     limit = body.get("limit", 120)
     if not isinstance(limit, int):
         raise ApiError(400, "limit debe ser int")
     market_type = str(body.get("market_type") or "spot").strip().lower()
     if market_type not in ("spot", "futures"):
         raise ApiError(400, "market_type debe ser spot o futures")
+    network = str(body.get("network") or "mainnet").strip().lower()
+    if network not in ("mainnet", "testnet"):
+        raise ApiError(400, "network debe ser mainnet o testnet")
     try:
         client: BinancePublicMdClient | BinanceFuturesPublicMdClient
         if market_type == "futures":
-            client = BinanceFuturesPublicMdClient()
+            base_url = FUTURES_TESTNET_BASE_URL if network == "testnet" else None
+            client = (
+                BinanceFuturesPublicMdClient(base_url=base_url)
+                if base_url
+                else BinanceFuturesPublicMdClient()
+            )
         else:
-            client = BinancePublicMdClient()
-        bars = client.klines(symbol.strip(), interval=interval.strip(), limit=limit)
+            base_url = TESTNET_BASE_URL if network == "testnet" else None
+            client = (
+                BinancePublicMdClient(base_url=base_url)
+                if base_url
+                else BinancePublicMdClient()
+            )
+        bars = client.klines(symbol.strip(), interval=interval, limit=limit)
     except ValidationError as exc:
         raise ApiError(400, str(exc)) from exc
+    now_sec = int(datetime.now(tz=UTC).timestamp())
     out_bars: list[dict[str, Any]] = []
     for bar in bars:
         out_bars.append(
@@ -1240,10 +1286,13 @@ def handle_post_binance_klines(state: WorkbenchState, body: dict[str, Any]) -> d
                 "volume": float(bar.volume),
             }
         )
+    out_bars = _clip_kline_bars_for_ui(out_bars, interval=interval, now_sec=now_sec)
     return {
         "symbol": symbol.strip().upper(),
-        "interval": interval.strip(),
+        "interval": interval,
         "market_type": market_type,
+        "network": network,
+        "server_now": now_sec,
         "bars": out_bars,
     }
 
