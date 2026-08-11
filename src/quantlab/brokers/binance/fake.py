@@ -103,9 +103,9 @@ class FakeBinanceBroker:
             from datetime import UTC, datetime
             from decimal import Decimal
 
-            from quantlab.brokers.binance.public_md import BinancePublicClient
+            from quantlab.brokers.binance.public_md import BinancePublicMdClient
 
-            client = BinancePublicClient()
+            client = BinancePublicMdClient()
             ticker = client.book_ticker(sym)
             bid = ticker.bid if ticker.bid is not None else Decimal("0")
             ask = ticker.ask if ticker.ask is not None else Decimal("0")

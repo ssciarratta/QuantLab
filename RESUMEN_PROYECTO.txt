@@ -1,33 +1,31 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-10
-Versión: 1.01.0 — Menú QL + fechas + SLT UX
+Versión: 1.01.0 — Testnet 39 estrategias cableadas
 
 ESTADO
 ------
-- LIVE_BLOCKED=True · REAL=PAPER
-- Menú QL v5 personalizable · fechas dd/mm - HH:mm:ss global
-- Corrida en vivo: tipografía compacta + tooltips + error idle corregido
-- Tipografía workbench: 18px × 118% default
+- LIVE_BLOCKED=True — REAL=PAPER/testnet únicamente
+- 39 estrategias ?: PAPER + Spot Testnet + Futures Testnet (motor + espejo)
+- 11 stubs [solo catálogo]: no ejecutan
+- este.bat: cierra ventanas/procesos previos al abrir uno nuevo
 
 ÚLTIMA IMPLEMENTACIÓN
 ---------------------
-2026-08-10 — Corrida en vivo UX:
-- Panel SLT compacto, grilla ordenada, data-tip en campos y tabs
-- Error fantasma corregido (last_error en idle ya no muestra ? Error)
-- INICIAR bloqueado si estrategia [research]
-- Cache bust ?v=20260810p
+2026-08-10 — Launcher singleton + fix MD:
+- launcher_singleton.py: mata ventanas este.bat previas + workbench :8765
+- arrancar_workbench.py: claim al inicio (data/runtime/launcher.pid)
+- fake.py: BinancePublicMdClient (UNIUSDT y símbolos lazy MD)
 
-CÓMO USAR
----------
-1. Ctrl+F5 tras actualizar
-2. Corrida en vivo: elegir estrategia ? · destino PAPER · pasar mouse sobre campos
-3. QL ? Personalizar menú QL para ordenar barra y paneles
+CÓMO ARRANCAR
+-------------
+1. Doble clic este.bat (cierra instancias viejas automáticamente)
+2. Ctrl+F5 en el navegador
+3. Corrida en vivo: estrategia ? ? destino ? INICIAR
 
 PRÓXIMO
 -------
-- Spot testnet remoto
-- Hummingbot futures
+- Params runtime ajustables sin reiniciar sesión
 
 INVARIANTES
 -----------

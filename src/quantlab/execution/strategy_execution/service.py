@@ -37,6 +37,7 @@ class PreflightResult:
     ready_for_spot_testnet_order: bool
     ready_for_futures_testnet_order: bool
     blockers: list[str]
+    warnings: list[str]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -45,6 +46,7 @@ class PreflightResult:
             "ready_for_spot_testnet_order": self.ready_for_spot_testnet_order,
             "ready_for_futures_testnet_order": self.ready_for_futures_testnet_order,
             "blockers": self.blockers,
+            "warnings": self.warnings,
             "production_blocked": LIVE_BLOCKED is True,
             "remote_orders_enabled": False,
         }
@@ -103,6 +105,7 @@ class StrategyExecutionService:
         val = self.validate_promotion(promotion_id)
         checks: list[dict[str, Any]] = []
         blockers: list[str] = list(val.get("errors") or [])
+        warnings: list[str] = []
 
         checks.append({"name": "production_blocked", "ok": LIVE_BLOCKED is True})
         if not LIVE_BLOCKED:
@@ -110,10 +113,19 @@ class StrategyExecutionService:
 
         checks.append({"name": "manifest_valid", "ok": val["ok"]})
         checks.append({"name": "testnet_only", "ok": manifest.testnet_only})
-        paper_dest = manifest.execution_destination == ExecutionDestination.PAPER
-        checks.append({"name": "live_unlock", "ok": unlocked or paper_dest})
-        if manifest.execution_destination != ExecutionDestination.PAPER and not unlocked:
+        dest = manifest.execution_destination
+        paper_dest = dest == ExecutionDestination.PAPER
+        testnet_dest = dest in (
+            ExecutionDestination.BINANCE_SPOT_TESTNET,
+            ExecutionDestination.BINANCE_FUTURES_TESTNET,
+        )
+        checks.append({"name": "live_unlock", "ok": unlocked or paper_dest or testnet_dest})
+        if not paper_dest and not testnet_dest and not unlocked:
             blockers.append("Requiere unlock LIVE local")
+        if testnet_dest and not unlocked:
+            warnings.append(
+                "Espejo testnet: unlock demo inactivo — motor corre; órdenes reales omitidas"
+            )
 
         active = self.store.find_active_session()
         checks.append({"name": "single_active_strategy", "ok": active is None})
@@ -123,40 +135,56 @@ class StrategyExecutionService:
         demo = demo_transport_status(unlocked=unlocked)
         checks.append({"name": "demo_transport", "ok": True, "detail": demo})
 
-        dest = manifest.execution_destination
+        ready_spot = False
+        ready_futures = False
         if dest == ExecutionDestination.BINANCE_SPOT_TESTNET:
             tn = demo.get("testnet") or {}
             keys_ok = bool(tn.get("keys_configured")) and bool(tn.get("remote_enabled"))
-            checks.append({"name": "spot_testnet_keys", "ok": keys_ok})
+            ready_spot = keys_ok and unlocked
+            checks.append(
+                {"name": "spot_testnet_keys", "ok": keys_ok, "optional": True, "mirror_ready": keys_ok}
+            )
             if not keys_ok:
-                blockers.append("Spot Testnet: keys o flag ausente")
+                warnings.append(
+                    "Spot Testnet: keys o flag ausente — motor corre; espejo omitido"
+                )
         if dest == ExecutionDestination.BINANCE_FUTURES_TESTNET:
             fn = demo.get("futures_testnet") or {}
             keys_ok = bool(fn.get("keys_configured")) and bool(fn.get("remote_enabled"))
-            hb_pf = self.hb.preflight_for_futures()
-            checks.append({"name": "futures_testnet_keys", "ok": keys_ok})
+            ready_futures = keys_ok and unlocked
             checks.append(
                 {
-                    "name": "hummingbot_futures",
-                    "ok": hb_pf.get("ready_for_strategy_load"),
-                    "detail": hb_pf,
+                    "name": "futures_testnet_keys",
+                    "ok": keys_ok,
+                    "optional": True,
+                    "mirror_ready": keys_ok,
                 }
             )
             if not keys_ok:
-                blockers.append("Futures Testnet: keys o flag ausente")
-            if not hb_pf.get("ready_for_strategy_load"):
-                blockers.append("Hummingbot no listo para Futures")
+                warnings.append(
+                    "Futures Testnet: keys o flag ausente — motor corre; espejo omitido"
+                )
+            hb_pf = self.hb.preflight_for_futures()
+            checks.append(
+                {
+                    "name": "hummingbot_futures",
+                    "ok": True,
+                    "optional": True,
+                    "detail": hb_pf,
+                }
+            )
 
         ok = not blockers and all(
-            c.get("ok") is not False for c in checks if c.get("ok") is not None
+            c.get("ok") is not False for c in checks if c.get("ok") is not None and not c.get("optional")
         )
-        # MVP: nunca autorizar órdenes remotas automáticamente
+        # MVP: nunca autorizar órdenes remotas automáticamente vía API flag.
         return PreflightResult(
             ok=ok,
             checks=checks,
-            ready_for_spot_testnet_order=False,
-            ready_for_futures_testnet_order=False,
+            ready_for_spot_testnet_order=ready_spot,
+            ready_for_futures_testnet_order=ready_futures,
             blockers=blockers,
+            warnings=warnings,
         )
 
     def open_session(self, promotion_id: str) -> ExecutionSessionRecord:

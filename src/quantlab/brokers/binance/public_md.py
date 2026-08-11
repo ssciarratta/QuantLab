@@ -337,6 +337,10 @@ class BinancePublicMdClient:
         return out
 
 
+# Alias histórico (FakeBinanceBroker y scripts viejos).
+BinancePublicClient = BinancePublicMdClient
+
+
 def fetch_universe_bars(
     symbols: list[str],
     *,

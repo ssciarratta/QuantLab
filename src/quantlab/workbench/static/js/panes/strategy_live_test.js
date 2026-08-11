@@ -52,7 +52,7 @@
     symbol:
       "Par del exchange (ej. UNIUSDT) · Se infiere del Sim/Scanner · No opera LIVE real",
     dest:
-      "PAPER = motor local, MD real, fills simulados (39 estrategias ★) · Spot Testnet = órdenes reales en testnet Binance spot (solo buy_once hoy) · Futures Testnet = pendiente (0 estrategias conectadas)",
+      "PAPER = motor local, MD real, fills simulados (39 ★) · Spot Testnet = mismo motor + espejo órdenes reales testnet spot (39 ★) · Futures Testnet = motor + espejo futures testnet (39 ★)",
     steps:
       "Ticks del motor paper · Cada step lee mercado y puede simular fills · No es duración en minutos",
     market:
@@ -483,8 +483,7 @@
             kind: "spot",
             message:
               (caps.strategy_name || caps.strategy_id) +
-              " ★ — motor + espejo Spot Testnet. Seguimiento en vivo abajo. " +
-              "Órdenes reales de prueba si unlock demo + QUANTLAB_DEMO_USE_TESTNET=1 + keys.",
+              " ★ — motor paper + espejo Spot Testnet. Arranca siempre; órdenes reales solo con unlock + QUANTLAB_DEMO_USE_TESTNET=1 + keys.",
           };
         }
       }
@@ -495,8 +494,7 @@
             kind: "futures",
             message:
               (caps.strategy_name || caps.strategy_id) +
-              " ★ — motor + espejo Futures Testnet. Seguimiento en vivo abajo. " +
-              "Órdenes reales si unlock + QUANTLAB_DEMO_USE_FUTURES_TESTNET=1 + keys.",
+              " ★ — motor paper + espejo Futures Testnet. Arranca siempre; órdenes reales solo con unlock + QUANTLAB_DEMO_USE_FUTURES_TESTNET=1 + keys.",
           };
         }
       }
@@ -543,6 +541,8 @@
       }
     }
 
+    var catalogStats = null;
+
     function updateCatalogLine() {
       var el = root.querySelector("#slt-catalog-line");
       if (!el) return;
@@ -554,11 +554,17 @@
       });
       if (!strategies.length) {
         el.textContent = "Catálogo: no cargó — reiniciá workbench y Ctrl+F5";
+        el.style.color = "var(--danger,#f66)";
         return;
       }
       var cur = currentCaps();
       var curTag = cur ? strategyTag(cur).trim() : "";
-      el.textContent =
+      var stale =
+        (catalogStats &&
+          catalogStats.runnable > 0 &&
+          nRun < catalogStats.runnable - 2) ||
+        (nRun < 10 && strategies.length >= 45);
+      var line =
         "Catálogo: " +
         nRun +
         " probables (★) · " +
@@ -567,6 +573,14 @@
         (cur ? cur.strategy_name || cur.strategy_id : "?") +
         " " +
         curTag;
+      if (stale) {
+        line +=
+          " · ⚠ servidor viejo — cerrá este.bat y volvé a abrirlo, luego Ctrl+F5";
+        el.style.color = "var(--amber,#e8a838)";
+      } else {
+        el.style.color = "";
+      }
+      el.textContent = line;
     }
 
     function setErrDetail(msg) {
@@ -959,6 +973,20 @@
         esc(String(ps.max_steps || "?")) +
         (ps.last_error ? " · <span style=\"color:var(--err,#f66)\">" + esc(ps.last_error) + "</span>" : "") +
         "</td></tr>" +
+        (ps.testnet_mirror && ps.testnet_mirror.mode && ps.testnet_mirror.mode !== "none"
+          ? "<tr><th>Espejo testnet</th><td>modo " +
+            esc(ps.testnet_mirror.mode) +
+            " · intentos " +
+            esc(String(ps.testnet_mirror.attempts || 0)) +
+            " · ok " +
+            esc(String(ps.testnet_mirror.ok || 0)) +
+            (ps.testnet_mirror.last && ps.testnet_mirror.last.error
+              ? " · <span style=\"color:var(--warn,#c90)\">" + esc(ps.testnet_mirror.last.error) + "</span>"
+              : ps.testnet_mirror.last && ps.testnet_mirror.last.skipped
+                ? " · <span class=\"muted\">sin keys/unlock aún</span>"
+                : "") +
+            "</td></tr>"
+          : "") +
         (s.paper_blocker
           ? "<tr><th>Aviso</th><td style=\"color:var(--warn,#c90)\">" + esc(s.paper_blocker) + "</td></tr>"
           : "") +
@@ -1224,6 +1252,7 @@
     function loadStrategies() {
       return QLApi.executionStrategies().then(function (res) {
         strategies = (res && res.strategies) || [];
+        catalogStats = (res && res.catalog_stats) || null;
         familyLabels = (res && res.family_labels_es) || {};
         if (res && res.family_order && res.family_order.length) {
           familyOrder = res.family_order;
@@ -1377,10 +1406,15 @@
             });
           }
           if (res.paper_started) {
-            logEvent("Corrida PAPER iniciada · session " + sessionId);
+            logEvent("Corrida iniciada · session " + sessionId);
             lastPaperRunning = true;
           } else if (res.paper_blocker) {
             logEvent("Aviso: " + res.paper_blocker);
+          }
+          if (res.preflight_warnings && res.preflight_warnings.length) {
+            res.preflight_warnings.forEach(function (w) {
+              logEvent("Aviso espejo: " + w);
+            });
           }
           if (sessionId) startPoll();
           renderLive(res.live || {});
@@ -1449,4 +1483,4 @@
 
   global.QLPanes = global.QLPanes || {};
   global.QLPanes.createStrategyLiveTestPane = createStrategyLiveTestPane;
-})(typeof window
+})(typeof window !== "undefined" ? window : this);

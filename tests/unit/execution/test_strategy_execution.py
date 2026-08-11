@@ -34,8 +34,23 @@ def test_registry_buy_once_spot_certified() -> None:
     caps = get_registry().get("buy_once")
     assert caps.paper_supported is True
     assert caps.spot_testnet_supported is True
+    assert caps.futures_testnet_supported is True
+    assert caps.certification_status.value == "PAPER_READY"
+
+
+def test_registry_multi_level_mm_testnet() -> None:
+    caps = get_registry().get("multi_level_mm")
+    assert caps.runnable is True
+    assert caps.paper_supported is True
+    assert caps.spot_testnet_supported is True
+    assert caps.futures_testnet_supported is True
+
+
+def test_registry_stub_not_testnet() -> None:
+    caps = get_registry().get("triangular_arb")
+    assert caps.runnable is False
+    assert caps.spot_testnet_supported is False
     assert caps.futures_testnet_supported is False
-    assert caps.certification_status.value == "SPOT_TESTNET_READY"
 
 
 def test_manifest_and_validate(tmp_path: Path) -> None:
@@ -127,6 +142,10 @@ def test_list_strategies_api(tmp_path: Path) -> None:
     res = handle_get_execution_strategies(state)
     assert res["ok"] is True
     assert res["production_blocked"] is True
+    stats = res["catalog_stats"]
+    assert stats["total"] == len(res["strategies"])
+    assert stats["runnable"] == stats["total"] - stats["stub"]
+    assert stats["runnable"] >= 39
     ids = {s["strategy_id"] for s in res["strategies"]}
     assert "buy_once" in ids
     buy = next(s for s in res["strategies"] if s["strategy_id"] == "buy_once")
@@ -203,6 +222,45 @@ def test_execution_run_adaptive_mm_starts_paper(tmp_path: Path) -> None:
     assert res["paper_started"] is True
     assert res["session_id"]
     handle_post_execution_session_stop(state, res["session_id"])
+
+
+def test_execution_run_futures_testnet_without_keys(tmp_path: Path) -> None:
+    session = WorkbenchSession.create_or_load(tmp_path, "exec-fut-run")
+    state = WorkbenchState(session=session)
+    res = handle_post_execution_run(
+        state,
+        {
+            "source_module": "manual",
+            "strategy_id": "multi_level_mm",
+            "symbol": "UNIUSDT",
+            "market_type": "futures",
+            "execution_destination": ExecutionDestination.BINANCE_FUTURES_TESTNET.value,
+            "max_steps": 3,
+            "interval_ms": 100,
+        },
+    )
+    assert res["ok"] is True
+    assert res["paper_started"] is True
+    assert res["testnet_mirror"] == "futures"
+    assert isinstance(res.get("preflight_warnings"), list)
+    handle_post_execution_session_stop(state, res["session_id"])
+
+
+def test_preflight_futures_testnet_ok_without_unlock(tmp_path: Path) -> None:
+    svc = StrategyExecutionService(default_store(str(tmp_path / "exec")))
+    manifest = svc.create_promotion(
+        {
+            "source_module": "manual",
+            "strategy_id": "multi_level_mm",
+            "symbol": "UNIUSDT",
+            "market_type": "futures",
+            "execution_destination": ExecutionDestination.BINANCE_FUTURES_TESTNET.value,
+        }
+    )
+    pf = svc.preflight(manifest.promotion_id, unlocked=False)
+    assert pf.ok is True
+    assert pf.ready_for_futures_testnet_order is False
+    assert any("unlock" in w.lower() or "keys" in w.lower() for w in pf.warnings)
 
 
 def test_start_paper_adaptive_mm(tmp_path: Path) -> None:

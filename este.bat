@@ -18,6 +18,9 @@ call "%~dp0tools\windows\_common.bat" || (
   exit /b 1
 )
 
+echo  Si hay otra ventana este.bat abierta, se cerrara al arrancar.
+echo.
+
 REM Kronos (Alpha Scanner): instala vendor/deps solo si faltan
 if defined QL_PY (
   "%QL_PY%" "%QL_ROOT%\scripts\ensure_kronos.py" --quiet

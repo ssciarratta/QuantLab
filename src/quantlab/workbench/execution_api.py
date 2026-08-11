@@ -307,9 +307,16 @@ def handle_get_execution_strategies(state: WorkbenchState) -> dict[str, Any]:
     caps = get_registry().list_strategies()
     strategies = [c.to_dict() for c in caps]
     families = sorted({c.family for c in caps})
+    runnable_count = sum(1 for s in strategies if s.get("paper_run_certified"))
+    stub_count = len(strategies) - runnable_count
     return {
         "ok": True,
         "strategies": strategies,
+        "catalog_stats": {
+            "total": len(strategies),
+            "runnable": runnable_count,
+            "stub": stub_count,
+        },
         "family_labels_es": {f: FAMILY_LABELS_ES.get(f, f) for f in families},
         "family_order": [
             "demo",
@@ -416,6 +423,20 @@ def handle_get_execution_session_status(state: WorkbenchState, session_id: str) 
     return {"ok": True, **status}
 
 
+def _release_active_execution_session(
+    state: WorkbenchState, svc: StrategyExecutionService
+) -> str | None:
+    """Cierra sesión activa previa para permitir nueva corrida (MAX_ACTIVE=1)."""
+    active = svc.store.find_active_session()
+    if active is None:
+        return None
+    if active.paper_session_running:
+        with contextlib.suppress(ApiError):
+            handle_post_paper_session_stop(state)
+    svc.stop_session(active.session_id)
+    return active.session_id
+
+
 def _start_engine_for_session(
     state: WorkbenchState,
     svc: StrategyExecutionService,
@@ -519,10 +540,14 @@ def handle_post_execution_run(state: WorkbenchState, body: dict[str, Any]) -> di
     if not val["ok"]:
         raise ApiError(400, f"validate falló: {val.get('errors')}")
 
+    released = _release_active_execution_session(state, svc)
+    if released:
+        _stage("release_previous_session", True, released)
+
     from quantlab.execution.live_unlock import is_live_session_unlocked
 
     pf = svc.preflight(manifest.promotion_id, unlocked=is_live_session_unlocked())
-    _stage("preflight", pf.ok, pf.blockers)
+    _stage("preflight", pf.ok, {"blockers": pf.blockers, "warnings": pf.warnings})
     if not pf.ok:
         raise ApiError(400, f"preflight falló: {pf.blockers}")
 
@@ -573,6 +598,7 @@ def handle_post_execution_run(state: WorkbenchState, body: dict[str, Any]) -> di
         "paper_started": paper_started,
         "paper_blocker": paper_blocker,
         "testnet_mirror": testnet_mirror,
+        "preflight_warnings": pf.warnings,
         "stages": stages,
         "live": live,
         "session": live.get("execution_session"),
