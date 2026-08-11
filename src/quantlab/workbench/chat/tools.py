@@ -26,6 +26,10 @@ ALLOWED_TOOLS: frozenset[str] = frozenset(
         "explain_backtest",
         "explain_guided_lab",
         "explain_binance_lab",
+        "explain_simulator",
+        "explain_montecarlo",
+        "explain_scanner",
+        "explain_workbench_map",
         "suggest_workflow",
         "instructor_guide",
         "get_assistant_context",
@@ -50,6 +54,10 @@ ALLOWED_PANES: frozenset[str] = frozenset(
         "health",
         "backtest",
         "scanner",
+        "simulator",
+        "strategies",
+        "montecarlo",
+        "sim_registry",
         "reports",
         "settings",
         "docs",
@@ -101,8 +109,24 @@ _TOOL_META: dict[str, dict[str, str]] = {
     "explain_binance_lab": {
         "description": "Binance MD público, alpha scanner y pipeline scan→backtest",
     },
+    "explain_simulator": {
+        "description": (
+            "Simulador multi-venue: Comparar / Ranking / params / memo / Mis simulaciones"
+        ),
+    },
+    "explain_montecarlo": {
+        "description": (
+            "Monte Carlo: parámetros N escenarios, velas, ruido, seed (estrés, no predicción)"
+        ),
+    },
+    "explain_scanner": {
+        "description": "Alpha Scanner multi-mercado: universo, período/TF, ranking, chips→Sim",
+    },
+    "explain_workbench_map": {
+        "description": "Mapa de paneles: Guided vs Scanner vs Simulador vs Monte Carlo",
+    },
     "suggest_workflow": {
-        "description": "Sugiere flujo según objetivo del operador (aprender, binance, a3)",
+        "description": "Sugiere flujo según objetivo (aprender, comparar, estrés, binance, …)",
     },
     "instructor_guide": {
         "description": "Lección paso a paso: alpha Binance, market making, flujo completo",
@@ -111,7 +135,7 @@ _TOOL_META: dict[str, dict[str, str]] = {
         "description": "Memoria de sesión, último lab, instructor y resumen conversación",
     },
     "search_docs": {
-        "description": "Busca keywords en docs/*.md y docs/{ops,manuales,montecarlo,scanner}/*.md locales",
+        "description": "Busca keywords en docs/*.md y docs/{ops,manuales,montecarlo,scanner}/*.md",
     },
     "list_experiments": {
         "description": "Lista experimentos del registry de sesión",
@@ -131,7 +155,10 @@ _TOOL_META: dict[str, dict[str, str]] = {
         "description": "Catálogo de estrategias workbench (ids/tags/defaults)",
     },
     "open_pane": {
-        "description": "Abrir panel UI (guided_lab, chat, backtest, scanner, etc.)",
+        "description": (
+            "Abrir panel UI. pane= guided_lab|scanner|simulator|strategies|montecarlo|"
+            "sim_registry|backtest|reports|health|…"
+        ),
     },
     "run_binance_alpha": {
         "description": "Ejecutar ranking alpha Binance (MD público) y abrir Guided Lab",
@@ -143,11 +170,11 @@ _TOOL_META: dict[str, dict[str, str]] = {
 
 _BACKTEST_GUIDE = (
     "Backtest en QuantLab Workbench: panel Backtest o POST /api/lab/backtest. "
-    "Estrategias: GET /api/lab/strategies (espectro por familia; "
-    "runnable=binance-ready para backtest/paper/demo post-unlock; stubs no ejecutan). "
-    "Parámetros típicos: strategy_id, n_bars, params "
-    "(lookback/quantity/half_spread/gamma). "
-    "Resultado queda en sesión (GET /api/lab/metrics). Nunca envía órdenes live."
+    "Modo HISTÓRICO (default UI): venue + moneda + market_type + interval + period_days "
+    "(mismas velas MD público que Sim/MC). "
+    "Modo sintético: solo n_bars (debug). "
+    "Estrategias: GET /api/lab/strategies. "
+    "Memo + Mis simulaciones (Reabrir). Nunca envía órdenes live."
 )
 
 _GUIDED_LAB_GUIDE = (
@@ -162,29 +189,101 @@ _GUIDED_LAB_GUIDE = (
 
 _BINANCE_LAB_GUIDE = (
     "Para correr Alpha Scanner en Binance desde la UI:\n"
-    "1) QL (abajo izquierda) → Guided Lab\n"
+    "1) QL (abajo izquierda) o QUANTLAB (arriba) → Guided Lab\n"
     "2) Venue = binance\n"
     "3) Clic «Ranking alpha Binance» (klines USDT reales, read-only)\n"
     "4) Revisá el top de monedas\n"
     "5) Para probar estrategia: elegí inventory_mm o momentum → "
     "«Backtest top 5 Binance»\n"
-    "APIs (solo si las necesitás): "
-    "POST /api/lab/binance/scan · /scanner · /pipeline. "
+    "Alternativa multi-mercado: panel Alpha Scanner (no Guided).\n"
     "Demo órdenes solo post-unlock. Producción bloqueada."
+)
+
+_SIMULATOR_GUIDE = (
+    "Simulador (QL -> Simulador) — comparar, no reemplaza Guided Lab ni Monte Carlo.\n"
+    "\n"
+    "Para qué: comparar exchanges × monedas × leverage × fees con la misma estrategia.\n"
+    "\n"
+    "Cómo usar Comparar:\n"
+    "1) Elegí estrategia (o abrí panel Estrategias -> «Usar en Comparar»).\n"
+    "2) Spot/Futuros · período · TF · capital · leverage · fees.\n"
+    "3) Tildá mercados (Binance/OKX/Bybit/HL/A3) y agregá monedas con búsqueda «+».\n"
+    "4) Corré Comparar -> tabla de resultados + memorando (CSV/TXT).\n"
+    "5) Ranking: exactamente UNA moneda en varios mercados -> ranking de ~37 estrategias.\n"
+    "\n"
+    "Mis simulaciones: historial local · Reabrir = mismos params · Memo = texto/CSV.\n"
+    "\n"
+    "¿Querés que abra el Simulador ahora?"
+)
+
+_MONTECARLO_GUIDE = (
+    "Monte Carlo (QL -> Monte Carlo) — estrés estadístico, NO predicción.\n"
+    "\n"
+    "Parámetros uno por uno:\n"
+    "• Escenarios (n_scenarios): cuántas trayectorias simular. "
+    "Tip: 1.000. Rango 2 … 1.000.000. Si N >= 100k pedí confirmación.\n"
+    "• Velas por escenario (n_bars): barras 1m sintéticas usadas EN CADA escenario "
+    "(no es el total de velas del universo).\n"
+    "• Ruido bps (noise_bps): tamaño del shock OHLC. 10 bps = 0,10%.\n"
+    "• Seed: semilla para reproducir el mismo experimento.\n"
+    "• scan_id / backtest_id: ligar a un resultado previo (desde Reports/BT/Guided).\n"
+    "• Guardar paths: opcional; el tope visual de trayectorias no limita N.\n"
+    "\n"
+    "Qué leer al terminar: media de equity, dispersión, IC de la media "
+    "(no banda de un solo path). Memo entra a Mis simulaciones.\n"
+    "\n"
+    "¿Tenés un backtest_id / scan_id o querés modo técnico demo?"
+)
+
+_SCANNER_GUIDE = (
+    "Alpha Scanner (QL -> Alpha Scanner) — ranking MD real multi-mercado.\n"
+    "\n"
+    "• Fuente: MD real (o demo WB).\n"
+    "• Mercado: Spot / Futuros.\n"
+    "• Ventana: Período (días × TF -> ~ N velas) o N velas fijas.\n"
+    "• Universo: top 20/30/… o «Moneda puntual» (buscá en el catálogo, no inventes tickers).\n"
+    "• Mercados: Binance / OKX / Bybit / HL / A3.\n"
+    "• Escanear -> ranking por rama; score ≠ rentabilidad.\n"
+    "• Chips -> abrir Simulador con prefill.\n"
+    "\n"
+    "¿Querés ranking de un universo o de una moneda puntual?"
+)
+
+_WORKBENCH_MAP_GUIDE = (
+    "Mapa rápido QuantLab:\n"
+    "• Guided Lab -> aprender (wizard un venue).\n"
+    "• Alpha Scanner -> ranking monedas multi-mercado.\n"
+    "• Simulador -> comparar exchanges / monedas / leverage.\n"
+    "• Estrategias -> guías del catálogo -> Abrir en Simulador.\n"
+    "• Monte Carlo -> estrés N escenarios (no predicción).\n"
+    "• Mis simulaciones -> historial + Reabrir params + Memo.\n"
+    "• Backtest -> velas sintéticas (debug técnico).\n"
+    "\n"
+    "Menú: QL abajo o QUANTLAB arriba. LIVE_BLOCKED=True (sin órdenes reales).\n"
+    "\n"
+    "¿Qué querés hacer primero: aprender, rankear, comparar o estresar?"
 )
 
 _WORKFLOW_HINTS: dict[str, str] = {
     "aprender": (
-        "Empezá: 1) uv run quantlab-workbench 2) QL→Guided Lab venue paper "
+        "Empezá: 1) QL o QUANTLAB → Guided Lab 2) venue paper "
         "3) Scan lab sintético 4) Simular backtest 5) Chat IA para dudas."
     ),
     "binance": (
-        "Binance sin operar: Guided Lab venue binance → Scan Binance USDT → "
-        "Ranking alpha Binance → Backtest top 5 Binance. Demo solo con unlock."
+        "Binance sin operar: Guided Lab venue binance → Ranking alpha Binance → "
+        "Backtest top 5. O Alpha Scanner multi-mercado. Demo solo con unlock."
+    ),
+    "comparar": (
+        "Comparar mercados: QL → Simulador → tildá exchanges → monedas → "
+        "Comparar. Resultados + memo en Mis simulaciones (Reabrir = mismos params)."
+    ),
+    "estres": (
+        "Estrés: QL → Monte Carlo → elegí N escenarios / velas / ruido → Simular. "
+        "Leé media y dispersión; no es forecast. Prefill desde Reports/Backtest si hay id."
     ),
     "estrategia": (
-        "Probar estrategia: Guided Lab → elegir momentum/buy_once → Simular backtest. "
-        "Con datos reales Binance: Backtest top 5 Binance (pipeline)."
+        "Probar estrategia: panel Estrategias (guía) → Abrir en Simulador, "
+        "o Guided Lab → momentum/buy_once → Simular. Con MD real: pipeline Binance."
     ),
     "a3": (
         "A3: .env QUANTLAB_A3_MD_READONLY=1 + creds → Guided Lab venue a3 → "
@@ -192,7 +291,7 @@ _WORKFLOW_HINTS: dict[str, str] = {
     ),
     "alpha_mm": (
         "Flujo alpha→MM: Guided Lab venue binance → Ranking alpha Binance → "
-        "elegir inventory_mm o avellaneda_stoikov → Backtest top 5 Binance."
+        "inventory_mm o avellaneda_stoikov → Backtest top 5 Binance."
     ),
 }
 
@@ -300,6 +399,10 @@ class ToolRegistry:
             "explain_backtest": self._explain_backtest,
             "explain_guided_lab": self._explain_guided_lab,
             "explain_binance_lab": self._explain_binance_lab,
+            "explain_simulator": self._explain_simulator,
+            "explain_montecarlo": self._explain_montecarlo,
+            "explain_scanner": self._explain_scanner,
+            "explain_workbench_map": self._explain_workbench_map,
             "suggest_workflow": self._suggest_workflow,
             "instructor_guide": self._instructor_guide,
             "get_assistant_context": self._get_assistant_context,
@@ -368,6 +471,51 @@ class ToolRegistry:
                 "/api/lab/binance/pipeline",
             ],
             "read_only_md": True,
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _explain_simulator(self, _args: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "guide": _SIMULATOR_GUIDE,
+            "panel": "simulator",
+            "related": ["strategies", "sim_registry", "montecarlo"],
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _explain_montecarlo(self, _args: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "guide": _MONTECARLO_GUIDE,
+            "panel": "montecarlo",
+            "params": [
+                "n_scenarios",
+                "n_bars",
+                "noise_bps",
+                "seed",
+                "scan_id",
+                "backtest_id",
+            ],
+            "not_prediction": True,
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _explain_scanner(self, _args: dict[str, Any]) -> dict[str, Any]:
+        return {
+            "guide": _SCANNER_GUIDE,
+            "panel": "scanner",
+            "related": ["simulator", "guided_lab"],
+            "live_routing": False,
+            "chat_mutations": False,
+        }
+
+    def _explain_workbench_map(self, _args: dict[str, Any]) -> dict[str, Any]:
+        from quantlab.workbench.chat.context import PRODUCT_MAP
+
+        return {
+            "guide": _WORKBENCH_MAP_GUIDE,
+            "product_map": PRODUCT_MAP,
             "live_routing": False,
             "chat_mutations": False,
         }

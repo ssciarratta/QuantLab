@@ -102,7 +102,10 @@ def min_max_normalize(values: Sequence[float | None]) -> list[float | None]:
         return [None for _ in values]
     lo, hi = min(present), max(present)
     if hi <= lo:
-        return [0.0 if v is not None else None for v in values]
+        # 1 valor (o empate total): sin cross-section útil.
+        # Con N=1 devolver 0.5 (neutro); con N≥2 empatados seguir en 0 (degradado).
+        fill = 0.5 if len(present) == 1 else 0.0
+        return [fill if v is not None else None for v in values]
     out: list[float | None] = []
     for v in values:
         if v is None:

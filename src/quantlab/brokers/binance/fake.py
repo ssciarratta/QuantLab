@@ -96,9 +96,40 @@ class FakeBinanceBroker:
         return list(self._instruments)
 
     def get_snapshot(self, symbol: str) -> BrokerSnapshot:
-        if symbol not in self._snapshots:
-            raise ValidationError(f"símbolo desconocido: {symbol}")
-        return self._snapshots[symbol]
+        sym = symbol.strip().upper()
+        if sym in self._snapshots:
+            return self._snapshots[sym]
+        try:
+            from datetime import UTC, datetime
+            from decimal import Decimal
+
+            from quantlab.brokers.binance.public_md import BinancePublicMdClient
+
+            client = BinancePublicMdClient()
+            ticker = client.book_ticker(sym)
+            bid = ticker.bid if ticker.bid is not None else Decimal("0")
+            ask = ticker.ask if ticker.ask is not None else Decimal("0")
+            last = (bid + ask) / Decimal("2") if bid > 0 and ask > 0 else bid or ask
+            snap = BrokerSnapshot(
+                symbol=sym,
+                bid=bid,
+                ask=ask,
+                last=last,
+                ts=datetime.now(tz=UTC),
+            )
+            self._snapshots[sym] = snap
+            if not any(i.symbol == sym for i in self._instruments):
+                self._instruments.append(
+                    BrokerInstrument(
+                        symbol=sym,
+                        description=f"{sym} (MD público)",
+                        currency="USDT",
+                        status="ACTIVE",
+                    )
+                )
+            return snap
+        except Exception as exc:
+            raise ValidationError(f"símbolo sin MD paper: {sym} ({exc})") from exc
 
     def get_account(self) -> BrokerAccount:
         return self._account

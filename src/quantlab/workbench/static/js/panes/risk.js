@@ -28,7 +28,7 @@
       "<h3>Utilización</h3>" +
       '<p class="muted" style="margin-top:0">% usado de max_qty / max_notional vs book.</p>' +
       '<dl class="kv" id="risk-utilization"></dl>' +
-      '<div id="risk-util-positions" class="mono muted" style="margin-top:0.5rem;font-size:0.85em"></div>' +
+      '<div id="risk-util-positions" class="mono muted" style="margin-top:0.5rem;font-size:1.14em"></div>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Sesión</h3>" +

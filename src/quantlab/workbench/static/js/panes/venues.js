@@ -17,7 +17,7 @@
       '<dl class="kv" id="venues-conn"></dl>' +
       "</div>" +
       '<div class="pane-section">' +
-      "<h3>Venues</h3>" +
+      "<h3>Mercados</h3>" +
       '<div class="mono" id="venues-list">—</div>' +
       "</div>" +
       '<div class="pane-section">' +
@@ -42,7 +42,7 @@
       const venues = Array.isArray(data.venues) ? data.venues : [];
       const plugins = Array.isArray(data.plugin_venues) ? data.plugin_venues : [];
       badgeEl.textContent =
-        venues.length + " venues · " + plugins.length + " plugin(s)";
+        venues.length + " mercados · " + plugins.length + " plugin(s)";
       badgeEl.className = "mono status-ok";
 
       connEl.innerHTML =
@@ -60,7 +60,7 @@
         "</dd>";
 
       if (!venues.length) {
-        listEl.textContent = "(sin venues registrados)";
+        listEl.textContent = "(sin mercados registrados)";
         listEl.className = "mono muted";
       } else {
         listEl.className = "mono";

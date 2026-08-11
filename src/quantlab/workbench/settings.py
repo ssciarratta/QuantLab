@@ -30,9 +30,9 @@ DEFAULT_AUTO_BACKUP_MINUTES = 0
 DEFAULT_DESKTOP_NOTIFICATIONS = False
 DEFAULT_SOUND_ALERTS = False
 DEFAULT_TIMEZONE = "UTC"
-DEFAULT_UI_FONT_SCALE = 1.15
+DEFAULT_UI_FONT_SCALE = 1.18
 MIN_UI_FONT_SCALE = 0.85
-MAX_UI_FONT_SCALE = 1.6
+MAX_UI_FONT_SCALE = 1.85
 MIN_AUTO_BACKUP_MINUTES = 0
 MAX_AUTO_BACKUP_MINUTES = 24 * 60  # 1 día
 
@@ -41,7 +41,7 @@ _MAX_SLIPPAGE_BPS = Decimal("9999.9999")
 
 
 def parse_ui_font_scale(raw: Any) -> float:
-    """Valida ``ui_font_scale`` (float 0.85..1.6)."""
+    """Valida ``ui_font_scale`` (float 0.85..1.85)."""
     if raw is None:
         return DEFAULT_UI_FONT_SCALE
     if isinstance(raw, bool):

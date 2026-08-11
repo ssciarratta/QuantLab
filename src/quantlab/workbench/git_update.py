@@ -172,6 +172,47 @@ def fetch_github_tip(
     return result
 
 
+def working_tree_last_modified_iso(root: Path | None = None) -> str | None:
+    """ISO-8601 del archivo más reciente bajo el árbol de código (sin __pycache__).
+
+    Así el banner refleja ediciones locales aunque aún no haya commit.
+    """
+    cwd = root or _REPO_ROOT
+    newest: float | None = None
+    scan_roots: list[Path] = [
+        cwd / "src" / "quantlab",
+        cwd / "pyproject.toml",
+        cwd / "RESUMEN_PROYECTO.txt",
+    ]
+    skip_parts = {"__pycache__", ".pyc", ".git", ".venv", "venv", "node_modules"}
+
+    def _consider(path: Path) -> None:
+        nonlocal newest
+        try:
+            mtime = path.stat().st_mtime
+        except OSError:
+            return
+        if newest is None or mtime > newest:
+            newest = mtime
+
+    for base in scan_roots:
+        if base.is_file():
+            _consider(base)
+            continue
+        if not base.is_dir():
+            continue
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [d for d in dirnames if d not in skip_parts]
+            for name in filenames:
+                if name.endswith(".pyc") or name.endswith(".pyo"):
+                    continue
+                _consider(Path(dirpath) / name)
+
+    if newest is None:
+        return None
+    return datetime.fromtimestamp(newest, tz=timezone.utc).isoformat()
+
+
 def build_update_status(*, root: Path | None = None, fetch_remote: bool = True) -> dict[str, Any]:
     """Payload para banner: versión local, GitHub, última modificación."""
     cwd = root or _REPO_ROOT
@@ -207,6 +248,13 @@ def build_update_status(*, root: Path | None = None, fetch_remote: bool = True) 
         # Mostrar la más reciente entre local y GitHub tip
         last_mod = _max_iso(last_mod, remote.get("committed_at"))
         last_mod_source = "max(local,github)"
+
+    tree_mod = working_tree_last_modified_iso(cwd)
+    if tree_mod:
+        prev = last_mod
+        last_mod = _max_iso(last_mod, tree_mod)
+        if last_mod == tree_mod and tree_mod != prev:
+            last_mod_source = "working_tree"
 
     return {
         "ok": True,

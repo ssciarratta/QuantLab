@@ -57,6 +57,12 @@ class HummingbotExporter:
             "target": "hummingbot",
             "live_routing": False,
             "blocked": True,
+            "environment": "testnet_spot_quantlab",
+            "recommended_hb_connectors": {
+                "spot_paper": "binance_paper_trade",
+                "perp_testnet": "binance_perpetual_testnet",
+                "quantlab_native_testnet": "binance_spot_testnet_via_quantlab_f102",
+            },
             "experiment_id": manifest.experiment_id,
             "strategy_version": manifest.strategy_version,
             "dataset_id": manifest.dataset_id,

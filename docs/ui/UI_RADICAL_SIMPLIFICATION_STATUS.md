@@ -1,62 +1,55 @@
 # Estado — Simplificación radical UI
 
-**Actualizado:** 2026-08-11
+**Actualizado:** 2026-08-11  
+**ESTADO:** ✅ **COMPLETO** (Fases 0–13 en worktree)
 
 | Campo | Valor |
 |-------|-------|
-| **FASE** | 1 — Auditoría (completa) |
-| **ESTADO** | En progreso → Fase 2 pendiente |
+| **FASE** | 13 — Tests smoke |
 | **RAMA** | `feature/ui-radical-simplification` |
-| **WORKTREE** | `C:\Users\ssciarratta\Desktop\PROYECTOS CURSOR\QuantLab-ui-redesign` |
-| **REPO PRINCIPAL** | Sin modificaciones (cambios locales ajenos preservados) |
+| **WORKTREE** | `QuantLab-ui-redesign` |
+| **REPO PRINCIPAL** | Intacto (UI solo en worktree) |
 
-## Agentes
+## Entregables por fase
 
-| Agente | Rol | Fase |
-|--------|-----|------|
-| Explore subagent | Inventario paneles + duplicados | 1 ✓ |
-| Principal | Git worktree, docs, coordinación | 0–1 ✓ |
-| UX / IA / Design System / Frontend / a11y / Testing | Pendientes | 2+ |
+| Fase | Entregable | Estado |
+|------|------------|--------|
+| 0–1 | Auditoría + worktree | ✓ |
+| 2 | IA 7 grupos | ✓ `NAVIGATION_IA.md`, `panel_registry.js` |
+| 3 | Design system | ✓ `design_tokens.css`, `ql_ui.js`, `DESIGN_SYSTEM.md` |
+| 4 | Layouts por tarea | ✓ `layout_presets.js`, menú v6 |
+| 5 | Home + boot 1 ventana | ✓ `home.js`, `shell.js` |
+| 6 | Prototipos clave | ✓ Scanner/Sim/SLT/Monitor con headers + flujo |
+| 7–11 | Rollout universal | ✓ `QLUi.enhancePaneRoot` en `wm.open` (todos los paneles) |
+| 12 | Sync backend main | ✓ `src/quantlab/` + static UI preservado |
+| 13 | Tests | ✓ `scripts/smoke_ui_redesign.sh`, `PHASE_13_TEST_REPORT.md` |
 
-## Skills
+## Archivos clave
 
-Ver `SKILLS_APPLIED.md`.
+- `static/js/panel_registry.js` — 41 paneles, 7 grupos, NEXT_FLOW
+- `static/js/ql_ui.js` — headers, flow rail, enhancePaneRoot
+- `static/js/panes/home.js`, `monitor.js`
+- `static/js/shell.js` — boot Inicio, wm.open patch, openMonitor
+- `static/js/ql_menu.js` — menú desde registry
 
-## Paneles
+## Métricas
 
 | Métrica | Valor |
 |---------|-------|
-| Auditados | 39 MDI + About + sim_registry |
-| Rediseñados | 0 |
-| Migrados a PanelRegistry | 0 |
+| Paneles en registry | 41 |
+| Con header QLUi automático | 40 (todos excepto home) |
+| Con flow rail | 7 (scanner, sim, bt, mc, slt, monitor, sim_registry) |
+| Backend tocado para UI | Solo sync Fase 12 (parity main) |
 
-## Archivos modificados (worktree)
+## Cómo probar
 
-- `docs/ui/*` (solo documentación Fase 1)
+```bash
+cd QuantLab-ui-redesign
+bash scripts/smoke_ui_redesign.sh
+uv run quantlab-workbench
+# http://127.0.0.1:8765
+```
 
-## Tests
+## Bloqueos
 
-- No ejecutados en Fase 1 (auditoría sin código UI)
-
-## Accesibilidad
-
-- Auditoría documental; checklist en `UI_AUDIT.md` §17
-
-## Regresiones
-
-- Ninguna (sin cambios de código)
-
-## Conflictos con main
-
-- Rama creada desde `origin/main` @ ec19a20
-- Repo principal en rama distinta con cambios sin commit — **no mezclados**
-
-## Decisiones
-
-1. Trabajo **exclusivo** en worktree; main intacto.
-2. Fase 1 **sin tocar** HTML/CSS/JS.
-3. Rebase periódico desde `origin/main` antes de implementación (Fase 4+).
-
-## Siguiente fase
-
-**Fase 2 — Arquitectura de información:** validar categorías tarea, navegación de 7 grupos, terminología ES (`UI_TERMINOLOGY.md`).
+- **Push/merge a main:** pendiente autorización explícita del usuario.

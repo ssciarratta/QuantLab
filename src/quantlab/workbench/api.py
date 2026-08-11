@@ -34,7 +34,6 @@ from quantlab.infra.health import run_health_checks
 from quantlab.infra.ops_metrics import get_ops_metrics, render_prometheus_text
 from quantlab.workbench import lab_services
 from quantlab.workbench.about import build_about_payload
-from quantlab.workbench.git_update import apply_git_update, build_update_status
 from quantlab.workbench.access_log import AccessLog, list_access_log
 from quantlab.workbench.access_log import clamp_limit as clamp_access_limit
 from quantlab.workbench.activity import ActivityLog, clamp_limit, list_activity
@@ -61,6 +60,7 @@ from quantlab.workbench.equity_curve import (
     list_equity,
 )
 from quantlab.workbench.feature_store_browser import list_feature_store
+from quantlab.workbench.git_update import apply_git_update, build_update_status
 from quantlab.workbench.hb_exports import get_hb_export, list_hb_exports
 from quantlab.workbench.i18n import build_i18n_payload
 from quantlab.workbench.layout import load_layout, save_layout
@@ -806,20 +806,22 @@ def handle_get_about(state: WorkbenchState) -> dict[str, Any]:
 
 def handle_get_update_status(state: WorkbenchState) -> dict[str, Any]:
     """GET /api/update/status — versión local vs GitHub + última modificación."""
-    state.ensure_session()
+    session = state.ensure_session()
     payload = build_update_status(fetch_remote=True)
-    payload["session_id"] = state.session.session_id
+    payload["session_id"] = session.session_id
     return payload
 
 
-def handle_post_update_apply(state: WorkbenchState, body: dict[str, Any] | None = None) -> dict[str, Any]:
+def handle_post_update_apply(
+    state: WorkbenchState, body: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """POST /api/update/apply — git pull --ff-only desde origin/main (+ uv sync)."""
     _ = body
-    state.ensure_session()
+    session = state.ensure_session()
     if not LIVE_BLOCKED:
         raise ApiError(403, "update bloqueado si LIVE_BLOCKED=False")
     result = apply_git_update()
-    result["session_id"] = state.session.session_id
+    result["session_id"] = session.session_id
     if not result.get("ok"):
         raise ApiError(400, str(result.get("error") or "update falló"))
     return result
@@ -858,6 +860,94 @@ def handle_get_live_status(state: WorkbenchState) -> dict[str, Any]:
         "demo": demo,
         **status,
     }
+
+
+def handle_get_testnet_status(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/live/testnet — transport Spot/Futures (sin secretos)."""
+    from quantlab.brokers.binance.demo_transport import demo_transport_status
+    from quantlab.execution.live_unlock import live_unlock_status
+
+    _ = state
+    unlock = live_unlock_status()
+    unlocked = bool(unlock.get("unlocked"))
+    payload = demo_transport_status(unlocked=unlocked)
+    return {
+        "ok": True,
+        "kind": "testnet_status",
+        "live_blocked": LIVE_BLOCKED is True,
+        "unlocked": unlocked,
+        **payload,
+    }
+
+
+def handle_get_testnet_balances(
+    state: WorkbenchState, query: str = ""
+) -> dict[str, Any]:
+    """GET /api/live/testnet/balances?market=spot|futures — balances firmados."""
+    from urllib.parse import parse_qs
+
+    _ = state
+    params = parse_qs(query or "", keep_blank_values=False)
+    raw = (params.get("market") or ["spot"])[0].strip().lower()
+    market = raw if raw in {"spot", "futures"} else "spot"
+    try:
+        if market == "futures":
+            from quantlab.brokers.binance.futures_testnet_client import (
+                BinanceFuturesTestnetClient,
+                futures_testnet_keys_configured,
+            )
+
+            if not futures_testnet_keys_configured():
+                return {
+                    "ok": False,
+                    "market": market,
+                    "error": "BINANCE_FUTURES_DEMO_* ausentes",
+                    "balances": [],
+                }
+            client = BinanceFuturesTestnetClient()
+            bals = client.get_balances(omit_zero=True)
+            return {
+                "ok": True,
+                "market": market,
+                "balances": [
+                    {
+                        "asset": b.asset,
+                        "available": b.available_balance,
+                        "wallet": b.wallet_balance,
+                        "unrealized_profit": b.unrealized_profit,
+                    }
+                    for b in bals
+                ],
+            }
+        from quantlab.brokers.binance.testnet_client import (
+            BinanceTestnetClient,
+            testnet_keys_configured,
+        )
+
+        if not testnet_keys_configured():
+            return {
+                "ok": False,
+                "market": market,
+                "error": "BINANCE_DEMO_* ausentes",
+                "balances": [],
+            }
+        client_s = BinanceTestnetClient()
+        bals_s = client_s.get_balances(omit_zero=True)
+        return {
+            "ok": True,
+            "market": market,
+            "balances": [
+                {
+                    "asset": b.asset,
+                    "free": b.free,
+                    "locked": b.locked,
+                    "total": b.total,
+                }
+                for b in bals_s
+            ],
+        }
+    except ValidationError as exc:
+        return {"ok": False, "market": market, "error": str(exc), "balances": []}
 
 
 def handle_post_live_unlock(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
@@ -1111,6 +1201,53 @@ def handle_post_binance_scan(state: WorkbenchState, body: dict[str, Any]) -> dic
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_post_binance_klines(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/binance/klines — OHLCV público read-only para gráficos UI."""
+    from quantlab.brokers.binance.futures_public_md import BinanceFuturesPublicMdClient
+    from quantlab.brokers.binance.public_md import BinancePublicMdClient
+
+    _ = state
+    symbol = body.get("symbol")
+    if not isinstance(symbol, str) or not symbol.strip():
+        raise ApiError(400, "symbol requerido")
+    interval = body.get("interval", "1m")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    limit = body.get("limit", 120)
+    if not isinstance(limit, int):
+        raise ApiError(400, "limit debe ser int")
+    market_type = str(body.get("market_type") or "spot").strip().lower()
+    if market_type not in ("spot", "futures"):
+        raise ApiError(400, "market_type debe ser spot o futures")
+    try:
+        client: BinancePublicMdClient | BinanceFuturesPublicMdClient
+        if market_type == "futures":
+            client = BinanceFuturesPublicMdClient()
+        else:
+            client = BinancePublicMdClient()
+        bars = client.klines(symbol.strip(), interval=interval.strip(), limit=limit)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    out_bars: list[dict[str, Any]] = []
+    for bar in bars:
+        out_bars.append(
+            {
+                "time": int(bar.timestamp_open.timestamp()),
+                "open": float(bar.open),
+                "high": float(bar.high),
+                "low": float(bar.low),
+                "close": float(bar.close),
+                "volume": float(bar.volume),
+            }
+        )
+    return {
+        "symbol": symbol.strip().upper(),
+        "interval": interval.strip(),
+        "market_type": market_type,
+        "bars": out_bars,
+    }
+
+
 def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/binance/scanner — Alpha ranking sobre klines Binance (F111)."""
     top_n = body.get("top_n", 5)
@@ -1118,6 +1255,9 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit", 24)
     profile = body.get("profile", "legacy_v1")
+    kronos_body = body.get("kronos")
+    if kronos_body is not None and not isinstance(kronos_body, dict):
+        raise ApiError(400, "kronos debe ser object")
     if not isinstance(top_n, int):
         raise ApiError(400, "top_n debe ser int")
     if not isinstance(symbol_limit, int):
@@ -1138,11 +1278,8 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
             interval=interval.strip(),
             kline_limit=kline_limit,
             profile=profile.strip(),
-            persist_dir=(
-                persist_dir
-                if profile.strip().lower() not in ("legacy_v1", "legacy", "")
-                else None
-            ),
+            persist_dir=persist_dir,
+            kronos=kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body),
         )
         out = state.store_lab_result(result)
         _record_activity(
@@ -1151,6 +1288,149 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
             ok=True,
             message="binance alpha scanner",
             detail={"top_n": top_n, "kind": result.get("kind"), "profile": result.get("profile")},
+        )
+        return out
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def _kronos_flags_from_body(body: dict[str, Any]) -> dict[str, Any]:
+    """Extrae flags Kronos planos del body (compat UI)."""
+    keys = (
+        "kronos_enabled",
+        "kronos_model",
+        "kronos_tokenizer",
+        "kronos_device",
+        "kronos_top_n",
+        "kronos_lookback",
+        "kronos_pred_len",
+        "kronos_sample_count",
+        "kronos_temperature",
+        "kronos_top_p",
+        "kronos_weight",
+        "kronos_timeout_seconds",
+        "kronos_cache_enabled",
+        "kronos_legacy_override",
+        "kronos_seed",
+    )
+    out: dict[str, Any] = {}
+    for k in keys:
+        if k in body:
+            out[k] = body[k]
+    return out
+
+
+def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/venue/scanner — Alpha ranking MD real (1 o N venues)."""
+    venue = body.get("venue", "binance")
+    venues_raw = body.get("venues")
+    market_type = body.get("market_type", "spot")
+    top_n = body.get("top_n", 5)
+    symbol_limit = body.get("symbol_limit", 30)
+    interval = body.get("interval", "1h")
+    kline_limit = body.get("kline_limit")
+    period_days = body.get("period_days")
+    profile = body.get("profile", "trend")
+    underlyings = body.get("underlyings")
+    if venues_raw is not None:
+        if not isinstance(venues_raw, list) or not all(
+            isinstance(x, str) for x in venues_raw
+        ):
+            raise ApiError(400, "venues debe ser lista de strings")
+        venues_list = [x.strip() for x in venues_raw if x.strip()]
+    else:
+        venues_list = []
+    if not isinstance(venue, str):
+        raise ApiError(400, "venue debe ser string")
+    if not isinstance(market_type, str):
+        raise ApiError(400, "market_type debe ser string")
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    if not isinstance(symbol_limit, int):
+        raise ApiError(400, "symbol_limit debe ser int")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    if kline_limit is not None and not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int o null")
+    if period_days is not None and not isinstance(period_days, (int, float, str)):
+        raise ApiError(400, "period_days debe ser número o string")
+    if not isinstance(profile, str):
+        raise ApiError(400, "profile debe ser string")
+    und_list: list[str] | None = None
+    if underlyings is not None:
+        if not isinstance(underlyings, list) or not all(
+            isinstance(x, str) for x in underlyings
+        ):
+            raise ApiError(400, "underlyings debe ser lista de strings")
+        und_list = [x.strip() for x in underlyings if x.strip()]
+    kronos_body = body.get("kronos")
+    if kronos_body is not None and not isinstance(kronos_body, dict):
+        raise ApiError(400, "kronos debe ser object")
+    kronos_arg = (
+        kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body)
+    )
+    try:
+        if state.session is None:
+            raise ApiError(503, "sesión workbench no inicializada")
+        persist_dir = state.session.experiments_dir / "alpha_scans"
+        persist_arg = persist_dir
+        if len(venues_list) >= 2 or (len(venues_list) == 1 and not venue.strip()):
+            result = lab_services.run_multi_venue_lab_scanner(
+                venues=venues_list or [venue.strip()],
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+                kronos=kronos_arg,
+            )
+        elif len(venues_list) == 1:
+            result = lab_services.run_venue_lab_scanner(
+                venue=venues_list[0],
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+                kronos=kronos_arg,
+            )
+        else:
+            result = lab_services.run_venue_lab_scanner(
+                venue=venue.strip(),
+                market_type=market_type.strip(),
+                top_n=top_n,
+                symbol_limit=symbol_limit,
+                interval=interval.strip(),
+                kline_limit=kline_limit,
+                period_days=period_days,
+                profile=profile.strip(),
+                underlyings=und_list,
+                persist_dir=persist_arg,
+                kronos=kronos_arg,
+            )
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "scanner",
+            ok=True,
+            message="venue alpha scanner",
+            detail={
+                "venue": result.get("venue"),
+                "venues": result.get("venues"),
+                "market_type": result.get("market_type"),
+                "top_n": top_n,
+                "kind": result.get("kind"),
+                "profile": result.get("profile"),
+                "symbol_limit": symbol_limit,
+            },
         )
         return out
     except ValidationError as exc:
@@ -2652,6 +2932,10 @@ def handle_post_paper_session_start(state: WorkbenchState, body: dict[str, Any])
     else:
         raise ApiError(400, "params debe ser objeto JSON")
 
+    testnet_mirror = body.get("testnet_mirror", "none")
+    if testnet_mirror not in ("none", "spot", "futures"):
+        raise ApiError(400, "testnet_mirror debe ser none|spot|futures")
+
     runner = _ensure_paper_session_runner(state)
     try:
         config = PaperSessionConfig(
@@ -2660,6 +2944,7 @@ def handle_post_paper_session_start(state: WorkbenchState, body: dict[str, Any])
             max_steps=max_steps,
             interval_ms=interval_ms,
             params=params_dict,
+            testnet_mirror=str(testnet_mirror),
         )
         status = runner.start(config)
     except ValidationError as exc:
@@ -2887,6 +3172,129 @@ def handle_get_lab_strategies(_state: WorkbenchState) -> dict[str, Any]:
     return lab_services.lab_strategies()
 
 
+def handle_get_lab_sim_fees(_state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/sim/fees — presets VIP0 por venue × spot/futures."""
+    from quantlab.research.sim.fee_schedules import list_fee_schedules
+
+    _ = _state
+    return {
+        "ok": True,
+        "kind": "sim_fees",
+        "schedules": list_fee_schedules(),
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+        "research_safe": True,
+    }
+
+
+def handle_get_lab_sim_universe(_state: WorkbenchState, query: str = "") -> dict[str, Any]:
+    """GET /api/lab/sim/universe — productos por venue (crypto + A3 + HL live)."""
+    from urllib.parse import parse_qs
+
+    from quantlab.research.sim.universe import list_sim_universe
+
+    _ = _state
+    qs = parse_qs(query or "", keep_blank_values=False)
+    mt = (qs.get("market_type") or ["futures"])[0]
+    hl_live_raw = (qs.get("hl_live") or ["1"])[0].strip().lower()
+    hl_live = hl_live_raw not in ("0", "false", "no")
+    payload = list_sim_universe(market_type=mt, hl_live=hl_live)
+    payload["live_blocked"] = LIVE_BLOCKED is True
+    payload["live_routing"] = False
+    return payload
+
+
+def handle_get_lab_sim_period(state: WorkbenchState, query: str) -> dict[str, Any]:
+    """GET /api/lab/sim/period?period_days=&interval= — estima N velas."""
+    from urllib.parse import parse_qs
+
+    from quantlab.research.sim.period_bars import estimate_n_bars
+
+    _ = state
+    qs = parse_qs(query or "", keep_blank_values=False)
+    period_raw = (qs.get("period_days") or ["30"])[0]
+    interval = (qs.get("interval") or ["1h"])[0]
+    try:
+        payload = estimate_n_bars(period_days=period_raw, interval=interval)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    payload["live_blocked"] = LIVE_BLOCKED is True
+    payload["live_routing"] = False
+    return payload
+
+
+def handle_post_lab_sim_compare(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/sim/compare — multi-venue spot/futuros + leverage + bench."""
+    from quantlab.research.sim.compare import run_sim_compare
+
+    session = state.ensure_session()
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        result = run_sim_compare(body)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    state.last_lab_result = result
+    return result
+
+
+def handle_post_lab_sim_rank_strategies(
+    state: WorkbenchState, body: dict[str, Any]
+) -> dict[str, Any]:
+    """POST /api/lab/sim/rank-strategies — top estrategias por moneda × mercados."""
+    from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
+
+    session = state.ensure_session()
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        result = run_sim_strategy_rank(body)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+    result["session_id"] = session.session_id
+    state.last_lab_result = result
+    return result
+
+
+def handle_post_lab_sim_sizing(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/sim/sizing — valida capital / por trade / leverage."""
+    from decimal import Decimal
+
+    from quantlab.research.sim.sizing import validate_trade_size
+
+    _ = state
+    if not isinstance(body, dict):
+        raise ApiError(400, "body JSON objeto requerido")
+    try:
+        capital = Decimal(str(body.get("initial_capital", "0")))
+        per_trade = Decimal(str(body.get("per_trade_usd", "0")))
+        leverage = Decimal(str(body.get("leverage", "1")))
+        market_type = str(body.get("market_type", "spot"))
+        capital_mode = str(body.get("capital_mode", "fixed"))
+        min_notional = body.get("min_notional")
+        mn = Decimal(str(min_notional)) if min_notional is not None else None
+        out = validate_trade_size(
+            capital,
+            per_trade,
+            leverage,
+            market_type=market_type,
+            min_notional=mn,
+            capital_mode=capital_mode,
+        )
+    except (ValidationError, Exception) as exc:
+        if isinstance(exc, ValidationError):
+            raise ApiError(400, str(exc)) from exc
+        raise ApiError(400, f"sizing inválido: {exc}") from exc
+    return {
+        "ok": bool(out.get("ok")),
+        "kind": "sim_sizing",
+        **out,
+        "live_blocked": LIVE_BLOCKED is True,
+        "live_routing": False,
+    }
+
+
 def handle_get_lab_metrics(state: WorkbenchState) -> dict[str, Any]:
     if state.last_lab_result is None:
         return {
@@ -3034,20 +3442,81 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
         else:
             raise ApiError(400, "params debe ser objeto JSON")
         n_bars = body.get("n_bars", 24)
-        if not isinstance(n_bars, int):
+        if n_bars is not None and not isinstance(n_bars, int):
             raise ApiError(400, "n_bars debe ser int")
         experiment_id = body.get("experiment_id", "wb-lab-backtest")
         if not isinstance(experiment_id, str) or not experiment_id.strip():
             raise ApiError(400, "experiment_id inválido")
+        initial_cash_arg = None
+        if "initial_cash" in body and body.get("initial_cash") is not None:
+            from decimal import Decimal, InvalidOperation
+
+            try:
+                initial_cash_arg = Decimal(str(body.get("initial_cash")))
+            except (InvalidOperation, ValueError) as exc:
+                raise ApiError(400, "initial_cash inválido") from exc
+
+        mode_raw = body.get("mode") or body.get("data_mode") or ""
+        mode = str(mode_raw).strip().lower() if mode_raw else ""
+        venue = body.get("venue")
+        underlying = body.get("underlying") or body.get("coin") or body.get("ticker")
+        # Histórico si pide mode=historical o trae venue+moneda.
+        use_historical = mode in ("historical", "market", "real") or (
+            isinstance(venue, str)
+            and venue.strip()
+            and isinstance(underlying, str)
+            and underlying.strip()
+            and mode not in ("synthetic", "synth", "lab")
+        )
+
         try:
             experiment_id = lab_services.validate_experiment_id(experiment_id)
-            result = lab_services.run_lab_backtest(
-                strategy_id=strategy_id,
-                params=params_dict,
-                n_bars=n_bars,
-                experiment_id=experiment_id,
-                reports_dir=state.ensure_lab_reports_dir(),
-            )
+            if use_historical:
+                if not isinstance(venue, str) or not venue.strip():
+                    raise ApiError(400, "backtest histórico: venue requerido")
+                if not isinstance(underlying, str) or not underlying.strip():
+                    raise ApiError(400, "backtest histórico: moneda (underlying) requerida")
+                market_type = body.get("market_type", "futures")
+                if not isinstance(market_type, str):
+                    raise ApiError(400, "market_type inválido")
+                interval = body.get("interval", "1h")
+                if not isinstance(interval, str) or not interval.strip():
+                    raise ApiError(400, "interval inválido")
+                period_days = body.get("period_days")
+                result = lab_services.run_market_lab_backtest(
+                    strategy_id=strategy_id,
+                    params=params_dict,
+                    venue=venue.strip(),
+                    underlying=underlying.strip(),
+                    market_type=market_type.strip(),
+                    interval=interval.strip(),
+                    period_days=period_days,
+                    n_bars=n_bars if isinstance(n_bars, int) else None,
+                    experiment_id=experiment_id,
+                    reports_dir=state.ensure_lab_reports_dir(),
+                    initial_cash=initial_cash_arg,
+                )
+            else:
+                if not isinstance(n_bars, int):
+                    raise ApiError(400, "n_bars debe ser int")
+                result = lab_services.run_lab_backtest(
+                    strategy_id=strategy_id,
+                    params=params_dict,
+                    n_bars=n_bars,
+                    experiment_id=experiment_id,
+                    reports_dir=state.ensure_lab_reports_dir(),
+                    initial_cash=initial_cash_arg,
+                )
+                result = dict(result)
+                result["mode"] = "synthetic"
+                result["context"] = {
+                    "mode": "synthetic",
+                    "data_source": result.get("data_source") or "synthetic",
+                    "n_bars": result.get("n_bars"),
+                    "strategy_id": result.get("strategy_id"),
+                    "bar_range": result.get("bar_range"),
+                    "note": "Velas inventadas del lab — no es mercado real",
+                }
         except ValidationError as exc:
             raise _lab_validation_error(exc) from exc
         out = state.store_lab_result(result)
@@ -3055,11 +3524,21 @@ def handle_post_lab_backtest(state: WorkbenchState, body: dict[str, Any]) -> dic
             state,
             "backtest",
             ok=True,
-            message=f"backtest {strategy_id}",
+            message=(
+                f"backtest {strategy_id}"
+                + (
+                    f" · {venue}/{underlying}"
+                    if use_historical
+                    else " · synthetic"
+                )
+            ),
             detail={
                 "strategy_id": strategy_id,
-                "n_bars": n_bars,
+                "n_bars": result.get("n_bars", n_bars),
                 "experiment_id": experiment_id,
+                "mode": "historical" if use_historical else "synthetic",
+                "venue": venue if use_historical else None,
+                "underlying": underlying if use_historical else None,
             },
         )
         return out
@@ -3090,23 +3569,66 @@ def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dic
             raise ApiError(400, "lookbacks debe ser lista no vacía")
         if not isinstance(quantities_raw, list) or not quantities_raw:
             raise ApiError(400, "quantities debe ser lista no vacía")
-        if not isinstance(n_bars, int):
+        if n_bars is not None and not isinstance(n_bars, int):
             raise ApiError(400, "n_bars debe ser int")
         if not isinstance(persist, bool):
             raise ApiError(400, "persist debe ser bool")
         # Path-safe: solo sandbox de sesión.
         if "path" in body or "optimizer_root" in body or "target_path" in body:
             raise ApiError(400, "path externo no permitido; optimizer solo a sandbox de sesión")
+
+        mode_raw = body.get("mode") or body.get("data_mode") or ""
+        mode = str(mode_raw).strip().lower() if mode_raw else ""
+        venue = body.get("venue")
+        underlying = body.get("underlying") or body.get("coin") or body.get("ticker")
+        use_historical = mode in ("historical", "market", "real") or (
+            isinstance(venue, str)
+            and venue.strip()
+            and isinstance(underlying, str)
+            and underlying.strip()
+            and mode not in ("synthetic", "synth", "lab")
+        )
+
+        initial_cash_arg = None
+        if "initial_cash" in body and body.get("initial_cash") is not None:
+            from decimal import Decimal, InvalidOperation
+
+            try:
+                initial_cash_arg = Decimal(str(body.get("initial_cash")))
+            except (InvalidOperation, ValueError) as exc:
+                raise ApiError(400, "initial_cash inválido") from exc
+
         try:
             lookbacks = tuple(int(x) for x in lookbacks_raw)
             quantities = tuple(str(x) for x in quantities_raw)
-            result = lab_services.run_lab_optimize(
-                lookbacks=lookbacks,
-                quantities=quantities,
-                n_bars=n_bars,
-                persist=persist,
-                optimizer_root=state.ensure_lab_optimizer_dir() if persist else None,
-            )
+            kwargs: dict[str, Any] = {
+                "lookbacks": lookbacks,
+                "quantities": quantities,
+                "n_bars": int(n_bars) if isinstance(n_bars, int) else 20,
+                "persist": persist,
+                "optimizer_root": state.ensure_lab_optimizer_dir() if persist else None,
+                "initial_cash": initial_cash_arg,
+            }
+            if use_historical:
+                if not isinstance(venue, str) or not venue.strip():
+                    raise ApiError(400, "optimize histórico: venue requerido")
+                if not isinstance(underlying, str) or not underlying.strip():
+                    raise ApiError(400, "optimize histórico: moneda (underlying) requerida")
+                market_type = body.get("market_type", "futures")
+                if not isinstance(market_type, str):
+                    raise ApiError(400, "market_type inválido")
+                interval = body.get("interval", "1h")
+                if not isinstance(interval, str) or not interval.strip():
+                    raise ApiError(400, "interval inválido")
+                kwargs["mode"] = "historical"
+                kwargs["venue"] = venue.strip()
+                kwargs["underlying"] = underlying.strip()
+                kwargs["market_type"] = market_type.strip()
+                kwargs["interval"] = interval.strip()
+                kwargs["period_days"] = body.get("period_days")
+            else:
+                kwargs["mode"] = "synthetic"
+            result = lab_services.run_lab_optimize(**kwargs)
         except (ValidationError, TypeError, ValueError) as exc:
             raise ApiError(400, str(exc)) from exc
         result["session_id"] = state.ensure_session().session_id
@@ -3115,11 +3637,21 @@ def handle_post_lab_optimize(state: WorkbenchState, body: dict[str, Any]) -> dic
             state,
             "optimize",
             ok=True,
-            message="optimize grid",
+            message=(
+                "optimize grid"
+                + (
+                    f" · {venue}/{underlying}"
+                    if use_historical
+                    else " · synthetic"
+                )
+            ),
             detail={
-                "n_bars": n_bars,
+                "n_bars": result.get("n_bars", n_bars),
                 "n_lookbacks": len(lookbacks),
                 "persist": persist,
+                "mode": "historical" if use_historical else "synthetic",
+                "venue": venue if use_historical else None,
+                "underlying": underlying if use_historical else None,
             },
         )
         return out
@@ -3176,14 +3708,15 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         ASYNC_JOB_THRESHOLD,
         CONFIRM_LARGE_THRESHOLD,
         DEFAULT_BARS,
+        DEFAULT_NOISE_BPS,
         DEFAULT_SCENARIOS,
+        SIM_LINKED_DEFAULT_NOISE_BPS,
         estimate_cost,
     )
     from quantlab.workbench.montecarlo_jobs import get_job_store
 
     n_scenarios = body.get("n_scenarios", DEFAULT_SCENARIOS)
     n_bars = body.get("n_bars", DEFAULT_BARS)
-    noise_bps = body.get("noise_bps", 10.0)
     seed = body.get("seed", 42)
     scan_id = body.get("scan_id")
     backtest_id = body.get("backtest_id")
@@ -3195,6 +3728,15 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
     confirm_large = body.get("confirm_large", False)
     async_job = body.get("async")
     estimate_only = body.get("estimate_only", False)
+    sim_context_raw = body.get("sim_context")
+    if "noise_bps" in body:
+        noise_bps = body.get("noise_bps")
+    else:
+        noise_bps = (
+            SIM_LINKED_DEFAULT_NOISE_BPS
+            if isinstance(sim_context_raw, dict) and sim_context_raw
+            else DEFAULT_NOISE_BPS
+        )
 
     if not isinstance(n_scenarios, int) or isinstance(n_scenarios, bool):
         raise ApiError(400, "n_scenarios debe ser int")
@@ -3222,6 +3764,21 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         raise ApiError(400, "mode debe ser string")
     if not isinstance(confirm_large, bool):
         raise ApiError(400, "confirm_large debe ser bool")
+    sim_context: dict[str, Any] | None = None
+    if sim_context_raw is not None:
+        if not isinstance(sim_context_raw, dict):
+            raise ApiError(400, "sim_context debe ser objeto")
+        sim_context = sim_context_raw
+        # Preferir strategy_id del Simulador si el body no lo sobreescribe explícitamente
+        sid_ctx = sim_context.get("strategy_id")
+        if (
+            isinstance(sid_ctx, str)
+            and sid_ctx.strip()
+            and body.get("strategy_id") is None
+        ):
+            strategy_id = sid_ctx
+        elif isinstance(sid_ctx, str) and sid_ctx.strip() and strategy_id == "buy_once":
+            strategy_id = sid_ctx
     persist = body.get("persist", True)
     if not isinstance(persist, bool):
         raise ApiError(400, "persist debe ser bool")
@@ -3248,6 +3805,11 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
         if isinstance(backtest_id, str) and backtest_id.strip()
         else None
     )
+    # Con sim_context del Simulador, no arrastrar backtest_id huérfano de Guided Lab
+    if sim_context is not None:
+        bt_clean = None
+        if not mode or mode == "technical_lab":
+            mode = "sim_linked"
     use_async = async_job if isinstance(async_job, bool) else (n_scenarios >= ASYNC_JOB_THRESHOLD)
 
     try:
@@ -3268,6 +3830,7 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
             "batch_size": batch_size,
             "mode": mode.strip(),
             "confirm_large": confirm_large,
+            "sim_context": sim_context,
         }
         if use_async:
             store = get_job_store()

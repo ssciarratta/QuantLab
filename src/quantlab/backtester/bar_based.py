@@ -107,9 +107,12 @@ class BarBacktester:
             raise ValidationError("backtester 5A requiere al menos una barra")
         by_inst: dict[str, list[Bar]] = defaultdict(list)
         min_seconds = self._config.min_timeframe_minutes * 60
+        # Binance/OKX/Bybit/HL reportan close = open+interval−1ms → duración≈59.999s
+        # en velas 1m. Toleramos hasta 1s de déficit vs el mínimo (no aceptar <1m real).
+        min_acceptable = max(0.0, float(min_seconds) - 1.0)
         for bar in bars:
             duration = (bar.timestamp_close - bar.timestamp_open).total_seconds()
-            if duration < min_seconds - 1e-9:
+            if duration < min_acceptable:
                 raise ValidationError(
                     f"5A: timeframe de barra < {self._config.min_timeframe_minutes}m"
                 )

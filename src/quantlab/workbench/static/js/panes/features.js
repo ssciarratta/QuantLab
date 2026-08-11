@@ -7,9 +7,9 @@
     root.className = "pane-lab pane-features";
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Features pipeline</h3>" +
-      '<p class="muted" style="margin-top:0">Demo causal: close_price + simple_return + log_return → persiste en <span class="mono">session/features</span> (FeatureStore).</p>' +
-      '<div class="pane-row">' +
+      '<div class="pane-head"><h3>Features</h3>' +
+      '<p class="muted pane-sub">Pipeline causal → FeatureStore</p></div>' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="ft-run">Correr pipeline</button>' +
       '<button type="button" class="btn secondary" id="ft-refresh">Actualizar store</button>' +
       '<span class="mono" id="ft-status">—</span>' +

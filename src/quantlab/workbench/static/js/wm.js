@@ -347,9 +347,8 @@
     taskBtn.addEventListener("click", function () {
       if (win.classList.contains("minimized")) {
         self.restore(id);
-      } else if (win.classList.contains("focused")) {
-        self.minimize(id);
       } else {
+        // Solo enfocar: no minimizar al re-clic (parecía que «se cerraba»).
         self.focus(id);
       }
       self.scheduleSave();

@@ -59,11 +59,14 @@
     }
 
     function appendLog(msg) {
-      const ts = new Date().toLocaleTimeString("es-AR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+      const ts =
+        window.QLFmt && window.QLFmt.fmtDateTime
+          ? window.QLFmt.fmtDateTime(new Date())
+          : new Date().toLocaleTimeString("es-AR", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            });
       lines.push("[" + ts + "] " + msg);
       if (lines.length > 80) lines.shift();
       logEl.textContent = lines.join("\n");

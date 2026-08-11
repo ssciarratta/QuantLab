@@ -1,0 +1,63 @@
+"""Simulación multi-venue: leverage, liquidación, funding sobre backtests lab."""
+
+from quantlab.research.sim.benchmark import (
+    BenchmarkPeriod,
+    annual_rate_to_period_return,
+    compute_benchmark,
+)
+from quantlab.research.sim.compare import run_sim_compare
+from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
+from quantlab.research.sim.costs import ExtraCost, apply_extra_costs
+from quantlab.research.sim.fee_schedules import (
+    PRESETS,
+    VenueFeeSchedule,
+    fee_model_from_schedule,
+    get_fee_schedule,
+    list_fee_schedules,
+    schedule_to_lab_fee_dict,
+)
+from quantlab.research.sim.leverage_overlay import (
+    LeverageOverlayConfig,
+    apply_leverage_overlay,
+)
+from quantlab.research.sim.models import SimCompareRow, SimOverlayResult
+from quantlab.research.sim.period_bars import (
+    BINANCE_INTERVALS,
+    estimate_n_bars,
+    interval_minutes,
+)
+from quantlab.research.sim.sizing import (
+    CAPITAL_MODES,
+    build_margin_report,
+    estimate_peak_margin_from_fills,
+    validate_trade_size,
+)
+from quantlab.research.sim.symbol_map import resolve_instrument
+
+__all__ = [
+    "BINANCE_INTERVALS",
+    "CAPITAL_MODES",
+    "BenchmarkPeriod",
+    "ExtraCost",
+    "LeverageOverlayConfig",
+    "PRESETS",
+    "SimCompareRow",
+    "SimOverlayResult",
+    "VenueFeeSchedule",
+    "annual_rate_to_period_return",
+    "apply_extra_costs",
+    "apply_leverage_overlay",
+    "build_margin_report",
+    "compute_benchmark",
+    "estimate_n_bars",
+    "estimate_peak_margin_from_fills",
+    "fee_model_from_schedule",
+    "get_fee_schedule",
+    "interval_minutes",
+    "list_fee_schedules",
+    "resolve_instrument",
+    "run_sim_compare",
+    "run_sim_strategy_rank",
+    "schedule_to_lab_fee_dict",
+    "validate_trade_size",
+]

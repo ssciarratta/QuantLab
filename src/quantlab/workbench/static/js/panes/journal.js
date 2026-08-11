@@ -62,11 +62,11 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Journal de fills</h3>" +
-      '<p class="muted" style="margin-top:0">Fuente: GET /api/paper/fills · descarga servidor GET /api/paper/fills.csv</p>' +
-      '<div class="pane-row">' +
+      '<div class="pane-head"><h3>Journal</h3>' +
+      '<p class="muted pane-sub">Fills paper · CSV</p></div>' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn secondary" id="jn-refresh">Actualizar</button>' +
-      '<button type="button" class="btn" id="jn-download">Descargar CSV</button>' +
+      '<button type="button" class="btn" id="jn-download">CSV servidor</button>' +
       '<button type="button" class="btn secondary" id="jn-export">CSV local</button>' +
       '<span class="mono muted" id="jn-count">—</span>' +
       "</div>" +
@@ -91,7 +91,9 @@
           return (
             "<tr>" +
             "<td>" +
-            (f.ts || "").slice(0, 19).replace("T", " ") +
+            (window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(f.ts)
+              : (f.ts || "").slice(0, 19).replace("T", " ")) +
             "</td>" +
             "<td>" +
             (f.symbol || "") +

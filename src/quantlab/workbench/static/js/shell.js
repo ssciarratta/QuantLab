@@ -6,6 +6,7 @@
   const taskbarWindows = document.getElementById("taskbar-windows");
   const bannerMode = document.getElementById("banner-mode");
   const bannerLive = document.getElementById("banner-live");
+  const bannerSafety = document.getElementById("banner-safety");
   const bannerSession = document.getElementById("banner-session");
   const bannerVersion = document.getElementById("banner-version");
   const bannerUpdated = document.getElementById("banner-updated");
@@ -28,9 +29,9 @@
   let clockTimezone = "UTC"; /* F74: settings.timezone UTC|local */
   let heartbeatPollSeconds = 5; /* F75: N seconds · GET /api/broker/heartbeat */
   let heartbeatTimer = null;
-  let uiFontScale = 1.15;
-  const FONT_MIN = 0.85;
-  const FONT_MAX = 1.6;
+  let uiFontScale = 1.18;
+  const FONT_MIN = 0.9;
+  const FONT_MAX = 1.55;
   const FONT_STEP = 0.1;
 
   const wm = new QLWindowManager(workspace, taskbarWindows);
@@ -48,7 +49,8 @@
       y: g.y != null ? g.y : defaults.y,
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
-      minimized: !!g.minimized,
+      // Nunca reabrir minimizado desde el menú (parecía que «se cerraba»).
+      minimized: false,
       maximized: !!g.maximized,
     };
     if (g.z != null) out.z = g.z;
@@ -64,7 +66,7 @@
 
   function applyFontScale(scale, persist) {
     let s = Number(scale);
-    if (!isFinite(s)) s = 1.15;
+    if (!isFinite(s)) s = 1.18;
     if (s < FONT_MIN) s = FONT_MIN;
     if (s > FONT_MAX) s = FONT_MAX;
     s = Math.round(s * 100) / 100;
@@ -175,8 +177,14 @@
           bannerUpdated.textContent =
             "mod " + (data.last_modified_display || "—");
           if (data.last_modified_at) {
+            var src = data.last_modified_source
+              ? " [" + data.last_modified_source + "]"
+              : "";
             bannerUpdated.title =
-              "Última modificación: " + data.last_modified_at;
+              "Última modificación: " +
+              data.last_modified_at +
+              src +
+              " (archivos locales / git)";
           }
         }
         document.title = "QuantLab Workbench v" + localV;
@@ -252,11 +260,42 @@
     bannerLive.textContent = blocked ? "LIVE_BLOCKED" : "LIVE_UNLOCKED";
     bannerLive.style.borderColor = blocked ? "" : "#d4544a";
     bannerLive.style.color = blocked ? "" : "#d4544a";
+    if (bannerSafety) {
+      const modeLabel = sessionMode === "paper" ? "PAPER" : String(sessionMode).toUpperCase();
+      const parts = [modeLabel, "DATOS BINANCE"];
+      parts.push(blocked ? "PRODUCCIÓN BLOQUEADA" : "LIVE DESBLOQUEADO");
+      bannerSafety.textContent = parts.join(" · ");
+      bannerSafety.classList.toggle("ql-safety-badge--warn", !blocked);
+    }
     updateStatusBar({
       mode: sessionMode,
       live_blocked: blocked,
       session_id: cachedSessionId !== "—" ? cachedSessionId : undefined,
     });
+  }
+
+  function openHome(opts) {
+    if (wm.windows.has("home")) {
+      if (typeof wm.restore === "function") wm.restore("home");
+      wm.focus("home");
+      if (typeof wm.bringToFront === "function") wm.bringToFront("home");
+      const win = wm.windows.get("home");
+      const root = win && win.body && win.body.firstElementChild;
+      if (root && root.refresh) root.refresh().catch(function () {});
+      return;
+    }
+    const pane = QLPanes.createHomePane({
+      onOpen: function (paneId) {
+        if (openers[paneId]) openers[paneId](opts || {});
+      },
+    });
+    wm.open(
+      "home",
+      tr("pane.home", "Inicio"),
+      pane,
+      mergeOpts("home", { x: 48, y: 36, w: 760, h: 620 })
+    );
+    pane.refresh().catch(function () {});
   }
 
   function openHealth() {
@@ -289,6 +328,29 @@
     const pane = QLPanes.createBlotterPane();
     wm.open("blotter", tr("pane.blotter", "Paper Blotter"), pane, mergeOpts("blotter", { x: 120, y: 120, w: 520, h: 400 }));
     pane.refresh().catch(function () {});
+  }
+
+  function openMonitor(opts) {
+    if (wm.windows.has("monitor")) {
+      if (typeof wm.restore === "function") wm.restore("monitor");
+      wm.focus("monitor");
+      const win = wm.windows.get("monitor");
+      const root = win && win.body && win.body.firstElementChild;
+      if (root && root.refresh) root.refresh().catch(function () {});
+      return;
+    }
+    const pane = QLPanes.createMonitorPane({
+      onOpen: function (paneId) {
+        if (openers[paneId]) openers[paneId](opts || {});
+      },
+    });
+    wm.open(
+      "monitor",
+      tr("pane.monitor", "Operación activa"),
+      pane,
+      mergeOpts("monitor", { x: 60, y: 48, w: 720, h: 560 })
+    );
+    if (typeof pane.refresh === "function") pane.refresh().catch(function () {});
   }
 
   function openJournal() {
@@ -373,10 +435,66 @@
       "guided_lab",
       tr("pane.guided_lab", "Guided Lab"),
       pane,
-      mergeOpts("guided_lab", { x: 200, y: 60, w: 520, h: 560 })
+      mergeOpts("guided_lab", { x: 160, y: 40, w: 680, h: 640 })
     );
     if (pane.refresh) pane.refresh();
     if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+  }
+
+  function openSimulator(opts) {
+    opts = opts || {};
+    if (
+      !window.QLPanes ||
+      typeof QLPanes.createSimulatorPane !== "function"
+    ) {
+      window.alert(
+        "Simulador no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
+      return;
+    }
+    if (opts.prefill && window.QLNav) {
+      window.QLNav.setFocus("simulator", { prefill: opts.prefill });
+    }
+    if (wm.windows.has("simulator")) {
+      if (typeof wm.restore === "function") {
+        try {
+          wm.restore("simulator");
+        } catch (e) {}
+      }
+      wm.focus("simulator");
+      if (typeof wm.bringToFront === "function") {
+        try {
+          wm.bringToFront("simulator");
+        } catch (e2) {}
+      }
+      const root = wm.windows.get("simulator").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
+      return;
+    }
+    try {
+      const pane = QLPanes.createSimulatorPane();
+      wm.open(
+        "simulator",
+        tr("pane.simulator", "Simulador"),
+        pane,
+        mergeOpts("simulator", { x: 40, y: 20, w: 980, h: 720 })
+      );
+      if (pane.refresh) pane.refresh();
+      if (opts.prefill && typeof pane.applyPrefill === "function") {
+        pane.applyPrefill(opts.prefill);
+      }
+    } catch (err) {
+      window.alert(
+        "No pude abrir el Simulador: " +
+          (err && err.message ? err.message : String(err)) +
+          "\nCtrl+F5 y reintentá."
+      );
+    }
   }
 
   function openDiagnostics() {
@@ -392,15 +510,35 @@
 
   function openBacktest(opts) {
     opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("backtest", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
     if (wm.windows.has("backtest")) {
       wm.focus("backtest");
       const root = wm.windows.get("backtest").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createBacktestPane();
-    wm.open("backtest", tr("pane.backtest", "Backtest"), pane, mergeOpts("backtest", { x: 48, y: 48, w: 480, h: 420 }));
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    wm.open(
+      "backtest",
+      tr("pane.backtest", "Backtest"),
+      pane,
+      mergeOpts("backtest", { x: 48, y: 48, w: 720, h: 620 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openScanner(opts) {
@@ -410,7 +548,48 @@
       return;
     }
     const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 60, w: 460, h: 400 }));
+    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 }));
+  }
+
+  function openStrategies(opts) {
+    opts = opts || {};
+    if (wm.windows.has("strategies")) {
+      wm.focus("strategies");
+      const root = wm.windows.get("strategies").body.firstElementChild;
+      if (root && opts.focusId && typeof root.focusStrategy === "function") {
+        root.focusStrategy(opts.focusId);
+      } else if (root && root.refresh) {
+        root.refresh();
+      }
+      return;
+    }
+    const pane = QLPanes.createStrategiesPane({ focusId: opts.focusId });
+    wm.open(
+      "strategies",
+      tr("pane.strategies", "Estrategias"),
+      pane,
+      mergeOpts("strategies", { x: 60, y: 30, w: 640, h: 700 })
+    );
+  }
+
+  function openSimRegistry() {
+    if (!window.QLSimRegistry || typeof QLSimRegistry.openWindow !== "function") {
+      window.alert(
+        "Mis simulaciones no cargó (JS viejo en caché).\n" +
+          "Ctrl+F5 o reiniciá el Workbench."
+      );
+      return;
+    }
+    try {
+      QLSimRegistry.openWindow(
+        mergeOpts("sim_registry", { x: 20, y: 40, w: 980, h: 560 })
+      );
+    } catch (err) {
+      window.alert(
+        "No pude abrir Mis simulaciones: " +
+          (err && err.message ? err.message : String(err))
+      );
+    }
   }
 
   function openMetrics() {
@@ -435,7 +614,7 @@
       return;
     }
     const pane = QLPanes.createReportsPane();
-    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 560, h: 460 }));
+    wm.open("reports", tr("pane.reports", "Reports"), pane, mergeOpts("reports", { x: 110, y: 70, w: 620, h: 520 }));
     pane.refresh()
       .then(function () {
         if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
@@ -454,9 +633,37 @@
     pane.refresh().catch(function () {});
   }
 
-  function openOptimize() {
+  function openOptimize(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("optimize", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
+    if (wm.windows.has("optimize")) {
+      wm.focus("optimize");
+      const root = wm.windows.get("optimize").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
+      return;
+    }
     const pane = QLPanes.createOptimizePane();
-    wm.open("optimize", tr("pane.optimize", "Optimizer"), pane, mergeOpts("optimize", { x: 140, y: 70, w: 560, h: 520 }));
+    wm.open(
+      "optimize",
+      tr("pane.optimize", "Optimizer"),
+      pane,
+      mergeOpts("optimize", { x: 140, y: 70, w: 720, h: 640 })
+    );
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openMonteCarlo(opts) {
@@ -465,13 +672,17 @@
       window.QLNav.setFocus("montecarlo", {
         focusId: opts.focusId || null,
         prefill: opts.prefill || null,
-        message: opts.message || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
       });
     }
     if (wm.windows.has("montecarlo")) {
       wm.focus("montecarlo");
       const root = wm.windows.get("montecarlo").body.firstElementChild;
-      if (root && typeof root.applyNavFocus === "function") root.applyNavFocus();
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      } else if (root && typeof root.applyNavFocus === "function") {
+        root.applyNavFocus();
+      }
       return;
     }
     const pane = QLPanes.createMonteCarloPane();
@@ -479,9 +690,13 @@
       "montecarlo",
       tr("pane.montecarlo", "Monte Carlo"),
       pane,
-      mergeOpts("montecarlo", { x: 160, y: 100, w: 720, h: 560 })
+      mergeOpts("montecarlo", { x: 140, y: 60, w: 800, h: 640 })
     );
-    if (typeof pane.applyNavFocus === "function") pane.applyNavFocus();
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    } else if (typeof pane.applyNavFocus === "function") {
+      pane.applyNavFocus();
+    }
   }
 
   function openFeatures() {
@@ -610,12 +825,72 @@
     pane.refresh().catch(function () {});
   }
 
+  function openBinanceSpot() {
+    const pane = QLPanes.createBinanceSpotPane();
+    wm.open(
+      "binance_spot",
+      tr("pane.binance_spot", "Binance Spot Testnet"),
+      pane,
+      mergeOpts("binance_spot", { x: 80, y: 40, w: 560, h: 640 })
+    );
+  }
+
+  function openBinanceFutures() {
+    const pane = QLPanes.createBinanceFuturesPane();
+    wm.open(
+      "binance_futures",
+      tr("pane.binance_futures", "Binance Futures Testnet"),
+      pane,
+      mergeOpts("binance_futures", { x: 120, y: 60, w: 560, h: 640 })
+    );
+  }
+
+  function openStrategyLiveTest(opts) {
+    opts = opts || {};
+    if ((opts.prefill || opts.focusId) && window.QLNav) {
+      window.QLNav.setFocus("strategy_live_test", {
+        focusId: opts.focusId || null,
+        prefill: opts.prefill || null,
+        message: (opts.prefill && opts.prefill.message) || opts.message || null,
+      });
+    }
+    if (wm.windows.has("strategy_live_test")) {
+      if (typeof wm.restore === "function") wm.restore("strategy_live_test");
+      wm.focus("strategy_live_test");
+      if (typeof wm.bringToFront === "function") wm.bringToFront("strategy_live_test");
+      const root = wm.windows.get("strategy_live_test").body.firstElementChild;
+      if (root && typeof root.applyPrefill === "function" && opts.prefill) {
+        root.applyPrefill(opts.prefill);
+      }
+      return;
+    }
+    if (!QLPanes.createStrategyLiveTestPane) {
+      window.alert(
+        "Corrida en vivo no cargó (JS en caché).\nCtrl+F5 y volvé a intentar."
+      );
+      return;
+    }
+    const pane = QLPanes.createStrategyLiveTestPane();
+    wm.open(
+      "strategy_live_test",
+      tr("pane.strategy_live_test", "Corrida en vivo"),
+      pane,
+      mergeOpts("strategy_live_test", { x: 40, y: 24, w: 920, h: 920 })
+    );
+    if (typeof wm.bringToFront === "function") wm.bringToFront("strategy_live_test");
+    if (opts.prefill && typeof pane.applyPrefill === "function") {
+      pane.applyPrefill(opts.prefill);
+    }
+  }
+
   const openers = {
+    home: openHome,
     health: openHealth,
     market: openMarket,
     universe: openUniverse,
     catalog: openCatalog,
     blotter: openBlotter,
+    monitor: openMonitor,
     journal: openJournal,
     paper_session: openPaperSession,
     positions: openPositions,
@@ -625,6 +900,9 @@
     api_explorer: openApiExplorer,
     diagnostics: openDiagnostics,
     guided_lab: openGuidedLab,
+    simulator: openSimulator,
+    strategies: openStrategies,
+    sim_registry: openSimRegistry,
     chat: openChat,
     settings: openSettings,
     docs: openDocs,
@@ -644,7 +922,29 @@
     features: openFeatures,
     export_hb: openExportHb,
     validation: openValidation,
+    binance_spot: openBinanceSpot,
+    binance_futures: openBinanceFutures,
+    strategy_live_test: openStrategyLiveTest,
   };
+
+  (function patchWmOpenForUiEnhance() {
+    const _wmOpen = wm.open.bind(wm);
+    wm.open = function (id, title, contentEl, opts) {
+      const el = contentEl;
+      if (el && el.nodeType === 1 && window.QLUi && QLUi.enhancePaneRoot) {
+        QLUi.enhancePaneRoot(el, id, {
+          onOpen: function (pid) {
+            if (openers[pid]) openers[pid]();
+          },
+        });
+      }
+      if (window.QLPanelRegistry && QLPanelRegistry.getPanel) {
+        const meta = QLPanelRegistry.getPanel(id);
+        if (meta && meta.label) title = meta.label;
+      }
+      return _wmOpen(id, title, el, opts);
+    };
+  })();
 
   window.QLShell = {
     open: function (paneId, opts) {
@@ -656,6 +956,18 @@
       return false;
     },
     openers: openers,
+    wm: wm,
+    /** Snapshot moneda/estrategia/params del Simulador abierto (si existe). */
+    getSimHandoff: function () {
+      if (!wm.windows.has("simulator")) return null;
+      try {
+        const root = wm.windows.get("simulator").body.firstElementChild;
+        if (root && typeof root.getSimHandoff === "function") {
+          return root.getSimHandoff();
+        }
+      } catch (e) {}
+      return null;
+    },
     setFontScale: function (s, persist) {
       applyFontScale(s, persist !== false);
     },
@@ -676,10 +988,65 @@
       bumpFont(FONT_STEP);
     });
   }
+  (function bindRunGateStatus() {
+    var wrap = document.getElementById("sb-run-gate");
+    var sep = document.getElementById("sb-run-gate-sep");
+    var label = document.getElementById("sb-run-gate-label");
+    var stopBtn = document.getElementById("sb-run-gate-stop");
+    if (!wrap || !window.QLRunGate) return;
+    if (stopBtn) {
+      stopBtn.addEventListener("click", function () {
+        QLRunGate.stop();
+      });
+    }
+    QLRunGate.onChange(function (snap) {
+      if (!snap.busy) {
+        wrap.hidden = true;
+        if (sep) sep.hidden = true;
+        return;
+      }
+      wrap.hidden = false;
+      if (sep) sep.hidden = false;
+      var a = snap.active || {};
+      var txt =
+        (a.label || a.kind || "corrida") +
+        (a.summary ? " · " + a.summary : "");
+      if (snap.queued) {
+        txt +=
+          " → cola: " +
+          (snap.queued.label || snap.queued.kind || "siguiente");
+      }
+      if (label) {
+        label.textContent = txt.length > 56 ? txt.slice(0, 53) + "…" : txt;
+        label.title = txt;
+      }
+      var elapsed = document.getElementById("sb-run-gate-elapsed");
+      if (elapsed) {
+        var ms = snap.elapsed_ms || 0;
+        var s = Math.floor(ms / 1000);
+        var m = Math.floor(s / 60);
+        s = s % 60;
+        elapsed.textContent =
+          m > 0 ? m + ":" + (s < 10 ? "0" : "") + s : s + "s";
+      }
+      var bar = document.getElementById("sb-run-gate-bar");
+      if (bar) {
+        var det = snap.progress != null && isFinite(snap.progress);
+        bar.classList.toggle("indeterminate", !det);
+        if (det) bar.style.width = snap.progress + "%";
+        else bar.style.width = "";
+      }
+    });
+  })();
   try {
     const stored = localStorage.getItem("ql_ui_font_scale");
-    if (stored) applyFontScale(stored, false);
-    else applyFontScale(uiFontScale, false);
+    if (stored === "1.25" || stored === "1.4") {
+      applyFontScale(1.18, true);
+    } else if (stored) {
+      applyFontScale(stored, false);
+    } else {
+      applyFontScale(uiFontScale, false);
+    }
   } catch (e) {
     applyFontScale(uiFontScale, false);
   }
@@ -731,6 +1098,11 @@
         QLAbout.close();
         return;
       }
+      if (startMenu && !startMenu.hasAttribute("hidden")) {
+        ev.preventDefault();
+        closeStartMenu();
+        return;
+      }
     }
 
     if (ctrl && (key === "k" || key === "K")) {
@@ -746,12 +1118,7 @@
 
     if (palette.isOpen()) return;
 
-    if (ctrl && (key === "w" || key === "W")) {
-      if (isTypingTarget(ev.target) && !ev.target.closest(".win")) return;
-      ev.preventDefault();
-      wm.closeFocused();
-      return;
-    }
+    // Ctrl+W ya no cierra paneles (solo el botón ×). Evita cierres accidentales.
 
     if (ctrl && !ev.altKey && !ev.shiftKey && key >= "1" && key <= "9") {
       if (isTypingTarget(ev.target) && !ev.target.closest(".command-palette")) return;
@@ -765,34 +1132,96 @@
   });
 
   startBtn.addEventListener("click", function (ev) {
+    ev.preventDefault();
     ev.stopPropagation();
-    const open = startMenu.hasAttribute("hidden");
-    if (open) {
-      startMenu.removeAttribute("hidden");
-      startMenu.classList.remove("hidden");
-      startBtn.classList.add("active");
-      if (typeof refreshPresetsMenu === "function") {
-        refreshPresetsMenu();
-      }
-    } else {
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
-    }
+    toggleStartMenu();
   });
 
-  startMenu.querySelectorAll("[data-open]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      const key = btn.getAttribute("data-open");
-      if (openers[key]) openers[key]();
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+  function isStartMenuOpen() {
+    return !!(
+      startMenu &&
+      !startMenu.hasAttribute("hidden") &&
+      !startMenu.classList.contains("hidden")
+    );
+  }
+
+  function openStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.removeAttribute("hidden");
+    startMenu.classList.remove("hidden");
+    startBtn.classList.add("active");
+    startBtn.setAttribute("aria-expanded", "true");
+    try {
+      if (typeof refreshPresetsMenu === "function") refreshPresetsMenu();
+    } catch (e) {}
+    try {
+      if (typeof renderFavoritesMenu === "function") renderFavoritesMenu();
+    } catch (e) {}
+  }
+
+  function closeStartMenu() {
+    if (!startMenu || !startBtn) return;
+    startMenu.setAttribute("hidden", "");
+    startMenu.classList.add("hidden");
+    startBtn.classList.remove("active");
+    startBtn.setAttribute("aria-expanded", "false");
+  }
+
+  function toggleStartMenu() {
+    if (isStartMenuOpen()) closeStartMenu();
+    else openStartMenu();
+  }
+
+  if (window.QLShell) {
+    window.QLShell.toggleStartMenu = toggleStartMenu;
+    window.QLShell.openStartMenu = openStartMenu;
+    window.QLShell.closeStartMenu = closeStartMenu;
+  }
+
+  /* QUANTLAB (banner) abre el mismo menú que el botón QL. */
+  var brandEl = document.querySelector(".top-banner .brand");
+  if (brandEl && !brandEl._qlStartBound) {
+    brandEl._qlStartBound = true;
+    brandEl.classList.add("brand-menu-trigger");
+    brandEl.setAttribute("role", "button");
+    brandEl.setAttribute("tabindex", "0");
+    brandEl.setAttribute(
+      "title",
+      "Abrir menú QL (igual que el botón QL abajo a la izquierda)"
+    );
+    brandEl.setAttribute("aria-label", "Abrir menú QuantLab");
+    brandEl.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      toggleStartMenu();
     });
+    brandEl.addEventListener("keydown", function (ev) {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        ev.stopPropagation();
+        toggleStartMenu();
+      }
+    });
+  }
+
+  // —— Menú QL personalizable (barra + secciones) ——
+  if (window.QLMenu) {
+    window.QLMenu.init({
+      openers: openers,
+      handlers: { about: openAbout },
+      startMenu: startMenu,
+    });
+  }
+
+  // Clicks dentro del menú no deben cerrarlo (seguir abriendo paneles).
+  startMenu.addEventListener("click", function (ev) {
+    ev.stopPropagation();
   });
 
   startMenu.querySelectorAll("[data-wm-action]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const action = btn.getAttribute("data-wm-action");
       if (action === "minimize_all" && wm.minimizeAll) {
         wm.minimizeAll();
@@ -811,9 +1240,7 @@
       } else if (action === "restore_from_maximize" && wm.restoreFromMaximize) {
         wm.restoreFromMaximize();
       }
-      startMenu.setAttribute("hidden", "");
-      startMenu.classList.add("hidden");
-      startBtn.classList.remove("active");
+      // Acciones de ventanas: menú sigue abierto.
     });
   });
 
@@ -824,22 +1251,16 @@
     });
   }
 
-  function closeStartMenu() {
-    startMenu.setAttribute("hidden", "");
-    startMenu.classList.add("hidden");
-    startBtn.classList.remove("active");
-  }
-
   function applyWorkspacePreset(name) {
     if (!QLApi || !QLApi.applyPreset || !name) return;
     QLApi.applyPreset(name)
       .then(function (payload) {
         if (!payload || !payload.ok || !payload.layout) return;
         const windows = payload.layout.windows || {};
-        savedGeom = windows;
-        if (wm.closeAll) {
-          wm.closeAll({ silent: true });
-        }
+        // Merge geom del preset sin borrar ventanas ya abiertas.
+        Object.keys(windows).forEach(function (id) {
+          savedGeom[id] = windows[id];
+        });
         const ids =
           (payload.preset && payload.preset.window_ids) || Object.keys(windows);
         ids.forEach(function (id) {
@@ -944,10 +1365,25 @@
   }
 
   startMenu.querySelectorAll("[data-preset]").forEach(function (btn) {
-    btn.addEventListener("click", function () {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
+      // No cerrar menú: el preset ahora suma ventanas, no reemplaza.
       applyWorkspacePreset(name);
+    });
+  });
+
+  startMenu.querySelectorAll("[data-layout-preset]").forEach(function (btn) {
+    btn.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const key = btn.getAttribute("data-layout-preset");
+      if (window.QLLayoutPresets && QLLayoutPresets.apply) {
+        QLLayoutPresets.apply(key, function (paneId) {
+          if (openers[paneId]) openers[paneId]();
+        });
+      }
     });
   });
 
@@ -958,9 +1394,9 @@
           ? ev.target.closest("[data-preset-delete]")
           : null;
       if (delBtn && customPresetsHost.contains(delBtn)) {
+        ev.preventDefault();
         ev.stopPropagation();
         const delName = delBtn.getAttribute("data-preset-delete");
-        closeStartMenu();
         deleteCustomPreset(delName);
         return;
       }
@@ -968,8 +1404,9 @@
         ? ev.target.closest("[data-preset]")
         : null;
       if (!btn || !customPresetsHost.contains(btn)) return;
+      ev.preventDefault();
+      ev.stopPropagation();
       const name = btn.getAttribute("data-preset");
-      closeStartMenu();
       applyWorkspacePreset(name);
     });
   }
@@ -977,16 +1414,20 @@
   if (btnPresetSave) {
     btnPresetSave.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      closeStartMenu();
       saveCurrentAsPreset();
     });
   }
 
-  refreshPresetsMenu();
-
-  document.addEventListener("click", function () {
+  document.addEventListener("click", function (ev) {
+    if (!isStartMenuOpen()) return;
+    var t = ev.target;
+    if (startMenu && startMenu.contains(t)) return;
+    if (startBtn && (t === startBtn || startBtn.contains(t))) return;
+    if (brandEl && (t === brandEl || brandEl.contains(t))) return;
     closeStartMenu();
   });
+
+  refreshPresetsMenu();
 
   function setClockTimezone(tz) {
     /* F74: status bar clock · UTC (default) | local */
@@ -1044,6 +1485,14 @@
   function tickClock() {
     if (!clockEl) return;
     const now = new Date();
+    if (window.QLFmt && window.QLFmt.fmtDateTime) {
+      if (clockTimezone === "UTC") {
+        clockEl.textContent = window.QLFmt.fmtDateTime(now, { utc: true, suffix: " UTC" });
+      } else {
+        clockEl.textContent = window.QLFmt.fmtDateTime(now);
+      }
+      return;
+    }
     const loc =
       window.QLi18n && QLi18n.getLocale && QLi18n.getLocale() === "en"
         ? "en-US"
@@ -1148,9 +1597,9 @@
           .catch(function () {});
       }
     }
-    openHealth();
-    openMarket();
-    openBlotter();
+    openHome();
+    // Boot simplificado: una sola ventana Inicio (Fase 5 UI redesign).
+    // Salud / market / blotter se abren desde Inicio o espacios de trabajo.
 
     // F37: first-run wizard si meta.onboarding_done ausente
     if (

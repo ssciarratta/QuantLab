@@ -23,6 +23,7 @@ VENUE_BINANCE = "binance"
 VENUE_HYPERLIQUID = "hyperliquid"
 VENUE_BYBIT = "bybit"
 VENUE_OKX = "okx"
+VENUE_A3 = "a3"
 VENUE_LAB = "lab"
 
 
@@ -65,7 +66,7 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         spot=True,
         perpetuals=True,
         fetch_implemented=True,
-        notes="Klines publicas cableadas en lab (spot USDT).",
+        notes="Klines publicas cableadas en lab (spot USDT). Venue scanner + md_router futures.",
     ),
     VENUE_HYPERLIQUID: VenueCapabilities(
         venue=VENUE_HYPERLIQUID,
@@ -76,8 +77,8 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=False,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Klines/funding públicos vía POST info; Alpha Scanner curado SIM_COINS.",
     ),
     VENUE_BYBIT: VenueCapabilities(
         venue=VENUE_BYBIT,
@@ -88,8 +89,8 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=True,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Klines linear + funding; Alpha Scanner vía md_router.",
     ),
     VENUE_OKX: VenueCapabilities(
         venue=VENUE_OKX,
@@ -100,8 +101,23 @@ _CAPABILITIES: dict[str, VenueCapabilities] = {
         open_interest=True,
         spot=True,
         perpetuals=True,
-        fetch_implemented=False,
-        notes="Capabilities declaradas; fetch MD pendiente.",
+        fetch_implemented=True,
+        notes="Candles + funding; Alpha Scanner vía md_router.",
+    ),
+    VENUE_A3: VenueCapabilities(
+        venue=VENUE_A3,
+        public_klines=True,
+        public_ticker=True,
+        order_book=False,
+        funding=False,
+        open_interest=False,
+        spot=False,
+        perpetuals=False,
+        fetch_implemented=True,
+        notes=(
+            "Futuros granos/FX Matba Rofex (A3). Lab: catálogo curado + fake/env MD. "
+            "Solo futures (vencimiento)."
+        ),
     ),
     VENUE_LAB: VenueCapabilities(
         venue=VENUE_LAB,

@@ -37,11 +37,14 @@
     }
   }
 
-  async function request(method, path, body) {
+  async function request(method, path, body, fetchOpts) {
     const opts = {
       method: method,
       headers: { Accept: "application/json" },
     };
+    if (fetchOpts && fetchOpts.signal) {
+      opts.signal = fetchOpts.signal;
+    }
     if (body !== undefined) {
       opts.headers["Content-Type"] = "application/json";
       opts.body = JSON.stringify(body);
@@ -278,20 +281,20 @@
     labValidation: function () {
       return request("GET", "/api/lab/validation");
     },
-    labValidationRun: function (body) {
-      return request("POST", "/api/lab/validation/run", body || {});
+    labValidationRun: function (body, fetchOpts) {
+      return request("POST", "/api/lab/validation/run", body || {}, fetchOpts);
     },
     labValidationGet: function (runId) {
       return request("GET", "/api/lab/validation/" + encodeURIComponent(runId));
     },
-    labBacktest: function (body) {
-      return request("POST", "/api/lab/backtest", body || {});
+    labBacktest: function (body, fetchOpts) {
+      return request("POST", "/api/lab/backtest", body || {}, fetchOpts);
     },
-    labScanner: function (body) {
-      return request("POST", "/api/lab/scanner", body || {});
+    labScanner: function (body, fetchOpts) {
+      return request("POST", "/api/lab/scanner", body || {}, fetchOpts);
     },
-    labOptimize: function (body) {
-      return request("POST", "/api/lab/optimize", body || {});
+    labOptimize: function (body, fetchOpts) {
+      return request("POST", "/api/lab/optimize", body || {}, fetchOpts);
     },
     labOptimizeHistory: function () {
       return request("GET", "/api/lab/optimize/history");
@@ -299,8 +302,8 @@
     labOptimizeGet: function (runId) {
       return request("GET", "/api/lab/optimize/history/" + encodeURIComponent(runId));
     },
-    labMonteCarlo: function (body) {
-      return request("POST", "/api/lab/montecarlo", body || {});
+    labMonteCarlo: function (body, fetchOpts) {
+      return request("POST", "/api/lab/montecarlo", body || {}, fetchOpts);
     },
     labMonteCarloHistory: function () {
       return request("GET", "/api/lab/montecarlo/history");
@@ -406,6 +409,16 @@
     liveStatus: function () {
       return request("GET", "/api/live/status");
     },
+    testnetStatus: function () {
+      return request("GET", "/api/live/testnet");
+    },
+    testnetBalances: function (market) {
+      var m = market || "spot";
+      return request(
+        "GET",
+        "/api/live/testnet/balances?market=" + encodeURIComponent(m)
+      );
+    },
     liveUnlock: function (username, password, venueScope) {
       return request("POST", "/api/live/unlock", {
         username: username,
@@ -428,8 +441,85 @@
     liveDemoOpenOrders: function () {
       return request("GET", "/api/live/demo/open-orders");
     },
+    executionStrategies: function () {
+      return request("GET", "/api/execution/strategies");
+    },
+    executionStrategyCapabilities: function (strategyId) {
+      return request(
+        "GET",
+        "/api/execution/strategies/" + encodeURIComponent(strategyId) + "/capabilities"
+      );
+    },
+    executionCreatePromotion: function (body) {
+      return request("POST", "/api/execution/promotions", body || {});
+    },
+    executionRun: function (body) {
+      return request("POST", "/api/execution/run", body || {});
+    },
+    executionLive: function (sessionId) {
+      var q = sessionId
+        ? "?session_id=" + encodeURIComponent(sessionId)
+        : "";
+      return request("GET", "/api/execution/live" + q);
+    },
+    executionValidatePromotion: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/validate",
+        {}
+      );
+    },
+    executionPreflightPromotion: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/preflight",
+        {}
+      );
+    },
+    executionOpenSession: function (promotionId) {
+      return request(
+        "POST",
+        "/api/execution/promotions/" + encodeURIComponent(promotionId) + "/open-session",
+        {}
+      );
+    },
+    executionSessionStatus: function (sessionId) {
+      return request(
+        "GET",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/status"
+      );
+    },
+    executionStopSession: function (sessionId) {
+      return request(
+        "POST",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/stop",
+        {}
+      );
+    },
+    executionStartPaper: function (sessionId, body) {
+      return request(
+        "POST",
+        "/api/execution/sessions/" + encodeURIComponent(sessionId) + "/start-paper",
+        body || {}
+      );
+    },
+    executionSessions: function () {
+      return request("GET", "/api/execution/sessions");
+    },
+    executionHummingbotStatus: function () {
+      return request("GET", "/api/execution/hummingbot/status");
+    },
     binanceScan: function (limit) {
       return request("POST", "/api/lab/binance/scan", { limit: limit || 20 });
+    },
+    binanceKlines: function (opts) {
+      var o = opts || {};
+      return request("POST", "/api/lab/binance/klines", {
+        symbol: o.symbol || "BTCUSDT",
+        interval: o.interval || "1m",
+        limit: o.limit != null ? o.limit : 120,
+        market_type: o.market_type || "spot",
+      });
     },
     binanceScanner: function (opts) {
       const o = opts || {};
@@ -440,6 +530,45 @@
         kline_limit: o.kline_limit || 24,
         profile: o.profile || "legacy_v1",
       });
+    },
+    venueScanner: function (opts) {
+      const o = opts || {};
+      const body = {
+        market_type: o.market_type || "spot",
+        top_n: o.top_n || 5,
+        symbol_limit: o.symbol_limit != null ? o.symbol_limit : 30,
+        interval: o.interval || "1h",
+        profile: o.profile || "trend",
+      };
+      if (o.venues && o.venues.length) {
+        body.venues = o.venues;
+      } else {
+        body.venue = o.venue || "binance";
+      }
+      if (o.kline_limit != null && o.kline_limit !== "") {
+        body.kline_limit = o.kline_limit;
+      }
+      if (o.period_days != null && o.period_days !== "") {
+        body.period_days = o.period_days;
+      }
+      if (o.underlyings && o.underlyings.length) {
+        body.underlyings = o.underlyings;
+      }
+      if (o.kronos && typeof o.kronos === "object") {
+        body.kronos = o.kronos;
+      } else {
+        const kronos = {};
+        if (o.kronos_enabled != null) kronos.kronos_enabled = o.kronos_enabled;
+        if (o.kronos_top_n != null) kronos.kronos_top_n = o.kronos_top_n;
+        if (o.kronos_pred_len != null) kronos.kronos_pred_len = o.kronos_pred_len;
+        if (o.kronos_sample_count != null)
+          kronos.kronos_sample_count = o.kronos_sample_count;
+        if (o.kronos_lookback != null) kronos.kronos_lookback = o.kronos_lookback;
+        if (o.kronos_legacy_override != null)
+          kronos.kronos_legacy_override = o.kronos_legacy_override;
+        if (Object.keys(kronos).length) body.kronos = kronos;
+      }
+      return request("POST", "/api/lab/venue/scanner", body, o.fetchOpts);
     },
     alphaProfiles: function () {
       return request("GET", "/api/lab/alpha/profiles");
@@ -464,6 +593,43 @@
     },
     about: function () {
       return request("GET", "/api/about");
+    },
+    simFees: function () {
+      return request("GET", "/api/lab/sim/fees");
+    },
+    simUniverse: function (opts) {
+      opts = opts || {};
+      var q = [];
+      if (opts.market_type) {
+        q.push("market_type=" + encodeURIComponent(opts.market_type));
+      }
+      if (opts.hl_live != null) {
+        q.push("hl_live=" + (opts.hl_live ? "1" : "0"));
+      }
+      var qs = q.length ? "?" + q.join("&") : "";
+      return request("GET", "/api/lab/sim/universe" + qs);
+    },
+    simPeriod: function (periodDays, interval) {
+      var q =
+        "period_days=" +
+        encodeURIComponent(periodDays) +
+        "&interval=" +
+        encodeURIComponent(interval || "1h");
+      return request("GET", "/api/lab/sim/period?" + q);
+    },
+    simCompare: function (body, fetchOpts) {
+      return request("POST", "/api/lab/sim/compare", body || {}, fetchOpts);
+    },
+    simRankStrategies: function (body, fetchOpts) {
+      return request(
+        "POST",
+        "/api/lab/sim/rank-strategies",
+        body || {},
+        fetchOpts
+      );
+    },
+    simSizing: function (body) {
+      return request("POST", "/api/lab/sim/sizing", body || {});
     },
     updateStatus: function () {
       return request("GET", "/api/update/status");

@@ -8,13 +8,16 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Conexión broker</h3>" +
-      '<div class="pane-row">' +
-      '<label class="field">Venue<select id="md-venue"></select></label>' +
+      '<div class="pane-head"><h3>Market Data</h3>' +
+      '<p class="muted pane-sub">Conexión · instrumentos · snapshot</p></div>' +
+      '<div class="pane-toolbar">' +
+      '<label class="field">Mercado<select id="md-venue"></select></label>' +
       '<label class="field">MD source<select id="md-source">' +
       '<option value="fake">fake</option>' +
       '<option value="env">env</option>' +
       "</select></label>" +
+      "</div>" +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="md-connect">Conectar</button>' +
       '<button type="button" class="btn secondary" id="md-reconnect">Reconectar</button>' +
       '<button type="button" class="btn secondary" id="md-disconnect">Desconectar</button>' +
@@ -24,14 +27,14 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Instrumentos</h3>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn secondary" id="md-instruments">Listar</button>' +
       "</div>" +
       '<div id="md-inst-list" class="mono muted">—</div>' +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Snapshot</h3>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<label class="field">Símbolo<input id="md-symbol" type="text" placeholder="ej. GGAL" /></label>' +
       '<button type="button" class="btn" id="md-snap">Consultar</button>' +
       "</div>" +
@@ -40,7 +43,7 @@
       '<div class="pane-section">' +
       "<h3>Cuenta</h3>" +
       '<button type="button" class="btn secondary" id="md-account">Ver cuenta</button>' +
-      '<dl class="kv" id="md-acct-out" style="margin-top:0.5rem"></dl>' +
+      '<dl class="kv" id="md-acct-out" style="margin-top:0.35rem"></dl>' +
       "</div>";
 
     const venueSel = root.querySelector("#md-venue");
@@ -135,9 +138,31 @@
         }
         instList.innerHTML = items
           .map(function (i) {
-            return i.symbol + " · " + (i.description || "") + " [" + (i.currency || "") + "]";
+            var mat = i.maturity || (i.meta && i.meta.maturity) || "";
+            var tag = mat ? " · vence " + mat : "";
+            var varn =
+              (venueSel.value || "") === "a3"
+                ? " · [margen + dif. diarias]"
+                : "";
+            return (
+              (i.symbol || "") +
+              " · " +
+              (i.description || "") +
+              tag +
+              varn +
+              " [" +
+              (i.currency || "") +
+              "]"
+            );
           })
           .join("<br>");
+        if ((venueSel.value || "") === "a3" && items.length) {
+          window.alert(
+            "A3/Matba: para operar estos futuros el margen lo fija la cámara y " +
+              "el contrato está sujeto a diferencias diarias hasta el vencimiento. " +
+              "No son perpetuos crypto."
+          );
+        }
         if (items[0] && !root.querySelector("#md-symbol").value) {
           root.querySelector("#md-symbol").value = items[0].symbol;
         }
@@ -166,7 +191,9 @@
           (s.last || "") +
           "</dd>" +
           "<dt>ts</dt><dd>" +
-          (s.ts || "") +
+          (window.QLFmt && window.QLFmt.fmtDateTime
+            ? window.QLFmt.fmtDateTime(s.ts)
+            : s.ts || "") +
           "</dd>";
       } catch (err) {
         snapOut.innerHTML = "<dt>error</dt><dd class=\"status-bad\">" + err.message + "</dd>";

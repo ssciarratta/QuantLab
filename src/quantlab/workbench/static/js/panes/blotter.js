@@ -27,8 +27,8 @@
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Enviar orden paper</h3>" +
-      '<p class="muted" style="margin-top:0">Solo paths TESTER/PAPER vía PaperBroker — nunca place_order live.</p>' +
-      '<div class="pane-row">' +
+      '<p class="muted pane-sub">Solo TESTER/PAPER · nunca LIVE</p>' +
+      '<div class="pane-toolbar">' +
       '<label class="field">Símbolo<input id="bl-symbol" type="text" /></label>' +
       '<label class="field">Lado<select id="bl-side">' +
       '<option value="buy">BUY</option>' +
@@ -36,16 +36,16 @@
       "</select></label>" +
       '<label class="field">Qty<input id="bl-qty" type="text" value="1" /></label>' +
       "</div>" +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<button type="button" class="btn" id="bl-submit">Submit paper</button>' +
       '<span class="mono" id="bl-ack">—</span>' +
       "</div>" +
       "</div>" +
       '<div class="pane-section">' +
       "<h3>Fills</h3>" +
-      '<div class="pane-row">' +
-      '<button type="button" class="btn secondary" id="bl-refresh">Actualizar fills</button>' +
-      '<button type="button" class="btn" id="bl-download">Descargar CSV</button>' +
+      '<div class="pane-actions">' +
+      '<button type="button" class="btn secondary" id="bl-refresh">Actualizar</button>' +
+      '<button type="button" class="btn" id="bl-download">CSV</button>' +
       "</div>" +
       '<div id="bl-fills"></div>' +
       "</div>";
@@ -83,7 +83,9 @@
           return (
             "<tr>" +
             "<td>" +
-            (f.ts || "").slice(11, 19) +
+            (window.QLFmt && window.QLFmt.fmtDateTime
+              ? window.QLFmt.fmtDateTime(f.ts)
+              : (f.ts || "").slice(11, 19)) +
             "</td>" +
             "<td>" +
             (f.symbol || "") +

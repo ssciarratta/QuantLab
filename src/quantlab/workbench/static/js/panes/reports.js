@@ -8,13 +8,15 @@
 
     root.innerHTML =
       '<div class="pane-section">' +
-      "<h3>Reports / Metrics history</h3>" +
-      '<p class="muted" style="margin-top:0">Persistidos tras backtest lab / pipeline Binance en session <span class="mono">reports/</span>. ' +
+      '<div class="pane-head"><h3>Reports</h3>' +
+      '<p class="muted pane-sub">Historial metrics · session/reports</p></div>' +
+      '<details class="pane-more muted"><summary>Ayuda · sintético vs histórico</summary>' +
+      '<p style="margin:0.35rem 0">Tras backtest lab / pipeline Binance. ' +
       '<span class="data-badge data-badge-synth">SINTÉTICO</span> o ' +
       '<span class="data-badge data-badge-real">HISTÓRICO</span> según la corrida. ' +
-      "JSON incluye <span class=\"mono\">fills</span>/<span class=\"mono\">orders</span>; HTML = preview.</p>" +
-      '<div class="pane-row">' +
-      '<button type="button" class="btn secondary" id="rp-refresh">Actualizar lista</button>' +
+      "JSON: fills/orders · HTML: preview.</p></details>" +
+      '<div class="pane-actions">' +
+      '<button type="button" class="btn secondary" id="rp-refresh">Actualizar</button>' +
       '<span class="mono muted" id="rp-count">—</span>' +
       "</div>" +
       "</div>" +
@@ -22,13 +24,13 @@
       '<div id="rp-list"></div>' +
       "</div>" +
       '<div class="pane-section">' +
-      '<div class="pane-row">' +
+      '<div class="pane-actions">' +
       '<span class="mono" id="rp-sel">sin selección</span>' +
       '<button type="button" class="btn secondary" id="rp-mode-json" disabled>JSON</button>' +
       '<button type="button" class="btn secondary" id="rp-mode-html" disabled>HTML</button>' +
       '<button type="button" class="btn" id="rp-to-mc" disabled title="Abrir Monte Carlo con este report como backtest_id">→ Monte Carlo</button>' +
       "</div>" +
-      '<p class="muted mono" id="rp-nav-msg" style="margin:0.3rem 0 0"></p>' +
+      '<p class="muted mono" id="rp-nav-msg" style="margin:0.25rem 0 0"></p>' +
       '<div id="rp-preview"></div>' +
       "</div>";
 
@@ -106,7 +108,11 @@
             '<span class="muted">' +
             QLLabUI.escapeHtml(r.strategy_id || "—") +
             " · " +
-            QLLabUI.escapeHtml((r.created_at || "").slice(0, 19).replace("T", " ")) +
+            QLLabUI.escapeHtml(
+              window.QLFmt && window.QLFmt.fmtDateTime
+                ? window.QLFmt.fmtDateTime(r.created_at)
+                : (r.created_at || "").slice(0, 19).replace("T", " ")
+            ) +
             (r.has_html ? " · HTML" : "") +
             "</span>" +
             "</button>"

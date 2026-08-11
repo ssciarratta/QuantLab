@@ -174,7 +174,11 @@
           return (
             "<tr>" +
             '<td class="mono">' +
-            escapeHtml(p.ts || "") +
+            escapeHtml(
+              window.QLFmt && window.QLFmt.fmtDateTime
+                ? window.QLFmt.fmtDateTime(p.ts)
+                : p.ts || ""
+            ) +
             "</td>" +
             '<td class="num mono">' +
             escapeHtml(p.equity) +
