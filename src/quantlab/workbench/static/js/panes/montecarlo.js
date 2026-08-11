@@ -23,7 +23,7 @@
       '<div class="pane-section">' +
       '<div class="pane-head">' +
       "<h3>Monte Carlo</h3>" +
-      '<p class="muted pane-sub">Robustez bajo supuestos · no predice precios</p>' +
+      '<p class="muted pane-sub">Miles de caminos posibles · no predice el futuro, mide robustez</p>' +
       "</div>" +
       '<div id="mc-source-banner" class="mc-source-banner" role="status">' +
       '<strong>Origen:</strong> <span id="mc-source-summary">Sin simulación ligada — modo técnico demo.</span>' +
@@ -47,7 +47,7 @@
       '<div class="pane-actions">' +
       '<label class="muted" title="Guarda hasta 16 curvas. No limita escenarios.">' +
       '<input type="checkbox" id="mc-paths" /> trayectorias</label>' +
-      '<button type="button" class="btn" id="mc-run">Simular</button>' +
+      '<button type="button" class="btn" id="mc-run">Probar escenarios</button>' +
       '<button type="button" class="btn secondary" id="mc-memo" title="Reabrir memorando de la última corrida">Ver memorando</button> ' +
       '<button type="button" class="btn secondary" id="mc-refresh">Actualizar</button>' +
       '<button type="button" class="btn secondary" id="mc-copy-id">Copiar ID</button>' +

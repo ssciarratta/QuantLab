@@ -18,6 +18,7 @@
       label: "Asistente",
       subtitle: "Chat IA",
       tip: "Asistente research — no envía órdenes.",
+      icon: "💬",
     },
     scanner: {
       id: "scanner",
@@ -25,6 +26,7 @@
       subtitle: "Alpha Scanner",
       tip: "Ranking MD real multi-mercado.",
       primary: true,
+      icon: "🔍",
     },
     universe: {
       id: "universe",
@@ -57,6 +59,7 @@
       subtitle: "Simulador multi-venue",
       tip: "Comparar mercados × monedas × leverage.",
       primary: true,
+      icon: "⚖️",
     },
     backtest: {
       id: "backtest",
@@ -64,13 +67,15 @@
       subtitle: "Backtest",
       tip: "Debug sintético / histórico.",
       primary: true,
+      icon: "📈",
     },
     montecarlo: {
       id: "montecarlo",
       label: "Simular escenarios",
-      subtitle: "Monte Carlo",
-      tip: "Estrés estadístico y volatilidad.",
+      subtitle: "Monte Carlo · estrés y volatilidad",
+      tip: "Probá miles de caminos posibles con ruido sobre velas reales.",
       primary: true,
+      icon: "🎲",
     },
     optimize: {
       id: "optimize",
@@ -92,6 +97,7 @@
       subtitle: "Corrida en vivo · paper / testnet",
       tip: "Paper / testnet con MD real.",
       primary: true,
+      icon: "▶️",
     },
     paper_session: {
       id: "paper_session",
@@ -118,8 +124,9 @@
       id: "monitor",
       label: "Operación activa",
       subtitle: "Monitoreo unificado",
-      tip: "Estado de corrida, órdenes, posiciones y riesgo en una vista.",
+      tip: "Blotter, posiciones y riesgo en un solo lugar.",
       primary: true,
+      icon: "👁",
     },
     blotter: {
       id: "blotter",
@@ -158,6 +165,7 @@
       subtitle: "Historial Comparar / MC",
       tip: "Historial local Comparar / Ranking / MC.",
       primary: true,
+      icon: "📋",
     },
     metrics: {
       id: "metrics",
@@ -347,6 +355,7 @@
     "home",
     "scanner",
     "simulator",
+    "montecarlo",
     "strategy_live_test",
     "sim_registry",
     "chat",
@@ -354,7 +363,7 @@
 
   var NEXT_FLOW = {
     scanner: { paneId: "simulator", label: "Comparar mercados" },
-    simulator: { paneId: "strategy_live_test", label: "Ejecutar en prueba" },
+    simulator: { paneId: "backtest", label: "Probar en histórico" },
     backtest: { paneId: "montecarlo", label: "Simular escenarios" },
     montecarlo: { paneId: "strategy_live_test", label: "Ejecutar en prueba" },
     strategy_live_test: { paneId: "monitor", label: "Monitorear operación" },
@@ -420,16 +429,43 @@
     return NEXT_FLOW[paneId] || null;
   }
 
+  var HOME_ACTION_GROUPS = [
+    {
+      title: "Investigar y comparar",
+      ids: ["scanner", "simulator"],
+    },
+    {
+      title: "Probar y estresar",
+      ids: ["backtest", "montecarlo"],
+    },
+    {
+      title: "Ejecutar y monitorear",
+      ids: ["strategy_live_test", "monitor", "sim_registry"],
+    },
+    {
+      title: "Ayuda",
+      ids: ["chat"],
+    },
+  ];
+
   function getPrimaryHomeActions() {
-    return [
-      "scanner",
-      "simulator",
-      "strategy_live_test",
-      "monitor",
-      "sim_registry",
-      "chat",
-    ].map(function (id) {
-      return getPanel(id);
+    return HOME_ACTION_GROUPS.reduce(function (acc, g) {
+      return acc.concat(
+        g.ids.map(function (id) {
+          return getPanel(id);
+        })
+      );
+    }, []);
+  }
+
+  function getHomeActionGroups() {
+    return HOME_ACTION_GROUPS.map(function (g) {
+      return {
+        title: g.title,
+        panels: g.ids.map(function (id) {
+          return getPanel(id);
+        }),
+      };
     });
   }
 
@@ -453,6 +489,7 @@
     getPanel: getPanel,
     getMenuSections: getMenuSections,
     getPrimaryHomeActions: getPrimaryHomeActions,
+    getHomeActionGroups: getHomeActionGroups,
     getNextStep: getNextStep,
     nextFlow: NEXT_FLOW,
     listAllPaneIds: listAllPaneIds,

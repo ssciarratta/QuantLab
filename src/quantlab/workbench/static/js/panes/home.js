@@ -28,14 +28,9 @@
     flowHost.className = "pane-home-flow";
     root.appendChild(flowHost);
 
-    var actionsTitle = document.createElement("h3");
-    actionsTitle.className = "pane-home-section-title";
-    actionsTitle.textContent = "Acciones principales";
-    root.appendChild(actionsTitle);
-
-    var actionsGrid = document.createElement("div");
-    actionsGrid.className = "ql-action-grid";
-    root.appendChild(actionsGrid);
+    var actionsHost = document.createElement("div");
+    actionsHost.className = "pane-home-actions";
+    root.appendChild(actionsHost);
 
     var layoutsTitle = document.createElement("h3");
     layoutsTitle.className = "pane-home-section-title";
@@ -49,7 +44,7 @@
     var hint = document.createElement("p");
     hint.className = "muted pane-home-hint";
     hint.textContent =
-      "Tip: Ctrl+K abre la paleta de comandos. Los paneles avanzados siguen en el menú QL → Sistema.";
+      "Tip: Ctrl+K abre la paleta. Monte Carlo también desde el Simulador con la misma moneda.";
     root.appendChild(hint);
 
     function renderHeader() {
@@ -58,10 +53,10 @@
         headerHost.appendChild(
           QLUi.panelHeader({
             title: "Inicio",
-            subtitle: "QuantLab Workbench — flujo por tarea",
+            subtitle: "Elegí una tarea — todo el flujo a un clic",
             actions: [
               QLUi.primaryAction({
-                label: "Estado del sistema",
+                label: "Estado",
                 variant: "secondary",
                 onClick: function () {
                   onOpen("health");
@@ -92,23 +87,35 @@
     }
 
     function renderActions() {
-      actionsGrid.innerHTML = "";
+      actionsHost.innerHTML = "";
       var panels =
         global.QLPanelRegistry && QLPanelRegistry.getPrimaryHomeActions
           ? QLPanelRegistry.getPrimaryHomeActions()
           : [];
+
+      var title = document.createElement("h3");
+      title.className = "pane-home-section-title";
+      title.textContent = "Accesos rápidos";
+      actionsHost.appendChild(title);
+
+      var grid = document.createElement("div");
+      grid.className = "ql-action-grid ql-action-grid--home";
+
       panels.forEach(function (p) {
-        if (!global.QLUi || !QLUi.actionCard) return;
-        actionsGrid.appendChild(
+        if (!global.QLUi || !QLUi.actionCard || !p) return;
+        grid.appendChild(
           QLUi.actionCard({
             title: p.label,
             subtitle: p.subtitle || "",
+            icon: p.icon || "",
+            compact: true,
             onClick: function () {
               onOpen(p.id);
             },
           })
         );
       });
+      actionsHost.appendChild(grid);
     }
 
     function renderLayouts() {
@@ -162,7 +169,7 @@
       try {
         var h = await QLApi.health();
         if (healthChip) {
-          healthChip.textContent = h.ok ? "Sistema OK" : "Revisar salud";
+          healthChip.textContent = h.ok ? "Todo bien" : "Revisar salud";
           healthChip.className =
             "ql-status-chip ql-status-chip--" + (h.ok ? "ok" : "bad");
         }

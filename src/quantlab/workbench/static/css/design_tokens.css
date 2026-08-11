@@ -1,4 +1,4 @@
-/* Design tokens — simplificación radical UI (Fase 3) */
+/* Design tokens — UI amigable e intuitiva */
 :root {
   --ql-space-xs: 4px;
   --ql-space-sm: 8px;
@@ -7,9 +7,10 @@
   --ql-space-xl: 24px;
   --ql-space-2xl: 32px;
 
-  --ql-radius-sm: 3px;
-  --ql-radius-md: 6px;
-  --ql-radius-lg: 10px;
+  --ql-radius-sm: 8px;
+  --ql-radius-md: 10px;
+  --ql-radius-lg: 14px;
+  --ql-radius-pill: 999px;
 
   --ql-font-display: var(--sans);
   --ql-font-body: var(--sans);
@@ -27,6 +28,7 @@
   --ql-color-danger: var(--danger);
   --ql-color-info: var(--accent);
 
-  --ql-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.28);
+  --ql-shadow-card: 0 4px 20px rgba(0, 0, 0, 0.22);
+  --ql-shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.14);
   --ql-focus-ring: 0 0 0 2px var(--amber-focus), 0 0 0 4px var(--amber-glow);
 }

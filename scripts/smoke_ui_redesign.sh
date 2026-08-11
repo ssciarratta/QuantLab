@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Smoke test — UI radical simplification (worktree)
-set -euo pipefail
+# Compatible Git Bash Windows (sin pipefail / CRLF-safe)
+set -eu
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 PORT="${SMOKE_PORT:-8766}"
 BASE="http://127.0.0.1:${PORT}"
 FAIL=0
+LOG="${TEMP:-/tmp}/ql_smoke_ui.log"
 
 pass() { echo "  OK  $1"; }
 fail() { echo "  FAIL $1"; FAIL=1; }
@@ -19,7 +21,7 @@ for f in \
   src/quantlab/workbench/static/js/panes/home.js \
   src/quantlab/workbench/static/js/panes/monitor.js \
   src/quantlab/workbench/static/css/design_tokens.css; do
-  if [[ -f "$f" ]]; then pass "$f"; else fail "missing $f"; fi
+  if [ -f "$f" ]; then pass "$f"; else fail "missing $f"; fi
 done
 
 echo "[2] Gate Python (rápido)"
@@ -30,12 +32,14 @@ else
 fi
 
 echo "[3] Servidor workbench :${PORT}"
-uv run quantlab-workbench --host 127.0.0.1 --port "$PORT" >/tmp/ql_smoke_ui.log 2>&1 &
+uv run quantlab-workbench --no-browser --host 127.0.0.1 --port "$PORT" >"$LOG" 2>&1 &
 PID=$!
 cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
 trap cleanup EXIT
-for i in $(seq 1 40); do
+i=0
+while [ "$i" -lt 40 ]; do
   if curl -sf "$BASE/api/health" >/dev/null 2>&1; then break; fi
+  i=$((i + 1))
   sleep 0.5
 done
 if curl -sf "$BASE/api/health" >/dev/null 2>&1; then
@@ -75,11 +79,11 @@ else
   pass "POST klines skipped (offline ok)"
 fi
 
-if [[ "$FAIL" -eq 0 ]]; then
+if [ "$FAIL" -eq 0 ]; then
   echo "== SMOKE OK =="
   exit 0
 else
   echo "== SMOKE FAILED =="
-  tail -20 /tmp/ql_smoke_ui.log 2>/dev/null || true
+  tail -20 "$LOG" 2>/dev/null || true
   exit 1
 fi

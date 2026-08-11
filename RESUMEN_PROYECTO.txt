@@ -1,26 +1,28 @@
-QUANTLAB — RESUMEN DEL PROYECTO
-================================
-Actualizado: 2026-07-27
-Versión: 1.01.0 · Banner versión GitHub + singleton al arrancar
+QUANTLAB — RESUMEN (worktree UI redesign)
+==========================================
+Actualizado: 2026-08-11
+Versión: 1.1.0 · Rama feature/ui-radical-simplification
 
 ESTADO
 ------
-- LIVE_BLOCKED=True
-- Arranque: mata instancia previa (PID lock + puerto 8765) → sesión nueva
-- Banner: v local · GH tip · botón Actualizar/Sincronizar · hora última mod
-- API: GET /api/update/status · POST /api/update/apply (git pull --ff-only)
+- Worktree: QuantLab-ui-redesign (aislado del repo principal)
+- UI simplificación radical Fases 0–14 implementadas en rama
+- Smoke: scripts/smoke_ui_redesign.bat OK (Windows)
+- Merge a main: pendiente autorización explícita
 
-ÚLTIMA IMPLEMENTACIÓN
----------------------
-Singleton Workbench + banner de versión:
-- `instance_lock.py` claim al launch
-- `git_update.py` tip GitHub (pyproject + commit date)
-- UI top-banner versión / sync / mod
+ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
+----------------------------------
+- friendly_ui.css — tema cálido, bordes redondeados, copy en español claro
+- Inicio: grid 4×2 compacto (8 accesos en 2 filas al 100%)
+- Monte Carlo en Inicio, barra rápida y flujo Sim→BT→MC→SLT
+- Launcher: cambio entorno prueba.bat + smoke nativo .bat
+- ql_ui.js / home.js / panel_registry.js actualizados
 
 PRÓXIMO
 -------
-Validar F5: abrir QuantLab dos veces → solo una; banner muestra GH version
+- Prueba visual usuario → push/PR/merge a main si aprueba
+- Opcional: order book estilo exchange en SLT (post-merge)
 
-INVARIANTES
------------
-LIVE_BLOCKED=True · REAL=PAPER · sin FASE_*_APPROVED INTERNAL inventados
+BLOQUEOS
+--------
+- Order routing LIVE real (fuera de alcance UI)
