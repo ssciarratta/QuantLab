@@ -1,7 +1,7 @@
 # Estado — Simplificación radical UI
 
-**Actualizado:** 2026-08-11 (v2 friendly UI)  
-**ESTADO:** 🔄 En curso — tema amigable + Monte Carlo en Inicio
+**Actualizado:** 2026-08-11  
+**ESTADO:** ✅ **MERGEADO EN `main`** (commit `35d2a53`)
 
 | Campo | Valor |
 |-------|-------|
@@ -62,4 +62,4 @@
 
 ## Bloqueos
 
-- **Push/merge a main:** pendiente autorización explícita del usuario.
+- ~~Push/merge a main~~ **Hecho** 2026-08-11.
