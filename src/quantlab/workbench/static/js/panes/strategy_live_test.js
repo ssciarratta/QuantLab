@@ -122,21 +122,9 @@
     var root = document.createElement("div");
     root.className = "pane-strategy-live-test slt-v2";
     root.innerHTML =
-      '<div class="slt-head">' +
+      '<div class="slt-head slt-head-compact">' +
       "<h3>Corrida en vivo</h3>" +
-      '<p class="slt-lead muted"' +
-      tipAttr(
-        "Prueba una estrategia ★ con MD real y fills paper · No opera dinero real · LIVE siempre bloqueado"
-      ) +
-      ">MD reales · motor paper + espejo testnet · producción bloqueada</p>" +
       '<p id="slt-catalog-line" class="slt-catalog-line muted">Catálogo: cargando…</p>' +
-      '<div class="slt-dest-guide muted"' +
-      tipAttr(
-        "PAPER o Testnet: mismo motor para las 39 ★. Testnet espeja órdenes al exchange de prueba si hay unlock + keys."
-      ) +
-      "><b>Destinos:</b> <b>PAPER</b> = simulación local · " +
-      "<b>Spot Testnet</b> = motor + órdenes reales testnet spot (39 ★) · " +
-      "<b>Futures Testnet</b> = motor + órdenes reales testnet futures (39 ★)</div>" +
       "</div>" +
       '<div id="slt-source-ctx" class="slt-source-ctx" hidden></div>' +
       '<div class="pane-row slt-action-row">' +
@@ -147,7 +135,36 @@
       tipAttr(FIELD_TIPS.stop) +
       ">■ DETENER</button>" +
       "</div>" +
-      '<div class="pane-section slt-config">' +
+      '<div class="pane-section slt-live slt-live-top" id="slt-live-box">' +
+      '<div class="slt-phase" id="slt-phase">● Listo</div>' +
+      '<div class="slt-metrics" id="slt-metrics">Sin corrida — elegí estrategia ★ e INICIAR</div>' +
+      '<div class="slt-progress-wrap"><div class="slt-progress-bar" id="slt-progress"></div></div>' +
+      '<div class="slt-activity-explainer muted" id="slt-activity-explainer">' +
+      "Qué hace: lee precio real de Binance → la estrategia decide → registra fills <b>paper</b> (simulados). " +
+      "Las flechas en el gráfico son tus operaciones; no mueven dinero real." +
+      "</div>" +
+      '<div class="slt-live-hint muted" id="slt-live-hint" hidden></div>' +
+      '<div class="slt-err-detail muted" id="slt-err-detail" hidden></div>' +
+      '<div class="slt-last-action mono" id="slt-last-action">—</div>' +
+      "</div>" +
+      '<div class="pane-section slt-chart-section">' +
+      '<div class="slt-chart-head">' +
+      "<h4>Gráfico de precio</h4>" +
+      '<div class="slt-ticker-bar slt-ticker-inline" id="slt-ticker">' +
+      '<span class="slt-ticker-sym" id="slt-ticker-sym">—</span>' +
+      '<span class="slt-ticker-last" id="slt-ticker-last">—</span>' +
+      '<span class="slt-ticker-bidask muted" id="slt-ticker-ba">—</span>' +
+      '<span class="slt-ticker-spread muted" id="slt-ticker-spread">—</span>' +
+      "</div></div>" +
+      '<div class="slt-chart-layout">' +
+      '<div id="slt-chart-host" class="slt-chart-host"></div>' +
+      '<aside class="slt-order-side" id="slt-order-side">' +
+      "<h5>Últimas ops</h5>" +
+      '<div id="slt-order-side-list" class="slt-order-side-list muted">—</div>' +
+      "</aside></div></div>" +
+      '<details class="slt-fold slt-config-fold" open>' +
+      '<summary>Configurar corrida</summary>' +
+      '<div class="pane-section slt-config slt-config-inner">' +
       '<div class="slt-form-grid slt-config-grid">' +
       '<label class="slt-field"' +
       tipAttr(FIELD_TIPS.strategy) +
@@ -204,8 +221,10 @@
       '><span>Cadencia entre pasos (ms)</span><input id="slt-interval-ms" type="number" min="100" value="800"></label>' +
       "</div>" +
       '<div id="slt-strat-hint" class="muted slt-hint">—</div>' +
-      "</div>" +
-      '<div class="pane-section slt-operational">' +
+      "</div></details>" +
+      '<details class="slt-fold slt-op-fold">' +
+      '<summary>Mercado, capital y parámetros de estrategia</summary>' +
+      '<div class="pane-section slt-operational slt-operational-inner">' +
       "<h4>Mercado, periodicidad y capital</h4>" +
       '<div class="slt-form-grid slt-op-grid">' +
       '<label class="slt-field"' +
@@ -233,32 +252,7 @@
       "<h4>Cómo opera la estrategia</h4>" +
       '<p id="slt-strat-desc" class="slt-strat-desc muted">—</p>' +
       '<div id="slt-strat-params" class="slt-form-grid slt-params-grid"></div>' +
-      "</div>" +
-      '<div class="pane-section slt-chart-section">' +
-      "<h4>Precio en vivo y operaciones</h4>" +
-      '<p class="muted slt-chart-lead">Velas reales de Binance · flechas verdes/rojas = compras/ventas simuladas (paper) · no mueve dinero real</p>' +
-      '<div class="slt-ticker-bar" id="slt-ticker">' +
-      '<span class="slt-ticker-sym" id="slt-ticker-sym">—</span>' +
-      '<span class="slt-ticker-last" id="slt-ticker-last">—</span>' +
-      '<span class="slt-ticker-bidask muted" id="slt-ticker-ba">bid/ask —</span>' +
-      '<span class="slt-ticker-spread muted" id="slt-ticker-spread">spread —</span>' +
-      "</div>" +
-      '<div class="slt-chart-layout">' +
-      '<div id="slt-chart-host" class="slt-chart-host"></div>' +
-      '<aside class="slt-order-side" id="slt-order-side">' +
-      "<h5>Últimas operaciones</h5>" +
-      '<div id="slt-order-side-list" class="slt-order-side-list muted">Sin operaciones aún</div>' +
-      "</aside>" +
-      "</div>" +
-      "</div>" +
-      '<div class="pane-section slt-live" id="slt-live-box">' +
-      '<div class="slt-phase" id="slt-phase">● Listo</div>' +
-      '<div class="slt-err-detail muted" id="slt-err-detail" hidden></div>' +
-      '<div class="slt-metrics" id="slt-metrics">Sin corrida activa — elegí estrategia ★ y pulsá INICIAR</div>' +
-      '<div class="slt-live-hint muted" id="slt-live-hint" hidden></div>' +
-      '<div class="slt-progress-wrap"><div class="slt-progress-bar" id="slt-progress"></div></div>' +
-      '<div class="slt-last-action mono" id="slt-last-action">—</div>' +
-      "</div>" +
+      "</div></details>" +
       '<div class="pane-section slt-closure" id="slt-closure-box" hidden>' +
       '<h4 id="slt-closure-head">Resumen final</h4>' +
       '<div class="slt-closure-cols">' +
@@ -272,10 +266,7 @@
       "</div>" +
       '<div class="pane-section slt-tabs-wrap">' +
       '<div class="slt-tab-bar">' +
-      '<button type="button" class="slt-tab active" data-tab="grafico"' +
-      tipAttr("Gráfico de precio + marcas de compra/venta") +
-      ">Gráfico</button>" +
-      '<button type="button" class="slt-tab" data-tab="resumen"' +
+      '<button type="button" class="slt-tab active" data-tab="resumen"' +
       tipAttr("Estado general · sesión · PnL · pasos") +
       ">Resumen</button>" +
       '<button type="button" class="slt-tab" data-tab="ordenes"' +
@@ -294,20 +285,18 @@
       tipAttr("JSON crudo · debug · no operar desde acá") +
       ">Técnico</button>" +
       "</div>" +
-      '<div class="slt-tab-panel active" data-panel="grafico" id="slt-panel-grafico">' +
-      '<p class="muted">El gráfico principal está arriba. Acá ves detalle de cotización y libro.</p>' +
-      '<div id="slt-panel-grafico-detail"></div></div>' +
-      '<div class="slt-tab-panel" data-panel="resumen" id="slt-panel-resumen"></div>' +
+      '<div class="slt-tab-panel active" data-panel="resumen" id="slt-panel-resumen"></div>' +
       '<div class="slt-tab-panel" data-panel="ordenes" id="slt-panel-ordenes"></div>' +
       '<div class="slt-tab-panel" data-panel="posiciones" id="slt-panel-posiciones"></div>' +
       '<div class="slt-tab-panel" data-panel="mercado" id="slt-panel-mercado"></div>' +
       '<div class="slt-tab-panel" data-panel="eventos" id="slt-panel-eventos"></div>' +
       '<div class="slt-tab-panel" data-panel="tecnico" id="slt-panel-tecnico"></div>' +
       "</div>" +
-      '<div class="pane-section slt-hist">' +
-      "<h4 style=\"margin:0 0 0.35rem\">Historial reciente</h4>" +
+      '<details class="slt-fold slt-hist-fold">' +
+      '<summary>Historial reciente</summary>' +
+      '<div class="pane-section slt-hist slt-hist-inner">' +
       '<div id="slt-hist-list" class="mono slt-hist-list">—</div>' +
-      "</div>";
+      "</div></details>";
 
     var strategies = [];
     var familyLabels = {};
@@ -429,7 +418,7 @@
     function ensureChart() {
       if (!chartHostEl || !global.SLTChart) return null;
       if (!sltChart || !sltChart.ready) {
-        sltChart = SLTChart.create({ container: chartHostEl, height: 340 });
+        sltChart = SLTChart.create({ container: chartHostEl, height: 220 });
       }
       return sltChart;
     }
@@ -452,9 +441,25 @@
       })
         .then(function (payload) {
           var ch = ensureChart();
-          if (ch && payload && payload.bars) ch.loadKlines(payload);
+          if (ch && payload && payload.bars) {
+            ch.loadKlines(payload);
+          } else if (chartHostEl && (!payload || !payload.bars || !payload.bars.length)) {
+            chartHostEl.innerHTML =
+              '<div class="slt-chart-placeholder muted">Sin velas para ' +
+              esc(sym) +
+              " (" +
+              esc(marketType) +
+              ")</div>";
+          }
         })
-        .catch(function () {});
+        .catch(function (err) {
+          if (chartHostEl) {
+            chartHostEl.innerHTML =
+              '<div class="slt-chart-placeholder muted">Error cargando velas: ' +
+              esc(err && err.message ? err.message : "red o símbolo") +
+              "</div>";
+          }
+        });
     }
 
     function scheduleChartReload() {
@@ -502,7 +507,7 @@
       el.innerHTML = fills
         .slice()
         .reverse()
-        .slice(0, 12)
+        .slice(0, 6)
         .map(function (f) {
           var side = String(f.side || "").toUpperCase();
           var isBuy = side === "BUY" || side === "B";
@@ -595,8 +600,16 @@
       });
     }
     applyDurationToSteps();
-    ensureChart();
-    loadChartKlines(true);
+    setTimeout(function () {
+      ensureChart();
+      loadChartKlines(true);
+      if (sltChart && sltChart.resize) sltChart.resize();
+    }, 350);
+
+    root._sltChartRefresh = function () {
+      loadChartKlines(true);
+      if (sltChart && sltChart.resize) sltChart.resize();
+    };
 
     function logEvent(msg) {
       var ts =
@@ -1292,9 +1305,11 @@
       var symResolved = summary.symbol_resolved || summary.symbol || (symIn && symIn.value);
       renderTicker(mkt, symResolved);
       renderOrderSide(live.fills || []);
-      renderGraficoDetail(mkt, live);
+      if (running) root.classList.add("slt-v2--running");
+      else root.classList.remove("slt-v2--running");
       var ch = ensureChart();
       if (ch) {
+        if (ch.resize) ch.resize();
         if (mkt) ch.updateMarket(mkt);
         if (live.fills) ch.setFills(live.fills);
       }

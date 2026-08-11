@@ -13,10 +13,9 @@ ESTADO
 
 ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
 ----------------------------------
-- Merge feature/ui-radical-simplification ? main
-- friendly_ui.css + Inicio grid 4×2 + Monte Carlo en home/taskbar/flujo
-- SLT: lightweight-charts, ticker bid/ask, panel operaciones
-- Launcher: cambio entorno prueba.bat (smoke + arranque :8765)
+- Merge UI + SLT en main (305c81a)
+- SLT UX compacto: estado arriba, gráfico 220px, config plegable, fix chart v4/v5
+- friendly_ui.css + Inicio 4×2 + Monte Carlo en flujo
 
 PRÓXIMO
 -------

@@ -500,3 +500,190 @@ body[data-ui-simplify="1"] #ql-layout-presets button {
 body[data-ui-simplify="1"] .ql-toast {
   border-radius: var(--ql-radius-lg, 12px);
 }
+
+/* SLT — corrida en vivo compacta */
+body[data-ui-simplify="1"] .slt-v2 .slt-head-compact {
+  margin-bottom: 0.35rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-head-compact h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-catalog-line {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-live-top {
+  margin-bottom: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-elevated));
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-phase {
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-metrics {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin-bottom: 0.25rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-activity-explainer {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  margin: 0.2rem 0;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border-soft);
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-progress-wrap {
+  height: 4px;
+  margin: 0.2rem 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-last-action {
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-section {
+  margin-bottom: 0.45rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.65rem;
+  margin-bottom: 0.3rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-head h4 {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-ticker-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-ticker-last {
+  font-size: 1rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-layout {
+  grid-template-columns: 1fr 150px;
+  gap: 0.4rem;
+  min-height: 0;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-host {
+  min-height: 220px;
+  height: 220px;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-canvas {
+  height: 220px !important;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-chart-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  font-size: 0.78rem;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-side {
+  max-height: 220px;
+  padding: 0.35rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-side h5 {
+  margin: 0 0 0.25rem;
+  font-size: 0.72rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-side-list {
+  font-size: 0.68rem;
+  gap: 0.2rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-order-row {
+  padding: 0.2rem 0.25rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-fold {
+  margin-bottom: 0.35rem;
+  border: 1px solid var(--border-soft);
+  border-radius: var(--ql-radius-md, 10px);
+  background: var(--bg-panel);
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-fold > summary {
+  cursor: pointer;
+  padding: 0.35rem 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-fold .pane-section {
+  border: none;
+  padding: 0 0.55rem 0.45rem;
+  margin: 0;
+  background: transparent;
+}
+
+body[data-ui-simplify="1"] .slt-v2--running .slt-config-fold:not([open]) {
+  opacity: 0.85;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-tabs-wrap {
+  margin-top: 0.35rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-tab-panel {
+  max-height: 9rem;
+  overflow: auto;
+  font-size: 0.78rem;
+}
+
+body[data-ui-simplify="1"] .slt-v2 .slt-source-ctx {
+  font-size: 0.72rem;
+  margin-bottom: 0.35rem;
+  padding: 0.35rem 0.45rem;
+}
+
+body[data-ui-simplify="1"] .ql-pane-v3.pane-strategy-live-test .ql-panel-flow-wrap {
+  margin-bottom: 0.35rem;
+}
+
+body[data-ui-simplify="1"] .ql-pane-v3.pane-strategy-live-test .ql-panel-header {
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.2rem;
+}
