@@ -14,6 +14,7 @@ from quantlab.workbench.strategy_catalog import (
 )
 from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES
 
+
 # Testnet: todas las estrategias runnable del catálogo (motor paper + espejo testnet).
 def _spot_testnet_supported(meta: StrategyMeta) -> bool:
     return meta.runnable

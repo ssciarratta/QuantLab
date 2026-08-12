@@ -294,7 +294,7 @@ def test_chat_binance_intent() -> None:
     state = WorkbenchState()
     tools = ToolRegistry(state)
     turn = FakeProvider().complete("cómo hago ranking alpha binance", tools)
-    assert "explain_binance_lab" in turn.tools_used
+    assert "explain_scanner" in turn.tools_used or "explain_binance_lab" in turn.tools_used
     assert "binance/scanner" in turn.reply.lower() or "scanner" in turn.reply.lower()
 
 

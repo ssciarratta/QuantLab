@@ -251,7 +251,9 @@ def test_static_docs_pane_present() -> None:
     docs_js = root / "src/quantlab/workbench/static/js/panes/docs.js"
     assert index.is_file()
     text = index.read_text(encoding="utf-8")
-    assert 'data-open="docs"' in text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("docs")
     assert "panes/docs.js" in text
     assert docs_js.is_file()
     js = docs_js.read_text(encoding="utf-8")

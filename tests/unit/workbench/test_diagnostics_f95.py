@@ -67,7 +67,9 @@ def test_command_open_diagnostics() -> None:
 def test_static_diagnostics_pane_present() -> None:
     root = _static_root()
     index_text = (root / "index.html").read_text(encoding="utf-8")
-    assert 'data-open="diagnostics"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("diagnostics")
     assert "panes/diagnostics.js" in index_text
 
     js = (root / "js" / "panes" / "diagnostics.js").read_text(encoding="utf-8")

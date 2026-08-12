@@ -74,11 +74,13 @@ def _comp_map(payload: Mapping[str, Any]) -> dict[str, float | None]:
 def signal_to_feature_row(signal: AlphaSignal | Mapping[str, Any]) -> dict[str, Any]:
     """Fila feature schema v1. Missing → None (no fingir 0)."""
     d = signal.to_dict() if isinstance(signal, AlphaSignal) else dict(signal)
-    meta = d.get("metadata") if isinstance(d.get("metadata"), Mapping) else {}
+    meta_raw = d.get("metadata")
+    meta: Mapping[str, Any] = meta_raw if isinstance(meta_raw, Mapping) else {}
     comps = _comp_map(d)
     # components also from metadata.components
-    if isinstance(meta.get("components"), list):
-        for c in meta["components"]:  # type: ignore[index]
+    components = meta.get("components")
+    if isinstance(components, list):
+        for c in components:
             if isinstance(c, Mapping) and c.get("name"):
                 comps[str(c["name"]).replace("_score", "")] = _f(c.get("normalized"))
 

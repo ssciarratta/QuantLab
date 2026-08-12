@@ -246,5 +246,7 @@ def test_static_panes_exist() -> None:
     assert (root / "js" / "panes" / "universe.js").is_file()
     assert (root / "js" / "panes" / "catalog.js").is_file()
     index = (root / "index.html").read_text(encoding="utf-8")
-    assert 'data-open="universe"' in index
-    assert 'data-open="catalog"' in index
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("universe")
+    assert_panel_registered("catalog")

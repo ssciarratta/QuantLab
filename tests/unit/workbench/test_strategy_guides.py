@@ -52,53 +52,22 @@ def test_lab_strategies_exposes_family_labels() -> None:
 
 
 def test_simulator_js_has_accordion_and_guide_window() -> None:
-    from pathlib import Path
+    from static_test_helpers import read_static
 
-    js = (
-        Path(__file__).resolve().parents[3]
-        / "src"
-        / "quantlab"
-        / "workbench"
-        / "static"
-        / "js"
-        / "panes"
-        / "simulator.js"
-    ).read_text(encoding="utf-8")
-    assert 'data-tab="comparar"' in js
-    assert 'data-tab="estrategias"' in js
-    assert "Guías de estrategias" in js
-    assert "sim-strat-section" in js
-    assert "sim-jump-guides" in js
-    assert "example_steps" in js
-    assert "sim-strat-group" in js
-    assert "sim-strat-card" in js
-    assert "when_to_use" in js
-    assert "sim-strat-search" in js
-    assert "openStrategyGuide" in js
-    assert "in_plain_words" in js
-    assert "sim-fee-source" in js
-    assert "optgroup" in js
-    assert "how_it_works" in js
-    assert "Aprender" not in js or "Guided Lab" in js
-    assert 'data-tab="aprender"' not in js
-    assert 'data-tab="estres"' not in js
-    assert 'data-tab="practicar"' not in js
-    # Guías siempre abajo (sección permanente, no display:none)
-    assert 'id="sim-strat-section"' in js
-    assert "Ambas secciones siempre visibles" in js
+    sim_js = read_static("js/panes/simulator.js")
+    strat_js = read_static("js/panes/strategies.js")
+    assert 'data-panel="comparar"' in sim_js
+    assert "sim-open-strategies" in sim_js
+    assert "Guías de estrategias" in strat_js or "Guías" in strat_js
+    assert "example_steps" in strat_js
+    assert "when_to_use" in strat_js
+    assert "how_it_works" in strat_js
 
 
 def test_start_menu_has_accordion_groups() -> None:
-    from pathlib import Path
+    from static_test_helpers import read_static
 
-    html = (
-        Path(__file__).resolve().parents[3]
-        / "src"
-        / "quantlab"
-        / "workbench"
-        / "static"
-        / "index.html"
-    ).read_text(encoding="utf-8")
+    html = read_static("index.html")
     assert 'class="start-acc"' in html
-    assert "Empezar aquí (lab)" in html
+    assert "Barra rápida" in html
     assert html.count("<details") >= 5

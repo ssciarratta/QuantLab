@@ -61,7 +61,9 @@ def test_command_open_venues() -> None:
 def test_static_venues_pane_present() -> None:
     root = _static_root()
     index_text = (root / "index.html").read_text(encoding="utf-8")
-    assert 'data-open="venues"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("venues")
     assert "panes/venues.js" in index_text
 
     js = (root / "js" / "panes" / "venues.js").read_text(encoding="utf-8")

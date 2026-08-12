@@ -21,10 +21,22 @@ FAMILY_LABELS_ES: dict[str, str] = {
 }
 
 _LAB_COMMON = [
-    "En español simple: el lab mira velas (OHLCV) una por una y decide comprar, vender o no hacer nada.",
-    "Casi todas las estrategias ‘classic’ solo compran (long) o se quedan en cero (flat): no venden en corto.",
-    "Cuando ‘compra’, suele hacerlo al precio de cierre de esa vela (o un límite si la vela toca el precio).",
-    "Las comisiones las pone el schedule del exchange (VIP0). Podés verificarlas en el link oficial del panel.",
+    (
+        "En español simple: el lab mira velas (OHLCV) una por una "
+        "y decide comprar, vender o no hacer nada."
+    ),
+    (
+        "Casi todas las estrategias ‘classic’ solo compran (long) o se quedan "
+        "en cero (flat): no venden en corto."
+    ),
+    (
+        "Cuando ‘compra’, suele hacerlo al precio de cierre de esa vela "
+        "(o un límite si la vela toca el precio)."
+    ),
+    (
+        "Las comisiones las pone el schedule del exchange (VIP0). "
+        "Podés verificarlas en el link oficial del panel."
+    ),
     "LIVE real sigue bloqueado: esto es investigación / paper, no trading en vivo.",
 ]
 
@@ -50,7 +62,10 @@ FAMILY_WHEN_TO_USE: dict[str, list[str]] = {
         "En tendencias violentas puede comprar ‘barato’ y seguir bajando.",
     ],
     "market_making": [
-        "Cuando hay ida y vuelta frecuente y querés ganar el ‘spread’ (comprar un poco más abajo / vender un poco más arriba).",
+        (
+            "Cuando hay ida y vuelta frecuente y querés ganar el ‘spread’ "
+            "(comprar un poco más abajo / vender un poco más arriba)."
+        ),
         "No es una apuesta direccional fuerte.",
         "En lab es un proxy: no es el libro real del exchange.",
     ],

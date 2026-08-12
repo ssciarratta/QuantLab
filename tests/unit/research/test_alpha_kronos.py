@@ -370,11 +370,12 @@ def test_forecast_catches_unicode_encode_error() -> None:
     eng.device = "cpu"
     eng.model_revision = "test"
 
-    class RaiseAscii:
-        def predict(self, **kwargs: object) -> object:
-            raise UnicodeEncodeError("ascii", "████", 0, 4, "ordinal not in range(128)")
+    eng._predictor = object()
 
-    eng._predictor = RaiseAscii()
+    def _raise_ascii(_request: ForecastRequest) -> TrajectoryBatch:
+        raise UnicodeEncodeError("ascii", "████", 0, 4, "ordinal not in range(128)")
+
+    eng._predict_trajectories = _raise_ascii  # type: ignore[method-assign]
     bars = _bars(16)
     ns = tuple(int(b.timestamp_close.timestamp() * 1e9) for b in bars)
     req = ForecastRequest(

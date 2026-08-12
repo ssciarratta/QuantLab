@@ -66,7 +66,6 @@ def _scan_conf_for_production_markers(conf_dir: Path) -> dict[str, Any]:
     """Busca referencias a producción en configs locales (read-only)."""
     findings: list[str] = []
     safe_testnet_markers = ("binance_paper_trade", "binance_perpetual_testnet", "testnet")
-    prod_markers = ("api.binance.com", '"binance"', "connector: binance\n")
     for path in conf_dir.rglob("*.yml"):
         try:
             text = path.read_text(encoding="utf-8", errors="replace").lower()

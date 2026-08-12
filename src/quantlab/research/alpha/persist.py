@@ -155,7 +155,7 @@ class ScanStore:
         self,
         *,
         profile: str,
-        rows: Sequence[ScoredRow],
+        rows: Sequence[ScoredRow | Mapping[str, Any]],
         bars_hash: str,
         request: Mapping[str, Any] | None = None,
         scan_id: str | None = None,
@@ -166,7 +166,10 @@ class ScanStore:
         sid = scan_id or f"scan_{uuid4().hex[:12]}"
         req = dict(request or {"profile": profile})
         req_hash = sha256_hex(_stable_json(req))
-        rows_payload = [r.to_dict() for r in rows]
+        rows_payload = [
+            r.to_dict() if isinstance(r, ScoredRow) else dict(r)
+            for r in rows
+        ]
         result_hash = sha256_hex(_stable_json(rows_payload))
         created = datetime.now(tz=UTC).isoformat()
         meta = {

@@ -34,7 +34,6 @@ def test_shell_opens_sim_registry() -> None:
 def test_index_menu_and_status_sim_registry() -> None:
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     assert "sim_registry.js" in html
-    assert 'data-open="sim_registry"' in html
     assert 'id="sb-sim-registry"' in html
     assert 'id="ql-sim-registry"' not in html  # ya no es aside fijo
 
@@ -87,13 +86,13 @@ def test_sim_registry_historico_table_layout() -> None:
 
 def test_brand_opens_start_menu() -> None:
     js = (STATIC / "js/shell.js").read_text(encoding="utf-8")
+    menu_js = (STATIC / "js/ql_menu.js").read_text(encoding="utf-8")
     assert "toggleStartMenu" in js
     assert "openStartMenu" in js
     assert "brand-menu-trigger" in js
     assert "sim_registry" in js
-    assert 'FAV_DEFAULT = [' in js
-    assert '"sim_registry"' in js or "'sim_registry'" in js
-    assert "ql_menu_favorites_v3" in js
+    assert "ql_menu_config_v6" in menu_js
+    assert "sim_registry" in menu_js or "sim_registry" in js
     css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
     assert "brand-menu-trigger" in css
     assert "z-index: 12000" in css

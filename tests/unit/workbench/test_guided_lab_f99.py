@@ -34,7 +34,9 @@ def test_command_open_guided_lab() -> None:
 def test_static_guided_lab_pane_present() -> None:
     root = _static_root()
     index_text = (root / "index.html").read_text(encoding="utf-8")
-    assert 'data-open="guided_lab"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("guided_lab")
     assert "panes/guided_lab.js" in index_text
 
     js = (root / "js" / "panes" / "guided_lab.js").read_text(encoding="utf-8")

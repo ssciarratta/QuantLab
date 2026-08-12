@@ -20,7 +20,13 @@ def _factor_coverage(row: Mapping[str, Any]) -> float:
     """confidence simple: fracción de componentes disponibles (0–1)."""
     comps = row.get("components")
     if isinstance(comps, list) and comps:
-        avail = sum(1 for c in comps if isinstance(c, Mapping) and c.get("available") is not False and c.get("raw") is not None)
+        avail = sum(
+            1
+            for c in comps
+            if isinstance(c, Mapping)
+            and c.get("available") is not False
+            and c.get("raw") is not None
+        )
         return round(avail / max(1, len(comps)), 4)
     # legacy AssetScore: tres factores
     keys = ("volatility", "volume_score", "liquidity_score")
@@ -43,7 +49,12 @@ def score_row_to_signal(
     if not iid:
         sym = str(row.get("symbol") or "")
         iid = sym
-    raw = float(row.get("composite") if row.get("composite") is not None else row.get("raw_score") or 0.0)
+    composite = row.get("composite")
+    if composite is not None:
+        raw = float(composite)
+    else:
+        raw_score = row.get("raw_score")
+        raw = float(raw_score if raw_score is not None else 0.0)
     conf = _factor_coverage(row)
     return AlphaSignal(
         signal_id=stable_signal_id(

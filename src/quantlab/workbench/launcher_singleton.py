@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 import time
@@ -117,10 +118,8 @@ def clear_launcher_lock(lock_path: Path | None = None, *, only_if_pid: int | Non
         rec = read_launcher_lock(path)
         if rec is not None and rec.launcher_pid != only_if_pid:
             return
-    try:
+    with contextlib.suppress(OSError):
         path.unlink(missing_ok=True)
-    except OSError:
-        pass
 
 
 def _kill_pid_if_alive(pid: int, killed: list[int]) -> None:

@@ -102,7 +102,9 @@ def _ensure_paper_broker(state: WorkbenchState) -> None:
     handle_post_broker_connect(state, {"venue": "binance", "mode": "paper"})
 
 
-def _market_snapshot(state: WorkbenchState, symbol: str | None, manifest: Any | None = None) -> dict[str, Any] | None:
+def _market_snapshot(
+    state: WorkbenchState, symbol: str | None, manifest: Any | None = None
+) -> dict[str, Any] | None:
     if not symbol or not isinstance(state.broker, PaperBroker):
         return None
     hist: dict[str, Any] = {}
@@ -167,7 +169,12 @@ def _enriched_live(state: WorkbenchState, session_id: str | None = None) -> dict
         sym_resolved = _resolve_broker_symbol(
             state,
             manifest.symbol,
-            venue=str(hist.get("venue") or (hist.get("venues") or [None])[0] or state.venue or "binance"),
+            venue=str(
+                hist.get("venue")
+                or (hist.get("venues") or [None])[0]
+                or state.venue
+                or "binance"
+            ),
             market_type=str(manifest.market_type or hist.get("market_type") or "spot"),
             underlying=_manifest_underlying(manifest),
         )
@@ -500,7 +507,12 @@ def _start_engine_for_session(
     symbol = _resolve_broker_symbol(
         state,
         manifest.symbol,
-        venue=str(hist.get("venue") or (hist.get("venues") or [None])[0] or state.venue or "binance"),
+        venue=str(
+            hist.get("venue")
+            or (hist.get("venues") or [None])[0]
+            or state.venue
+            or "binance"
+        ),
         market_type=str(manifest.market_type or hist.get("market_type") or "spot"),
         underlying=_manifest_underlying(manifest),
     )
@@ -610,7 +622,11 @@ def handle_post_execution_run(state: WorkbenchState, body: dict[str, Any]) -> di
     live = _enriched_live(state, rec.session_id)
     ps = live.get("paper_status") or {}
     still_running = bool(paper_started and ps.get("running"))
-    closure_reason = "started" if still_running else ("completed" if paper_started else "registered_only")
+    closure_reason = (
+        "started"
+        if still_running
+        else ("completed" if paper_started else "registered_only")
+    )
     closure: dict[str, Any] | None = None
     if not still_running:
         closure = _build_closure_summary(

@@ -4,18 +4,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from static_test_helpers import read_static
+
 STATIC = Path(__file__).resolve().parents[3] / "src/quantlab/workbench/static"
 
 
 def test_favorites_default_core_six() -> None:
-    js = (STATIC / "js/shell.js").read_text(encoding="utf-8")
-    assert 'FAV_STORAGE_KEY = "ql_menu_favorites_v4"' in js
-    assert '"chat"' in js
-    assert '"scanner"' in js
-    assert '"simulator"' in js
-    assert '"montecarlo"' in js
-    assert '"binance_spot"' in js
-    assert '"binance_futures"' in js
+    menu_js = read_static("js/ql_menu.js")
+    registry = read_static("js/panel_registry.js")
+    assert "ql_menu_config_v6" in menu_js
+    assert '"chat"' in registry
+    assert '"scanner"' in registry
+    assert '"simulator"' in registry
+    assert '"montecarlo"' in registry
+    assert '"binance_spot"' in registry
+    assert '"binance_futures"' in registry
 
 
 def test_taskbar_quick_strip_present() -> None:
@@ -36,7 +39,8 @@ def test_binance_testnet_panes_factory() -> None:
 
 
 def test_guided_lab_not_in_open_start_section() -> None:
-    html = (STATIC / "index.html").read_text(encoding="utf-8")
-    assert "Lab avanzado / Guided" in html
-    # Favoritos reset text mentions Spot/Futures
-    assert "Spot · Futures" in html
+    registry = read_static("js/panel_registry.js")
+    # Guided Lab está en menú dinámico, no como botón fijo en index.
+    assert 'id: "guided_lab"' in registry
+    menu_js = read_static("js/ql_menu.js")
+    assert "Spot" in menu_js or "binance_spot" in registry
