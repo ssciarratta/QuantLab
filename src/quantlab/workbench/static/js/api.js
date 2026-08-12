@@ -532,6 +532,21 @@
         profile: o.profile || "legacy_v1",
       });
     },
+    pairwiseScanner: function (opts) {
+      const o = opts || {};
+      return request("POST", "/api/lab/pairwise/scanner", {
+        symbol_limit: o.symbol_limit != null ? o.symbol_limit : 20,
+        interval: o.interval || "1h",
+        kline_limit: o.kline_limit != null ? o.kline_limit : 720,
+        top_n: o.top_n != null ? o.top_n : 10,
+        include_signals: o.include_signals !== false,
+        run_validation: !!o.run_validation,
+        detectors: o.detectors || undefined,
+      });
+    },
+    labDetectors: function () {
+      return request("GET", "/api/lab/detectors");
+    },
     venueScanner: function (opts) {
       const o = opts || {};
       const body = {

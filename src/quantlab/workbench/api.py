@@ -1343,6 +1343,77 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
         raise ApiError(400, str(exc)) from exc
 
 
+def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/pairwise/scanner — detectores correlación/cointegración."""
+    symbol_limit = body.get("symbol_limit", 20)
+    interval = body.get("interval", "1h")
+    kline_limit = body.get("kline_limit", 720)
+    top_n = body.get("top_n", 10)
+    include_signals = body.get("include_signals", True)
+    run_validation = body.get("run_validation", False)
+    detectors_raw = body.get("detectors")
+    if not isinstance(symbol_limit, int):
+        raise ApiError(400, "symbol_limit debe ser int")
+    if not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int")
+    if not isinstance(interval, str):
+        raise ApiError(400, "interval debe ser string")
+    if not isinstance(top_n, int):
+        raise ApiError(400, "top_n debe ser int")
+    detectors: tuple[str, ...] | None = None
+    if detectors_raw is not None:
+        if not isinstance(detectors_raw, list) or not all(
+            isinstance(x, str) for x in detectors_raw
+        ):
+            raise ApiError(400, "detectors debe ser lista de strings")
+        detectors = tuple(x.strip() for x in detectors_raw if x.strip())
+    try:
+        if state.session is None:
+            raise ApiError(503, "sesión workbench no inicializada")
+        persist_dir = state.session.experiments_dir / "alpha_scans"
+        result = lab_services.run_pairwise_lab_scanner(
+            symbol_limit=symbol_limit,
+            interval=interval.strip(),
+            kline_limit=kline_limit,
+            detectors=detectors,
+            top_n=top_n,
+            include_signals=bool(include_signals),
+            run_validation=bool(run_validation),
+            persist_dir=persist_dir if include_signals else None,
+        )
+        out = state.store_lab_result(result)
+        _record_activity(
+            state,
+            "scanner",
+            ok=True,
+            message="pairwise alpha scanner",
+            detail={"n_signals": result.get("n_signals"), "kind": result.get("kind")},
+        )
+        return out
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def handle_get_lab_detectors(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/detectors — catálogo detectores registrados."""
+    from quantlab.research.alpha.detectors.bootstrap import ensure_pairwise_detectors_loaded
+    from quantlab.research.alpha.detectors.registry import global_registry
+
+    ensure_pairwise_detectors_loaded()
+    reg = global_registry()
+    items = []
+    for det in reg.list_detectors():
+        items.append(
+            {
+                "detector_id": det.detector_id,
+                "signal_type": det.signal_type,
+                "scope": det.scope.value,
+                "required_min_bars": det.required_min_bars(),
+            }
+        )
+    return {"ok": True, "detectors": items}
+
+
 def _kronos_flags_from_body(body: dict[str, Any]) -> dict[str, Any]:
     """Extrae flags Kronos planos del body (compat UI)."""
     keys = (

@@ -52,6 +52,7 @@ from quantlab.workbench.api import (
     handle_get_i18n,
     handle_get_instruments,
     handle_get_lab_capabilities,
+    handle_get_lab_detectors,
     handle_get_lab_experiments,
     handle_get_lab_export,
     handle_get_lab_exports,
@@ -111,6 +112,7 @@ from quantlab.workbench.api import (
     handle_post_binance_scan,
     handle_post_binance_klines,
     handle_post_binance_scanner,
+    handle_post_pairwise_scanner,
     handle_post_broker_connect,
     handle_post_broker_disconnect,
     handle_post_broker_reconnect,
@@ -610,6 +612,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/alpha/profiles":
                     self._send_json(handle_get_alpha_profiles(state))
                     return
+                if path == "/api/lab/detectors":
+                    self._send_json(handle_get_lab_detectors(state))
+                    return
                 if path == "/api/lab/strategies":
                     self._send_json(handle_get_lab_strategies(state))
                     return
@@ -823,6 +828,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/binance/pipeline":
                     self._send_json(handle_post_binance_pipeline(state, body))
+                    return
+                if path == "/api/lab/pairwise/scanner":
+                    self._send_json(handle_post_pairwise_scanner(state, body))
                     return
                 if path == "/api/broker/connect":
                     self._send_json(handle_post_broker_connect(state, body))

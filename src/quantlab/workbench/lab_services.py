@@ -3517,3 +3517,174 @@ def lab_strategies() -> dict[str, Any]:
 
 def default_lab_tmpdir(prefix: str) -> Path:
     return Path(tempfile.mkdtemp(prefix=prefix))
+
+
+def run_pairwise_lab_scanner(
+    *,
+    symbol_limit: int = 20,
+    interval: str = "1h",
+    kline_limit: int = 720,
+    detectors: tuple[str, ...] | None = None,
+    top_n: int = 10,
+    include_signals: bool = True,
+    run_validation: bool = False,
+    persist_dir: Path | None = None,
+    base_url: str | None = None,
+) -> dict[str, Any]:
+    """Alpha Scanner modo pairwise — detectores de relación entre monedas."""
+    from quantlab.brokers.binance.public_md import (
+        DEFAULT_BASE_URL,
+        BinancePublicMdClient,
+        fetch_universe_bars,
+        validate_kline_interval,
+    )
+    from quantlab.research.alpha.detectors.base import DetectorContext, DetectorRunConfig
+    from quantlab.research.alpha.detectors.bootstrap import ensure_pairwise_detectors_loaded
+    from quantlab.research.alpha.detectors.registry import global_registry
+    from quantlab.research.alpha.normalization import percentile_rank_signals
+    from quantlab.research.alpha.quality import EligibilityConfig
+    from quantlab.research.alpha.universe import build_universe_from_symbol_bars
+    from quantlab.research.alpha.validation.pipeline import ValidationPipeline
+
+    ensure_pairwise_detectors_loaded()
+    _validate_symbol_limit(symbol_limit)
+    if kline_limit < 120:
+        raise ValidationError("pairwise scanner requiere kline_limit >= 120")
+    if kline_limit < LAB_KLINE_LIMIT_MIN or kline_limit > LAB_KLINE_LIMIT_MAX:
+        raise ValidationError(
+            f"kline_limit debe estar entre {LAB_KLINE_LIMIT_MIN} y {LAB_KLINE_LIMIT_MAX}"
+        )
+    interval = validate_kline_interval(interval)
+    enabled = detectors or (
+        "contemporary_correlation",
+        "lagged_correlation",
+        "cointegration",
+        "pair_spread",
+    )
+
+    url = base_url or DEFAULT_BASE_URL
+    client = BinancePublicMdClient(base_url=url)
+    fetch_cap = _fetch_cap_for_limit(symbol_limit, venue="binance", market_type="spot")
+    symbols = client.list_spot_symbols(quote="USDT", limit=fetch_cap)
+    if not symbols:
+        raise ValidationError("sin símbolos USDT de Binance")
+
+    bars_by_symbol = fetch_universe_bars(
+        symbols,
+        interval=interval,
+        kline_limit=kline_limit,
+        base_url=url,
+    )
+    fetch_failures = {
+        s: "klines omitidas o inválidas" for s in symbols if s not in bars_by_symbol
+    }
+    built = build_universe_from_symbol_bars(
+        venue="binance",
+        symbols=symbols,
+        bars_by_symbol=bars_by_symbol,
+        network="mainnet",
+        market_type="spot",
+        instrument_prefix="BN:",
+        eligibility_config=EligibilityConfig(min_bars=80, min_completeness=0.5),
+        fetch_failures=fetch_failures,
+    )
+    universe = built.eligible_bars
+    if len(universe) < 2:
+        raise ValidationError("se necesitan al menos 2 símbolos elegibles para pairwise")
+
+    ctx = DetectorContext(
+        bars_by_instrument=universe,
+        timeframe=interval,
+        lookback_bars=min(240, kline_limit // 3),
+        venue="binance",
+        market_type="spot",
+        config={"min_bars": 80, "max_pairs": 200},
+    )
+    reg = global_registry()
+    all_signals = reg.run_all(ctx, DetectorRunConfig(enabled=enabled))
+    pipeline = ValidationPipeline()
+    for det_id in enabled:
+        try:
+            det = reg.get(det_id)
+        except ValidationError:
+            continue
+        det_sigs = tuple(s for s in all_signals if s.signal_type == det.signal_type)
+        if det_sigs:
+            pipeline.log_detection_trials(det_sigs, detector_id=det_id)
+    ranked = percentile_rank_signals(all_signals)
+    ranked = tuple(sorted(ranked, key=lambda s: s.normalized_score or 0.0, reverse=True))
+    top = ranked[: max(0, top_n)]
+
+    validation_results: list[dict[str, Any]] = []
+    if run_validation and top:
+        from quantlab.backtester.pair_engine import run_spread_backtest
+        from quantlab.research.alpha.pairwise.align import align_pair_bars
+        from quantlab.research.alpha.pairwise.costs import estimate_pair_cost_bps
+
+        fee_bps = estimate_pair_cost_bps(venue="binance", market_type="spot") / 2.0
+        for sig in top:
+            if sig.scope.value != "pair" or len(sig.symbols) != 2:
+                continue
+            a, b = sig.symbols
+            if a not in universe or b not in universe:
+                continue
+            aligned = align_pair_bars(universe[a], universe[b])
+            if aligned is None:
+                continue
+            cut = int(len(aligned.closes_a) * 0.70)
+            bt = run_spread_backtest(
+                aligned.closes_a[cut:],
+                aligned.closes_b[cut:],
+                fee_bps_per_leg=fee_bps,
+            )
+            if not bt.net_returns:
+                continue
+            ev = pipeline.evaluate_backtest(
+                sig, net_returns=bt.net_returns, periods_per_year=8760.0
+            )
+            validation_results.append(
+                {
+                    "signal_id": ev.signal_id,
+                    "sharpe_net": ev.sharpe_net,
+                    "deflated_sharpe": ev.deflated_sharpe,
+                    "max_drawdown": ev.max_drawdown,
+                    "validated": ev.validated,
+                }
+            )
+
+    payload: dict[str, Any] = {
+        "ok": True,
+        "kind": "pairwise_scanner",
+        "venue": "binance",
+        "market_type": "spot",
+        "interval": interval,
+        "kline_limit": kline_limit,
+        "detectors": list(enabled),
+        "n_symbols": len(universe),
+        "n_signals": len(all_signals),
+        "top_n": top_n,
+        "trial_count": pipeline.ledger.count(),
+        "read_only": True,
+        "live_blocked": LIVE_BLOCKED is True,
+        "note": (
+            "Señales pairwise = candidatos de investigación. "
+            "Validación OOS requiere run_validation=true. "
+            "No implica rentabilidad."
+        ),
+    }
+    if include_signals:
+        payload["signals"] = [s.to_dict() for s in top]
+    if validation_results:
+        payload["validation"] = validation_results
+    if persist_dir is not None:
+        from quantlab.research.alpha.persist import ScanStore
+
+        meta = ScanStore(persist_dir).save_scored(
+            profile="pairwise",
+            rows=[{"signal": s.to_dict()} for s in top],
+            bars_hash="pairwise",
+            request={"detectors": list(enabled), "kline_limit": kline_limit},
+        )
+        payload["persisted"] = meta.to_dict()
+    return payload
+
