@@ -1,26 +1,51 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-12
-Versión: 1.01.0 — main
+Actualizado: 2026-08-12 (noche)
+Versión: 1.01.0 — main @ 004c9a4 (sync 17:00 ART)
 
 ESTADO
 ------
-- Pairwise + Pipeline v3: OK
-- ML GBM: ON por default + feed automático
-  Cada Validar / pipeline / OOS pares → alpha_trials → retrain cada 5 trials
-  Primer escaneo: bootstrap sintético si no hay modelo
+- Pairwise IP-1..IP-12 + Pipeline v3 + ML GBM: en main (commits del 12/08)
+- ML GBM: ON por default + feed automático (maybe_feed_ml tras Validar)
+- CI main: ROJO (Ruff) desde ~28/07 — ver PR #5
+- CI PR fix: VERDE (1710 tests, Ruff, Mypy strict)
 
-ÚLTIMA (2026-08-12)
--------------------
+HOY 2026-08-12 (tu sesión hasta ~18:00 ART)
+--------------------------------------------
+En main (push 17:00 sync):
+
+  10:56–11:07  Pairwise Fase 0–2 + IP-1..IP-12 (cointegración, UI scanner, MC stress)
+  11:17        Pairwise P1 spot/futures + P4 estrategia sugerida
+  13:37        Pipeline v3: contrato individual + validate_candidate + Ranking B
+  13:40        Docs ML (AUDIT/DESIGN/plan Prompt v4)
+  13:51        Módulo ML GBM scoring ml_ranking
+  17:00        Sync: feed.py, maybe_feed_ml, include_ml default ON, manual 03-alpha-scanner
+
+Pendiente de merge (Cloud Agent, PR #5):
+
+  fix(ci): Ruff 46 errores, Mypy alpha/kronos/ml, import validate_candidate en server,
+  tests UI alineados con menú QL v6 + panel_registry + ql_menu.js,
+  omitir chat tools Binance en CI (HTTP 451)
+
+  Branch: cursor/fix-ci-ruff-errors-2211
+  URL: https://github.com/ssciarratta/QuantLab/pull/5
+
+¿Falta algo de 17:00–18:00?
+  Si trabajaste después del auto-sync 17:00 sin otro push, eso NO está en GitHub.
+  Revisá working tree local o commits no pusheados.
+
+ÚLTIMA IMPLEMENTACIÓN (features — main)
+---------------------------------------
 - feed.py: maybe_feed_ml + ensure_bootstrap_model
-- validate_candidate llama feed tras cada trial
-- include_ml default True (API, lab, checkbox UI)
-- Manual Alpha: docs/manuales/03-alpha-scanner.md
+- validate_candidate → feed tras cada trial
+- include_ml default True (API, lab, checkbox scanner UI)
+- Manual: docs/manuales/03-alpha-scanner.md
 
 PRÓXIMO
 -------
-- Acumular trials reales (el sintético se reemplaza solo)
-- Certificado formal pendiente APROBADO explícito
+- Merge PR #5 → CI verde en main
+- Acumular alpha_trials reales (bootstrap sintético se reemplaza solo)
+- Certificado formal Alpha/ML pendiente APROBADO explícito
 
 INVARIANTES
 -----------
