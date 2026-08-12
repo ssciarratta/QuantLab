@@ -83,6 +83,10 @@
       '<p class="muted sc-sub">MD real · ranking por rama · score ≠ rentabilidad · barra superior = mover / × cerrar</p>' +
       "</div>" +
       '<div class="sc-toolbar">' +
+      '<label>Modo<select id="sc-scan-mode">' +
+      '<option value="individual" selected>Individual</option>' +
+      '<option value="pairwise">Pares (pairwise)</option>' +
+      "</select></label>" +
       '<label>Fuente<select id="sc-source">' +
       '<option value="real" selected>MD real</option>' +
       '<option value="synthetic">Demo WB</option>' +
@@ -148,6 +152,16 @@
       "Trad. + Kronos → Final · no garantiza PnL · click en score = memo" +
       "</span>" +
       "</div>" +
+      '<div class="sc-venues" id="sc-pairwise-row" hidden style="flex-wrap:wrap;gap:0.45rem 0.75rem;align-items:center">' +
+      "<span class=\"muted\">Detectores pairwise</span>" +
+      '<label><input type="checkbox" class="sc-pw-det" value="contemporary_correlation" checked> Correlación</label>' +
+      '<label><input type="checkbox" class="sc-pw-det" value="lagged_correlation" checked> Lag</label>' +
+      '<label><input type="checkbox" class="sc-pw-det" value="cointegration" checked> Cointegración</label>' +
+      '<label><input type="checkbox" class="sc-pw-det" value="pair_spread" checked> Spread z</label>' +
+      '<label title="Backtest OOS 30% + Deflated Sharpe (más lento)">' +
+      '<input type="checkbox" id="sc-pw-validate"> Validación OOS</label>' +
+      '<span class="muted" style="font-size:1.02em">min 120 velas · mismo venue · score ≠ rentabilidad</span>' +
+      "</div>" +
       '<div class="sc-venues" id="sc-venues-row">' +
       "<span class=\"muted\">Mercados</span>" +
       '<label><input type="checkbox" class="sc-venue-cb" value="binance" checked> Binance</label>' +
@@ -188,6 +202,195 @@
     var coinsCache = [];
     var coinSuggestIdx = -1;
     var coinLoadToken = 0;
+
+    function scanMode() {
+      var el = root.querySelector("#sc-scan-mode");
+      return el && el.value === "pairwise" ? "pairwise" : "individual";
+    }
+
+    function selectedPairwiseDetectors() {
+      return Array.prototype.slice
+        .call(root.querySelectorAll(".sc-pw-det:checked"))
+        .map(function (cb) {
+          return cb.value;
+        });
+    }
+
+    function syncScanModeUI() {
+      var pw = scanMode() === "pairwise";
+      var pwRow = root.querySelector("#sc-pairwise-row");
+      var kroRow = root.querySelector("#sc-kronos-row");
+      var prof = root.querySelector("#sc-profile");
+      var profLbl = prof && prof.closest("label");
+      if (pwRow) pwRow.hidden = !pw;
+      if (kroRow) kroRow.hidden = pw;
+      if (profLbl) profLbl.hidden = pw;
+      if (pw) {
+        root.querySelector("#sc-source").value = "real";
+        Array.prototype.forEach.call(
+          root.querySelectorAll(".sc-venue-cb"),
+          function (cb) {
+            cb.checked = cb.value === "binance";
+            cb.disabled = cb.value !== "binance";
+          }
+        );
+        var kl = root.querySelector("#sc-klines");
+        if (kl && windowMode() === "klines") {
+          var n = parseInt(kl.value, 10) || 720;
+          if (n < 120) kl.value = "720";
+        }
+      } else {
+        Array.prototype.forEach.call(
+          root.querySelectorAll(".sc-venue-cb"),
+          function (cb) {
+            cb.disabled = false;
+          }
+        );
+      }
+      syncSourceUI();
+    }
+
+    function renderPairwiseTable(data, outEl) {
+      var signals = data.signals || [];
+      if (!signals.length) {
+        outEl.innerHTML =
+          '<p class="muted">Sin señales pairwise. Probá más monedas o más velas (≥120).</p>';
+        return;
+      }
+      var valMap = {};
+      (data.validation || []).forEach(function (v) {
+        valMap[v.signal_id] = v;
+      });
+      var rows = signals
+        .map(function (sig, i) {
+          var syms = sig.symbols || [];
+          var val = valMap[sig.signal_id];
+          var valTxt = val
+            ? "SR=" +
+              Number(val.sharpe_net || 0).toFixed(2) +
+              " DSR=" +
+              Number(val.deflated_sharpe || 0).toFixed(2) +
+              (val.validated ? " ✓" : "")
+            : "—";
+          return (
+            '<tr class="sc-row sc-pw-row" data-idx="' +
+            i +
+            '">' +
+            "<td>" +
+            esc(i + 1) +
+            "</td>" +
+            "<td class=\"mono\">" +
+            esc(syms[0] || "—") +
+            "</td>" +
+            "<td class=\"mono\">" +
+            esc(syms[1] || "—") +
+            "</td>" +
+            "<td>" +
+            esc(sig.signal_type || "—") +
+            "</td>" +
+            "<td class=\"mono\">" +
+            esc(sig.lag != null ? sig.lag : "—") +
+            "</td>" +
+            "<td class=\"mono\">" +
+            esc(
+              sig.normalized_score != null
+                ? Number(sig.normalized_score).toFixed(3)
+                : Number(sig.raw_score || 0).toFixed(3)
+            ) +
+            "</td>" +
+            "<td class=\"mono\">" +
+            esc(
+              sig.confidence != null
+                ? Number(sig.confidence).toFixed(3)
+                : "—"
+            ) +
+            "</td>" +
+            "<td class=\"mono muted\">" +
+            esc(valTxt) +
+            "</td>" +
+            '<td><button type="button" class="btn secondary sc-pw-sim" data-idx="' +
+            i +
+            '">Sim</button></td>' +
+            "</tr>"
+          );
+        })
+        .join("");
+      outEl.innerHTML =
+        '<p class="muted sc-meta">' +
+        '<span class="data-badge data-badge-real">pairwise · binance/spot</span> ' +
+        "señales=" +
+        esc(data.n_signals != null ? data.n_signals : signals.length) +
+        " · símbolos=" +
+        esc(data.n_symbols != null ? data.n_symbols : "—") +
+        " · trials=" +
+        esc(data.trial_count != null ? data.trial_count : "—") +
+        " · TF=" +
+        esc(data.interval || root.querySelector("#sc-interval").value) +
+        "</p>" +
+        '<table class="mono sc-pw-table" style="width:100%;border-collapse:collapse">' +
+        "<thead><tr><th>#</th><th>Pierna A</th><th>Pierna B</th><th>Tipo</th>" +
+        "<th>Lag</th><th>Score</th><th>Conf.</th><th>Validación</th><th></th></tr></thead>" +
+        "<tbody>" +
+        rows +
+        "</tbody></table>" +
+        '<p class="muted" style="margin-top:0.45rem;font-size:1.02em">' +
+        esc(data.note || "Candidatos de investigación — no implica rentabilidad.") +
+        "</p>";
+      outEl.querySelectorAll(".sc-pw-sim").forEach(function (btn) {
+        btn.addEventListener("click", function (ev) {
+          ev.stopPropagation();
+          var idx = parseInt(btn.getAttribute("data-idx"), 10) || 0;
+          var sig = signals[idx];
+          if (!sig || !sig.symbols || sig.symbols.length < 2) return;
+          openSim({
+            source_module: "alpha_scanner_pairwise",
+            venue: "binance",
+            market_type: "spot",
+            interval: data.interval || root.querySelector("#sc-interval").value,
+            underlyings: sig.symbols.map(function (s) {
+              return String(s).replace(/^BN:/i, "");
+            }),
+            pair_signal_type: sig.signal_type,
+            strategy_id: "pairs_lag",
+          });
+        });
+      });
+      outEl.querySelectorAll(".sc-pw-row").forEach(function (tr) {
+        tr.addEventListener("click", function () {
+          outEl.querySelectorAll(".sc-pw-row").forEach(function (r) {
+            r.classList.remove("sc-row-sel");
+          });
+          tr.classList.add("sc-row-sel");
+          var idx = parseInt(tr.getAttribute("data-idx"), 10) || 0;
+          renderPairwiseDetail(signals[idx], data);
+        });
+      });
+      if (signals[0]) renderPairwiseDetail(signals[0], data);
+    }
+
+    function renderPairwiseDetail(sig, data) {
+      var det = root.querySelector("#sc-detail");
+      if (!sig) {
+        det.innerHTML = "";
+        return;
+      }
+      var meta = sig.metadata || {};
+      var lines = [
+        "PAIRWISE — " + (sig.signal_type || "?"),
+        "Par: " + (sig.symbols || []).join(" / "),
+        "Score raw: " + (sig.raw_score != null ? sig.raw_score : "—"),
+        "Lag: " + (sig.lag != null ? sig.lag : "—"),
+        "Lookback: " + (sig.lookback != null ? sig.lookback : "—"),
+        "Hedge ratio: " + (meta.hedge_ratio != null ? meta.hedge_ratio : "—"),
+        "ADF p-value: " + (meta.adf_pvalue != null ? meta.adf_pvalue : "—"),
+        "Spread z: " + (meta.spread_z != null ? meta.spread_z : "—"),
+        "Costo est. (bps): " + (meta.estimated_cost_bps != null ? meta.estimated_cost_bps : "—"),
+      ];
+      det.innerHTML =
+        '<pre class="mono muted" style="white-space:pre-wrap;margin:0;font-size:1.02em">' +
+        esc(lines.join("\n")) +
+        "</pre>";
+    }
 
     function setStatus(ok, msg) {
       var el = root.querySelector("#sc-status");
@@ -1752,6 +1955,10 @@
         out.innerHTML = '<p class="muted">Sin scores.</p>';
         return;
       }
+      if (data.kind === "pairwise_scanner") {
+        renderPairwiseTable(data, out);
+        return;
+      }
       var html = "";
       if (data.kind === "multi_venue_scanner" && data.by_venue && data.by_venue.length) {
         multiView =
@@ -1848,6 +2055,7 @@
     }
 
     root.querySelector("#sc-source").addEventListener("change", syncSourceUI);
+    root.querySelector("#sc-scan-mode").addEventListener("change", syncScanModeUI);
     root.querySelector("#sc-window-mode").addEventListener("change", syncWindowModeUI);
     root.querySelector("#sc-limit-mode").addEventListener("change", syncUniverseUI);
     var limN = root.querySelector("#sc-limit-n");
@@ -2034,6 +2242,51 @@
               return d;
             }
           );
+        } else if (scanMode() === "pairwise") {
+          var venues = selectedVenues();
+          if (!venues.length || venues.indexOf("binance") < 0) {
+            setStatus(false, "pairwise requiere Binance spot");
+            if (handle) handle.end();
+            return;
+          }
+          var mode = universeMode();
+          var nLimit = parseInt(root.querySelector("#sc-limit-n").value, 10) || 20;
+          if (nLimit < 2) nLimit = 2;
+          var kLimit = 720;
+          if (windowMode() === "period") {
+            var pd =
+              parseInt(root.querySelector("#sc-period").value, 10) || 30;
+            var iv = root.querySelector("#sc-interval").value || "1h";
+            var mins = INTERVAL_MINUTES[iv] || 60;
+            kLimit = Math.ceil((pd * 24 * 60) / mins);
+          } else {
+            kLimit =
+              parseInt(root.querySelector("#sc-klines").value, 10) || 720;
+          }
+          if (kLimit < 120) kLimit = 120;
+          var dets = selectedPairwiseDetectors();
+          if (!dets.length) {
+            setStatus(false, "marcá al menos un detector");
+            if (handle) handle.end();
+            return;
+          }
+          var pwOpts = {
+            symbol_limit: mode === "0" ? 30 : nLimit,
+            interval: root.querySelector("#sc-interval").value,
+            kline_limit: kLimit,
+            top_n: topN,
+            include_signals: true,
+            run_validation: !!(
+              root.querySelector("#sc-pw-validate") &&
+              root.querySelector("#sc-pw-validate").checked
+            ),
+            detectors: dets,
+          };
+          lastRequest = Object.assign({ source: "pairwise" }, pwOpts);
+          promise = QLApi.pairwiseScanner(pwOpts).then(function (d) {
+            renderScores(d);
+            return d;
+          });
         } else {
           var venues = selectedVenues();
           if (!venues.length) {
@@ -2144,6 +2397,7 @@
       });
     });
 
+    syncScanModeUI();
     root.refresh = async function () {
       refreshNBars();
     };

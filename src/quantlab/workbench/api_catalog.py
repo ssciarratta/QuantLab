@@ -177,6 +177,18 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("lab", "alpha"),
     ),
     ApiRoute(
+        "/api/lab/detectors",
+        "GET",
+        "Alpha detector registry (individual + pairwise)",
+        ("lab", "alpha"),
+    ),
+    ApiRoute(
+        "/api/lab/pairwise/scanner",
+        "POST",
+        "Pairwise alpha scanner (correlation, cointegration)",
+        ("lab", "alpha"),
+    ),
+    ApiRoute(
         "/api/lab/binance/pipeline",
         "POST",
         "Binance alpha scan + backtest top-N (read-only MD)",

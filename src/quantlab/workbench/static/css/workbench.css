@@ -2776,6 +2776,16 @@ button.btn.danger.engaged {
   color: var(--amber, #d48c32);
 }
 
+.pane-scanner #sc-pairwise-row label {
+  font-size: 1.02em;
+}
+
+.pane-scanner .sc-pw-table th,
+.pane-scanner .sc-pw-table td {
+  padding: 0.28rem 0.45rem;
+  border-bottom: 1px solid var(--border-dim, rgba(255, 255, 255, 0.08));
+}
+
 .pane-scanner #sc-out table {
   font-size: 1.06em;
 }

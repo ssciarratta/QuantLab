@@ -256,33 +256,10 @@ uv run pytest tests/unit/workbench/test_binance_lab_f111.py -q
 
 ---
 
-## IP-11 — UI scanner tab Pares
+## IP-11 — UI scanner tab Pares ✅
 
-**Archivos:**
+## IP-12 — Monte Carlo robustez (mc_stress) ✅
 
-- `static/js/panes/scanner.js` — toggle + tab
-- `static/js/api.js` — `pairwiseScanner()`
-
-**Verificación manual:**
-
-1. `uv run quantlab-workbench`
-2. Scanner → Modo pares ON → Ejecutar
-3. Tab Pares muestra tabla (par, lag, score, confidence)
-4. Scanner modo individual sin cambios
-
-**Regresión automática:** tests IP-10.
-
----
-
-## IP-12 — Monte Carlo robustez (opcional fase 2)
-
-**Archivos:** extensión `montecarlo/` para shocks en hedge_ratio y spread.
-
-**Verificación:**
-
-```bash
-uv run pytest tests/unit/montecarlo/test_pairwise_mc.py -q
-```
 
 ---
 

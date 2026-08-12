@@ -5,30 +5,23 @@ Versión: 1.01.0 — main
 
 ESTADO
 ------
-- Alpha Scanner pairwise: IP-0..IP-10 implementado (docs + detectores + API)
-- Tags: restore/pre-pairwise-integration-20260812 · restore/post-pairwise-ip4-20260812
-- LIVE_BLOCKED=True · research only
+- Integración pairwise Alpha Scanner: COMPLETA (IP-0..IP-12)
+- UI Scanner: modo Pares + tabla + handoff Simulador
+- Tags restore: pre-pairwise · post-ip4 · post-ip10 · post-pairwise-complete
 
 ÚLTIMA IMPLEMENTACIÓN (2026-08-12)
 ----------------------------------
-- Detectores: lagged_correlation (FDR), cointegration, pair_spread, contemporary_correlation
-- Validación: TrialLedger, Deflated Sharpe, pipeline selección≠evaluación
-- Backtest spread: backtester/pair_engine.py
-- API: POST /api/lab/pairwise/scanner · GET /api/lab/detectors
-- Cliente JS: QLApi.pairwiseScanner(), labDetectors()
-- Tests: 168 research unit verdes
+- scanner.js: Modo Individual | Pares (pairwise), detectores, validación OOS
+- API: POST /api/lab/pairwise/scanner, GET /api/lab/detectors
+- Validación: TrialLedger, Deflated Sharpe, walk-forward+embargo
+- Tests: research + workbench pairwise verdes
 
 PRÓXIMO
 -------
-- IP-11 UI scanner tab Pares (scanner.js)
-- IP-12 Monte Carlo robustez pares
 - Decisión producto P1–P4 (Spot/Futures, cross-venue)
-
-BLOQUEOS
---------
-- UI tab Pares pendiente (API ya usable)
-- scipy no en deps base (ADF proxy sin scipy)
+- Certificación formal fase (pendiente APROBADO usuario)
+- scipy opcional para ADF exacto (hoy proxy)
 
 INVARIANTES
 -----------
-Scanner no usa Sharpe en selección · DSR post-backtest · LIVE_BLOCKED=True
+Scanner ≠ evaluación Sharpe · LIVE_BLOCKED=True · research only
