@@ -913,7 +913,7 @@ def _fetch_cap_for_limit(symbol_limit: int, *, venue: str, market_type: str) -> 
         return symbol_limit
     v = venue.strip().lower()
     mt = market_type.strip().lower()
-    if v == "binance" and mt == "spot":
+    if v == "binance" and mt in ("spot", "futures"):
         return SYMBOL_LIMIT_ALL_BINANCE_SPOT
     # Curados (SIM_COINS / A3): pedir de más; el slice usa len(lista).
     return 10_000
@@ -3521,6 +3521,8 @@ def default_lab_tmpdir(prefix: str) -> Path:
 
 def run_pairwise_lab_scanner(
     *,
+    venue: str = "binance",
+    market_type: str = "spot",
     symbol_limit: int = 20,
     interval: str = "1h",
     kline_limit: int = 720,
@@ -3542,11 +3544,26 @@ def run_pairwise_lab_scanner(
     from quantlab.research.alpha.detectors.bootstrap import ensure_pairwise_detectors_loaded
     from quantlab.research.alpha.detectors.registry import global_registry
     from quantlab.research.alpha.normalization import percentile_rank_signals
+    from quantlab.research.alpha.pairwise.recommend import signal_dict_with_recommendation
     from quantlab.research.alpha.quality import EligibilityConfig
     from quantlab.research.alpha.universe import build_universe_from_symbol_bars
     from quantlab.research.alpha.validation.pipeline import ValidationPipeline
 
     ensure_pairwise_detectors_loaded()
+    v = (venue or "binance").strip().lower()
+    mt = (market_type or "spot").strip().lower()
+    if v not in _VENUE_SCAN_PREFIX:
+        raise ValidationError(
+            f"venue no soportado para pairwise: {venue!r}; "
+            f"permitidos: {', '.join(sorted(_VENUE_SCAN_PREFIX))}"
+        )
+    if mt not in ("spot", "futures"):
+        raise ValidationError("market_type debe ser spot o futures")
+    if v != "binance":
+        raise ValidationError(
+            "pairwise scanner requiere binance (mismo venue spot/futures); "
+            f"recibido {venue!r}"
+        )
     _validate_symbol_limit(symbol_limit)
     if kline_limit < 120:
         raise ValidationError("pairwise scanner requiere kline_limit >= 120")
@@ -3561,30 +3578,50 @@ def run_pairwise_lab_scanner(
         "cointegration",
         "pair_spread",
     )
+    prefix = _VENUE_SCAN_PREFIX[v][mt]
+    fetch_cap = _fetch_cap_for_limit(symbol_limit, venue=v, market_type=mt)
 
-    url = base_url or DEFAULT_BASE_URL
-    client = BinancePublicMdClient(base_url=url)
-    fetch_cap = _fetch_cap_for_limit(symbol_limit, venue="binance", market_type="spot")
-    symbols = client.list_spot_symbols(quote="USDT", limit=fetch_cap)
-    if not symbols:
-        raise ValidationError("sin símbolos USDT de Binance")
+    if mt == "spot":
+        url = base_url or DEFAULT_BASE_URL
+        client = BinancePublicMdClient(base_url=url)
+        symbols = client.list_spot_symbols(quote="USDT", limit=fetch_cap)
+        if not symbols:
+            raise ValidationError("sin símbolos USDT de Binance spot")
+        bars_by_symbol = fetch_universe_bars(
+            symbols,
+            interval=interval,
+            kline_limit=kline_limit,
+            base_url=url,
+        )
+    else:
+        from quantlab.brokers.binance.futures_public_md import (
+            DEFAULT_FUTURES_BASE_URL,
+            BinanceFuturesPublicMdClient,
+            fetch_futures_bars,
+        )
 
-    bars_by_symbol = fetch_universe_bars(
-        symbols,
-        interval=interval,
-        kline_limit=kline_limit,
-        base_url=url,
-    )
+        url = base_url or DEFAULT_FUTURES_BASE_URL
+        client = BinanceFuturesPublicMdClient(base_url=url)
+        symbols = client.list_futures_symbols(quote="USDT", limit=fetch_cap)
+        if not symbols:
+            raise ValidationError("sin símbolos USDT-M perpetuos de Binance futures")
+        bars_by_symbol = fetch_futures_bars(
+            symbols,
+            interval=interval,
+            kline_limit=kline_limit,
+            base_url=url,
+        )
+
     fetch_failures = {
         s: "klines omitidas o inválidas" for s in symbols if s not in bars_by_symbol
     }
     built = build_universe_from_symbol_bars(
-        venue="binance",
+        venue=v,
         symbols=symbols,
         bars_by_symbol=bars_by_symbol,
         network="mainnet",
-        market_type="spot",
-        instrument_prefix="BN:",
+        market_type=mt,
+        instrument_prefix=prefix,
         eligibility_config=EligibilityConfig(min_bars=80, min_completeness=0.5),
         fetch_failures=fetch_failures,
     )
@@ -3596,8 +3633,8 @@ def run_pairwise_lab_scanner(
         bars_by_instrument=universe,
         timeframe=interval,
         lookback_bars=min(240, kline_limit // 3),
-        venue="binance",
-        market_type="spot",
+        venue=v,
+        market_type=mt,
         config={"min_bars": 80, "max_pairs": 200},
     )
     reg = global_registry()
@@ -3621,7 +3658,7 @@ def run_pairwise_lab_scanner(
         from quantlab.research.alpha.pairwise.align import align_pair_bars
         from quantlab.research.alpha.pairwise.costs import estimate_pair_cost_bps
 
-        fee_bps = estimate_pair_cost_bps(venue="binance", market_type="spot") / 2.0
+        fee_bps = estimate_pair_cost_bps(venue=v, market_type=mt) / 2.0
         for sig in top:
             if sig.scope.value != "pair" or len(sig.symbols) != 2:
                 continue
@@ -3655,8 +3692,8 @@ def run_pairwise_lab_scanner(
     payload: dict[str, Any] = {
         "ok": True,
         "kind": "pairwise_scanner",
-        "venue": "binance",
-        "market_type": "spot",
+        "venue": v,
+        "market_type": mt,
         "interval": interval,
         "kline_limit": kline_limit,
         "detectors": list(enabled),
@@ -3673,7 +3710,7 @@ def run_pairwise_lab_scanner(
         ),
     }
     if include_signals:
-        payload["signals"] = [s.to_dict() for s in top]
+        payload["signals"] = [signal_dict_with_recommendation(s) for s in top]
     if validation_results:
         payload["validation"] = validation_results
     if persist_dir is not None:
@@ -3681,9 +3718,14 @@ def run_pairwise_lab_scanner(
 
         meta = ScanStore(persist_dir).save_scored(
             profile="pairwise",
-            rows=[{"signal": s.to_dict()} for s in top],
+            rows=[{"signal": signal_dict_with_recommendation(s)} for s in top],
             bars_hash="pairwise",
-            request={"detectors": list(enabled), "kline_limit": kline_limit},
+            request={
+                "detectors": list(enabled),
+                "kline_limit": kline_limit,
+                "venue": v,
+                "market_type": mt,
+            },
         )
         payload["persisted"] = meta.to_dict()
     return payload

@@ -9,6 +9,7 @@ from quantlab.brokers.binance.public_md import (
     ALLOWED_KLINE_INTERVALS,
     BinancePublicMdClient,
     is_http_safe_symbol,
+    is_stablecoin_base,
     validate_kline_interval,
 )
 from quantlab.brokers.md_limits import MAX_KLINES_TOTAL, MIN_KLINES
@@ -101,6 +102,38 @@ class BinanceFuturesPublicMdClient(BinancePublicMdClient):
             raise ValidationError(f"klines futures insuficientes para {sym}")
         return out
 
+    def list_futures_symbols(self, *, quote: str = "USDT", limit: int = 50) -> list[str]:
+        """Perpetuos USDT-M TRADING (mismo filtro establecoins que spot)."""
+        if limit < 1 or limit > 5000:
+            raise ValidationError("limit debe estar entre 1 y 5000")
+        info = self._get_json("/fapi/v1/exchangeInfo")
+        symbols = info.get("symbols")
+        if not isinstance(symbols, list):
+            raise ValidationError("exchangeInfo futures sin symbols")
+        out: list[str] = []
+        q = quote.strip().upper()
+        for item in symbols:
+            if not isinstance(item, dict):
+                continue
+            if item.get("status") != "TRADING":
+                continue
+            if str(item.get("contractType", "")).upper() != "PERPETUAL":
+                continue
+            if str(item.get("quoteAsset", "")).upper() != q:
+                continue
+            base = str(item.get("baseAsset", "")).upper()
+            if base and is_stablecoin_base(base, quote=q):
+                continue
+            sym = str(item.get("symbol", "")).upper()
+            if not sym or not is_http_safe_symbol(sym):
+                continue
+            if is_stablecoin_base(sym, quote=q):
+                continue
+            out.append(sym)
+            if len(out) >= limit:
+                break
+        return out
+
     def funding_rates(
         self,
         symbol: str,
@@ -155,4 +188,18 @@ __all__ = [
     "DEFAULT_FUTURES_BASE_URL",
     "MAX_KLINES_PER_REQUEST",
     "fetch_futures_bars",
+    "list_futures_symbols",
 ]
+
+
+def list_futures_symbols(
+    *,
+    quote: str = "USDT",
+    limit: int = 50,
+    base_url: str = DEFAULT_FUTURES_BASE_URL,
+) -> list[str]:
+    """Atajo module-level para listar perpetuos USDT-M."""
+    return BinanceFuturesPublicMdClient(base_url=base_url).list_futures_symbols(
+        quote=quote,
+        limit=limit,
+    )

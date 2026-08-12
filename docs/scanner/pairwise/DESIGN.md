@@ -6,16 +6,25 @@
 
 ---
 
-## 0. Decisiones de producto (pendientes del usuario + defaults v1)
+## 0. Decisiones de producto (RESUELTAS 2026-08-12)
 
-| ID | Pregunta | Estado | Default v1 (si no hay respuesta) |
-|----|----------|--------|----------------------------------|
-| P1 | Spot / Futures / ambos | **Pendiente usuario** | Binance **Spot USDT** |
-| P2 | Mismo exchange vs cross-venue | **Pendiente usuario** | **Mismo venue + market_type** |
-| P3 | Prioridad lag vs cointegración | **Pendiente usuario** | **Lagged correlation** primero |
-| P4 | Señales para monedas / estrategias / ambas | **Pendiente usuario** | **Candidatos par/mercado**; estrategia en Simulador |
+| ID | Pregunta | Decisión usuario | Implicancia |
+|----|----------|------------------|-------------|
+| P1 | Spot / Futures / ambos | **Ambos** ✓ | `run_pairwise_lab_scanner(market_type=spot\|futures)` + `list_futures_symbols` |
+| P2 | Mismo exchange vs cross-venue | **Mismo venue** (no cross) | Pares solo dentro Binance spot o Binance futures |
+| P3 | Lag vs cointegración | **Ambos** (ver tabla abajo) | Todos los detectores activos; usuario elige cuál priorizar |
+| P4 | Monedas / estrategias / ambas | **Ambas** ✓ | `recommended_strategy` en API + handoff Sim (`recommend.py`) |
 
-El diseño permite override por config sin re-arquitectura.
+### P3 — Qué es cada señal
+
+| Señal | Qué mide | Cuándo usarla | Estrategia típica |
+|-------|----------|---------------|-------------------|
+| **Correlación contemporánea** | A y B se mueven juntos en la misma ventana | Filtro inicial / redundancia | Beta hedge, basket |
+| **Correlación rezagada (lag)** | B sigue a A con X velas de retraso | Lead-lag, momentum relativo | `pairs_lag`, relative strength |
+| **Cointegración** | Relación estable de largo plazo; spread estacionario | Mean-reversion estructural | Pair trading long-short |
+| **Pair spread (z-score)** | Spread muy alejado de su media | Timing de entrada (si ya hay cointegración) | Entrada/salida z-score |
+
+**Orden sugerido al leer resultados:** cointegración → spread z → lag → correlación (solo filtro).
 
 ---
 

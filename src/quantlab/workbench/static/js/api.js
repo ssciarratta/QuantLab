@@ -535,6 +535,8 @@
     pairwiseScanner: function (opts) {
       const o = opts || {};
       return request("POST", "/api/lab/pairwise/scanner", {
+        venue: o.venue || "binance",
+        market_type: o.market_type || "spot",
         symbol_limit: o.symbol_limit != null ? o.symbol_limit : 20,
         interval: o.interval || "1h",
         kline_limit: o.kline_limit != null ? o.kline_limit : 720,

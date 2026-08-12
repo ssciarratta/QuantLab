@@ -265,6 +265,8 @@
         .map(function (sig, i) {
           var syms = sig.symbols || [];
           var val = valMap[sig.signal_id];
+          var rec = sig.recommended_strategy || {};
+          var stratLabel = rec.label || rec.strategy_id || "—";
           var valTxt = val
             ? "SR=" +
               Number(val.sharpe_net || 0).toFixed(2) +
@@ -305,6 +307,9 @@
                 : "—"
             ) +
             "</td>" +
+            "<td>" +
+            esc(stratLabel) +
+            "</td>" +
             "<td class=\"mono muted\">" +
             esc(valTxt) +
             "</td>" +
@@ -315,9 +320,12 @@
           );
         })
         .join("");
+      var venueLabel = (data.venue || "binance") + "/" + (data.market_type || "spot");
       outEl.innerHTML =
         '<p class="muted sc-meta">' +
-        '<span class="data-badge data-badge-real">pairwise · binance/spot</span> ' +
+        '<span class="data-badge data-badge-real">pairwise · ' +
+        esc(venueLabel) +
+        '</span> ' +
         "señales=" +
         esc(data.n_signals != null ? data.n_signals : signals.length) +
         " · símbolos=" +
@@ -329,7 +337,7 @@
         "</p>" +
         '<table class="mono sc-pw-table" style="width:100%;border-collapse:collapse">' +
         "<thead><tr><th>#</th><th>Pierna A</th><th>Pierna B</th><th>Tipo</th>" +
-        "<th>Lag</th><th>Score</th><th>Conf.</th><th>Validación</th><th></th></tr></thead>" +
+        "<th>Lag</th><th>Score</th><th>Conf.</th><th>Estrategia</th><th>Validación</th><th></th></tr></thead>" +
         "<tbody>" +
         rows +
         "</tbody></table>" +
@@ -342,16 +350,18 @@
           var idx = parseInt(btn.getAttribute("data-idx"), 10) || 0;
           var sig = signals[idx];
           if (!sig || !sig.symbols || sig.symbols.length < 2) return;
+          var rec = sig.recommended_strategy || {};
+          var mt = data.market_type || root.querySelector("#sc-market").value || "spot";
           openSim({
             source_module: "alpha_scanner_pairwise",
-            venue: "binance",
-            market_type: "spot",
+            venue: data.venue || "binance",
+            market_type: mt,
             interval: data.interval || root.querySelector("#sc-interval").value,
             underlyings: sig.symbols.map(function (s) {
-              return String(s).replace(/^BN:/i, "");
+              return String(s).replace(/^[^:]+:\/, "");
             }),
             pair_signal_type: sig.signal_type,
-            strategy_id: "pairs_lag",
+            strategy_id: rec.strategy_id || "pairs_trading",
           });
         });
       });
@@ -375,12 +385,15 @@
         return;
       }
       var meta = sig.metadata || {};
+      var rec = sig.recommended_strategy || {};
       var lines = [
         "PAIRWISE — " + (sig.signal_type || "?"),
         "Par: " + (sig.symbols || []).join(" / "),
         "Score raw: " + (sig.raw_score != null ? sig.raw_score : "—"),
         "Lag: " + (sig.lag != null ? sig.lag : "—"),
         "Lookback: " + (sig.lookback != null ? sig.lookback : "—"),
+        "Estrategia sugerida: " + (rec.label || rec.strategy_id || "—"),
+        "Rationale: " + (rec.rationale || "—"),
         "Hedge ratio: " + (meta.hedge_ratio != null ? meta.hedge_ratio : "—"),
         "ADF p-value: " + (meta.adf_pvalue != null ? meta.adf_pvalue : "—"),
         "Spread z: " + (meta.spread_z != null ? meta.spread_z : "—"),
@@ -2271,6 +2284,8 @@
             return;
           }
           var pwOpts = {
+            venue: "binance",
+            market_type: root.querySelector("#sc-market").value,
             symbol_limit: mode === "0" ? 30 : nLimit,
             interval: root.querySelector("#sc-interval").value,
             kline_limit: kLimit,

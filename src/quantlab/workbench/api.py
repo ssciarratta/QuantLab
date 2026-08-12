@@ -1345,6 +1345,8 @@ def handle_post_binance_scanner(state: WorkbenchState, body: dict[str, Any]) -> 
 
 def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
     """POST /api/lab/pairwise/scanner — detectores correlación/cointegración."""
+    venue = body.get("venue", "binance")
+    market_type = body.get("market_type", "spot")
     symbol_limit = body.get("symbol_limit", 20)
     interval = body.get("interval", "1h")
     kline_limit = body.get("kline_limit", 720)
@@ -1352,6 +1354,10 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
     include_signals = body.get("include_signals", True)
     run_validation = body.get("run_validation", False)
     detectors_raw = body.get("detectors")
+    if not isinstance(venue, str):
+        raise ApiError(400, "venue debe ser string")
+    if not isinstance(market_type, str):
+        raise ApiError(400, "market_type debe ser string")
     if not isinstance(symbol_limit, int):
         raise ApiError(400, "symbol_limit debe ser int")
     if not isinstance(kline_limit, int):
@@ -1372,6 +1378,8 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
             raise ApiError(503, "sesión workbench no inicializada")
         persist_dir = state.session.experiments_dir / "alpha_scans"
         result = lab_services.run_pairwise_lab_scanner(
+            venue=venue.strip(),
+            market_type=market_type.strip(),
             symbol_limit=symbol_limit,
             interval=interval.strip(),
             kline_limit=kline_limit,

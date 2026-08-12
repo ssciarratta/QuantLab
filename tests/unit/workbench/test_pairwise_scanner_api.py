@@ -65,8 +65,52 @@ def test_pairwise_lab_scanner_returns_signals(binance_universe_pw: dict[str, lis
         )
     assert out["ok"] is True
     assert out["kind"] == "pairwise_scanner"
+    assert out["market_type"] == "spot"
     assert out["n_symbols"] >= 2
     assert "signals" in out
+    if out["signals"]:
+        assert "recommended_strategy" in out["signals"][0]
+
+
+def test_pairwise_futures_scanner(binance_universe_pw: dict[str, list[Bar]]) -> None:
+    symbols = list(binance_universe_pw.keys())
+    fut_bars: dict[str, list[Bar]] = {}
+    for sym, bars in binance_universe_pw.items():
+        fut_bars[sym] = [
+            Bar(
+                instrument_id=f"BNF:{sym}",
+                open=b.open,
+                high=b.high,
+                low=b.low,
+                close=b.close,
+                volume=b.volume,
+                timestamp_open=b.timestamp_open,
+                timestamp_close=b.timestamp_close,
+                timeframe=b.timeframe,
+            )
+            for b in bars
+        ]
+    with (
+        patch(
+            "quantlab.brokers.binance.futures_public_md.BinanceFuturesPublicMdClient.list_futures_symbols",
+            return_value=symbols,
+        ),
+        patch(
+            "quantlab.brokers.binance.futures_public_md.fetch_futures_bars",
+            return_value=fut_bars,
+        ),
+    ):
+        out = lab_services.run_pairwise_lab_scanner(
+            market_type="futures",
+            symbol_limit=4,
+            kline_limit=150,
+            detectors=("contemporary_correlation",),
+            top_n=5,
+            include_signals=True,
+        )
+    assert out["ok"] is True
+    assert out["market_type"] == "futures"
+    assert out["venue"] == "binance"
 
 
 def test_pairwise_kline_limit_min() -> None:

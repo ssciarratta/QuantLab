@@ -5,22 +5,25 @@ Versión: 1.01.0 — main
 
 ESTADO
 ------
-- Integración pairwise Alpha Scanner: COMPLETA (IP-0..IP-12)
-- UI Scanner: modo Pares + tabla + handoff Simulador
+- Integración pairwise Alpha Scanner: COMPLETA (IP-0..IP-12 + P1/P4)
+- UI Scanner: modo Pares · spot/futures · estrategia sugerida en Sim
 - Tags restore: pre-pairwise · post-ip4 · post-ip10 · post-pairwise-complete
 
 ÚLTIMA IMPLEMENTACIÓN (2026-08-12)
 ----------------------------------
-- scanner.js: Modo Individual | Pares (pairwise), detectores, validación OOS
-- API: POST /api/lab/pairwise/scanner, GET /api/lab/detectors
-- Validación: TrialLedger, Deflated Sharpe, walk-forward+embargo
-- Tests: research + workbench pairwise verdes
+- P1: pairwise spot + futures Binance (`market_type`, `list_futures_symbols`)
+- P4: `recommend.py` + `recommended_strategy` en API y handoff Sim
+- scanner.js: columna Estrategia, mercado desde selector, prefix BNF/BN
+- Tests: futures mock + recommend unitarios
 
 PRÓXIMO
 -------
-- Decisión producto P1–P4 (Spot/Futures, cross-venue)
-- Certificación formal fase (pendiente APROBADO usuario)
 - scipy opcional para ADF exacto (hoy proxy)
+- Cierre formal Fase pairwise pendiente auditoría explícita
+
+DECISIONES PRODUCTO (2026-08-12)
+---------------------------------
+P1 Spot+Futures ✓ | P2 mismo venue ✓ | P3 lag+coint ✓ | P4 monedas+estrategias ✓
 
 INVARIANTES
 -----------
