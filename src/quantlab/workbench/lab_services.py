@@ -864,7 +864,10 @@ def run_binance_lab_scanner(
         kronos=kronos,
         persist_dir=persist_dir,
     )
-    return attach_recommendations(out, profile=requested_profile, interval=interval)
+    out = attach_recommendations(out, profile=requested_profile, interval=interval)
+    from quantlab.research.alpha.individual_export import attach_individual_signals
+
+    return attach_individual_signals(out)
 
 
 _VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
@@ -1350,7 +1353,10 @@ def run_venue_lab_scanner(
         kronos=kronos,
         persist_dir=persist_dir,
     )
-    return attach_recommendations(out, profile=requested_profile, interval=interval)
+    out = attach_recommendations(out, profile=requested_profile, interval=interval)
+    from quantlab.research.alpha.individual_export import attach_individual_signals
+
+    return attach_individual_signals(out)
 
 
 def _composite_of_score_row(row: Mapping[str, Any]) -> float:
@@ -1963,27 +1969,60 @@ def run_binance_lab_pipeline(
             "live_routing": False,
         }
 
-    # Backtest sobre ventana OOS (o misma si walk_forward=False)
+    from quantlab.research.alpha.individual_export import (
+        attach_individual_signals,
+        score_row_to_signal,
+        scores_to_ranked_signals,
+    )
+    from quantlab.research.alpha.validation.validate_candidate import (
+        default_trials_path,
+        validate_candidate,
+    )
+
+    scan_payload = attach_individual_signals(scan_payload)
+    ranked_sigs = scores_to_ranked_signals(
+        [s for s in (scan_payload.get("scores") or []) if isinstance(s, dict)],
+        profile=profile_key,
+        timeframe=interval,
+        lookback=kline_limit,
+    )
+    sig_by_iid = {s.symbols[0]: s for s in ranked_sigs if s.symbols}
+
+    trials_path = default_trials_path(reports_dir) if reports_dir is not None else None
+    validation_results: list[dict[str, Any]] = []
     runs: list[dict[str, Any]] = []
     for iid, sym in zip(selected_iids, selected_symbols, strict=True):
         sym_bars = bt_universe.get(iid)
         if not sym_bars:
             runs.append({"symbol": sym, "ok": False, "error": "sin barras OOS"})
             continue
-        eid = f"{prefix}-{sym}"[:120]
-        try:
-            bt = run_lab_backtest(
-                strategy_id=strategy_id,
-                params=params,
-                bars=sym_bars,
-                instrument_id=iid,
-                data_source="binance_klines_walk_forward" if walk_forward else "binance_klines",
-                experiment_id=eid,
-                reports_dir=reports_dir,
+        sig = sig_by_iid.get(iid)
+        if sig is None:
+            sig = score_row_to_signal(
+                {"instrument_id": iid, "composite": 0.0},
+                signal_type=profile_key,
+                timeframe=interval,
+                lookback=kline_limit,
             )
-            runs.append({"symbol": sym, "ok": True, "result": bt})
-        except ValidationError as exc:
-            runs.append({"symbol": sym, "ok": False, "error": str(exc)})
+        full_bars = universe.get(iid) or sym_bars
+        vr = validate_candidate(
+            sig,
+            strategy_id=strategy_id,
+            params=params,
+            bars=full_bars,
+            ledger_path=trials_path,
+            venue="binance",
+            market_type="spot",
+        )
+        validation_results.append(vr.to_dict())
+        runs.append(
+            {
+                "symbol": sym,
+                "ok": vr.ok,
+                "error": vr.error,
+                "validation": vr.to_dict(),
+            }
+        )
 
     ok_runs = [r for r in runs if r.get("ok")]
     batch = {
@@ -2000,6 +2039,7 @@ def run_binance_lab_pipeline(
         "read_only": True,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
+        "note": "Validación vía validate_candidate (embargo + ledger).",
     }
     return {
         "ok": batch.get("ok") is True,
@@ -2007,11 +2047,17 @@ def run_binance_lab_pipeline(
         "venue": "binance",
         "strategy_id": batch.get("strategy_id"),
         "scanner": scan_payload,
+        "candidates": scan_payload.get("signals") or [],
+        "validation_results": validation_results,
         "backtests": batch,
         "walk_forward": wf_meta,
         "read_only": True,
         "live_routing": False,
         "live_blocked": LIVE_BLOCKED is True,
+        "note": (
+            "Ranking A = scanner.scores/signals (sin Sharpe). "
+            "Ranking B = validation_results con DSR. No mezclar."
+        ),
     }
 
 
@@ -3531,6 +3577,7 @@ def run_pairwise_lab_scanner(
     include_signals: bool = True,
     run_validation: bool = False,
     persist_dir: Path | None = None,
+    trials_dir: Path | None = None,
     base_url: str | None = None,
 ) -> dict[str, Any]:
     """Alpha Scanner modo pairwise — detectores de relación entre monedas."""
@@ -3653,41 +3700,38 @@ def run_pairwise_lab_scanner(
     top = ranked[: max(0, top_n)]
 
     validation_results: list[dict[str, Any]] = []
-    if run_validation and top:
-        from quantlab.backtester.pair_engine import run_spread_backtest
-        from quantlab.research.alpha.pairwise.align import align_pair_bars
-        from quantlab.research.alpha.pairwise.costs import estimate_pair_cost_bps
+    trials_path = None
+    if trials_dir is not None:
+        from quantlab.research.alpha.validation.validate_candidate import default_trials_path
 
-        fee_bps = estimate_pair_cost_bps(venue=v, market_type=mt) / 2.0
+        trials_path = default_trials_path(trials_dir)
+    elif persist_dir is not None:
+        from quantlab.research.alpha.validation.validate_candidate import default_trials_path
+
+        # alpha_scans parent → experiments_dir
+        trials_path = default_trials_path(persist_dir.parent)
+
+    if run_validation and top:
+        from quantlab.research.alpha.validation.validate_candidate import validate_candidate
+        from quantlab.research.alpha.pairwise.recommend import recommend_strategy_for_signal
+
         for sig in top:
             if sig.scope.value != "pair" or len(sig.symbols) != 2:
                 continue
             a, b = sig.symbols
             if a not in universe or b not in universe:
                 continue
-            aligned = align_pair_bars(universe[a], universe[b])
-            if aligned is None:
-                continue
-            cut = int(len(aligned.closes_a) * 0.70)
-            bt = run_spread_backtest(
-                aligned.closes_a[cut:],
-                aligned.closes_b[cut:],
-                fee_bps_per_leg=fee_bps,
+            rec = recommend_strategy_for_signal(sig.signal_type, lag=sig.lag)
+            vr = validate_candidate(
+                sig,
+                strategy_id=rec.strategy_id,
+                bars_a=universe[a],
+                bars_b=universe[b],
+                ledger_path=trials_path,
+                venue=v,
+                market_type=mt,
             )
-            if not bt.net_returns:
-                continue
-            ev = pipeline.evaluate_backtest(
-                sig, net_returns=bt.net_returns, periods_per_year=8760.0
-            )
-            validation_results.append(
-                {
-                    "signal_id": ev.signal_id,
-                    "sharpe_net": ev.sharpe_net,
-                    "deflated_sharpe": ev.deflated_sharpe,
-                    "max_drawdown": ev.max_drawdown,
-                    "validated": ev.validated,
-                }
-            )
+            validation_results.append(vr.to_dict())
 
     payload: dict[str, Any] = {
         "ok": True,
@@ -3700,7 +3744,9 @@ def run_pairwise_lab_scanner(
         "n_symbols": len(universe),
         "n_signals": len(all_signals),
         "top_n": top_n,
-        "trial_count": pipeline.ledger.count(),
+        "trial_count": pipeline.ledger.count() + len(validation_results),
+        "validation_count": len(validation_results),
+
         "read_only": True,
         "live_blocked": LIVE_BLOCKED is True,
         "note": (

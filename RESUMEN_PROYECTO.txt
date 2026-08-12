@@ -5,26 +5,28 @@ Versión: 1.01.0 — main
 
 ESTADO
 ------
-- Integración pairwise Alpha Scanner: COMPLETA (IP-0..IP-12 + P1/P4)
-- UI Scanner: modo Pares · spot/futures · estrategia sugerida en Sim
-- Tags restore: pre-pairwise · post-ip4 · post-ip10 · post-pairwise-complete
+- Pairwise Alpha Scanner: COMPLETO (spot+futures)
+- Pipeline Alpha v3 (individual + validación): IMPLEMENTADO IP-1..IP-10
+  docs/scanner/pipeline/{AUDIT,DESIGN,IMPLEMENTATION_PLAN,HOWTO}.md
 
 ÚLTIMA IMPLEMENTACIÓN (2026-08-12)
 ----------------------------------
-- P1: pairwise spot + futures Binance (`market_type`, `list_futures_symbols`)
-- P4: `recommend.py` + `recommended_strategy` en API y handoff Sim
-- scanner.js: columna Estrategia, mercado desde selector, prefix BNF/BN
-- Tests: futures mock + recommend unitarios
+- AlphaSignal en scanner individual (signals[] + percentil + confidence)
+- validate_candidate único (individual|par) + ledger experiments/alpha_trials/
+- Ranking B: GET /api/lab/validated-strategies · botón UI Scanner
+- binance_pipeline y pairwise OOS usan validate_candidate
+- strategy_rank etiquetado strategy_exploration (no Ranking B)
+- Anti-leakage assert en conversión scores→signals
 
 PRÓXIMO
 -------
-- scipy opcional para ADF exacto (hoy proxy)
-- Cierre formal Fase pairwise pendiente auditoría explícita
+- Cierre formal pendiente auditoría explícita
+- scipy ADF opcional (pares)
 
-DECISIONES PRODUCTO (2026-08-12)
----------------------------------
-P1 Spot+Futures ✓ | P2 mismo venue ✓ | P3 lag+coint ✓ | P4 monedas+estrategias ✓
+DECISIONES
+----------
+Ranking A ≠ B · 1 strat/corrida · top-N fijo · LIVE_BLOCKED=True
 
 INVARIANTES
 -----------
-Scanner ≠ evaluación Sharpe · LIVE_BLOCKED=True · research only
+Scanner ≠ Sharpe · trials win+lose en ledger · research only

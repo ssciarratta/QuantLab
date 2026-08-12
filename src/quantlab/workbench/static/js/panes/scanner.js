@@ -175,6 +175,7 @@
       '<button type="button" class="btn" id="sc-run">Escanear</button>' +
       '<button type="button" class="btn secondary stop-run" id="sc-stop" hidden disabled title="Detener escaneo">Stop</button>' +
       '<button type="button" class="btn secondary" id="sc-export" title="Descarga JSON auditable de la última consulta">Exportar JSON</button>' +
+      '<button type="button" class="btn secondary" id="sc-rank-b-btn" title="Estrategias que pasaron validate_candidate (DSR)">Ranking B</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
       '<details class="sc-more muted"><summary>Ayuda · tandas y multi-mercado</summary>' +
@@ -185,6 +186,7 @@
       '<div id="sc-warn"></div>' +
       '<div id="sc-out"></div>' +
       '<div id="sc-detail" class="sc-detail" style="margin-top:0.45rem"></div>' +
+      '<div id="sc-rank-b" class="sc-rank-b muted" style="margin-top:0.6rem;font-size:1.02em"></div>' +
       "</div>";
 
     var lastScan = null;
@@ -1206,6 +1208,7 @@
         (tfChips || "—") +
         "</div>" +
         '<button type="button" class="btn" id="sc-open-sim">Abrir en Simulador</button> ' +
+        '<button type="button" class="btn secondary" id="sc-validate-one" title="1 estrategia · DSR · registra trial siempre">Validar</button> ' +
         '<button type="button" class="btn slt-launch-btn" id="sc-open-live-test">▶ Corrida en vivo</button>' +
         "</div>";
 
@@ -1240,6 +1243,56 @@
             prefill.strategy_id = rec.strategies[0].id;
           }
           openSim(prefill);
+        });
+      }
+      var valBtn = box.querySelector("#sc-validate-one");
+      if (valBtn) {
+        valBtn.addEventListener("click", function () {
+          var strat =
+            (rec.strategies && rec.strategies[0] && rec.strategies[0].id) ||
+            "momentum";
+          var signals = (block && block.signals) || (lastScan && lastScan.signals) || [];
+          var sig = null;
+          var iid = row.instrument_id || "";
+          for (var si = 0; si < signals.length; si++) {
+            var ss = signals[si].symbols || [];
+            if (ss[0] === iid || String(ss[0] || "").indexOf(und) >= 0) {
+              sig = signals[si];
+              break;
+            }
+          }
+          if (!sig) {
+            setStatus(false, "sin AlphaSignal — re-escaneá (signals[] requerido)");
+            return;
+          }
+          setStatus(null, "validando " + strat + "…");
+          QLApi.validateCandidate({
+            signal: sig,
+            strategy_id: strat,
+            venue: venue,
+            market_type: mt,
+            interval: iv,
+            kline_limit:
+              (block && block.kline_limit) ||
+              (lastScan && lastScan.kline_limit) ||
+              240,
+            underlyings: und ? [und] : undefined,
+          })
+            .then(function (d) {
+              var v = (d && d.validation) || {};
+              setStatus(
+                !!v.ok,
+                "Validación · SR=" +
+                  Number(v.sharpe_net || 0).toFixed(2) +
+                  " DSR=" +
+                  Number(v.deflated_sharpe || 0).toFixed(2) +
+                  (v.validated ? " ✓ Ranking B" : " (no validada)")
+              );
+              loadRankingB();
+            })
+            .catch(function (e) {
+              setStatus(false, (e && e.message) || String(e));
+            });
         });
       }
       var liveBtn = box.querySelector("#sc-open-live-test");
@@ -2200,6 +2253,50 @@
     }
 
     root.querySelector("#sc-export").addEventListener("click", exportScanAudit);
+    root.querySelector("#sc-rank-b-btn").addEventListener("click", loadRankingB);
+
+    function loadRankingB() {
+      var box = root.querySelector("#sc-rank-b");
+      if (!box || !QLApi.validatedStrategies) return;
+      box.innerHTML = '<p class="muted">Cargando Ranking B…</p>';
+      QLApi.validatedStrategies()
+        .then(function (d) {
+          var rows = (d && d.strategies) || [];
+          if (!rows.length) {
+            box.innerHTML =
+              '<p class="muted"><strong>Ranking B</strong> (estrategias validadas): vacío. ' +
+              "Usá «Validar» sobre una candidata del scanner. No confundir con el ranking A.</p>";
+            return;
+          }
+          box.innerHTML =
+            "<p><strong>Ranking B</strong> — validadas (DSR) · trials=" +
+            esc(d.trial_count != null ? d.trial_count : "—") +
+            '</p><ul style="margin:0.25rem 0 0 1.1rem;padding:0">' +
+            rows
+              .slice(0, 15)
+              .map(function (r) {
+                return (
+                  "<li class=\"mono\">" +
+                  esc(r.strategy_id || "?") +
+                  " · " +
+                  esc((r.symbols || []).join("/")) +
+                  " · DSR=" +
+                  esc(
+                    r.deflated_sharpe != null
+                      ? Number(r.deflated_sharpe).toFixed(3)
+                      : "—"
+                  ) +
+                  "</li>"
+                );
+              })
+              .join("") +
+            "</ul>";
+        })
+        .catch(function (e) {
+          box.innerHTML =
+            '<p class="muted">Ranking B: ' + esc((e && e.message) || e) + "</p>";
+        });
+    }
 
     if (global.QLRunGate) {
       QLRunGate.bindStopButton(root.querySelector("#sc-stop"), {

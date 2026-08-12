@@ -53,6 +53,7 @@ from quantlab.workbench.api import (
     handle_get_instruments,
     handle_get_lab_capabilities,
     handle_get_lab_detectors,
+    handle_get_validated_strategies,
     handle_get_lab_experiments,
     handle_get_lab_export,
     handle_get_lab_exports,
@@ -615,6 +616,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                 if path == "/api/lab/detectors":
                     self._send_json(handle_get_lab_detectors(state))
                     return
+                if path == "/api/lab/validated-strategies":
+                    self._send_json(handle_get_validated_strategies(state))
+                    return
                 if path == "/api/lab/strategies":
                     self._send_json(handle_get_lab_strategies(state))
                     return
@@ -831,6 +835,9 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     return
                 if path == "/api/lab/pairwise/scanner":
                     self._send_json(handle_post_pairwise_scanner(state, body))
+                    return
+                if path == "/api/lab/validate-candidate":
+                    self._send_json(handle_post_validate_candidate(state, body))
                     return
                 if path == "/api/broker/connect":
                     self._send_json(handle_post_broker_connect(state, body))

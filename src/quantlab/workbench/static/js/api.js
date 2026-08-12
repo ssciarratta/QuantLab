@@ -546,6 +546,22 @@
         detectors: o.detectors || undefined,
       });
     },
+    validateCandidate: function (opts) {
+      const o = opts || {};
+      return request("POST", "/api/lab/validate-candidate", {
+        signal: o.signal,
+        strategy_id: o.strategy_id,
+        params: o.params || {},
+        venue: o.venue || "binance",
+        market_type: o.market_type || "spot",
+        interval: o.interval || "1h",
+        kline_limit: o.kline_limit != null ? o.kline_limit : 240,
+        underlyings: o.underlyings || undefined,
+      });
+    },
+    validatedStrategies: function () {
+      return request("GET", "/api/lab/validated-strategies");
+    },
     labDetectors: function () {
       return request("GET", "/api/lab/detectors");
     },

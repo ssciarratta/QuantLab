@@ -1388,6 +1388,7 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
             include_signals=bool(include_signals),
             run_validation=bool(run_validation),
             persist_dir=persist_dir if include_signals else None,
+            trials_dir=state.session.experiments_dir,
         )
         out = state.store_lab_result(result)
         _record_activity(
@@ -1409,17 +1410,137 @@ def handle_get_lab_detectors(state: WorkbenchState) -> dict[str, Any]:
 
     ensure_pairwise_detectors_loaded()
     reg = global_registry()
-    items = []
-    for det in reg.list_detectors():
-        items.append(
+    dets = []
+    for did in reg.list_ids():
+        det = reg.get(did)
+        dets.append(
             {
                 "detector_id": det.detector_id,
                 "signal_type": det.signal_type,
                 "scope": det.scope.value,
-                "required_min_bars": det.required_min_bars(),
+                "min_bars": det.required_min_bars(),
             }
         )
-    return {"ok": True, "detectors": items}
+    return {"ok": True, "detectors": dets, "n": len(dets)}
+
+
+def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) -> dict[str, Any]:
+    """POST /api/lab/validate-candidate — UNA estrategia sobre UNA candidata."""
+    from quantlab.research.alpha.models import AlphaSignal
+    from quantlab.research.alpha.validation.validate_candidate import (
+        default_trials_path,
+        validate_candidate,
+    )
+
+    if state.session is None:
+        raise ApiError(503, "sesión workbench no inicializada")
+    signal_raw = body.get("signal")
+    strategy_id = body.get("strategy_id")
+    if not isinstance(signal_raw, dict):
+        raise ApiError(400, "signal debe ser objeto AlphaSignal")
+    if not isinstance(strategy_id, str) or not strategy_id.strip():
+        raise ApiError(400, "strategy_id requerido")
+    params = body.get("params") if isinstance(body.get("params"), dict) else {}
+    venue = str(body.get("venue") or "binance")
+    market_type = str(body.get("market_type") or "spot")
+    try:
+        signal = AlphaSignal.from_dict(signal_raw)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ApiError(400, f"signal inválido: {exc}") from exc
+
+    # Barras: el cliente puede mandar instrument_ids; lab resuelve vía MD si hay símbolos
+    bars = None
+    bars_a = None
+    bars_b = None
+    # Path mínimo: si vienen bars serializados no los aceptamos (pesado);
+    # exigir underlyings + interval + kline_limit y fetch.
+    underlyings = body.get("underlyings")
+    interval = str(body.get("interval") or "1h")
+    kline_limit = body.get("kline_limit", 240)
+    if not isinstance(kline_limit, int):
+        raise ApiError(400, "kline_limit debe ser int")
+    try:
+        if signal.scope.value == "pair" and len(signal.symbols) == 2:
+            # Prefijos BN:/BNF: — strip para fetch
+            from quantlab.brokers.binance.public_md import fetch_universe_bars
+            from quantlab.brokers.binance.futures_public_md import fetch_futures_bars
+
+            raw_syms = [s.split(":", 1)[-1] for s in signal.symbols]
+            if market_type == "futures":
+                fetched = fetch_futures_bars(raw_syms, interval=interval, kline_limit=kline_limit)
+            else:
+                fetched = fetch_universe_bars(raw_syms, interval=interval, kline_limit=kline_limit)
+            if raw_syms[0] not in fetched or raw_syms[1] not in fetched:
+                raise ApiError(400, "no se pudieron obtener barras del par")
+            bars_a = fetched[raw_syms[0]]
+            bars_b = fetched[raw_syms[1]]
+        else:
+            from quantlab.brokers.binance.public_md import fetch_universe_bars
+            from quantlab.brokers.binance.futures_public_md import fetch_futures_bars
+
+            sym = signal.symbols[0].split(":", 1)[-1] if signal.symbols else ""
+            if isinstance(underlyings, list) and underlyings:
+                u = str(underlyings[0]).strip().upper()
+                sym = u if u.endswith("USDT") else f"{u}USDT"
+            if not sym:
+                raise ApiError(400, "signal.symbols vacío")
+            if market_type == "futures":
+                fetched = fetch_futures_bars([sym], interval=interval, kline_limit=kline_limit)
+            else:
+                fetched = fetch_universe_bars([sym], interval=interval, kline_limit=kline_limit)
+            if sym not in fetched:
+                raise ApiError(400, f"sin barras para {sym}")
+            bars = fetched[sym]
+
+        trials_path = default_trials_path(state.session.experiments_dir)
+        result = validate_candidate(
+            signal,
+            strategy_id=strategy_id.strip(),
+            params=params,
+            bars=bars,
+            bars_a=bars_a,
+            bars_b=bars_b,
+            ledger_path=trials_path,
+            venue=venue,
+            market_type=market_type,
+        )
+        out = {
+            "ok": result.ok,
+            "kind": "validate_candidate",
+            "validation": result.to_dict(),
+            "ranking": "B",
+            "note": "Trial registrado siempre. Ranking A (scanner) no se modifica.",
+            "live_blocked": True,
+        }
+        return state.store_lab_result(out)
+    except ValidationError as exc:
+        raise ApiError(400, str(exc)) from exc
+
+
+def handle_get_validated_strategies(state: WorkbenchState) -> dict[str, Any]:
+    """GET /api/lab/validated-strategies — Ranking B desde ledger persistente."""
+    from quantlab.research.alpha.validation.trial_ledger import TrialLedger
+    from quantlab.research.alpha.validation.validate_candidate import (
+        default_trials_path,
+        list_validated_from_ledger,
+    )
+
+    if state.session is None:
+        raise ApiError(503, "sesión workbench no inicializada")
+    path = default_trials_path(state.session.experiments_dir)
+    ledger = TrialLedger(path=path)
+    rows = list_validated_from_ledger(ledger)
+    return {
+        "ok": True,
+        "kind": "validated_strategies",
+        "ranking": "B",
+        "n": len(rows),
+        "trial_count": ledger.count(),
+        "strategies": rows,
+        "path": str(path),
+        "note": "Solo validated=True. No confundir con ranking del scanner (A).",
+        "live_blocked": True,
+    }
 
 
 def _kronos_flags_from_body(body: dict[str, Any]) -> dict[str, Any]:

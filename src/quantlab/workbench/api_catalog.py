@@ -189,9 +189,21 @@ API_ROUTES: tuple[ApiRoute, ...] = (
         ("lab", "alpha"),
     ),
     ApiRoute(
+        "/api/lab/validate-candidate",
+        "POST",
+        "Validate one candidate × one strategy (DSR + trial ledger)",
+        ("lab", "alpha", "validation"),
+    ),
+    ApiRoute(
+        "/api/lab/validated-strategies",
+        "GET",
+        "Ranking B: strategies that passed validate_candidate",
+        ("lab", "alpha", "validation"),
+    ),
+    ApiRoute(
         "/api/lab/binance/pipeline",
         "POST",
-        "Binance alpha scan + backtest top-N (read-only MD)",
+        "Binance alpha scan + validate top-N (read-only MD)",
         ("lab", "binance"),
     ),
     ApiRoute(

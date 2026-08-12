@@ -1,8 +1,11 @@
 """Ranking de estrategias sobre una sola moneda × mercados (research, sin LIVE).
 
+EXPLORACIÓN — no es el Ranking B de estrategias validadas (Prompt v3).
 Corre el universo runnable (sin demo dummy/buy_once), ordena por PnL % y
 garantiza al menos una estrategia por familia; si hay más de ``top_n`` familias
 con resultado OK, el ranking crece para incluirlas todas.
+
+Para validación con DSR / ledger: usar ``validate_candidate`` (1 estrategia/corrida).
 """
 
 from __future__ import annotations
@@ -381,7 +384,8 @@ def run_sim_strategy_rank(request: dict[str, Any]) -> dict[str, Any]:
 
     return {
         "ok": any(m.get("ok") for m in markets),
-        "kind": "sim_strategy_rank",
+        "kind": "strategy_exploration",
+        "legacy_kind": "sim_strategy_rank",
         "coin": coin,
         "markets": markets,
         "common": {
@@ -407,9 +411,12 @@ def run_sim_strategy_rank(request: dict[str, Any]) -> dict[str, Any]:
             if taker_bps_override is not None
             else None,
             "note": (
-                "Ranking por PnL % · ≥1 por familia · puede superar top_n "
-                "si hay más familias con resultado OK. LIVE bloqueado."
+                "EXPLORACIÓN research (no Ranking B validado). "
+                "Orden por PnL % · ≥1 por familia. "
+                "No alimenta Deflated Sharpe ni ranking de estrategias validadas. "
+                "Para validar: validate_candidate (1 estrategia por corrida). LIVE bloqueado."
             ),
         },
         "live_blocked": LIVE_BLOCKED is True,
+        "is_validated_ranking": False,
     }
