@@ -5,8 +5,9 @@ No cambian el scoring: envuelven el ``AlphaScanner`` actual.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -21,6 +22,19 @@ class MissingFactorPolicy(StrEnum):
 class NormalizationMethod(StrEnum):
     MIN_MAX_CROSS_SECTIONAL = "min_max_cross_sectional"  # legacy_v1
     ROBUST_CROSS_SECTIONAL = "robust_cross_sectional"
+
+
+class SignalScope(StrEnum):
+    INDIVIDUAL = "individual"
+    PAIR = "pair"
+    GROUP = "group"
+
+
+class SignalDirection(StrEnum):
+    LONG = "long"
+    SHORT = "short"
+    LONG_SHORT = "long-short"
+    NEUTRAL = "neutral"
 
 
 # Profile que reproduce la fórmula F4/F111 exacta.
@@ -98,6 +112,114 @@ class AlphaScanRequest:
             "persist_result": self.persist_result,
             "run_backtest": self.run_backtest,
         }
+
+
+@dataclass(frozen=True, slots=True)
+class AlphaSignal:
+    """Contrato unificado de señal/candidato (individual, par o grupo)."""
+
+    signal_id: str
+    timestamp: datetime
+    signal_type: str
+    scope: SignalScope
+    symbols: tuple[str, ...]
+    direction: SignalDirection
+    raw_score: float
+    confidence: float | None = None
+    lookback: int = 0
+    lag: int | None = None
+    timeframe: str = "1h"
+    data_quality: dict[str, Any] | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    normalized_score: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "signal_id": self.signal_id,
+            "timestamp": self.timestamp.isoformat(),
+            "signal_type": self.signal_type,
+            "scope": self.scope.value,
+            "symbols": list(self.symbols),
+            "direction": self.direction.value,
+            "raw_score": self.raw_score,
+            "confidence": self.confidence,
+            "lookback": self.lookback,
+            "lag": self.lag,
+            "timeframe": self.timeframe,
+            "data_quality": self.data_quality,
+            "metadata": dict(self.metadata),
+            "normalized_score": self.normalized_score,
+        }
+
+    @classmethod
+    def from_dict(cls, payload: Mapping[str, Any]) -> AlphaSignal:
+        ts_raw = payload["timestamp"]
+        ts = datetime.fromisoformat(ts_raw) if isinstance(ts_raw, str) else ts_raw
+        dq = payload.get("data_quality")
+        meta = payload.get("metadata") or {}
+        return cls(
+            signal_id=str(payload["signal_id"]),
+            timestamp=ts,
+            signal_type=str(payload["signal_type"]),
+            scope=SignalScope(str(payload["scope"])),
+            symbols=tuple(str(s) for s in payload["symbols"]),
+            direction=SignalDirection(str(payload["direction"])),
+            raw_score=float(payload["raw_score"]),
+            confidence=(
+                float(payload["confidence"]) if payload.get("confidence") is not None else None
+            ),
+            lookback=int(payload.get("lookback") or 0),
+            lag=int(payload["lag"]) if payload.get("lag") is not None else None,
+            timeframe=str(payload.get("timeframe") or "1h"),
+            data_quality=dict(dq) if isinstance(dq, Mapping) else None,
+            metadata=dict(meta) if isinstance(meta, Mapping) else {},
+            normalized_score=(
+                float(payload["normalized_score"])
+                if payload.get("normalized_score") is not None
+                else None
+            ),
+        )
+
+    @classmethod
+    def from_ranked_candidate(
+        cls,
+        cand: RankedCandidate,
+        *,
+        timestamp: datetime | None = None,
+    ) -> AlphaSignal:
+        """Adapter retrocompatible: candidato individual legacy → AlphaSignal."""
+        from quantlab.research.alpha.signals import stable_signal_id
+
+        ts = timestamp or datetime.now(tz=UTC)
+        sym = cand.normalized_instrument or cand.symbol
+        return cls(
+            signal_id=stable_signal_id(
+                signal_type="legacy_profile",
+                scope=SignalScope.INDIVIDUAL,
+                symbols=(sym,),
+                timestamp=ts,
+                raw_score=cand.composite,
+                lag=None,
+                lookback=0,
+            ),
+            timestamp=ts,
+            signal_type="legacy_profile",
+            scope=SignalScope.INDIVIDUAL,
+            symbols=(sym,),
+            direction=SignalDirection.LONG,
+            raw_score=cand.composite,
+            confidence=None,
+            lookback=0,
+            lag=None,
+            timeframe="1h",
+            data_quality=cand.data_quality,
+            metadata={
+                "rank": cand.rank,
+                "venue": cand.venue,
+                "symbol": cand.symbol,
+                "base_score": cand.base_score,
+            },
+        )
 
 
 @dataclass(frozen=True, slots=True)

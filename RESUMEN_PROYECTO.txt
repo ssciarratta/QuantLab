@@ -1,27 +1,33 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-11
-Versión: 1.1.0 — main
+Actualizado: 2026-08-12
+Versión: 1.01.0 — main
 
 ESTADO
 ------
-- UI redesign Fases 0–14 mergeadas en main
-- Corrida en vivo (SLT): gráfico corregido PAPER + Spot/Futures Testnet
-- lightweight-charts vendoreado en static/js/vendor/ (sin CDN)
+- Integración pairwise/cointegración Alpha Scanner: Fase 0–2 docs + IP-1..IP-4 código base
+- Tag restauración: restore/pre-pairwise-integration-20260812
+- UI redesign Fases 0–14 en main
 - 39 estrategias · PAPER + Spot/Futures Testnet
 - LIVE_BLOCKED=True
 
-ÚLTIMA IMPLEMENTACIÓN (2026-08-11)
+ÚLTIMA IMPLEMENTACIÓN (2026-08-12)
 ----------------------------------
-- Tab Resumen SLT: KPIs + tabla equity (8 cols) + splitters redimensionables
-- PaperBroker LIMIT: fills al precio cotizado (MM)
-- Tests: test_binance_klines_ui.py
+- docs/scanner/pairwise/AUDIT.md — 22 respuestas + repo referencia
+- docs/scanner/pairwise/DESIGN.md + IMPLEMENTATION_PLAN.md
+- AlphaSignal + DetectorRegistry + detectores lagged/contemporary correlation
+- pairwise/universe, align, costs + normalización percentil
 
 PRÓXIMO
 -------
-- Compactar sidebar izq (menos scroll)
-- Order book lateral SLT
+- IP-5 cointegration detector + TrialLedger + Deflated Sharpe
+- IP-9 pair backtester + API /api/lab/pairwise/*
+- UI scanner tab Pares
+
+BLOQUEOS
+--------
+- Decisiones producto P1–P4 pendientes usuario (defaults v1 en DESIGN.md)
 
 INVARIANTES
 -----------
-LIVE_BLOCKED=True · MAX_ACTIVE_STRATEGIES=1
+LIVE_BLOCKED=True · MAX_ACTIVE_STRATEGIES=1 · Scanner ≠ evaluación Sharpe
