@@ -1,32 +1,24 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-12
-Versión: 1.01.0 — main
+Versión: 1.01.0 — main @ c37f5df
 
 ESTADO
 ------
-- Pairwise Alpha Scanner: COMPLETO (spot+futures)
-- Pipeline Alpha v3 (individual + validación): IMPLEMENTADO IP-1..IP-10
-  docs/scanner/pipeline/{AUDIT,DESIGN,IMPLEMENTATION_PLAN,HOWTO}.md
+- Pairwise + Pipeline Alpha v3: EN MAIN (tags restore/post-pipeline-v3 + pre-ml-gbm)
+- Módulo ML GBM (v4): docs FASE 0–1 listas — SIN CÓDIGO aún
+  → docs/scanner/ml/{AUDIT,DESIGN,IMPLEMENTATION_PLAN}.md
 
-ÚLTIMA IMPLEMENTACIÓN (2026-08-12)
-----------------------------------
-- AlphaSignal en scanner individual (signals[] + percentil + confidence)
-- validate_candidate único (individual|par) + ledger experiments/alpha_trials/
-- Ranking B: GET /api/lab/validated-strategies · botón UI Scanner
-- binance_pipeline y pairwise OOS usan validate_candidate
-- strategy_rank etiquetado strategy_exploration (no Ranking B)
-- Anti-leakage assert en conversión scores→signals
+ÚLTIMA (2026-08-12)
+-------------------
+- Git sync OK · restore/pre-ml-gbm-20260812 creado (antes de ML)
+- Audit ML: features=AlphaSignal; labels=alpha_trials; sin MLflow;
+  splits temporales propios del tabular + DSR post-inferencia
 
 PRÓXIMO
 -------
-- Cierre formal pendiente auditoría explícita
-- scipy ADF opcional (pares)
-
-DECISIONES
-----------
-Ranking A ≠ B · 1 strat/corrida · top-N fijo · LIVE_BLOCKED=True
+- Autorizar IP-1..IP-9 implementación LightGBM (research/alpha/ml/)
 
 INVARIANTES
 -----------
-Scanner ≠ Sharpe · trials win+lose en ledger · research only
+ML = señal ml_ranking · no raw bars · no LIVE · no reemplaza scanner
