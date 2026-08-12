@@ -208,6 +208,11 @@ def validate_candidate(
                 "validated": ev.validated,
                 "signal_id": signal.signal_id,
                 "scope": signal.scope.value,
+                "selection_raw_score": signal.raw_score,
+                "selection_normalized_score": signal.normalized_score,
+                "confidence": signal.confidence,
+                "timeframe": signal.timeframe,
+                "market_type": (signal.metadata or {}).get("market_type"),
             }
         )
         return ValidateCandidateResult(

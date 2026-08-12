@@ -1353,6 +1353,7 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
     top_n = body.get("top_n", 10)
     include_signals = body.get("include_signals", True)
     run_validation = body.get("run_validation", False)
+    include_ml = body.get("include_ml", False)
     detectors_raw = body.get("detectors")
     if not isinstance(venue, str):
         raise ApiError(400, "venue debe ser string")
@@ -1389,6 +1390,7 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
             run_validation=bool(run_validation),
             persist_dir=persist_dir if include_signals else None,
             trials_dir=state.session.experiments_dir,
+            include_ml=bool(include_ml),
         )
         out = state.store_lab_result(result)
         _record_activity(
@@ -1618,6 +1620,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
     kronos_arg = (
         kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body)
     )
+    include_ml = bool(body.get("include_ml", False))
     try:
         if state.session is None:
             raise ApiError(503, "sesión workbench no inicializada")
@@ -1650,6 +1653,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 underlyings=und_list,
                 persist_dir=persist_arg,
                 kronos=kronos_arg,
+                include_ml=include_ml,
             )
         else:
             result = lab_services.run_venue_lab_scanner(
@@ -1664,6 +1668,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 underlyings=und_list,
                 persist_dir=persist_arg,
                 kronos=kronos_arg,
+                include_ml=include_ml,
             )
         out = state.store_lab_result(result)
         _record_activity(

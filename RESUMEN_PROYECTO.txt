@@ -1,24 +1,27 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
 Actualizado: 2026-08-12
-Versión: 1.01.0 — main @ c37f5df
+Versión: 1.01.0 — main
 
 ESTADO
 ------
-- Pairwise + Pipeline Alpha v3: EN MAIN (tags restore/post-pipeline-v3 + pre-ml-gbm)
-- Módulo ML GBM (v4): docs FASE 0–1 listas — SIN CÓDIGO aún
-  → docs/scanner/ml/{AUDIT,DESIGN,IMPLEMENTATION_PLAN}.md
+- Pairwise + Pipeline v3: OK
+- Módulo ML GBM (v4): IMPLEMENTADO (research/alpha/ml/)
+  LightGBM opcional (--extra ml) · stub logístico fallback
+  signal_type=ml_ranking · include_ml default off
 
 ÚLTIMA (2026-08-12)
 -------------------
-- Git sync OK · restore/pre-ml-gbm-20260812 creado (antes de ML)
-- Audit ML: features=AlphaSignal; labels=alpha_trials; sin MLflow;
-  splits temporales propios del tabular + DSR post-inferencia
+- features/dataset/splits/train/model/registry/attach
+- scripts/alpha_ml_bootstrap.py
+- tests/unit/research/test_alpha_ml.py
+- Cableado scanner: include_ml → attach_ml_ranking_signals
 
 PRÓXIMO
 -------
-- Autorizar IP-1..IP-9 implementación LightGBM (research/alpha/ml/)
+- Acumular alpha_trials reales y reentrenar
+- Certificado formal pendiente APROBADO explícito
 
 INVARIANTES
 -----------
-ML = señal ml_ranking · no raw bars · no LIVE · no reemplaza scanner
+ML no raw bars · no LIVE · no reemplaza scanner · DSR obligatorio

@@ -671,6 +671,7 @@ def run_binance_lab_scanner(
     profile: str = "legacy_v1",
     persist_dir: Path | None = None,
     kronos: Mapping[str, Any] | None = None,
+    include_ml: bool = False,
 ) -> dict[str, Any]:
     """AlphaScanner / perfiles sobre klines Binance públicas (read-only)."""
     from quantlab.brokers.binance.public_md import (
@@ -866,8 +867,11 @@ def run_binance_lab_scanner(
     )
     out = attach_recommendations(out, profile=requested_profile, interval=interval)
     from quantlab.research.alpha.individual_export import attach_individual_signals
+    from quantlab.research.alpha.ml.attach import attach_ml_ranking_signals
 
-    return attach_individual_signals(out)
+    out = attach_individual_signals(out)
+    exp = persist_dir.parent if persist_dir is not None else None
+    return attach_ml_ranking_signals(out, experiments_dir=exp, enabled=include_ml)
 
 
 _VENUE_SCAN_PREFIX: dict[str, dict[str, str]] = {
@@ -934,6 +938,7 @@ def run_venue_lab_scanner(
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
     kronos: Mapping[str, Any] | None = None,
+    include_ml: bool = False,
 ) -> dict[str, Any]:
     """Alpha ranking sobre MD público real (Binance/OKX/Bybit/HL).
 
@@ -1005,6 +1010,7 @@ def run_venue_lab_scanner(
             profile=profile,
             persist_dir=persist_dir,
             kronos=kronos,
+            include_ml=include_ml,
         )
         out_bn["market_type"] = "spot"
         if period_meta is not None:
@@ -1355,8 +1361,11 @@ def run_venue_lab_scanner(
     )
     out = attach_recommendations(out, profile=requested_profile, interval=interval)
     from quantlab.research.alpha.individual_export import attach_individual_signals
+    from quantlab.research.alpha.ml.attach import attach_ml_ranking_signals
 
-    return attach_individual_signals(out)
+    out = attach_individual_signals(out)
+    exp = persist_dir.parent if persist_dir is not None else None
+    return attach_ml_ranking_signals(out, experiments_dir=exp, enabled=include_ml)
 
 
 def _composite_of_score_row(row: Mapping[str, Any]) -> float:
@@ -3578,6 +3587,7 @@ def run_pairwise_lab_scanner(
     run_validation: bool = False,
     persist_dir: Path | None = None,
     trials_dir: Path | None = None,
+    include_ml: bool = False,
     base_url: str | None = None,
 ) -> dict[str, Any]:
     """Alpha Scanner modo pairwise — detectores de relación entre monedas."""
@@ -3774,5 +3784,8 @@ def run_pairwise_lab_scanner(
             },
         )
         payload["persisted"] = meta.to_dict()
-    return payload
+    from quantlab.research.alpha.ml.attach import attach_ml_ranking_signals
+
+    exp = trials_dir or (persist_dir.parent if persist_dir is not None else None)
+    return attach_ml_ranking_signals(payload, experiments_dir=exp, enabled=include_ml)
 

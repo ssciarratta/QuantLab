@@ -33,6 +33,11 @@ kronos = [
     "safetensors>=0.6.0",
     "tqdm>=4.67.0",
 ]
+# Alpha ML ranking (LightGBM). Opcional: QuantLab arranca sin esto; fail-closed si no hay modelo.
+ml = [
+    "lightgbm>=4.3.0",
+    "numpy>=1.26.0",
+]
 
 [project.scripts]
 quantlab-vertical-slice = "quantlab.vertical_slice.runner:main"
@@ -79,6 +84,10 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["torch", "torch.*", "pandas", "pandas.*", "einops", "einops.*", "model", "model.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["lightgbm", "lightgbm.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
