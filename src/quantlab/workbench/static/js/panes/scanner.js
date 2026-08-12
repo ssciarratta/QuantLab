@@ -169,6 +169,8 @@
       '<label><input type="checkbox" class="sc-venue-cb" value="bybit"> Bybit</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="hyperliquid"> HL</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="a3"> A3</label>' +
+      '<label title="GBM sobre candidatas; cada Validar alimenta y reentrena el modelo">' +
+      '<input type="checkbox" id="sc-include-ml" checked> ML ranking</label>' +
       '<span class="mono muted" id="sc-nbars" style="margin-left:auto">≈ —</span>' +
       "</div>" +
       '<div class="sc-actions">' +
@@ -181,7 +183,7 @@
       '<details class="sc-more muted"><summary>Ayuda · tandas y multi-mercado</summary>' +
       '<p id="sc-hint" style="margin:0.35rem 0 0">' +
       "Cantidad / Todas / puntual = monedas scoreadas. Top y Top Kronos editables (incluso 1). Multi-mercado = Comparar + ranking por mercado. " +
-      "A3/HL = futuros. Exportá el JSON para auditoría de terceros." +
+      "A3/HL = futuros. ML ranking ON: cada Validar alimenta el modelo. Exportá el JSON para auditoría de terceros." +
       "</p></details>" +
       '<div id="sc-warn"></div>' +
       '<div id="sc-out"></div>' +
@@ -2392,6 +2394,10 @@
               root.querySelector("#sc-pw-validate") &&
               root.querySelector("#sc-pw-validate").checked
             ),
+            include_ml: !(
+              root.querySelector("#sc-include-ml") &&
+              !root.querySelector("#sc-include-ml").checked
+            ),
             detectors: dets,
           };
           lastRequest = Object.assign({ source: "pairwise" }, pwOpts);
@@ -2428,6 +2434,10 @@
             symbol_limit: customCoins ? 0 : mode === "0" ? 0 : nLimit,
             interval: root.querySelector("#sc-interval").value,
             profile: root.querySelector("#sc-profile").value,
+            include_ml: !(
+              root.querySelector("#sc-include-ml") &&
+              !root.querySelector("#sc-include-ml").checked
+            ),
             fetchOpts: fetchOpts,
             kronos: {
               kronos_enabled: !!(

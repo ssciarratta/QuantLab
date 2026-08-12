@@ -1,8 +1,7 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-08-09  
-<<<<<<< Updated upstream
-**Branch trabajo:** `cursor/binance-testnet-hummingbot-prep-2828` (+ UI modo-real merge)  
+**Actualizado:** 2026-08-12  
+**Branch trabajo:** `main`  
 **Versión tip:** **1.01.0** · UI favoritos + dual Spot/Futures Testnet  
 **Lección scanner 2026-08-05:** `is_http_safe_symbol` (A-Z0-9) — CJK en exchangeInfo rompía urllib  
 **Lección scanner 2026-08-04:** `stdio_guard` Windows ASCII + tqdm/HF  
@@ -10,17 +9,13 @@
 **Monte Carlo:** estrés N · `sim_linked` · hereda capital/leverage  
 **Menú QL:** favoritos Chat · Alpha · Simulador · Monte Carlo · Spot · Futures (reordenables)  
 **Roles:** Guided=aprender (menú avanzado) · Sim=comparar · Scanner=ranking · MC=estrés · Testnet Spot/Futures=demo XOR  
-**Alpha Scanner:** multi-mercado · Kronos-inside · typeahead · anti-stablecoin  
+**Alpha Scanner:** Individual/Pares · Ranking A vs B · Validar alimenta ML GBM (default ON) · Kronos-inside · typeahead  
 **Chat IA:** tools open panes · chips · FakeProvider  
 **Números UI:** `QLFmt` 2 decimales  
 **Testnet:** Spot `testnet.binance.vision` · Futures `testnet.binancefuture.com` · keys distintas · LIVE_BLOCKED  
+**Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX; scoring default `legacy_v1`; sin certificado formal  
+**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%)  
 
-=======
-**Branch trabajo:** `cursor/binance-testnet-hummingbot-prep-2828`  
-**Versión tip:** **1.01.0** (+ dual Spot/Futures Testnet demo; F111 alpha intacto)  
-**Alpha Scanner opt:** FASE 0–10 + walk-forward pipeline + Guided Lab UX (opt-out WF / rank_fraction / `label_es`); scoring default `legacy_v1`; sin certificado formal · commit `218f9e4`  
-**Sim capital/fees:** Guided Lab + MC muestran capital inicial/final + fee por lado (VIP0 Spot 10 bps / 0.10%) + fees totales / fee medio por fill — para validar si actualizar `fees.py`  
->>>>>>> Stashed changes
 **Monte Carlo corrección:** N hasta 1e6 · batching/jobs · DatasetReference · anti-huérfano · “velas por escenario” · schema v1 legible · ver `docs/progress/montecarlo-correction-status.md`  
 **Deep-link:** `static/js/nav.js` + `QLShell.open(pane, opts)` · Reports/Backtest/Guided Lab → MC · MC → Reports/Guided Lab por id  
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
@@ -210,16 +205,17 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Cliente Futures: `BinanceFuturesTestnetClient` → solo `testnet.binancefuture.com` (fapi).
 - Keys HB `binance_perpetual_testnet` → `BINANCE_FUTURES_DEMO_*` (no Spot).
 
+### 2026-08-12 — ML feed automático
+- Contexto: cada Validar debe entrenar el GBM sin scripts.
+- Decisión: `include_ml` default ON; `maybe_feed_ml` tras `validate_candidate`; bootstrap sintético al primer escaneo.
+- Impacto: Ranking A gana `ml_ranking`; Ranking B sigue siendo DSR. Manual: `docs/manuales/03-alpha-scanner.md`.
+
 ## Próximo
 
-<<<<<<< Updated upstream
+- Acumular alpha_trials reales (el modelo sintético se reemplaza solo)
 - Reiniciar Workbench tip (matar :8765 viejo) → favoritos Chat/Alpha/Sim/MC/Spot/Futures
 - Unlock LIVE + demo Futures; Spot keys cuando se quieran
-- Guided Lab solo en menú avanzado (no favoritos)
-=======
-- Reiniciar Workbench + unlock `operator`/`quantlab-local` → demo Futures
-- Spot: keys propias en testnet.binance.vision cuando se quiera probar Spot
->>>>>>> Stashed changes
+- Certificado formal Alpha/ML pendiente APROBADO explícito
 
 ## Checkpoint
 

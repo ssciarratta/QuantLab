@@ -11,7 +11,7 @@
 
 - En el detalle de una moneda: botón **Validar** (usa la 1ª estrategia sugerida).
 - O API: `POST /api/lab/validate-candidate` con `signal` + `strategy_id`.
-- Cada corrida se registra **siempre** (gane o pierda) en `experiments/alpha_trials/`.
+- Cada corrida se registra **siempre** (gane o pierda) en `experiments/alpha_trials/` y **alimenta el ML** (reentrena cada 5 trials cuando hay datos).
 
 ## 3. Decidir con Ranking B
 

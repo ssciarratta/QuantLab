@@ -671,7 +671,7 @@ def run_binance_lab_scanner(
     profile: str = "legacy_v1",
     persist_dir: Path | None = None,
     kronos: Mapping[str, Any] | None = None,
-    include_ml: bool = False,
+    include_ml: bool = True,
 ) -> dict[str, Any]:
     """AlphaScanner / perfiles sobre klines Binance públicas (read-only)."""
     from quantlab.brokers.binance.public_md import (
@@ -938,7 +938,7 @@ def run_venue_lab_scanner(
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
     kronos: Mapping[str, Any] | None = None,
-    include_ml: bool = False,
+    include_ml: bool = True,
 ) -> dict[str, Any]:
     """Alpha ranking sobre MD público real (Binance/OKX/Bybit/HL).
 
@@ -3587,7 +3587,7 @@ def run_pairwise_lab_scanner(
     run_validation: bool = False,
     persist_dir: Path | None = None,
     trials_dir: Path | None = None,
-    include_ml: bool = False,
+    include_ml: bool = True,
     base_url: str | None = None,
 ) -> dict[str, Any]:
     """Alpha Scanner modo pairwise — detectores de relación entre monedas."""

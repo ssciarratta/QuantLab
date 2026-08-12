@@ -1,10 +1,10 @@
 # Alpha Scanner — documentación final (FASE 10)
 
-**Fecha:** 2026-07-27 · Kronos: 2026-08-03  
+**Fecha:** 2026-07-27 · Kronos: 2026-08-03 · ML feed: 2026-08-12  
 **Versión tip:** 1.01.0  
-**Estado código:** FASE 0–10 + walk-forward pipeline + Kronos-inside-Scanner · cierre formal de auditoría **pendiente**  
-**Manual de panel:** [`../manuales/03-alpha-scanner.md`](../manuales/03-alpha-scanner.md) · índice [`../manuales/00-INDICE.md`](../manuales/00-INDICE.md)  
-**Kronos:** [`kronos-inside-scanner.md`](kronos-inside-scanner.md)
+**Estado código:** FASE 0–10 + walk-forward + pares + pipeline v3 + ML GBM (feed automático) · cierre formal de auditoría **pendiente**  
+**Manual de panel (uso diario):** [`../manuales/03-alpha-scanner.md`](../manuales/03-alpha-scanner.md) · índice [`../manuales/00-INDICE.md`](../manuales/00-INDICE.md)  
+**Kronos:** [`kronos-inside-scanner.md`](kronos-inside-scanner.md) · **ML:** [`ml/HOWTO.md`](ml/HOWTO.md)
 
 ---
 

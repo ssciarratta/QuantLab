@@ -27,6 +27,10 @@
 ## IP-7 — Cableado lab include_ml — HECHO
 ## IP-8 — scripts/alpha_ml_bootstrap.py — HECHO
 ## IP-9 — HOWTO + RESUMEN — HECHO (tag post-ml al cerrar)
+## IP-10 — Feed automático + ML ON default — HECHO
+- `feed.py` (`maybe_feed_ml` / `ensure_bootstrap_model`)
+- `validate_candidate` alimenta tras cada trial
+- `include_ml` default True (API + UI checkbox)
 
 Implementado 2026-08-12.
 

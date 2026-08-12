@@ -112,7 +112,7 @@ Tiempo →
 3. Se listan **junto** a otras señales en Ranking A (no sustituyen composite legacy).  
 4. Top-N a validar sigue la metodología v3 (1 estrategia/corrida).
 
-UI: checkbox opcional “incluir ML ranking” (default off hasta que haya modelo activo).
+UI: checkbox **ML ranking** (default ON). Primer escaneo hace bootstrap sintético; cada Validar alimenta y reentrena.
 
 ---
 

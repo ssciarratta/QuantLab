@@ -543,6 +543,7 @@
         top_n: o.top_n != null ? o.top_n : 10,
         include_signals: o.include_signals !== false,
         run_validation: !!o.run_validation,
+        include_ml: o.include_ml !== false,
         detectors: o.detectors || undefined,
       });
     },
@@ -573,6 +574,7 @@
         symbol_limit: o.symbol_limit != null ? o.symbol_limit : 30,
         interval: o.interval || "1h",
         profile: o.profile || "trend",
+        include_ml: o.include_ml !== false,
       };
       if (o.venues && o.venues.length) {
         body.venues = o.venues;

@@ -59,6 +59,7 @@ class ValidateCandidateResult:
     ok: bool
     error: str | None = None
     n_trials_at_eval: int = 0
+    ml_feed: dict[str, Any] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -75,6 +76,7 @@ class ValidateCandidateResult:
             "ok": self.ok,
             "error": self.error,
             "n_trials_at_eval": self.n_trials_at_eval,
+            "ml_feed": dict(self.ml_feed) if self.ml_feed else None,
         }
 
 
@@ -114,6 +116,12 @@ def validate_candidate(
     led = ledger or TrialLedger(path=ledger_path)
     pipe = ValidationPipeline(ledger=led)
     trial_id = f"val_{uuid4().hex[:12]}"
+
+    def _feed() -> dict[str, Any] | None:
+        from quantlab.research.alpha.ml.feed import maybe_feed_ml
+
+        path = ledger_path if ledger_path is not None else led.path
+        return maybe_feed_ml(ledger_path=path)
 
     def _log(meta: dict[str, Any]) -> int:
         led.log(
@@ -190,6 +198,7 @@ def validate_candidate(
                 ok=False,
                 error="sin retornos netos",
                 n_trials_at_eval=n,
+                ml_feed=_feed(),
             )
 
         ev = pipe.evaluate_backtest(
@@ -224,6 +233,7 @@ def validate_candidate(
             ok=True,
             error=None,
             n_trials_at_eval=n,
+            ml_feed=_feed(),
         )
     except (ValidationError, ValueError, TypeError, KeyError) as exc:
         n = _log(
@@ -247,6 +257,7 @@ def validate_candidate(
             ok=False,
             error=str(exc),
             n_trials_at_eval=n,
+            ml_feed=_feed(),
         )
 
 

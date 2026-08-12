@@ -44,6 +44,10 @@ class TrialLedger:
                         )
                     )
 
+    @property
+    def path(self) -> Path | None:
+        return self._path
+
     def log(
         self,
         *,

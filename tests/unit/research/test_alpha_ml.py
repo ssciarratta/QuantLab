@@ -90,6 +90,41 @@ def test_attach_ml_default_off(tmp_path: Path) -> None:
     assert out["ml_ranking"]["enabled"] is False
 
 
+def test_attach_bootstraps_model(tmp_path: Path) -> None:
+    payload: dict = {"signals": []}
+    out = attach_ml_ranking_signals(payload, experiments_dir=tmp_path, enabled=True)
+    assert out["ml_ranking"]["enabled"] is True
+    assert (tmp_path / "alpha_ml" / "active.json").is_file()
+
+
+def test_maybe_feed_ml_retrains(tmp_path: Path) -> None:
+    from quantlab.research.alpha.ml.feed import maybe_feed_ml
+    from quantlab.research.alpha.validation.trial_ledger import TrialLedger
+    from quantlab.research.alpha.validation.validate_candidate import default_trials_path
+
+    path = default_trials_path(tmp_path)
+    led = TrialLedger(path=path)
+    for i in range(40):
+        led.log(
+            trial_id=f"t{i}",
+            detector_id="validate_candidate",
+            signal_type="legacy_v1",
+            symbols=("BN:BTCUSDT",),
+            metadata={
+                "phase": "validation",
+                "strategy_id": "momentum",
+                "validated": i % 3 == 0,
+                "selection_raw_score": 0.2 + (i % 10) / 10.0,
+                "selection_normalized_score": 0.2 + (i % 10) / 10.0,
+                "confidence": 0.5,
+            },
+        )
+    out = maybe_feed_ml(ledger_path=path)
+    assert out.get("fed") is True
+    assert out.get("retrained") is True
+    assert (tmp_path / "alpha_ml" / "active.json").is_file()
+
+
 def test_train_abort_low_pos(tmp_path: Path) -> None:
     ds = make_synthetic_dataset(n=40, n_pos=2, seed=1)
     with pytest.raises(ValidationError, match="n_pos"):

@@ -1353,7 +1353,7 @@ def handle_post_pairwise_scanner(state: WorkbenchState, body: dict[str, Any]) ->
     top_n = body.get("top_n", 10)
     include_signals = body.get("include_signals", True)
     run_validation = body.get("run_validation", False)
-    include_ml = body.get("include_ml", False)
+    include_ml = body.get("include_ml", True)
     detectors_raw = body.get("detectors")
     if not isinstance(venue, str):
         raise ApiError(400, "venue debe ser string")
@@ -1620,7 +1620,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
     kronos_arg = (
         kronos_body if isinstance(kronos_body, dict) else _kronos_flags_from_body(body)
     )
-    include_ml = bool(body.get("include_ml", False))
+    include_ml = bool(body.get("include_ml", True))
     try:
         if state.session is None:
             raise ApiError(503, "sesión workbench no inicializada")

@@ -1,6 +1,6 @@
 # Manuales de uso — QuantLab Workbench
 
-**Versión tip:** 1.01.0 · **Actualizado:** 2026-07-31
+**Versión tip:** 1.01.0 · **Actualizado:** 2026-08-12
 **UI:** http://127.0.0.1:8765 · Help: QL → Help / Docs → carpeta `manuales/`
 
 Este índice lista **todas las funciones de panel** del Workbench. Cada archivo es un manual operativo (cómo usar, límites, invariantes).

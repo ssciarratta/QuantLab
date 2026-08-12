@@ -6,22 +6,23 @@ Versión: 1.01.0 — main
 ESTADO
 ------
 - Pairwise + Pipeline v3: OK
-- Módulo ML GBM (v4): IMPLEMENTADO (research/alpha/ml/)
-  LightGBM opcional (--extra ml) · stub logístico fallback
-  signal_type=ml_ranking · include_ml default off
+- ML GBM: ON por default + feed automático
+  Cada Validar / pipeline / OOS pares → alpha_trials → retrain cada 5 trials
+  Primer escaneo: bootstrap sintético si no hay modelo
 
 ÚLTIMA (2026-08-12)
 -------------------
-- features/dataset/splits/train/model/registry/attach
-- scripts/alpha_ml_bootstrap.py
-- tests/unit/research/test_alpha_ml.py
-- Cableado scanner: include_ml → attach_ml_ranking_signals
+- feed.py: maybe_feed_ml + ensure_bootstrap_model
+- validate_candidate llama feed tras cada trial
+- include_ml default True (API, lab, checkbox UI)
+- Manual Alpha: docs/manuales/03-alpha-scanner.md
 
 PRÓXIMO
 -------
-- Acumular alpha_trials reales y reentrenar
+- Acumular trials reales (el sintético se reemplaza solo)
 - Certificado formal pendiente APROBADO explícito
 
 INVARIANTES
 -----------
-ML no raw bars · no LIVE · no reemplaza scanner · DSR obligatorio
+ML no raw bars · target=validated · no LIVE · Ranking B = DSR
+Manual: docs/manuales/03-alpha-scanner.md
