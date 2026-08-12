@@ -118,7 +118,6 @@ def test_index_html_data_i18n_and_script() -> None:
     html = _INDEX.read_text(encoding="utf-8")
     assert 'src="/static/js/i18n.js"' in html
     assert 'data-i18n="skip_to_content"' in html
-    assert 'data-i18n="pane.health"' in html
     assert 'data-i18n="menu.workspaces"' in html
     assert 'lang="es"' in html
     assert "Ir al contenido" in html

@@ -210,9 +210,14 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Decisión: `include_ml` default ON; `maybe_feed_ml` tras `validate_candidate`; bootstrap sintético al primer escaneo.
 - Impacto: Ranking A gana `ml_ranking`; Ranking B sigue siendo DSR. Manual: `docs/manuales/03-alpha-scanner.md`.
 
+### 2026-08-12 — CI fix (PR #5, branch cursor/fix-ci-ruff-errors-2211)
+- Contexto: pipeline fallaba en Ruff (~46 errores) + tests UI desalineados con menú QL v6.
+- Decisión: lint/tipos alpha/kronos/ml; `save_scored` acepta Mapping pairwise; tests usan panel_registry.
+- Impacto: 1710 pytest OK en PR; main sigue rojo hasta merge.
+
 ## Próximo
 
-- Acumular alpha_trials reales (el modelo sintético se reemplaza solo)
+- **Merge PR #5** (CI verde en main)
 - Reiniciar Workbench tip (matar :8765 viejo) → favoritos Chat/Alpha/Sim/MC/Spot/Futures
 - Unlock LIVE + demo Futures; Spot keys cuando se quieran
 - Certificado formal Alpha/ML pendiente APROBADO explícito

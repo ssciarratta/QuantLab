@@ -79,9 +79,7 @@ def resolve_docs_file(relpath: str, *, docs_root: Path | None = None) -> Path:
     except ValueError as exc:
         raise ValidationError(f"path fuera de docs/: {relpath!r}") from exc
     parts = rel.parts
-    if len(parts) == 1:
-        pass
-    elif len(parts) == 2 and parts[0] in _ALLOWED_SUBDIRS - {""}:
+    if len(parts) == 1 or len(parts) == 2 and parts[0] in _ALLOWED_SUBDIRS - {""}:
         pass
     else:
         allowed = ", ".join(sorted(s for s in _ALLOWED_SUBDIRS if s))

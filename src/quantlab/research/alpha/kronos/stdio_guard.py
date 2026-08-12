@@ -45,7 +45,7 @@ class _ReplaceWriter(io.TextIOBase):
     def encoding(self) -> str:  # type: ignore[override]
         return "utf-8"
 
-    def write(self, s: str) -> int:  # type: ignore[override]
+    def write(self, s: str) -> int:
         if not s:
             return 0
         try:
@@ -56,11 +56,11 @@ class _ReplaceWriter(io.TextIOBase):
             )
             return int(self._target.write(safe))
 
-    def flush(self) -> None:  # type: ignore[override]
+    def flush(self) -> None:
         with contextlib.suppress(Exception):
             self._target.flush()
 
-    def isatty(self) -> bool:  # type: ignore[override]
+    def isatty(self) -> bool:
         return bool(getattr(self._target, "isatty", lambda: False)())
 
 
@@ -70,8 +70,8 @@ def safe_stdio() -> Iterator[None]:
     harden_progress_env()
     reconfigure_stdio_utf8()
     old_out, old_err = sys.stdout, sys.stderr
-    sys.stdout = _ReplaceWriter(old_out)  # type: ignore[assignment]
-    sys.stderr = _ReplaceWriter(old_err)  # type: ignore[assignment]
+    sys.stdout = _ReplaceWriter(old_out)
+    sys.stderr = _ReplaceWriter(old_err)
     try:
         yield
     finally:

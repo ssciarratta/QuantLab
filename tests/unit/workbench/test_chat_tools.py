@@ -9,6 +9,8 @@ from quantlab.execution.live_gate import LIVE_BLOCKED
 from quantlab.workbench.api import WorkbenchState
 from quantlab.workbench.chat.tools import ALLOWED_TOOLS, FORBIDDEN_TOOLS, ToolRegistry
 
+_NETWORK_TOOLS = frozenset({"run_binance_alpha", "run_binance_pipeline"})
+
 
 @pytest.fixture
 def registry() -> ToolRegistry:
@@ -25,6 +27,8 @@ def test_allowlist_only(registry: ToolRegistry) -> None:
 
 def test_allowed_tools_execute(registry: ToolRegistry) -> None:
     for name in sorted(ALLOWED_TOOLS):
+        if name in _NETWORK_TOOLS:
+            continue
         if name == "search_docs":
             out = registry.call(name, {"query": "workbench LIVE"})
         else:

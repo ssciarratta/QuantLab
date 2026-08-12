@@ -9,7 +9,7 @@ import urllib.request
 from typing import Any
 
 from quantlab.core.exceptions import ValidationError
-from quantlab.workbench.chat.tools import ALLOWED_PANES, ALLOWED_TOOLS, ToolRegistry, _TOOL_META
+from quantlab.workbench.chat.tools import _TOOL_META, ALLOWED_PANES, ALLOWED_TOOLS, ToolRegistry
 
 _DEFAULT_BASE = "https://api.openai.com/v1"
 _DEFAULT_MODEL = "gpt-4o-mini"

@@ -52,7 +52,9 @@ def test_static_backups_pane_present() -> None:
     assert pane_js.is_file()
 
     index_text = index.read_text(encoding="utf-8")
-    assert 'data-open="backups"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("backups")
     assert "panes/backups.js" in index_text
 
     js = pane_js.read_text(encoding="utf-8")

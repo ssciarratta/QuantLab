@@ -21,7 +21,7 @@ from quantlab.brokers.types import (
     PaperFill,
 )
 from quantlab.core.exceptions import ValidationError
-from quantlab.core.types.enums import IntentType, OrderSide, OrderType
+from quantlab.core.types.enums import IntentType, OrderType
 from quantlab.core.types.orders import OrderIntent
 
 

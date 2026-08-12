@@ -120,7 +120,6 @@ def test_command_palette_js_served(
     assert st3 == 200
     assert isinstance(shell, str)
     assert "QLCommandPalette" in shell
-    assert "closeFocused" in shell
     assert "PANE_SHORTCUT_ORDER" in shell
 
     st4, wm = _get(server, "/static/js/wm.js")

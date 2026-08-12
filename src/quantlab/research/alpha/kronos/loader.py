@@ -28,7 +28,7 @@ def resolve_device(pref: str) -> str:
     if pref_l == "cpu":
         return "cpu"
     try:
-        import torch  # type: ignore[import-untyped]
+        import torch
 
         if pref_l == "cuda" and torch.cuda.is_available():
             return "cuda:0"
@@ -49,8 +49,8 @@ def check_kronos_deps(vendor: Path) -> KronosSkipReason | None:
     if not vendor.is_dir():
         return KronosSkipReason.DEPS_MISSING
     try:
-        import pandas  # noqa: F401  # type: ignore[import-untyped]
-        import torch  # noqa: F401  # type: ignore[import-untyped]
+        import pandas  # noqa: F401
+        import torch  # noqa: F401
     except ImportError:
         return KronosSkipReason.DEPS_MISSING
     return None

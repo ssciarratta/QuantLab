@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from decimal import Decimal, InvalidOperation
-from typing import Any, Literal, Mapping, Sequence
+from typing import Any, Literal
 
 from quantlab.core.exceptions import ValidationError
 
@@ -125,20 +126,14 @@ def estimate_peak_margin_from_fills(
             # Sin side no podemos armar posición neta; igual cuenta el fill
             # como exposición puntual (peor caso = notional de ese fill).
             notional = qty * px
-            if mt == "futures":
-                margin = notional / lev
-            else:
-                margin = notional
+            margin = notional / lev if mt == "futures" else notional
             if notional > peak_notional:
                 peak_notional = notional
             if margin > peak_margin:
                 peak_margin = margin
             continue
         notional = abs(net_qty) * px
-        if mt == "futures":
-            margin = notional / lev
-        else:
-            margin = notional
+        margin = notional / lev if mt == "futures" else notional
         if notional > peak_notional:
             peak_notional = notional
         if margin > peak_margin:
