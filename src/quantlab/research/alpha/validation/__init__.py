@@ -9,6 +9,7 @@ from quantlab.research.alpha.validation.trial_ledger import TrialLedger, TrialRe
 from quantlab.research.alpha.validation.validate_candidate import (
     ValidateCandidateResult,
     default_trials_path,
+    list_ranking_b_from_ledger,
     list_validated_from_ledger,
     validate_candidate,
 )
@@ -27,6 +28,7 @@ __all__ = [
     "ValidationPipeline",
     "default_trials_path",
     "deflated_sharpe_ratio",
+    "list_ranking_b_from_ledger",
     "list_validated_from_ledger",
     "split_bars_train_test",
     "validate_candidate",

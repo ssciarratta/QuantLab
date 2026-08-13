@@ -14,6 +14,11 @@
   const TILE_MARGIN_PX = 4;
   const MIN_WIN_W = 280;
   const MIN_WIN_H = 180;
+  const MINI_BAR_W = 200;
+  const MINI_BAR_H = 36;
+  const MINI_GAP = 6;
+  const MINI_Z = 8000;
+  const OPEN_FRAC = 0.9;
 
   /**
    * Snap (x,y) to viewport edges when distance < threshold (F82).
@@ -142,6 +147,10 @@
     this.focusedId = null;
     this._onLayoutChange = null;
     this._saveTimer = null;
+    const self = this;
+    window.addEventListener("resize", function () {
+      self._layoutMinimized();
+    });
   }
 
   WindowManager.prototype.setLayoutChangeHandler = function (fn) {
@@ -178,6 +187,19 @@
         w = rec.preMax.w | 0;
         h = rec.preMax.h | 0;
       }
+      if (el.classList.contains("minimized") && rec.preMin) {
+        if (rec.preMin.maximized && rec.preMin.preMax) {
+          x = rec.preMin.preMax.x | 0;
+          y = rec.preMin.preMax.y | 0;
+          w = rec.preMin.preMax.w | 0;
+          h = rec.preMin.preMax.h | 0;
+        } else if (rec.preMin.w) {
+          x = rec.preMin.x | 0;
+          y = rec.preMin.y | 0;
+          w = rec.preMin.w | 0;
+          h = rec.preMin.h | 0;
+        }
+      }
       windows[rec.id] = {
         x: x,
         y: y,
@@ -189,6 +211,24 @@
       };
     });
     return { version: 1, windows: windows };
+  };
+
+  WindowManager.prototype.defaultOpenRect = function (frac) {
+    const f = frac == null ? OPEN_FRAC : Number(frac);
+    const vw = Math.max(1, (this.workspace && this.workspace.clientWidth) || 800);
+    const vh = Math.max(1, (this.workspace && this.workspace.clientHeight) || 600);
+    const w = Math.max(MIN_WIN_W, Math.round(vw * f));
+    const h = Math.max(MIN_WIN_H, Math.round(vh * f));
+    const n = this.windows ? this.windows.size : 0;
+    const step = Math.min(28, Math.max(0, Math.round(Math.min(vw, vh) * 0.012)));
+    const x = Math.max(0, Math.round((vw - w) / 2) + (n % 6) * step);
+    const y = Math.max(0, Math.round((vh - h) / 2) + (n % 6) * step);
+    return {
+      x: Math.min(x, Math.max(0, vw - w)),
+      y: Math.min(y, Math.max(0, vh - h)),
+      w: Math.min(w, vw),
+      h: Math.min(h, vh),
+    };
   };
 
   WindowManager.prototype.open = function (id, title, contentEl, opts) {
@@ -205,10 +245,11 @@
     const win = document.createElement("div");
     win.className = "win";
     win.dataset.id = id;
-    win.style.left = (opts.x != null ? opts.x : 40) + "px";
-    win.style.top = (opts.y != null ? opts.y : 40) + "px";
-    win.style.width = (opts.w != null ? opts.w : 420) + "px";
-    win.style.height = (opts.h != null ? opts.h : 320) + "px";
+    const fit = this.defaultOpenRect(OPEN_FRAC);
+    win.style.left = fit.x + "px";
+    win.style.top = fit.y + "px";
+    win.style.width = fit.w + "px";
+    win.style.height = fit.h + "px";
     if (opts.z != null) {
       const savedZ = Math.max(0, opts.z | 0);
       win.style.zIndex = String(savedZ);
@@ -308,17 +349,26 @@
       taskBtn: taskBtn,
       btnMax: btnMax,
       preMax: null,
+      preMin: null,
     };
     this.windows.set(id, record);
 
     titlebar.addEventListener("mousedown", function (ev) {
       if (ev.target.closest(".win-controls")) return;
       if (win.classList.contains("maximized")) return;
+      if (win.classList.contains("minimized")) return;
       self._startDrag(win, ev);
+    });
+    titlebar.addEventListener("click", function (ev) {
+      if (ev.target.closest(".win-controls")) return;
+      if (!win.classList.contains("minimized")) return;
+      self.restore(id);
+      self.scheduleSave();
     });
     /* F86: dblclick titlebar toggles maximize; context menu for z-order + max */
     titlebar.addEventListener("dblclick", function (ev) {
       if (ev.target.closest(".win-controls")) return;
+      if (win.classList.contains("minimized")) return;
       self.toggleMaximize(id);
     });
     titlebar.addEventListener("contextmenu", function (ev) {
@@ -328,11 +378,16 @@
       self._showWindowContextMenu(id, ev.clientX, ev.clientY);
     });
     win.addEventListener("mousedown", function () {
+      if (win.classList.contains("minimized")) return;
       self.focus(id);
     });
     btnMin.addEventListener("click", function (ev) {
       ev.stopPropagation();
-      self.minimize(id);
+      if (win.classList.contains("minimized")) {
+        self.restore(id);
+      } else {
+        self.minimize(id);
+      }
       self.scheduleSave();
     });
     btnMax.addEventListener("click", function (ev) {
@@ -357,21 +412,9 @@
     requestAnimationFrame(function () {
       win.classList.add("open");
     });
-    if (opts.z != null) {
-      /* Restore saved z without bumping past layout order (F85). */
-      this.windows.forEach(function (w) {
-        w.el.classList.remove("focused");
-        w.taskBtn.classList.remove("active");
-      });
-      win.classList.add("focused");
-      taskBtn.classList.add("active");
-      this.focusedId = id;
-      const restoredZ = Math.max(0, opts.z | 0);
-      win.style.zIndex = String(restoredZ);
-      if (restoredZ > zCounter) zCounter = restoredZ;
-    } else {
-      this.focus(id);
-    }
+    /* Siempre al frente al abrir. Restaurar z viejo dejaba el panel detrás
+       de Inicio (maximizado) y los botones de accesos rápidos «no andaban». */
+    this.focus(id);
     if (opts.maximized) {
       this.maximize(id, { silent: true });
     }
@@ -504,17 +547,79 @@
   WindowManager.prototype.minimize = function (id) {
     const rec = this.windows.get(id);
     if (!rec) return;
+    if (rec.el.classList.contains("minimized")) return;
+    const wasMax = rec.el.classList.contains("maximized");
+    rec.preMin = {
+      x: parseInt(rec.el.style.left, 10) || 0,
+      y: parseInt(rec.el.style.top, 10) || 0,
+      w: rec.el.offsetWidth || 420,
+      h: rec.el.offsetHeight || 320,
+      maximized: wasMax,
+      preMax: rec.preMax
+        ? {
+            x: rec.preMax.x,
+            y: rec.preMax.y,
+            w: rec.preMax.w,
+            h: rec.preMax.h,
+          }
+        : null,
+    };
+    if (wasMax) {
+      rec.el.classList.remove("maximized");
+      this._syncMaxButton(rec);
+    }
     rec.el.classList.add("minimized");
     rec.el.classList.remove("focused");
     rec.taskBtn.classList.remove("active");
+    rec.taskBtn.classList.add("is-min");
     if (this.focusedId === id) this.focusedId = null;
+    this._layoutMinimized();
   };
 
   WindowManager.prototype.restore = function (id) {
     const rec = this.windows.get(id);
     if (!rec) return;
     rec.el.classList.remove("minimized");
-    this.focus(id);
+    rec.taskBtn.classList.remove("is-min");
+    const pm = rec.preMin;
+    rec.preMin = null;
+    if (pm && pm.maximized) {
+      if (pm.preMax) rec.preMax = pm.preMax;
+      rec.el.style.left = "0px";
+      rec.el.style.top = "0px";
+      rec.el.style.width = this.workspace.clientWidth + "px";
+      rec.el.style.height = this.workspace.clientHeight + "px";
+      rec.el.classList.add("maximized");
+      this._syncMaxButton(rec);
+      this.focus(id);
+    } else if (pm) {
+      rec.el.style.left = (pm.x | 0) + "px";
+      rec.el.style.top = (pm.y | 0) + "px";
+      rec.el.style.width = (pm.w | 0) + "px";
+      rec.el.style.height = (pm.h | 0) + "px";
+      this.focus(id);
+    } else {
+      this.focus(id);
+    }
+    this._layoutMinimized();
+  };
+
+  WindowManager.prototype._layoutMinimized = function () {
+    const vw = (this.workspace && this.workspace.clientWidth) || 800;
+    const vh = (this.workspace && this.workspace.clientHeight) || 600;
+    const perRow = Math.max(1, Math.floor((vw - 8) / (MINI_BAR_W + MINI_GAP)));
+    let i = 0;
+    this.windows.forEach(function (rec) {
+      if (!rec.el.classList.contains("minimized")) return;
+      const col = i % perRow;
+      const row = Math.floor(i / perRow);
+      rec.el.style.width = MINI_BAR_W + "px";
+      rec.el.style.height = MINI_BAR_H + "px";
+      rec.el.style.left = 8 + col * (MINI_BAR_W + MINI_GAP) + "px";
+      rec.el.style.top = vh - 8 - MINI_BAR_H - row * (MINI_BAR_H + MINI_GAP) + "px";
+      rec.el.style.zIndex = String(MINI_Z);
+      i += 1;
+    });
   };
 
   /**
@@ -646,6 +751,7 @@
     rec.taskBtn.remove();
     this.windows.delete(id);
     if (this.focusedId === id) this.focusedId = null;
+    this._layoutMinimized();
   };
 
   WindowManager.prototype.closeFocused = function () {
@@ -892,5 +998,6 @@
   global.QLSnapPosition = snapPosition;
   global.QLCascadeRects = cascadeRects;
   global.QLTileRects = tileRects;
+  WindowManager.OPEN_FRAC = OPEN_FRAC;
   global.QLWindowManager = WindowManager;
 })(window);

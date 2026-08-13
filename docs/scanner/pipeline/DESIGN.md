@@ -119,15 +119,15 @@ Reusar el de `ValidationPipeline`: `dsr >= 0.95` y `sharpe_net > 0` (ajustable d
 | `experiments/alpha_trials/` **nuevo** | JSONL append-only: toda corrida de validación (win/lose) |
 | Ranking B | Vista derivada del ledger (archivo o endpoint read-only) |
 
-Campos mínimos por trial: `trial_id`, `signal_id`, `scope`, `symbols`, `strategy_id`, `params_hash`, `sharpe_net`, `deflated_sharpe`, `validated`, `n_trials_at_eval`, `created_at`, `ok`, `error?`.
+Campos mínimos por trial: `trial_id`, `opportunity_id`, `scan_id`, `signal_id`, `scope`, `symbols`, `strategy_id`, `params_hash`, `sharpe_net`, `deflated_sharpe`, `validated`, `status`, `n_trials_at_eval`, `created_at`, `ok`, `error?`.
 
 ---
 
 ## 5. Walk-forward
 
-- Path de validación usa **`walk_forward_with_embargo`** (ya existe).
-- Defaults simples fijos en v1 (ej. train/test/embargo derivados de `kline_limit`; **no** 5 knobs en UI).
-- `split_bars_walk_forward` (70/30) puede seguir en pipeline legacy hasta migrar; no es el estándar del nuevo path.
+- Path de `validate_candidate`: split 70/30 + embargo (mín. 2; se recorta para no vaciar el test).
+- `walk_forward_with_embargo` (rolling) existe para eval pairwise; no es el default de Validar.
+- Defaults fijos; **no** 5 knobs en UI.
 
 ---
 

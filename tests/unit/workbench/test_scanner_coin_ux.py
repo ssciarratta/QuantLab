@@ -38,6 +38,13 @@ def test_scanner_instant_nbars_preview() -> None:
     assert 'addEventListener("change", refreshNBars)' in js
 
 
+def test_scanner_js_regex_valid() -> None:
+    """Un regex roto en scanner.js impide cargar el panel (Buscar no abre)."""
+    js = (STATIC / "js/panes/scanner.js").read_text(encoding="utf-8")
+    assert ".replace(/^[^:]+:/" in js
+    assert ".replace(/^[^:]+:\\/" not in js
+
+
 def test_scanner_css_hides_toolbar_labels() -> None:
     css = (STATIC / "css/workbench.css").read_text(encoding="utf-8")
     assert ".pane-scanner .sc-toolbar label[hidden]" in css

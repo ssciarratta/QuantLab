@@ -1520,6 +1520,7 @@ def run_multi_venue_lab_scanner(
     underlyings: Sequence[str] | None = None,
     persist_dir: Path | None = None,
     kronos: Mapping[str, Any] | None = None,
+    include_ml: bool = True,
 ) -> dict[str, Any]:
     """Corre el scanner en cada venue y devuelve resultados separados + comparación."""
     raw = [(v or "").strip().lower() for v in venues]
@@ -1562,6 +1563,7 @@ def run_multi_venue_lab_scanner(
                 underlyings=underlyings,
                 persist_dir=persist_dir,
                 kronos=kronos,
+                include_ml=include_ml,
             )
             if note_extra:
                 block = dict(block)
@@ -3696,15 +3698,6 @@ def run_pairwise_lab_scanner(
     )
     reg = global_registry()
     all_signals = reg.run_all(ctx, DetectorRunConfig(enabled=enabled))
-    pipeline = ValidationPipeline()
-    for det_id in enabled:
-        try:
-            det = reg.get(det_id)
-        except ValidationError:
-            continue
-        det_sigs = tuple(s for s in all_signals if s.signal_type == det.signal_type)
-        if det_sigs:
-            pipeline.log_detection_trials(det_sigs, detector_id=det_id)
     ranked = percentile_rank_signals(all_signals)
     ranked = tuple(sorted(ranked, key=lambda s: s.normalized_score or 0.0, reverse=True))
     top = ranked[: max(0, top_n)]
@@ -3718,12 +3711,42 @@ def run_pairwise_lab_scanner(
     elif persist_dir is not None:
         from quantlab.research.alpha.validation.validate_candidate import default_trials_path
 
-        # alpha_scans parent → experiments_dir
         trials_path = default_trials_path(persist_dir.parent)
 
+    from quantlab.research.alpha.validation.trial_ledger import TrialLedger
+
+    led = TrialLedger(path=trials_path)
+    pipeline = ValidationPipeline(ledger=led)
+    for det_id in enabled:
+        try:
+            det = reg.get(det_id)
+        except ValidationError:
+            continue
+        det_sigs = tuple(s for s in all_signals if s.signal_type == det.signal_type)
+        if det_sigs:
+            pipeline.log_detection_trials(det_sigs, detector_id=det_id)
+
+    scan_id: str | None = None
+    if persist_dir is not None:
+        from quantlab.research.alpha.persist import ScanStore, hash_bars_fingerprint
+
+        bars_hash = hash_bars_fingerprint(universe)
+        meta = ScanStore(persist_dir).save_scored(
+            profile="pairwise",
+            rows=[{"signal": signal_dict_with_recommendation(s)} for s in top],
+            bars_hash=bars_hash,
+            request={
+                "detectors": list(enabled),
+                "kline_limit": kline_limit,
+                "venue": v,
+                "market_type": mt,
+            },
+        )
+        scan_id = meta.scan_id
+
     if run_validation and top:
-        from quantlab.research.alpha.validation.validate_candidate import validate_candidate
         from quantlab.research.alpha.pairwise.recommend import recommend_strategy_for_signal
+        from quantlab.research.alpha.validation.validate_candidate import validate_candidate
 
         for sig in top:
             if sig.scope.value != "pair" or len(sig.symbols) != 2:
@@ -3740,6 +3763,7 @@ def run_pairwise_lab_scanner(
                 ledger_path=trials_path,
                 venue=v,
                 market_type=mt,
+                scan_id=scan_id,
             )
             validation_results.append(vr.to_dict())
 
@@ -3754,8 +3778,9 @@ def run_pairwise_lab_scanner(
         "n_symbols": len(universe),
         "n_signals": len(all_signals),
         "top_n": top_n,
-        "trial_count": pipeline.ledger.count() + len(validation_results),
+        "trial_count": pipeline.ledger.count(),
         "validation_count": len(validation_results),
+        "scan_id": scan_id,
 
         "read_only": True,
         "live_blocked": LIVE_BLOCKED is True,
@@ -3769,21 +3794,8 @@ def run_pairwise_lab_scanner(
         payload["signals"] = [signal_dict_with_recommendation(s) for s in top]
     if validation_results:
         payload["validation"] = validation_results
-    if persist_dir is not None:
-        from quantlab.research.alpha.persist import ScanStore
-
-        meta = ScanStore(persist_dir).save_scored(
-            profile="pairwise",
-            rows=[{"signal": signal_dict_with_recommendation(s)} for s in top],
-            bars_hash="pairwise",
-            request={
-                "detectors": list(enabled),
-                "kline_limit": kline_limit,
-                "venue": v,
-                "market_type": mt,
-            },
-        )
-        payload["persisted"] = meta.to_dict()
+    if persist_dir is not None and scan_id is not None:
+        payload["persisted"] = {"scan_id": scan_id, "profile": "pairwise"}
     from quantlab.research.alpha.ml.attach import attach_ml_ranking_signals
 
     exp = trials_dir or (persist_dir.parent if persist_dir is not None else None)

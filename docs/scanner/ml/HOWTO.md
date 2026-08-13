@@ -12,7 +12,7 @@ No hace falta correr scripts. El Workbench ya está configurado así:
 
 1. **Escanear** con checkbox **ML ranking** (default ON). Si no hay modelo, se crea uno sintético de arranque.
 2. **Validar** (individual, pares OOS, o pipeline) escribe el trial en `experiments/alpha_trials/`.
-3. Cada **5** trials, con ≥30 filas y ≥8 positivas, se **reentrena** y queda activo.
+3. Cada **5** trials, con ≥30 filas y ≥8 positivas, se entrena un **candidato**. El activo **no se pisa** si el AUC empeora. El modelo sintético de arranque se marca en UI.
 
 API: `"include_ml": true` (default **true**). Desmarcar el checkbox o mandar `false` = no adjuntar `ml_ranking`.
 

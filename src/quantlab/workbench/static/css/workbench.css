@@ -1301,6 +1301,29 @@ html {
 }
 
 .win.minimized {
+  display: flex;
+  min-width: 140px;
+  min-height: 32px;
+  max-height: 36px;
+  opacity: 1;
+  transform: none;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: var(--shadow-win);
+}
+
+.win.minimized .win-body,
+.win.minimized .win-resize {
+  display: none !important;
+}
+
+.win.minimized .win-titlebar {
+  flex: 1 1 auto;
+  cursor: pointer;
+  min-height: 32px;
+}
+
+.win.minimized .btn-max {
   display: none;
 }
 
@@ -1670,6 +1693,13 @@ html {
   background: var(--amber-soft);
   border-color: var(--amber-dim);
   color: var(--amber);
+}
+
+.task-btn.is-min {
+  border-color: var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  opacity: 0.92;
 }
 
 .task-btn.flash {

@@ -1495,6 +1495,7 @@ def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) 
             bars = fetched[sym]
 
         trials_path = default_trials_path(state.session.experiments_dir)
+        scan_id = body.get("scan_id") if isinstance(body.get("scan_id"), str) else None
         result = validate_candidate(
             signal,
             strategy_id=strategy_id.strip(),
@@ -1505,6 +1506,7 @@ def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) 
             ledger_path=trials_path,
             venue=venue,
             market_type=market_type,
+            scan_id=scan_id,
         )
         out = {
             "ok": result.ok,
@@ -1520,27 +1522,36 @@ def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) 
 
 
 def handle_get_validated_strategies(state: WorkbenchState) -> dict[str, Any]:
-    """GET /api/lab/validated-strategies — Ranking B desde ledger persistente."""
+    """GET /api/lab/validated-strategies — Ranking B (todas las validaciones)."""
     from quantlab.research.alpha.validation.trial_ledger import TrialLedger
     from quantlab.research.alpha.validation.validate_candidate import (
         default_trials_path,
-        list_validated_from_ledger,
+        list_ranking_b_from_ledger,
     )
 
     if state.session is None:
         raise ApiError(503, "sesión workbench no inicializada")
     path = default_trials_path(state.session.experiments_dir)
     ledger = TrialLedger(path=path)
-    rows = list_validated_from_ledger(ledger)
+    rows = list_ranking_b_from_ledger(ledger)
+    n_ok = sum(1 for r in rows if r.get("status") == "validated_historically")
+    n_rej = sum(1 for r in rows if r.get("status") == "rejected")
+    n_fail = sum(1 for r in rows if r.get("status") == "failed")
     return {
         "ok": True,
         "kind": "validated_strategies",
         "ranking": "B",
         "n": len(rows),
+        "n_validated": n_ok,
+        "n_rejected": n_rej,
+        "n_failed": n_fail,
         "trial_count": ledger.count(),
         "strategies": rows,
         "path": str(path),
-        "note": "Solo validated=True. No confundir con ranking del scanner (A).",
+        "note": (
+            "Ranking B = evaluaciones (aprobadas, rechazadas y fallidas). "
+            "No confundir con ranking del scanner (A)."
+        ),
         "live_blocked": True,
     }
 
@@ -1639,6 +1650,7 @@ def handle_post_venue_scanner(state: WorkbenchState, body: dict[str, Any]) -> di
                 underlyings=und_list,
                 persist_dir=persist_arg,
                 kronos=kronos_arg,
+                include_ml=include_ml,
             )
         elif len(venues_list) == 1:
             result = lab_services.run_venue_lab_scanner(

@@ -85,6 +85,7 @@ def test_wm_js_bring_send_and_context() -> None:
     assert 'addEventListener("contextmenu"' in js
     assert "scheduleSave()" in js
     assert "opts.z" in js
+    assert "Restore saved z without bumping" not in js
 
 
 def test_palette_menu_and_css_wire_zorder() -> None:
@@ -100,6 +101,7 @@ def test_palette_menu_and_css_wire_zorder() -> None:
     assert "wm.bringToFront" in shell
     assert "wm.sendToBack" in shell
     assert "out.z = g.z" in shell or "g.z" in shell
+    assert "wm.bringToFront(paneId)" in shell
 
     index = _INDEX.read_text(encoding="utf-8")
     assert 'data-wm-action="bring_to_front"' in index

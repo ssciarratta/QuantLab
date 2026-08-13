@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from quantlab.core.exceptions import ValidationError
 from quantlab.core.types.market import Bar
 from quantlab.research.alpha.individual_export import (
     attach_individual_signals,
@@ -54,7 +55,7 @@ def test_scores_to_signals_and_no_leakage() -> None:
     assert sigs[0].normalized_score >= sigs[1].normalized_score  # type: ignore[operator]
     assert sigs[0].confidence is not None
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError, match="leakage"):
         ValidationPipeline().assert_no_selection_leakage(
             selection_scores={"composite": 1.0, "sharpe": 2.0}
         )
@@ -112,6 +113,13 @@ def test_trial_ledger_persists_wins_and_losses(tmp_path: Path) -> None:
     ranked = list_validated_from_ledger(led2)
     assert len(ranked) == 1
     assert ranked[0]["strategy_id"] == "momentum"
+    from quantlab.research.alpha.validation.validate_candidate import list_ranking_b_from_ledger
+
+    all_b = list_ranking_b_from_ledger(led2)
+    assert len(all_b) == 2
+    statuses = {r["status"] for r in all_b}
+    assert "validated_historically" in statuses
+    assert "rejected" in statuses
 
 
 def _bars(iid: str, n: int = 80) -> list[Bar]:
@@ -165,3 +173,6 @@ def test_validate_candidate_always_logs(tmp_path: Path) -> None:
     assert r1.n_trials_at_eval >= 1
     assert r2.n_trials_at_eval >= 2
     assert "strategy_id" in r1.to_dict()
+    assert r1.opportunity_id
+    assert r1.to_dict()["opportunity_id"] == r1.opportunity_id
+    assert r1.status in ("validated_historically", "rejected", "failed")

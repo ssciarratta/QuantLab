@@ -26,12 +26,20 @@ def run_spread_backtest(
     entry_z: float = 2.0,
     exit_z: float = 0.5,
     fee_bps_per_leg: float = 10.0,
+    hedge_ratio: float | None = None,
 ) -> SpreadBacktestResult:
-    """Simula mean-reversion sobre spread log con fees round-trip conservadores."""
+    """Simula mean-reversion sobre spread log con fees round-trip conservadores.
+
+    ``hedge_ratio`` fijo (p.ej. estimado en train) evita reestimar β en el tramo OOS.
+    """
     if len(closes_a) < z_window + 5 or len(closes_b) < z_window + 5:
         return SpreadBacktestResult(net_returns=(), n_trades=0, total_fee_drag=0.0)
 
-    beta = ols_hedge_ratio(list(closes_a), list(closes_b))
+    beta = (
+        float(hedge_ratio)
+        if hedge_ratio is not None
+        else ols_hedge_ratio(list(closes_a), list(closes_b))
+    )
     spread = log_spread(list(closes_a), list(closes_b), beta)
     zs = spread_zscore(spread, z_window)
     if len(zs) < 3:

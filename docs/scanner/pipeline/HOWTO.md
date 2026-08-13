@@ -16,7 +16,7 @@
 ## 3. Decidir con Ranking B
 
 - Botón **Ranking B** en Scanner, o `GET /api/lab/validated-strategies`.
-- Solo entran configs con Deflated Sharpe OK.
+- Incluye aprobadas, rechazadas y fallidas (estado + SR + DSR + MDD).
 - El ranking por PnL de ~37 estrategias en Simulador es **exploración**, no Ranking B.
 
 ## No hacer

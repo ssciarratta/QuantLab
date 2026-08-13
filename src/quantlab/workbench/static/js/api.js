@@ -558,6 +558,7 @@
         interval: o.interval || "1h",
         kline_limit: o.kline_limit != null ? o.kline_limit : 240,
         underlyings: o.underlyings || undefined,
+        scan_id: o.scan_id || undefined,
       });
     },
     validatedStrategies: function () {

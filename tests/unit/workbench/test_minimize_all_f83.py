@@ -70,6 +70,10 @@ def test_wm_js_minimize_restore_all() -> None:
     # Both batch ops persist layout unless silent
     assert "prototype.minimizeAll" in js
     assert "prototype.restoreAll" in js
+    assert "_layoutMinimized" in js
+    assert "preMin" in js
+    assert "defaultOpenRect" in js
+    assert "OPEN_FRAC = 0.9" in js
 
 
 def test_palette_and_menu_wire_minimize_restore() -> None:
@@ -90,3 +94,11 @@ def test_palette_and_menu_wire_minimize_restore() -> None:
     assert 'data-wm-action="minimize_all"' in index
     assert 'data-wm-action="restore_all"' in index
     assert 'data-i18n="menu.windows"' in index
+
+
+def test_minimized_windows_stay_visible_as_bars() -> None:
+    css = (_STATIC / "css" / "workbench.css").read_text(encoding="utf-8")
+    block = css.split(".win.minimized {", 1)[1].split("}", 1)[0]
+    assert "display: none" not in block
+    assert "display: flex" in block
+    assert ".task-btn.is-min" in css

@@ -129,3 +129,12 @@ def test_train_abort_low_pos(tmp_path: Path) -> None:
     ds = make_synthetic_dataset(n=40, n_pos=2, seed=1)
     with pytest.raises(ValidationError, match="n_pos"):
         train_gbm(ds, out_dir=tmp_path, min_pos=8, min_rows=20)
+
+
+def test_ml_promote_gate() -> None:
+    from quantlab.research.alpha.ml.feed import _should_promote
+
+    assert _should_promote(is_bootstrap=True, candidate_auc=0.55, active_auc=0.9) is True
+    assert _should_promote(is_bootstrap=False, candidate_auc=0.5, active_auc=0.7) is False
+    assert _should_promote(is_bootstrap=False, candidate_auc=0.8, active_auc=0.7) is True
+    assert _should_promote(is_bootstrap=False, candidate_auc=None, active_auc=0.7) is False

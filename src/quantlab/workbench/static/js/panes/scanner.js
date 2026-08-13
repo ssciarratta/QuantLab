@@ -169,15 +169,16 @@
       '<label><input type="checkbox" class="sc-venue-cb" value="bybit"> Bybit</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="hyperliquid"> HL</label>' +
       '<label><input type="checkbox" class="sc-venue-cb" value="a3"> A3</label>' +
-      '<label title="GBM sobre candidatas; cada Validar alimenta y reentrena el modelo">' +
+      '<label title="GBM sobre candidatas; Validar alimenta un candidato (no pisa el activo si empeora)">' +
       '<input type="checkbox" id="sc-include-ml" checked> ML ranking</label>' +
+      '<span class="mono muted" id="sc-ml-badge" title="Estado del modelo ML"></span>' +
       '<span class="mono muted" id="sc-nbars" style="margin-left:auto">≈ —</span>' +
       "</div>" +
       '<div class="sc-actions">' +
       '<button type="button" class="btn" id="sc-run">Escanear</button>' +
       '<button type="button" class="btn secondary stop-run" id="sc-stop" hidden disabled title="Detener escaneo">Stop</button>' +
       '<button type="button" class="btn secondary" id="sc-export" title="Descarga JSON auditable de la última consulta">Exportar JSON</button>' +
-      '<button type="button" class="btn secondary" id="sc-rank-b-btn" title="Estrategias que pasaron validate_candidate (DSR)">Ranking B</button>' +
+      '<button type="button" class="btn secondary" id="sc-rank-b-btn" title="Evaluaciones DSR: aprobadas, rechazadas y fallidas">Ranking B</button>' +
       '<span class="mono" id="sc-status">—</span>' +
       "</div>" +
       '<details class="sc-more muted"><summary>Ayuda · tandas y multi-mercado</summary>' +
@@ -362,7 +363,7 @@
             market_type: mt,
             interval: data.interval || root.querySelector("#sc-interval").value,
             underlyings: sig.symbols.map(function (s) {
-              return String(s).replace(/^[^:]+:\/, "");
+              return String(s).replace(/^[^:]+:/, "");
             }),
             pair_signal_type: sig.signal_type,
             strategy_id: rec.strategy_id || "pairs_trading",
@@ -1279,6 +1280,10 @@
               (lastScan && lastScan.kline_limit) ||
               240,
             underlyings: und ? [und] : undefined,
+            scan_id:
+              (lastScan && lastScan.persisted && lastScan.persisted.scan_id) ||
+              (lastScan && lastScan.scan_id) ||
+              undefined,
           })
             .then(function (d) {
               var v = (d && d.validation) || {};
@@ -2004,6 +2009,19 @@
     function renderScores(data) {
       var out = root.querySelector("#sc-out");
       lastScan = data;
+      var mlBadge = root.querySelector("#sc-ml-badge");
+      if (mlBadge) {
+        var ml = (data && data.ml_ranking) || {};
+        if (ml.enabled && ml.active) {
+          mlBadge.textContent = ml.bootstrap
+            ? "ML sintético"
+            : "ML " + (ml.model_id || "activo").slice(0, 12);
+        } else if (ml.enabled) {
+          mlBadge.textContent = "ML off";
+        } else {
+          mlBadge.textContent = "";
+        }
+      }
       activeVenueIdx = 0;
       compareExpanded = {};
       /* Agrupado: expandir todas las monedas al escanear (ver venues apilados). */
@@ -2266,33 +2284,66 @@
           var rows = (d && d.strategies) || [];
           if (!rows.length) {
             box.innerHTML =
-              '<p class="muted"><strong>Ranking B</strong> (estrategias validadas): vacío. ' +
-              "Usá «Validar» sobre una candidata del scanner. No confundir con el ranking A.</p>";
+              '<p class="muted"><strong>Ranking B</strong>: vacío. ' +
+              "Usá «Validar» sobre una candidata. Incluye aprobadas, rechazadas y fallidas.</p>";
             return;
           }
-          box.innerHTML =
-            "<p><strong>Ranking B</strong> — validadas (DSR) · trials=" +
+          var head =
+            "<p><strong>Ranking B</strong> — evaluaciones · " +
+            "ok=" +
+            esc(d.n_validated != null ? d.n_validated : "—") +
+            " · rech=" +
+            esc(d.n_rejected != null ? d.n_rejected : "—") +
+            " · fall=" +
+            esc(d.n_failed != null ? d.n_failed : "—") +
+            " · trials=" +
             esc(d.trial_count != null ? d.trial_count : "—") +
-            '</p><ul style="margin:0.25rem 0 0 1.1rem;padding:0">' +
+            "</p>";
+          var table =
+            '<table class="sc-table" style="width:100%;margin-top:0.35rem"><thead><tr>' +
+            "<th>Estado</th><th>Estrategia</th><th>Símbolos</th>" +
+            "<th>SR</th><th>DSR</th><th>MDD</th>" +
+            "</tr></thead><tbody>" +
             rows
-              .slice(0, 15)
+              .slice(0, 30)
               .map(function (r) {
+                var st = r.status || (r.validated ? "validated_historically" : "rejected");
+                var label =
+                  st === "validated_historically"
+                    ? "validada"
+                    : st === "failed"
+                      ? "fallida"
+                      : "rechazada";
                 return (
-                  "<li class=\"mono\">" +
+                  "<tr class=\"mono\">" +
+                  "<td>" +
+                  esc(label) +
+                  "</td><td>" +
                   esc(r.strategy_id || "?") +
-                  " · " +
+                  "</td><td>" +
                   esc((r.symbols || []).join("/")) +
-                  " · DSR=" +
+                  "</td><td>" +
+                  esc(
+                    r.sharpe_net != null ? Number(r.sharpe_net).toFixed(2) : "—"
+                  ) +
+                  "</td><td>" +
                   esc(
                     r.deflated_sharpe != null
                       ? Number(r.deflated_sharpe).toFixed(3)
                       : "—"
                   ) +
-                  "</li>"
+                  "</td><td>" +
+                  esc(
+                    r.max_drawdown != null
+                      ? Number(r.max_drawdown).toFixed(2)
+                      : "—"
+                  ) +
+                  "</td></tr>"
                 );
               })
               .join("") +
-            "</ul>";
+            "</tbody></table>";
+          box.innerHTML = head + table;
         })
         .catch(function (e) {
           box.innerHTML =

@@ -24,20 +24,30 @@ class MlModelRegistry:
                 ids.append(p.name)
         return tuple(ids)
 
-    def get_active_id(self) -> str | None:
+    def read_state(self) -> dict[str, object]:
         if not self._state_path.is_file():
-            return None
-        raw = json.loads(self._state_path.read_text(encoding="utf-8"))
-        mid = raw.get("active_model_id")
+            return {}
+        try:
+            raw = json.loads(self._state_path.read_text(encoding="utf-8"))
+            return dict(raw) if isinstance(raw, dict) else {}
+        except (OSError, json.JSONDecodeError, TypeError):
+            return {}
+
+    def write_state(self, payload: dict[str, object]) -> None:
+        self._state_path.write_text(
+            json.dumps(payload, sort_keys=True), encoding="utf-8"
+        )
+
+    def get_active_id(self) -> str | None:
+        mid = self.read_state().get("active_model_id")
         return str(mid) if mid else None
 
     def set_active(self, model_id: str | None) -> None:
         if model_id is not None and model_id not in self.list_model_ids():
             raise ValidationError(f"model_id desconocido: {model_id}")
-        self._state_path.write_text(
-            json.dumps({"active_model_id": model_id}, sort_keys=True),
-            encoding="utf-8",
-        )
+        st = self.read_state()
+        st["active_model_id"] = model_id
+        self.write_state(st)
 
     def load_active(self) -> MlRankingModel | None:
         mid = self.get_active_id()

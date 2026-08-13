@@ -60,10 +60,18 @@ class ValidateCandidateResult:
     error: str | None = None
     n_trials_at_eval: int = 0
     ml_feed: dict[str, Any] | None = None
+    trial_id: str = ""
+    opportunity_id: str | None = None
+    scan_id: str | None = None
+    status: str = "failed"
+    pair_engine: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "signal_id": self.eval.signal_id,
+            "trial_id": self.trial_id,
+            "opportunity_id": self.opportunity_id,
+            "scan_id": self.scan_id,
             "strategy_id": self.strategy_id,
             "params_hash": self.params_hash,
             "scope": self.scope,
@@ -75,8 +83,10 @@ class ValidateCandidateResult:
             "validated": self.eval.validated,
             "ok": self.ok,
             "error": self.error,
+            "status": self.status,
             "n_trials_at_eval": self.n_trials_at_eval,
             "ml_feed": dict(self.ml_feed) if self.ml_feed else None,
+            "pair_engine": self.pair_engine,
         }
 
 
@@ -105,9 +115,17 @@ def validate_candidate(
     embargo_bars: int = 2,
     venue: str = "binance",
     market_type: str = "spot",
-    periods_per_year: float = 8760.0,
+    periods_per_year: float | None = None,
+    scan_id: str | None = None,
+    opportunity_id: str | None = None,
 ) -> ValidateCandidateResult:
     """Una candidata × una estrategia × una config. Siempre registra el trial."""
+    from quantlab.research.alpha.opportunity import (
+        effective_embargo_bars,
+        make_opportunity_id,
+        periods_per_year_for_timeframe,
+        ranking_b_status,
+    )
     from quantlab.workbench.lab_services import run_lab_backtest
     from quantlab.workbench.strategy_catalog import normalize_strategy_id
 
@@ -116,12 +134,49 @@ def validate_candidate(
     led = ledger or TrialLedger(path=ledger_path)
     pipe = ValidationPipeline(ledger=led)
     trial_id = f"val_{uuid4().hex[:12]}"
+    opp = opportunity_id or make_opportunity_id(
+        signal=signal, scan_id=scan_id, venue=venue, market_type=market_type
+    )
+    ppy = (
+        periods_per_year
+        if periods_per_year is not None
+        else periods_per_year_for_timeframe(signal.timeframe)
+    )
+    n_for_embargo = 0
+    if bars is not None:
+        n_for_embargo = len(bars)
+    elif bars_a is not None and bars_b is not None:
+        n_for_embargo = min(len(bars_a), len(bars_b))
+    embargo = effective_embargo_bars(
+        requested=embargo_bars,
+        lookback=signal.lookback,
+        n_bars=n_for_embargo,
+        train_fraction=train_fraction,
+    )
+    pair_engine: str | None = None
 
     def _feed() -> dict[str, Any] | None:
         from quantlab.research.alpha.ml.feed import maybe_feed_ml
 
         path = ledger_path if ledger_path is not None else led.path
         return maybe_feed_ml(ledger_path=path)
+
+    def _base_meta() -> dict[str, Any]:
+        return {
+            "phase": "validation",
+            "strategy_id": sid,
+            "params_hash": ph,
+            "signal_id": signal.signal_id,
+            "opportunity_id": opp,
+            "scan_id": scan_id,
+            "scope": signal.scope.value,
+            "selection_raw_score": signal.raw_score,
+            "selection_normalized_score": signal.normalized_score,
+            "confidence": signal.confidence,
+            "timeframe": signal.timeframe,
+            "market_type": market_type,
+            "venue": venue,
+        }
 
     def _log(meta: dict[str, Any]) -> int:
         led.log(
@@ -135,13 +190,39 @@ def validate_candidate(
         )
         return led.count()
 
+    def _result(
+        *,
+        ev: BacktestEvalResult,
+        ok: bool,
+        error: str | None,
+        n: int,
+        validated: bool,
+    ) -> ValidateCandidateResult:
+        return ValidateCandidateResult(
+            eval=ev,
+            strategy_id=sid,
+            params_hash=ph,
+            scope=signal.scope.value,
+            symbols=signal.symbols,
+            ok=ok,
+            error=error,
+            n_trials_at_eval=n,
+            ml_feed=_feed(),
+            trial_id=trial_id,
+            opportunity_id=opp,
+            scan_id=scan_id,
+            status=ranking_b_status(validated=validated, ok=ok),
+            pair_engine=pair_engine,
+        )
+
     try:
         if signal.scope is SignalScope.PAIR or len(signal.symbols) == 2:
+            pair_engine = "spread_oos_train_beta"
             net = _pair_net_returns(
                 bars_a=bars_a,
                 bars_b=bars_b,
                 train_fraction=train_fraction,
-                embargo_bars=embargo_bars,
+                embargo_bars=embargo,
                 venue=venue,
                 market_type=market_type,
             )
@@ -151,11 +232,10 @@ def validate_candidate(
             train, test = split_bars_train_test(
                 list(bars),
                 train_fraction=train_fraction,
-                embargo_bars=embargo_bars,
+                embargo_bars=embargo,
             )
             if len(test) < 4:
                 raise ValidationError("tramo test insuficiente tras embargo")
-            # train se usa solo para separar; backtest OOS en test
             _ = train
             bt = run_lab_backtest(
                 strategy_id=sid,
@@ -168,7 +248,6 @@ def validate_candidate(
             )
             net = _returns_from_backtest_payload(bt)
             if not net:
-                # fallback: un solo retorno PnL/initial
                 try:
                     ini = float(bt.get("initial_equity") or 0)
                     fin = float(bt.get("final_equity") or 0)
@@ -180,84 +259,45 @@ def validate_candidate(
         if not net:
             n = _log(
                 {
-                    "phase": "validation",
-                    "strategy_id": sid,
-                    "params_hash": ph,
+                    **_base_meta(),
                     "ok": False,
                     "error": "sin retornos netos",
                     "validated": False,
-                    "signal_id": signal.signal_id,
                 }
             )
-            return ValidateCandidateResult(
-                eval=_empty_eval(signal.signal_id),
-                strategy_id=sid,
-                params_hash=ph,
-                scope=signal.scope.value,
-                symbols=signal.symbols,
+            return _result(
+                ev=_empty_eval(signal.signal_id),
                 ok=False,
                 error="sin retornos netos",
-                n_trials_at_eval=n,
-                ml_feed=_feed(),
+                n=n,
+                validated=False,
             )
 
-        ev = pipe.evaluate_backtest(
-            signal, net_returns=net, periods_per_year=periods_per_year
-        )
+        ev = pipe.evaluate_backtest(signal, net_returns=net, periods_per_year=ppy)
         n = _log(
             {
-                "phase": "validation",
-                "strategy_id": sid,
-                "params_hash": ph,
+                **_base_meta(),
                 "ok": True,
                 "error": None,
                 "sharpe_net": ev.sharpe_net,
                 "deflated_sharpe": ev.deflated_sharpe,
                 "max_drawdown": ev.max_drawdown,
                 "validated": ev.validated,
-                "signal_id": signal.signal_id,
-                "scope": signal.scope.value,
-                "selection_raw_score": signal.raw_score,
-                "selection_normalized_score": signal.normalized_score,
-                "confidence": signal.confidence,
-                "timeframe": signal.timeframe,
-                "market_type": (signal.metadata or {}).get("market_type"),
+                "status": ranking_b_status(validated=ev.validated, ok=True),
+                "pair_engine": pair_engine,
+                "embargo_bars": embargo,
+                "periods_per_year": ppy,
             }
         )
-        return ValidateCandidateResult(
-            eval=ev,
-            strategy_id=sid,
-            params_hash=ph,
-            scope=signal.scope.value,
-            symbols=signal.symbols,
-            ok=True,
-            error=None,
-            n_trials_at_eval=n,
-            ml_feed=_feed(),
-        )
+        return _result(ev=ev, ok=True, error=None, n=n, validated=ev.validated)
     except (ValidationError, ValueError, TypeError, KeyError) as exc:
-        n = _log(
-            {
-                "phase": "validation",
-                "strategy_id": sid,
-                "params_hash": ph,
-                "ok": False,
-                "error": str(exc),
-                "validated": False,
-                "signal_id": signal.signal_id,
-                "scope": signal.scope.value,
-            }
-        )
-        return ValidateCandidateResult(
-            eval=_empty_eval(signal.signal_id),
-            strategy_id=sid,
-            params_hash=ph,
-            scope=signal.scope.value,
-            symbols=signal.symbols,
+        n = _log({**_base_meta(), "ok": False, "error": str(exc), "validated": False})
+        return _result(
+            ev=_empty_eval(signal.signal_id),
             ok=False,
             error=str(exc),
-            n_trials_at_eval=n,
-            ml_feed=_feed(),
+            n=n,
+            validated=False,
         )
 
 
@@ -273,6 +313,7 @@ def _pair_net_returns(
     from quantlab.backtester.pair_engine import run_spread_backtest
     from quantlab.research.alpha.pairwise.align import align_pair_bars
     from quantlab.research.alpha.pairwise.costs import estimate_pair_cost_bps
+    from quantlab.research.alpha.pairwise.stats import ols_hedge_ratio
 
     if bars_a is None or bars_b is None:
         raise ValidationError("validate_candidate pair requiere bars_a y bars_b")
@@ -285,27 +326,42 @@ def _pair_net_returns(
     start = cut + max(0, embargo_bars)
     if start >= n - 5:
         raise ValidationError("tramo OOS par insuficiente")
+    train_a = aligned.closes_a[:cut]
+    train_b = aligned.closes_b[:cut]
+    if len(train_a) < 8:
+        raise ValidationError("tramo train par insuficiente para hedge ratio")
+    beta = ols_hedge_ratio(list(train_a), list(train_b))
+    test_a = aligned.closes_a[start:]
+    test_b = aligned.closes_b[start:]
+    z_window = min(48, max(10, len(test_a) // 3))
     fee = estimate_pair_cost_bps(venue=venue, market_type=market_type) / 2.0
     bt = run_spread_backtest(
-        aligned.closes_a[start:],
-        aligned.closes_b[start:],
+        test_a,
+        test_b,
         fee_bps_per_leg=fee,
+        hedge_ratio=beta,
+        z_window=z_window,
     )
     return bt.net_returns
 
 
-def list_validated_from_ledger(ledger: TrialLedger) -> list[dict[str, Any]]:
-    """Ranking B: solo trials de validación con validated=True."""
+def list_ranking_b_from_ledger(ledger: TrialLedger) -> list[dict[str, Any]]:
+    """Ranking B: todas las validaciones (aprobadas, rechazadas, fallidas)."""
+    from quantlab.research.alpha.opportunity import ranking_b_status
+
     rows: list[dict[str, Any]] = []
     for rec in ledger.records():
         meta = rec.metadata or {}
         if meta.get("phase") != "validation":
             continue
-        if meta.get("validated") is not True:
-            continue
+        validated = meta.get("validated") is True
+        ok = meta.get("ok") is not False
+        status = str(meta.get("status") or ranking_b_status(validated=validated, ok=ok))
         rows.append(
             {
                 "trial_id": rec.trial_id,
+                "opportunity_id": meta.get("opportunity_id"),
+                "scan_id": meta.get("scan_id"),
                 "signal_id": meta.get("signal_id"),
                 "strategy_id": meta.get("strategy_id"),
                 "symbols": list(rec.symbols),
@@ -315,17 +371,31 @@ def list_validated_from_ledger(ledger: TrialLedger) -> list[dict[str, Any]]:
                 "max_drawdown": meta.get("max_drawdown"),
                 "params_hash": meta.get("params_hash"),
                 "created_at": rec.created_at,
-                "validated": True,
+                "validated": validated,
+                "ok": ok,
+                "status": status,
+                "error": meta.get("error"),
             }
         )
-    rows.sort(key=lambda r: float(r.get("deflated_sharpe") or 0.0), reverse=True)
+    rows.sort(
+        key=lambda r: (
+            0 if r.get("status") == "validated_historically" else 1,
+            -float(r.get("deflated_sharpe") or 0.0),
+        )
+    )
     return rows
+
+
+def list_validated_from_ledger(ledger: TrialLedger) -> list[dict[str, Any]]:
+    """Subset Ranking B: solo validated=True (compat)."""
+    return [r for r in list_ranking_b_from_ledger(ledger) if r.get("validated") is True]
 
 
 __all__ = [
     "ValidateCandidateResult",
     "default_trials_path",
     "equity_curve_to_returns",
+    "list_ranking_b_from_ledger",
     "list_validated_from_ledger",
     "validate_candidate",
 ]

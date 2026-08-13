@@ -66,8 +66,9 @@ class DetectorRegistry:
             if det.scope.value == "individual" and too_short:
                 continue
             override = config.overrides.get(det.detector_id, {})
+            det_ctx = ctx
             if override:
-                ctx = DetectorContext(
+                det_ctx = DetectorContext(
                     bars_by_instrument=ctx.bars_by_instrument,
                     timeframe=ctx.timeframe,
                     lookback_bars=ctx.lookback_bars,
@@ -76,7 +77,7 @@ class DetectorRegistry:
                     as_of=ctx.as_of,
                     config={**ctx.config, **override},
                 )
-            signals.extend(det.detect(ctx))
+            signals.extend(det.detect(det_ctx))
         return tuple(signals)
 
 

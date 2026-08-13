@@ -49,9 +49,9 @@
       y: g.y != null ? g.y : defaults.y,
       w: g.w != null ? g.w : defaults.w,
       h: g.h != null ? g.h : defaults.h,
-      // Nunca reabrir minimizado desde el menú (parecía que «se cerraba»).
+      // Tamaño lo define wm.open (90% del escritorio). No restaurar max.
       minimized: false,
-      maximized: !!g.maximized,
+      maximized: false,
     };
     if (g.z != null) out.z = g.z;
     return out;
@@ -286,7 +286,20 @@
     }
     const pane = QLPanes.createHomePane({
       onOpen: function (paneId) {
-        if (openers[paneId]) openers[paneId](opts || {});
+        try {
+          if (window.QLShell && typeof QLShell.open === "function") {
+            QLShell.open(paneId, {});
+          } else if (openers[paneId]) {
+            openers[paneId]({});
+          }
+          if (typeof wm.bringToFront === "function") {
+            wm.bringToFront(paneId);
+          }
+        } catch (err) {
+          window.alert(
+            "No pude abrir el panel: " + (err && err.message ? err.message : err)
+          );
+        }
       },
     });
     wm.open(
@@ -543,12 +556,32 @@
 
   function openScanner(opts) {
     opts = opts || {};
-    if (wm.windows.has("scanner")) {
-      wm.focus("scanner");
-      return;
+    try {
+      if (wm.windows.has("scanner")) {
+        if (typeof wm.restore === "function") wm.restore("scanner");
+        wm.focus("scanner");
+        if (typeof wm.bringToFront === "function") wm.bringToFront("scanner");
+        return;
+      }
+      if (!window.QLPanes || typeof QLPanes.createScannerPane !== "function") {
+        window.alert(
+          "Alpha Scanner no cargó (JS en caché o error).\nCtrl+F5 y volvé a intentar."
+        );
+        return;
+      }
+      const pane = QLPanes.createScannerPane();
+      wm.open(
+        "scanner",
+        tr("pane.scanner", "Alpha Scanner"),
+        pane,
+        mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 })
+      );
+      if (typeof wm.bringToFront === "function") wm.bringToFront("scanner");
+    } catch (err) {
+      window.alert(
+        "No pude abrir Alpha Scanner: " + (err && err.message ? err.message : err)
+      );
     }
-    const pane = QLPanes.createScannerPane();
-    wm.open("scanner", tr("pane.scanner", "Alpha Scanner"), pane, mergeOpts("scanner", { x: 80, y: 40, w: 720, h: 640 }));
   }
 
   function openStrategies(opts) {
@@ -1392,6 +1425,9 @@
       if (window.QLLayoutPresets && QLLayoutPresets.apply) {
         QLLayoutPresets.apply(key, function (paneId) {
           if (openers[paneId]) openers[paneId]();
+          if (typeof wm.bringToFront === "function") {
+            wm.bringToFront(paneId);
+          }
         });
       }
     });

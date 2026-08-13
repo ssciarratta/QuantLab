@@ -131,3 +131,61 @@ HOTUSDT).
 puntual filtra siempre a lo pedido y falla claro si no hay MD.
 
 **Regla:** nunca rankear base stablecoin en universo auto; pedido explícito OK.
+
+---
+
+## Embargo vs lookback = historial completo (2026-08-12)
+
+**Síntoma:** `run_binance_lab_pipeline` con 24 velas devolvía `ok=False` tras
+escalar embargo a `min(lookback, 24)`.
+
+**Causa:** `lookback` del signal individual es `kline_limit` (toda la ventana),
+no el lag del detector. Embargo 8 + train 70% dejaba test vacío.
+
+**Fix:** `effective_embargo_bars` recorta el embargo para dejar ≥4–6 barras de
+test; lookback ≥50 no escala embargo.
+
+**Regla:** no usar `kline_limit` como lookback de embargo.
+
+---
+
+## Inicio — botones «no andan» (2026-08-12)
+
+**Síntoma:** Accesos rápidos y Espacios de trabajo recibían el clic (borde de
+foco) pero no se veía ninguna ventana nueva.
+
+**Causa:** `mergeOpts` restauraba `z` del layout; `wm.open` no hacía `focus()`
+si había z guardado. Inicio maximizado tapaba el panel nuevo.
+
+**Fix:** `wm.open` siempre trae al frente; Home/`layout presets` llaman
+`bringToFront`.
+
+**Regla:** abrir un panel desde UI es acción del usuario → siempre al frente.
+No reaplicar z viejo en open interactivo.
+
+---
+
+## Ventanas minimizadas invisibles (2026-08-12)
+
+**Síntoma:** al minimizar, la ventana desaparecía del escritorio.
+
+**Causa:** `.win.minimized { display: none }` y el botón de la barra de tareas
+quedaba casi invisible (texto muted, fondo transparente).
+
+**Fix:** minimizar deja una barra con título abajo del workspace; clic restaura.
+Taskbar usa `.task-btn.is-min`.
+
+**Regla:** minimizar ≠ cerrar. Tiene que quedar un handle visible.
+
+---
+
+## Buscar no abre el Scanner (2026-08-12)
+
+**Síntoma:** «Buscar» y «Buscar oportunidades» no hacían nada.
+
+**Causa:** `scanner.js` línea con regex `/^[^:]+:\/` (sin cerrar). El archivo
+no parseaba → `createScannerPane` no existía → el clic fallaba en silencio.
+
+**Fix:** `/^[^:]+:/` + alert si el panel no carga.
+
+**Regla:** `node --check` (o test de parseo) en JS de paneles críticos.

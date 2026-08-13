@@ -18,3 +18,10 @@ def test_spread_backtest_produces_returns() -> None:
     bt = run_spread_backtest(tuple(a), tuple(b), entry_z=1.2, exit_z=0.4)
     assert len(bt.net_returns) > 0
     assert bt.n_trades >= 1
+
+
+def test_spread_backtest_fixed_hedge_ratio() -> None:
+    a = tuple(float(100 + i) for i in range(80))
+    b = tuple(float(50 + 0.5 * i) for i in range(80))
+    bt = run_spread_backtest(a, b, hedge_ratio=2.0, z_window=20, entry_z=1.0, exit_z=0.3)
+    assert isinstance(bt.net_returns, tuple)

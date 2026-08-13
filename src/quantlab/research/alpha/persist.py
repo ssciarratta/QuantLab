@@ -155,7 +155,7 @@ class ScanStore:
         self,
         *,
         profile: str,
-        rows: Sequence[ScoredRow],
+        rows: Sequence[ScoredRow] | Sequence[Mapping[str, Any]],
         bars_hash: str,
         request: Mapping[str, Any] | None = None,
         scan_id: str | None = None,
@@ -166,9 +166,18 @@ class ScanStore:
         sid = scan_id or f"scan_{uuid4().hex[:12]}"
         req = dict(request or {"profile": profile})
         req_hash = sha256_hex(_stable_json(req))
-        rows_payload = [r.to_dict() for r in rows]
+        rows_payload: list[dict[str, Any]] = []
+        for r in rows:
+            if hasattr(r, "to_dict"):
+                rows_payload.append(r.to_dict())  # type: ignore[union-attr]
+            elif isinstance(r, Mapping):
+                rows_payload.append(dict(r))
+            else:
+                raise TypeError(f"fila de scan no serializable: {type(r)!r}")
         result_hash = sha256_hex(_stable_json(rows_payload))
         created = datetime.now(tz=UTC).isoformat()
+        from quantlab.infra.utils.platform_info import get_git_commit
+
         meta = {
             "scan_id": sid,
             "scanner_version": scanner_version,
@@ -179,6 +188,7 @@ class ScanStore:
             "bars_hash": bars_hash,
             "result_hash": result_hash,
             "created_at": created,
+            "code_commit": get_git_commit(""),
         }
         doc = {"meta": meta, "rows": rows_payload, "request": req}
         path = self._path(sid)

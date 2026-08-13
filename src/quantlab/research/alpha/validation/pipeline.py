@@ -60,7 +60,8 @@ class ValidationPipeline:
         if not net_returns:
             raise ValidationError("net_returns vacío")
         sr = sharpe_ratio(net_returns, periods_per_year=periods_per_year)
-        n_trials = max(1, self._ledger.count())
+        # Incluye el trial en curso (aún no append) para no sub-penalizar DSR.
+        n_trials = max(1, self._ledger.count() + 1)
         dsr = deflated_sharpe_ratio(
             sr,
             n_trials=n_trials,

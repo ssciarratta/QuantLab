@@ -61,14 +61,20 @@ def attach_ml_ranking_signals(
         payload["ml_signals"] = ml_dicts
         merged = list(raw_sigs) + ml_dicts
         payload["signals"] = merged
+        st = reg.read_state()
+        bootstrap = bool(st.get("bootstrap")) or bool(boot.get("bootstrap"))
         payload["ml_ranking"] = {
             "enabled": True,
             "active": True,
             "model_id": model.model_id,
             "backend": model.backend,
             "n": len(ml_dicts),
-            "bootstrap": boot,
-            "note": "ml_ranking complementa Ranking A; no sustituye scanner ni DSR.",
+            "bootstrap": bootstrap,
+            "note": (
+                "modelo sintético de arranque — no es aprendizaje real"
+                if bootstrap
+                else "ml_ranking complementa Ranking A; no sustituye scanner ni DSR."
+            ),
         }
         return payload
     except (ValidationError, OSError, ValueError, TypeError, KeyError) as exc:

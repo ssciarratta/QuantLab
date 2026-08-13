@@ -18,7 +18,7 @@ Ranking de **candidatas** (monedas o pares) para investigación.
 ```
 1. Escanear  →  Ranking A (candidatas)
 2. Validar   →  1 estrategia por corrida (alimenta el ML)
-3. Ranking B →  solo las que pasaron Deflated Sharpe
+3. Ranking B →  todas las evaluaciones (aprobadas, rechazadas, fallidas)
 ```
 
 El ranking del scanner **no** se opera. Se usa para elegir qué validar.
@@ -34,7 +34,7 @@ El ranking del scanner **no** se opera. Se usa para elegir qué validar.
 5. **Escanear**.
 6. Clic en una fila → **Validar** (1 estrategia sugerida).
 
-Cada **Validar** se guarda en `experiments/alpha_trials/` (gane o pierda) y **reentrena el ML** cuando hay datos suficientes.
+Cada **Validar** se guarda en `experiments/alpha_trials/` (gane o pierda). El ML entrena un **candidato**; solo promociona si el AUC no empeora (el sintético de arranque se reemplaza con datos reales).
 
 ---
 
@@ -55,8 +55,8 @@ Cada **Validar** se guarda en `experiments/alpha_trials/` (gane o pierda) y **re
 |-----|----------------|
 | Primer escaneo | Si no hay modelo, se crea uno **sintético** de arranque |
 | Cada Validar / pipeline / OOS pares | El trial entra al ledger |
-| Cada 5 trials (con ≥30 filas y ≥8 positivas) | Se **reentrena** y queda activo |
-| Checkbox **ML ranking** | Default ON. Desmarcar = no adjuntar `ml_ranking` |
+| Cada 5 trials (con ≥30 filas y ≥8 positivas) | Entrena un **candidato**; promociona solo si AUC ≥ activo |
+| Checkbox **ML ranking** | Default ON. Badge «ML sintético» si aún no hay datos reales |
 
 El score ML es **una señal más** (`ml_ranking`), no reemplaza el scanner ni el Ranking B.
 
@@ -74,7 +74,7 @@ uv run python scripts/alpha_ml_bootstrap.py --trials data/runtime/workbench/<ses
 | Ranking | Qué es | Para qué |
 |---------|--------|----------|
 | **A** | Scanner (features / pares / ML) | Elegir qué validar (top 5–10) |
-| **B** | Estrategias que pasaron DSR | Decidir qué merece más research |
+| **B** | Todas las validaciones (DSR) | Ver aprobadas **y** rechazadas |
 
 Botón **Ranking B** en el Scanner.
 

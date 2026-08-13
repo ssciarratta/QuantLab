@@ -6,16 +6,21 @@ Versión: 1.01.0 — main
 ESTADO
 ------
 - Pairwise + Pipeline v3: OK
-- ML GBM: ON por default + feed automático
-  Cada Validar / pipeline / OOS pares → alpha_trials → retrain cada 5 trials
-  Primer escaneo: bootstrap sintético si no hay modelo
+- ML GBM: ON + champion/challenger
+- Ranking B: todas las validaciones
+- LIVE_BLOCKED=True
 
-ÚLTIMA (2026-08-12)
--------------------
-- feed.py: maybe_feed_ml + ensure_bootstrap_model
-- validate_candidate llama feed tras cada trial
-- include_ml default True (API, lab, checkbox UI)
-- Manual Alpha: docs/manuales/03-alpha-scanner.md
+ÚLTIMA (2026-08-12) — ventanas al 90%
+-------------------------------------
+- Inicio y cada ventana nueva abren al 90% del escritorio (centradas).
+- Maximizar sigue al 100%. Ctrl+F5.
+--------------------------------------------
+- scanner.js tenía un regex inválido: el script no cargaba y «Buscar» no abría nada.
+- Corregido `/^[^:]+:/`. Ctrl+F5 para recargar.
+---------------------------------------------------
+- Minimizar ya no oculta la ventana (display:none).
+- Queda una barra con el título abajo del escritorio; clic restaura.
+- Botón en la barra de tareas también queda marcado (is-min).
 
 PRÓXIMO
 -------
@@ -24,5 +29,6 @@ PRÓXIMO
 
 INVARIANTES
 -----------
-ML no raw bars · target=validated · no LIVE · Ranking B = DSR
+ML no raw bars · target=validated · no LIVE · Ranking A sin Sharpe
+Validar = 1 estrategia · no clonar pairwise-alpha-strategy
 Manual: docs/manuales/03-alpha-scanner.md

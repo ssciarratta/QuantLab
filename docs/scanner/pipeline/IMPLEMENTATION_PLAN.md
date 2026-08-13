@@ -55,7 +55,7 @@ Ver `HOWTO.md`. Implementado 2026-08-12.
 - [ ] Ranking A nunca contiene métricas de backtest.  
 - [ ] Toda validación pasa por `validate_candidate` + ledger disco.  
 - [ ] Individual y par comparten contrato `AlphaSignal` + mismo path de validación.  
-- [ ] Ranking B solo entradas con `validated=True`.  
+- [x] Ranking B muestra todas las validaciones (aprobadas / rechazadas / fallidas).  
 - [ ] Pairwise detectors sin cambios de lógica.  
 - [ ] `LIVE_BLOCKED` intacto.  
 - [ ] Tests verdes mypy/ruff en módulos tocados.

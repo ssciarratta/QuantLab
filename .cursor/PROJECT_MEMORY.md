@@ -1,6 +1,6 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-08-12  
+**Actualizado:** 2026-08-12 (auditoría Alpha implementada)  
 **Branch trabajo:** `main`  
 **Versión tip:** **1.01.0** · UI favoritos + dual Spot/Futures Testnet  
 **Lección scanner 2026-08-05:** `is_http_safe_symbol` (A-Z0-9) — CJK en exchangeInfo rompía urllib  
@@ -9,7 +9,7 @@
 **Monte Carlo:** estrés N · `sim_linked` · hereda capital/leverage  
 **Menú QL:** favoritos Chat · Alpha · Simulador · Monte Carlo · Spot · Futures (reordenables)  
 **Roles:** Guided=aprender (menú avanzado) · Sim=comparar · Scanner=ranking · MC=estrés · Testnet Spot/Futures=demo XOR  
-**Alpha Scanner:** Individual/Pares · Ranking A vs B · Validar alimenta ML GBM (default ON) · Kronos-inside · typeahead  
+**Alpha Scanner:** Individual/Pares · Ranking A vs B (B = todas las evals) · Validar alimenta ML champion/challenger · Kronos-inside · typeahead  
 **Chat IA:** tools open panes · chips · FakeProvider  
 **Números UI:** `QLFmt` 2 decimales  
 **Testnet:** Spot `testnet.binance.vision` · Futures `testnet.binancefuture.com` · keys distintas · LIVE_BLOCKED  
@@ -205,10 +205,11 @@ Ejecución live / order routing venue = **bloqueado por diseño**.
 - Cliente Futures: `BinanceFuturesTestnetClient` → solo `testnet.binancefuture.com` (fapi).
 - Keys HB `binance_perpetual_testnet` → `BINANCE_FUTURES_DEMO_*` (no Spot).
 
-### 2026-08-12 — ML feed automático
-- Contexto: cada Validar debe entrenar el GBM sin scripts.
-- Decisión: `include_ml` default ON; `maybe_feed_ml` tras `validate_candidate`; bootstrap sintético al primer escaneo.
-- Impacto: Ranking A gana `ml_ranking`; Ranking B sigue siendo DSR. Manual: `docs/manuales/03-alpha-scanner.md`.
+### 2026-08-12 — Auditoría Alpha + implementación
+- Contexto: 3 pipelines desconectados; Ranking B ocultaba rechazos; DSR N incompleto; pares reestimaban β en OOS; ML pisaba el activo.
+- Decisiones: Ranking B = todas las validaciones; DSR Bailey–LdP sin skew/kurtosis, umbral 0.95, `n_trials=count()+1`; Validar = 1 estrategia; ML champion/challenger (AUC ≥ activo); pares β solo en train + `hedge_ratio` fijo; embargo 70/30 recortado para no vaciar test; no clonar `pairwise-alpha-strategy`.
+- Impacto: `opportunity_id` + `scan_id` en trials; Ranking B honesto en API/UI; badge ML sintético; persist pairwise con fingerprint real.
+- Fuera de este pase: two-leg real, MC↔trial_id, Validar async, WF rolling, grupos/PCA, SHAP/drift, certificado formal.
 
 ## Próximo
 
