@@ -1,6 +1,6 @@
 # QuantLab Project Memory
 
-Actualizado: 2026-07-26 · tip funcional F98 · versión 0.90.0.
+Actualizado: 2026-08-14 · skill `client-infocard` en `.cursor/skills/` (piezas clientes, paleta navy). Tip funcional F98 · versión 0.90.0.
 
 - TESTER/PAPER operativos; REAL es alias de PAPER; LIVE routing sigue bloqueado.
 - `LIVE_BLOCKED=True`. F97 Support Bundle ZIP; F96 diagnostics.json; F95
