@@ -81,4 +81,4 @@ review_staging/
 
 # Vendor Kronos (clonar localmente; ver third_party/README.md)
 third_party/kronos/
-
+config.json
