@@ -36,7 +36,7 @@ class KronosTorchEngine:
         ensure_vendor_on_path(self.vendor)
         try:
             import torch
-            from model import (  # type: ignore[import-not-found]
+            from model import (
                 Kronos,
                 KronosPredictor,
                 KronosTokenizer,

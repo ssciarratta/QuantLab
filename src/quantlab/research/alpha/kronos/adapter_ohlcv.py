@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from typing import cast
 
 from quantlab.core.types.market import Bar
 from quantlab.research.alpha.kronos.errors import KronosError, KronosSkipReason
@@ -78,7 +79,7 @@ def build_forecast_request(
         lookback_closes=arr["close"],
         lookback_volumes=arr["volume"],
         lookback_amounts=arr["amount"],
-        timestamps_ns=arr["timestamps_ns"],
+        timestamps_ns=cast(tuple[int, ...], arr["timestamps_ns"]),
         pred_len=pred_len,
         sample_count=sample_count,
         temperature=temperature,

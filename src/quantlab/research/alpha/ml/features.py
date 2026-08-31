@@ -78,8 +78,9 @@ def signal_to_feature_row(signal: AlphaSignal | Mapping[str, Any]) -> dict[str, 
     meta = raw_meta if isinstance(raw_meta, Mapping) else {}
     comps = _comp_map(d)
     # components also from metadata.components
-    if isinstance(meta.get("components"), list):
-        for c in meta["components"]:  # type: ignore[index]
+    components = meta.get("components")
+    if isinstance(components, list):
+        for c in components:
             if isinstance(c, Mapping) and c.get("name"):
                 comps[str(c["name"]).replace("_score", "")] = _f(c.get("normalized"))
 
