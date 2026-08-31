@@ -8,7 +8,7 @@ import re
 import subprocess
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -41,7 +41,12 @@ def local_pyproject_version(root: Path | None = None) -> str:
     return parse_pyproject_version(text) or __version__
 
 
-def _run_git(args: list[str], *, cwd: Path, timeout: float = 30.0) -> subprocess.CompletedProcess[str]:
+def _run_git(
+    args: list[str],
+    *,
+    cwd: Path,
+    timeout: float = 30.0,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         ["git", *args],
         cwd=str(cwd),
@@ -148,7 +153,13 @@ def fetch_github_tip(
         if isinstance(committer, dict):
             result["committed_at"] = committer.get("date")
         result["ok"] = True
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        json.JSONDecodeError,
+        OSError,
+    ) as exc:
         result["error"] = f"commit: {exc}"
         return result
 
@@ -210,7 +221,7 @@ def working_tree_last_modified_iso(root: Path | None = None) -> str | None:
 
     if newest is None:
         return None
-    return datetime.fromtimestamp(newest, tz=timezone.utc).isoformat()
+    return datetime.fromtimestamp(newest, tz=UTC).isoformat()
 
 
 def build_update_status(*, root: Path | None = None, fetch_remote: bool = True) -> dict[str, Any]:
@@ -374,7 +385,7 @@ def format_es_ar(iso: str | None) -> str:
             text = text[:-1] + "+00:00"
         dt = datetime.fromisoformat(text)
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.replace(tzinfo=UTC)
         local = dt.astimezone()
         return local.strftime("%d/%m/%Y %H:%M")
     except ValueError:

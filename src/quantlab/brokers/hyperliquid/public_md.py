@@ -314,7 +314,9 @@ class HyperliquidPublicMdClient:
         seen: set[str] = set()
         errors: list[str] = []
 
-        def _fetch(dex_info: dict[str, Any]) -> tuple[dict[str, Any], list[dict[str, Any]] | None, str | None]:
+        def _fetch(
+            dex_info: dict[str, Any],
+        ) -> tuple[dict[str, Any], list[dict[str, Any]] | None, str | None]:
             dex_name = str(dex_info.get("name") or "")
             full = str(dex_info.get("full_name") or dex_name or "Hyperliquid")
             try:

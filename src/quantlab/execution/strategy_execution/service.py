@@ -142,7 +142,12 @@ class StrategyExecutionService:
             keys_ok = bool(tn.get("keys_configured")) and bool(tn.get("remote_enabled"))
             ready_spot = keys_ok and unlocked
             checks.append(
-                {"name": "spot_testnet_keys", "ok": keys_ok, "optional": True, "mirror_ready": keys_ok}
+                {
+                    "name": "spot_testnet_keys",
+                    "ok": keys_ok,
+                    "optional": True,
+                    "mirror_ready": keys_ok,
+                }
             )
             if not keys_ok:
                 warnings.append(
@@ -175,7 +180,9 @@ class StrategyExecutionService:
             )
 
         ok = not blockers and all(
-            c.get("ok") is not False for c in checks if c.get("ok") is not None and not c.get("optional")
+            c.get("ok") is not False
+            for c in checks
+            if c.get("ok") is not None and not c.get("optional")
         )
         # MVP: nunca autorizar órdenes remotas automáticamente vía API flag.
         return PreflightResult(

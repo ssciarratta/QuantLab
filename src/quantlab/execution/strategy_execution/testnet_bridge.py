@@ -44,14 +44,21 @@ def testnet_ready(*, market: TestnetMirrorMode) -> dict[str, Any]:
             "note": "Requiere unlock demo + QUANTLAB_DEMO_USE_TESTNET=1 + BINANCE_DEMO_*",
         }
     if market == "futures":
-        ready = unlocked and futures_testnet_remote_enabled() and transport == "binance_futures_testnet"
+        ready = (
+            unlocked
+            and futures_testnet_remote_enabled()
+            and transport == "binance_futures_testnet"
+        )
         return {
             "market": "futures",
             "ready": ready,
             "unlocked": unlocked,
             "transport": transport,
             "detail": dt.get("futures"),
-            "note": "Requiere unlock demo + QUANTLAB_DEMO_USE_FUTURES_TESTNET=1 + BINANCE_FUTURES_DEMO_*",
+            "note": (
+                "Requiere unlock demo + QUANTLAB_DEMO_USE_FUTURES_TESTNET=1 "
+                "+ BINANCE_FUTURES_DEMO_*"
+            ),
         }
     return {"market": "none", "ready": False}
 

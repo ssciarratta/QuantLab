@@ -6,7 +6,6 @@ from quantlab.research.sim.benchmark import (
     compute_benchmark,
 )
 from quantlab.research.sim.compare import run_sim_compare
-from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
 from quantlab.research.sim.costs import ExtraCost, apply_extra_costs
 from quantlab.research.sim.fee_schedules import (
     PRESETS,
@@ -32,6 +31,7 @@ from quantlab.research.sim.sizing import (
     estimate_peak_margin_from_fills,
     validate_trade_size,
 )
+from quantlab.research.sim.strategy_rank import run_sim_strategy_rank
 from quantlab.research.sim.symbol_map import resolve_instrument
 
 __all__ = [

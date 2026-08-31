@@ -1,6 +1,6 @@
 QUANTLAB — RESUMEN DEL PROYECTO
 ================================
-Actualizado: 2026-08-12
+Actualizado: 2026-08-31
 Versión: 1.01.0 — main
 
 ESTADO
@@ -9,6 +9,14 @@ ESTADO
 - ML GBM: ON + champion/challenger
 - Ranking B: todas las validaciones
 - LIVE_BLOCKED=True
+- Overlay Cursor: `.cursor/rules/00-proyecto-quantlab.mdc` (no dominio granos)
+
+ÚLTIMA (2026-08-31) — harness Cursor
+-------------------------------------
+- Memoria canónica: `.cursor/PROJECT_MEMORY.md` (la raíz solo apunta ahí).
+- Commands: `/architecture-review` · `/session-handoff` · `/project-sync`.
+- `auto-next-module` y sync GitHub ya no corren solos. Commit/push solo si lo pedís.
+- Skills: strategy-expander, walk-forward, risk-management. Cero PAF/Rosario.
 
 ÚLTIMA (2026-08-12) — ventanas al 90%
 -------------------------------------

@@ -1464,8 +1464,8 @@ def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) 
     try:
         if signal.scope.value == "pair" and len(signal.symbols) == 2:
             # Prefijos BN:/BNF: — strip para fetch
-            from quantlab.brokers.binance.public_md import fetch_universe_bars
             from quantlab.brokers.binance.futures_public_md import fetch_futures_bars
+            from quantlab.brokers.binance.public_md import fetch_universe_bars
 
             raw_syms = [s.split(":", 1)[-1] for s in signal.symbols]
             if market_type == "futures":
@@ -1477,8 +1477,8 @@ def handle_post_validate_candidate(state: WorkbenchState, body: dict[str, Any]) 
             bars_a = fetched[raw_syms[0]]
             bars_b = fetched[raw_syms[1]]
         else:
-            from quantlab.brokers.binance.public_md import fetch_universe_bars
             from quantlab.brokers.binance.futures_public_md import fetch_futures_bars
+            from quantlab.brokers.binance.public_md import fetch_universe_bars
 
             sym = signal.symbols[0].split(":", 1)[-1] if signal.symbols else ""
             if isinstance(underlyings, list) and underlyings:
@@ -4041,9 +4041,7 @@ def handle_post_lab_montecarlo(state: WorkbenchState, body: dict[str, Any]) -> d
             isinstance(sid_ctx, str)
             and sid_ctx.strip()
             and body.get("strategy_id") is None
-        ):
-            strategy_id = sid_ctx
-        elif isinstance(sid_ctx, str) and sid_ctx.strip() and strategy_id == "buy_once":
+        ) or isinstance(sid_ctx, str) and sid_ctx.strip() and strategy_id == "buy_once":
             strategy_id = sid_ctx
     persist = body.get("persist", True)
     if not isinstance(persist, bool):

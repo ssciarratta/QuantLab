@@ -9,8 +9,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES, FAMILY_WHEN_TO_USE
 from quantlab.research.alpha.score_guide import explain_composite_score
+from quantlab.workbench.strategy_guides import FAMILY_LABELS_ES, FAMILY_WHEN_TO_USE
 
 PROFILE_AUTO = "auto"
 SCORING_PROFILE_AUTO = "balanced"
@@ -273,7 +273,10 @@ def recommend_for_score(
         "note": (
             "Un score alto indica adecuación al perfil, no rentabilidad garantizada."
             if not auto
-            else "Auto: ranking equilibrado + familia/estrategias/TF inferidos. No garantiza rentabilidad."
+            else (
+                "Auto: ranking equilibrado + familia/estrategias/TF inferidos. "
+                "No garantiza rentabilidad."
+            )
         ),
     }
 
@@ -333,7 +336,10 @@ def build_auto_proposal(
     strat_names = ", ".join(s["name"] for s in (primary_rec.get("strategies") or [])) or "—"
     tfs = primary_rec.get("timeframes") or recommend_timeframes(interval, primary_row)
     primary_tf = tfs[0]["interval"] if tfs else interval
-    vote_txt = ", ".join(f"{FAMILY_LABELS_ES.get(k, k)}×{v}" for k, v in sorted(votes.items(), key=lambda x: -x[1]))
+    vote_txt = ", ".join(
+        f"{FAMILY_LABELS_ES.get(k, k)}×{v}"
+        for k, v in sorted(votes.items(), key=lambda x: -x[1])
+    )
     scope = f" en {venue}" if venue else ""
     text = (
         f"Propuesta Auto{scope}: para este conjunto conviene la familia «{label}» "

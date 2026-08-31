@@ -29,7 +29,13 @@ TESTNET_BASE_URL = "https://testnet.binance.vision"
 _ENV_KEY = "BINANCE_DEMO_API_KEY"
 _ENV_SECRET = "BINANCE_DEMO_API_SECRET"
 _ENV_USE = "QUANTLAB_DEMO_USE_TESTNET"
-_PROD_HOST_MARKERS = ("api.binance.com", "api.binance.us", "api1.binance.com", "api2.binance.com", "api3.binance.com")
+_PROD_HOST_MARKERS = (
+    "api.binance.com",
+    "api.binance.us",
+    "api1.binance.com",
+    "api2.binance.com",
+    "api3.binance.com",
+)
 _DEFAULT_RECV_WINDOW_MS = 5000
 _MAX_RECV_WINDOW_MS = 60000
 _BINANCE_ERROR_CODE_RE = re.compile(r'"code"\s*:\s*(-?\d+)')

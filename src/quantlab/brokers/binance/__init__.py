@@ -11,12 +11,12 @@ from quantlab.brokers.binance.fees import (
     binance_spot_fee_model,
     resolve_binance_spot_fee_schedule,
 )
-from quantlab.brokers.binance.public_md import BinancePublicMdClient, scan_binance_usdt
 from quantlab.brokers.binance.futures_testnet_client import (
     BinanceFuturesTestnetClient,
     futures_testnet_remote_enabled,
     futures_testnet_status,
 )
+from quantlab.brokers.binance.public_md import BinancePublicMdClient, scan_binance_usdt
 from quantlab.brokers.binance.testnet_client import (
     BinanceTestnetClient,
     testnet_remote_enabled,

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import os
 import signal
 import socket
@@ -122,10 +123,8 @@ def clear_lock(lock_path: Path, *, only_if_pid: int | None = None) -> None:
         current = read_lock_pid(lock_path)
         if current is not None and current != only_if_pid:
             return
-    try:
+    with contextlib.suppress(OSError):
         lock_path.unlink(missing_ok=True)
-    except OSError:
-        pass
 
 
 def wait_port_free(host: str, port: int, *, timeout_s: float = _WAIT_PORT_FREE_S) -> bool:
@@ -192,10 +191,12 @@ def _find_pid_listening(port: int) -> int | None:
             return None
         needle = f":{port}"
         for line in (out.stdout or "").splitlines():
-            if "LISTENING" not in line.upper() and "ESCUCHANDO" not in line.upper():
-                # Algunas locales usan LISTENING; aceptar también si aparece el puerto.
-                if "LISTEN" not in line.upper():
-                    continue
+            if (
+                "LISTENING" not in line.upper()
+                and "ESCUCHANDO" not in line.upper()
+                and "LISTEN" not in line.upper()
+            ):
+                continue
             if needle not in line:
                 continue
             parts = line.split()

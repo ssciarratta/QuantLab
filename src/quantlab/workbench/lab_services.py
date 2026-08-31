@@ -5,6 +5,7 @@ Usa datos sintéticos en memoria / registry temporal. Nunca envía órdenes live
 
 from __future__ import annotations
 
+import contextlib
 import re
 import tempfile
 from collections.abc import Mapping, Sequence
@@ -1836,7 +1837,7 @@ def run_binance_lab_pipeline(
             "walk_forward requiere kline_limit >= 16 (rank+backtest mínimos)"
         )
     interval = validate_kline_interval(interval)
-    prefix = validate_experiment_id(experiment_id_prefix)
+    validate_experiment_id(experiment_id_prefix)
     profile_key = (profile or "legacy_v1").strip().lower()
 
     url = base_url or DEFAULT_BASE_URL
@@ -2857,10 +2858,8 @@ def run_lab_montecarlo(
 
     def runner(noisy: Any) -> Any:
         if hasattr(mc_strategy, "reset"):
-            try:
+            with contextlib.suppress(Exception):
                 mc_strategy.reset()
-            except Exception:
-                pass
         bt = BarBacktester(
             BarBacktestConfig(experiment_id="wb-mc", initial_cash=initial_cash),
             fee_model=fee_model,
