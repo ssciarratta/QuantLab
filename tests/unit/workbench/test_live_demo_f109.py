@@ -34,6 +34,19 @@ def _clean() -> None:
     reset_demo_router()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_demo_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in (
+        "QUANTLAB_DEMO_USE_TESTNET",
+        "BINANCE_DEMO_API_KEY",
+        "BINANCE_DEMO_API_SECRET",
+        "QUANTLAB_DEMO_USE_FUTURES_TESTNET",
+        "BINANCE_FUTURES_DEMO_API_KEY",
+        "BINANCE_FUTURES_DEMO_API_SECRET",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+
 def test_version_f109() -> None:
     assert LIVE_BLOCKED is True
     assert __version__ == "1.01.0"

@@ -92,7 +92,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src", "scripts"]
+pythonpath = ["src", "scripts", "tests/unit/workbench"]
 addopts = "-ra --strict-markers"
 
 [tool.coverage.run]

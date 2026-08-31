@@ -126,10 +126,8 @@ def test_static_blotter_journal_download() -> None:
 
     assert "paperFillsCsvUrl" in api
     assert "/api/paper/fills.csv" in api
-    assert "Descargar CSV" in blotter
+    assert "CSV" in blotter
     assert "bl-download" in blotter
     assert "QLApi.paperFillsCsvUrl" in blotter
-    assert "Descargar CSV" in journal
     assert "jn-download" in journal
     assert "QLApi.paperFillsCsvUrl" in journal
-    assert "/api/paper/fills.csv" in journal

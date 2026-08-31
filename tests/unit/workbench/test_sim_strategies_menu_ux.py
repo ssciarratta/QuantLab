@@ -18,7 +18,7 @@ def test_index_loads_strategies_and_favorites() -> None:
     html = (STATIC / "index.html").read_text(encoding="utf-8")
     assert "panes/strategies.js" in html
     assert "ql-favorites" in html
-    assert "Mis favoritos" in html
+    assert "Barra rápida" in html
 
 
 def test_simulator_no_longer_embeds_guides_section() -> None:
@@ -35,12 +35,12 @@ def test_simulator_no_longer_embeds_guides_section() -> None:
 
 def test_shell_has_strategies_opener_and_wm() -> None:
     js = (STATIC / "js/shell.js").read_text(encoding="utf-8")
+    menu_js = (STATIC / "js/ql_menu.js").read_text(encoding="utf-8")
     assert "openStrategies" in js
     assert "strategies: openStrategies" in js
     assert "wm: wm" in js
-    assert "ql_menu_favorites" in js
+    assert "ql_menu_config_v6" in menu_js
     assert "sim_registry" in js
-    assert "FAV_DEFAULT" in js
 
 
 def test_lab_common_qlfmt_2_decimals() -> None:

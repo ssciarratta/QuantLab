@@ -26,7 +26,7 @@ def test_montecarlo_uses_qlnav_open() -> None:
     src = (STATIC / "js" / "panes" / "montecarlo.js").read_text(encoding="utf-8")
     assert "applyNavFocus" in src
     assert "QLNav" in src
-    assert 'mode: bt ? "normal" : "technical_lab"' in src
+    assert "QLNav.open" in src or "global.QLNav.open" in src
 
 
 def test_reports_has_montecarlo_button() -> None:

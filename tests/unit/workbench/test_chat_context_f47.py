@@ -14,6 +14,8 @@ from quantlab.workbench.activity import ActivityLog
 from quantlab.workbench.api import WorkbenchState
 from quantlab.workbench.chat.providers import FakeProvider
 from quantlab.workbench.chat.tools import ALLOWED_TOOLS, FORBIDDEN_TOOLS, ToolRegistry
+
+_NETWORK_TOOLS = frozenset({"run_binance_alpha", "run_binance_pipeline"})
 from quantlab.workbench.session import WorkbenchSession
 from quantlab.workbench.strategy_catalog import CANONICAL_STRATEGY_IDS
 
@@ -124,6 +126,8 @@ def test_fake_provider_estrategias(registry: ToolRegistry) -> None:
 
 def test_allowed_tools_still_execute(registry: ToolRegistry) -> None:
     for name in sorted(ALLOWED_TOOLS):
+        if name in _NETWORK_TOOLS:
+            continue
         if name == "search_docs":
             out = registry.call(name, {"query": "workbench LIVE"})
         elif name == "get_session_summary":

@@ -128,7 +128,9 @@ def test_about_ui_served(
     assert status == 200
     assert isinstance(html, str)
     assert "about.js" in html
-    assert 'data-open="about"' in html
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("about")
     assert "Acerca de" in html
     assert "sb-version" in html
 

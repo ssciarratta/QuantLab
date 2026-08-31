@@ -45,7 +45,9 @@ def test_static_access_log_pane_present() -> None:
     assert pane_js.is_file()
 
     index_text = index.read_text(encoding="utf-8")
-    assert 'data-open="access_log"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("access_log")
     assert "panes/access_log.js" in index_text
 
     js = pane_js.read_text(encoding="utf-8")

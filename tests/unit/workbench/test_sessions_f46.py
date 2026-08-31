@@ -208,8 +208,9 @@ def test_sessions_ui_served(
     assert status == 200
     assert isinstance(html, str)
     assert "sessions.js" in html
-    assert 'data-open="sessions"' in html
-    assert ">Sessions<" in html
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("sessions")
 
     st2, pane = _request(server, "GET", "/static/js/panes/sessions.js")
     assert st2 == 200

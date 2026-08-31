@@ -51,7 +51,7 @@
       h: g.h != null ? g.h : defaults.h,
       // Tamaño lo define wm.open (90% del escritorio). No restaurar max.
       minimized: false,
-      maximized: false,
+      maximized: !!g.maximized,
     };
     if (g.z != null) out.z = g.z;
     return out;

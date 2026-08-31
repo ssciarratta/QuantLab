@@ -35,7 +35,9 @@ def test_command_open_api_explorer() -> None:
 def test_static_api_explorer_pane_present() -> None:
     root = _static_root()
     index_text = (root / "index.html").read_text(encoding="utf-8")
-    assert 'data-open="api_explorer"' in index_text
+    from static_test_helpers import assert_panel_registered
+
+    assert_panel_registered("api_explorer")
     assert "panes/api_explorer.js" in index_text
 
     js = (root / "js" / "panes" / "api_explorer.js").read_text(encoding="utf-8")

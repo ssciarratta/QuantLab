@@ -115,7 +115,7 @@ def test_http_static_index_sends_csp(
         assert headers.get("content-security-policy") == CONTENT_SECURITY_POLICY
         # HTML sin scripts inline (compat script-src 'self').
         html = raw.decode("utf-8")
-        assert 'src="/static/js/shell.js"' in html
+        assert "/static/js/shell.js" in html
         assert re.search(
             r"<script(?![^>]*\bsrc=)[^>]*>\s*[^<\s]",
             html,
