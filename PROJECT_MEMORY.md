@@ -1,18 +1,7 @@
 # QuantLab Project Memory
 
-Actualizado: 2026-08-14 · skill `client-infocard` en `.cursor/skills/` (piezas clientes, paleta navy). Tip funcional F98 · versión 0.90.0.
+**Canónico:** `.cursor/PROJECT_MEMORY.md`
 
-- TESTER/PAPER operativos; REAL es alias de PAPER; LIVE routing sigue bloqueado.
-- `LIVE_BLOCKED=True`. F97 Support Bundle ZIP; F96 diagnostics.json; F95
-  `/api/diagnostics`; F94 API Explorer; F93 Venues. Ninguno muta estado.
-- F17–F18 con certificación externa; F19–F93 aprobadas INTERNAL (noche
-  F19–F93); F94 aprobada INTERNAL (noche F19–F94).
-- F92 congeló el arco F79–F91 en `docs/audit/MILESTONE_V080_ARC_FREEZE.md`
-  y sincronizó CHANGELOG (0.81.0/0.82.0/0.83.0/0.84.0).
-- Loop ops paper vigente: panel Reconciliación (F90) → CLI rebuild offline
-  (F88) → rehydrate con confirm (F91) → reconectar broker.
-- Portabilidad Windows verificada (sqlite closing, guard i18n, fsync `rb+`,
-  `/tmp` portable, env worker sandbox con SYSTEMROOT).
-- DEC vigente: DEC-142.
-- Auditoría noche vigente: `INTERNAL_AUDIT_F19_F97_NIGHT.md` (F98 pendiente).
-- No crear `FASE_98_APPROVED.md`; requiere Meta-Auditor externo.
+No editar este archivo de la raíz. Quedó desfasado (hablaba de v0.90) respecto del de `.cursor/` (v1.01+).
+
+Para retomar: `.cursor/PROJECT_MEMORY.md` y `RETOMAR.txt`.

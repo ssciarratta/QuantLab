@@ -21,7 +21,12 @@
 **Manuales:** `docs/manuales/` (índice + 35 paneles) · Help allowlist `ops|manuales|montecarlo|scanner` · entrada `docs/MANUALES.md` · GUIA_COMPLETA actualizada  
 **Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); params editables a mano por estrategia en Comparar  
 **Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner v local + GH tip + sync · «mod» = max(commit, GH, mtime working tree `src/quantlab`) · `/api/update/*`  
-**Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)  
+**Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)
+
+### 2026-08-31 — Overlay Cursor QuantLab
+- Contexto: reglas globales de granos y auto-push contaminaban este lab.
+- Decisión: `00-proyecto-quantlab.mdc`; memoria canónica = `.cursor/PROJECT_MEMORY.md`; `auto-next-module` y `phase-github-sync` ya no alwaysApply.
+- Impacto: el agente no mezcla PAF/Rosario; commit/push solo si lo pedís.  
   
 **Milestone congelado arco v0.80:** F79–F91 · `docs/audit/MILESTONE_V080_ARC_FREEZE.md`  
 **Milestone congelado arco ops v0.90:** F93–F97 · `docs/audit/MILESTONE_V090_OPS_ARC_FREEZE.md`  
