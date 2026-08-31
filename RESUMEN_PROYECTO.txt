@@ -11,6 +11,15 @@ ESTADO
 - LIVE_BLOCKED=True
 - Overlay Cursor: `.cursor/rules/00-proyecto-quantlab.mdc` (no dominio granos)
 
+ÚLTIMA (2026-08-31) — CI Pipeline restaurado (main 317643c)
+-----------------------------------------------------------
+- Pipeline GitHub Actions verde: Ruff · Mypy strict · Pytest (1717+) · health.
+- Causa: ~45 errores Ruff acumulados bloqueaban el job (~14s, sin Mypy/pytest).
+- Fixes: lint en src/quantlab; Mypy (kronos/ml/server); tests workbench alineados
+  con UI dinámica (panel_registry + static_test_helpers); stub pandas en test Kronos
+  para CI sin extra kronos; pythonpath pytest tests/unit/workbench.
+- Run: https://github.com/ssciarratta/QuantLab/actions/runs/33421629646
+
 ÚLTIMA (2026-08-31) — harness Cursor
 -------------------------------------
 - Memoria canónica: `.cursor/PROJECT_MEMORY.md` (la raíz solo apunta ahí).

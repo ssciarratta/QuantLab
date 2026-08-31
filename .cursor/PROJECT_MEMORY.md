@@ -1,6 +1,6 @@
 # QuantLab — PROJECT MEMORY (Cursor)
 
-**Actualizado:** 2026-08-12 (auditoría Alpha implementada)  
+**Actualizado:** 2026-08-31 (CI Pipeline restaurado en main)  
 **Branch trabajo:** `main`  
 **Versión tip:** **1.01.0** · UI favoritos + dual Spot/Futures Testnet  
 **Lección scanner 2026-08-05:** `is_http_safe_symbol` (A-Z0-9) — CJK en exchangeInfo rompía urllib  
@@ -22,6 +22,12 @@
 **Pendiente UX:** Guided Lab sigue scroll (intro aclara vs Simulador); params editables a mano por estrategia en Comparar  
 **Singleton + update banner:** al abrir mata Workbench previo (PID/puerto) · banner v local + GH tip + sync · «mod» = max(commit, GH, mtime working tree `src/quantlab`) · `/api/update/*`  
 **Pendiente UX:** Guided Lab rediseño cascada/solapas (solo diseño previo)
+
+### 2026-08-31 — CI Pipeline restaurado (main `317643c`)
+- Contexto: CI fallaba desde ~2026-08-14; Ruff abortaba en ~14s (45 errores); Mypy/pytest no corrían.
+- Fixes (5 commits): Ruff lint; Mypy strict (kronos, ml, server); tests workbench vs UI dinámica (`panel_registry`, `static_test_helpers`); aislamiento env testnet en tests live; stub pandas test Kronos; `pythonpath` pytest.
+- Estado: run verde [33421629646](https://github.com/ssciarratta/QuantLab/actions/runs/33421629646) — Ruff · Mypy · Pytest 1717+ · health.
+- Lección: auto-sync puede desincronizar tests estáticos vs UI JS dinámica; validar CI completo, no solo lint.
 
 ### 2026-08-31 — Overlay Cursor QuantLab
 - Contexto: reglas globales de granos y auto-push contaminaban este lab.
