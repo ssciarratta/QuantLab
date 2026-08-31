@@ -72,13 +72,13 @@ def build_forecast_request(
     arr = bars_to_ohlcva(window)
     return ForecastRequest(
         instrument_id=instrument_id,
-        lookback_opens=arr["open"],  # type: ignore[arg-type]
-        lookback_highs=arr["high"],  # type: ignore[arg-type]
-        lookback_lows=arr["low"],  # type: ignore[arg-type]
-        lookback_closes=arr["close"],  # type: ignore[arg-type]
-        lookback_volumes=arr["volume"],  # type: ignore[arg-type]
-        lookback_amounts=arr["amount"],  # type: ignore[arg-type]
-        timestamps_ns=arr["timestamps_ns"],  # type: ignore[arg-type]
+        lookback_opens=arr["open"],
+        lookback_highs=arr["high"],
+        lookback_lows=arr["low"],
+        lookback_closes=arr["close"],
+        lookback_volumes=arr["volume"],
+        lookback_amounts=arr["amount"],
+        timestamps_ns=arr["timestamps_ns"],
         pred_len=pred_len,
         sample_count=sample_count,
         temperature=temperature,

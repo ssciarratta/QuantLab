@@ -28,7 +28,7 @@ def resolve_device(pref: str) -> str:
     if pref_l == "cpu":
         return "cpu"
     try:
-        import torch  # type: ignore[import-untyped]
+        import torch
 
         if pref_l == "cuda" and torch.cuda.is_available():
             return "cuda:0"

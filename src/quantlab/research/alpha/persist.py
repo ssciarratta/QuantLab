@@ -8,12 +8,16 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol, cast
 from uuid import uuid4
 
 from quantlab.core.types.market import Bar
 from quantlab.research.alpha.models import AlphaScanRequest, AlphaScanResult
 from quantlab.research.alpha.scoring import ScoredRow
+
+
+class _RowWithToDict(Protocol):
+    def to_dict(self) -> dict[str, Any]: ...
 
 
 def _stable_json(obj: Any) -> str:
@@ -169,7 +173,7 @@ class ScanStore:
         rows_payload: list[dict[str, Any]] = []
         for r in rows:
             if hasattr(r, "to_dict"):
-                rows_payload.append(r.to_dict())  # type: ignore[union-attr]
+                rows_payload.append(cast(_RowWithToDict, r).to_dict())
             elif isinstance(r, Mapping):
                 rows_payload.append(dict(r))
             else:

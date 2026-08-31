@@ -83,7 +83,7 @@ module = ["pyRofex", "pyRofex.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["torch", "torch.*", "pandas", "pandas.*", "einops", "einops.*", "model", "model.*"]
+module = ["numpy", "numpy.*", "torch", "torch.*", "pandas", "pandas.*", "einops", "einops.*", "model", "model.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

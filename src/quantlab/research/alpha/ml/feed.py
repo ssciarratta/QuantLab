@@ -106,7 +106,11 @@ def maybe_feed_ml(*, ledger_path: Path | None) -> dict[str, Any]:
             }
 
         st = reg.read_state()
-        last_n = int(st.get("last_train_n") or 0)
+        raw_last = st.get("last_train_n")
+        try:
+            last_n = int(raw_last) if raw_last is not None else 0
+        except (TypeError, ValueError):
+            last_n = 0
         has_model = bool(reg.get_active_id())
         if has_model and (n - last_n) < RETRAIN_EVERY:
             return {

@@ -35,8 +35,12 @@ class KronosTorchEngine:
     def _load(self) -> None:
         ensure_vendor_on_path(self.vendor)
         try:
-            import torch  # type: ignore[import-untyped]
-            from model import Kronos, KronosPredictor, KronosTokenizer  # type: ignore
+            import torch
+            from model import (  # type: ignore[import-not-found]
+                Kronos,
+                KronosPredictor,
+                KronosTokenizer,
+            )
         except ImportError as exc:
             raise KronosError(
                 KronosSkipReason.DEPS_MISSING,
@@ -127,7 +131,7 @@ class KronosTorchEngine:
         )
 
     def _predict_trajectories(self, request: ForecastRequest) -> TrajectoryBatch:
-        import pandas as pd  # type: ignore[import-untyped]
+        import pandas as pd
 
         n = len(request.lookback_closes)
         if n < 8:
@@ -168,7 +172,7 @@ class KronosTorchEngine:
         # sample_count trayectorias independientes (sample_count=1 cada llamada)
         for s in range(max(1, request.sample_count)):
             try:
-                import torch  # type: ignore[import-untyped]
+                import torch
 
                 torch.manual_seed(request.seed + s)
             except Exception:  # noqa: BLE001

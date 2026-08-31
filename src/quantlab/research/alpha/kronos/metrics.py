@@ -158,7 +158,15 @@ def profile_kronos_score(metrics: KronosMetrics, profile: str) -> float | None:
     stab = metrics.kronos_regime_stability
     conf = metrics.kronos_confidence
     mm = metrics.kronos_market_making_score
-    if None in (br, rp, tr, disp, stab, conf, mm):
+    if (
+        br is None
+        or rp is None
+        or tr is None
+        or disp is None
+        or stab is None
+        or conf is None
+        or mm is None
+    ):
         return None
 
     key = (profile or "").strip().lower()

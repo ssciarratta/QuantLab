@@ -425,7 +425,8 @@ def make_handler(state: WorkbenchState) -> type[BaseHTTPRequestHandler]:
                     from urllib.parse import parse_qs
 
                     q = parse_qs(parsed.query or "")
-                    session_q = (q.get("session_id") or [None])[0]
+                    session_ids = q.get("session_id") or []
+                    session_q = session_ids[0] if session_ids else None
                     self._send_json(handle_get_execution_live(state, session_q))
                     return
                 if path.startswith("/api/execution/promotions/"):

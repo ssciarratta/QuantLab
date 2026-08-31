@@ -384,7 +384,7 @@ def apply_kronos_to_scan(
             symbol=str(row.get("symbol") or iid),
             profile=profile,
             traditional_score=trad,
-            kronos_score=fields.get("kronos_score"),  # type: ignore[arg-type]
+            kronos_score=fields.get("kronos_score"),
             final_score=float(fields["final_score"]),
             metrics=metrics,
             rank_improved=None
