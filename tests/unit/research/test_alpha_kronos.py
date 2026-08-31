@@ -357,12 +357,32 @@ def test_safe_stdio_absorbs_unicode_progress_bars() -> None:
         sys.stderr = old_err
 
 
-def test_forecast_catches_unicode_encode_error() -> None:
+def test_forecast_catches_unicode_encode_error(monkeypatch: pytest.MonkeyPatch) -> None:
     """UnicodeEncodeError en inferencia → fail-soft (no 500 HTTP)."""
     import sys
+    import types
 
     from quantlab.research.alpha.kronos.errors import KronosSkipReason
     from quantlab.research.alpha.kronos.forecast import KronosTorchEngine
+
+    pd = types.ModuleType("pandas")
+
+    class _DF:
+        def __init__(self, data: dict[str, list[float]]) -> None:
+            self._data = data
+
+    class _Series:
+        def __init__(self, values: object) -> None:
+            self.values = values
+
+        @property
+        def dt(self) -> _Series:
+            return self
+
+    pd.DataFrame = _DF
+    pd.Series = _Series
+    pd.to_datetime = lambda values, unit=None: values
+    monkeypatch.setitem(sys.modules, "pandas", pd)
 
     eng = object.__new__(KronosTorchEngine)
     eng.config = KronosConfig(enabled=True)
